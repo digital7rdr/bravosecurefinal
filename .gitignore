@@ -51,9 +51,12 @@ AuthKey_*.p8
 supabase/.temp/
 supabase/.branches/
 
-# Native build output
-android/
-ios/
+# Native build output — Expo prebuild REGENERATES these, so they are ignored.
+# Anchored with a leading slash: the unanchored form matched at ANY depth and
+# silently swallowed native/android/ too, which is how ~82 KB of hand-written
+# Kotlin ended up outside version control (2026-09-21).
+/android/
+/ios/
 android.backup-*/
 ios.backup-*/
 
@@ -119,6 +122,14 @@ coverage/
 
 # B-111-B: checked-in iOS native sources (plugins copy them into the generated ios/ at prebuild)
 !native/ios/
+
+# 2026-09-21 — checked-in ANDROID native sources, same principle as
+# native/ios/ above. These 20 Kotlin files are hand-written Bravo modules
+# (BravoMessageSyncModule, MessageSyncForegroundService, BravoFrameCryptorModule,
+# CallForegroundService, BravoBatteryOptimizationModule …) and were living ONLY
+# in the generated android/ tree, which `expo prebuild --clean` deletes. They
+# are the source of truth; android/ holds the generated copy.
+!native/android/
 
 # Local iOS release output (archives, ipas, logs) — large, regenerable
 .ios-release/
