@@ -1,0 +1,195 @@
+# Bravo Secure — backend services for local dev.
+# Run from repo root: `docker compose up messenger-service redis`.
+# Add auth-service, postgres, etc. as needed per milestone.
+#
+# Services listed here are independent of the React Native app — the
+# mobile client connects to these over host network (10.0.2.2 on
+# Android emulator, localhost on iOS sim).
+#
+# ── E2E-21 (2026-09-03) — RESOURCE LIMITS ────────────────────────────────────
+# Nothing here had a memory or CPU ceiling, and neither did
+# infra/systemd/bravo-auth.service. On the one 4-vCPU / 8 GB Contabo box that
+# runs Redis, coturn, auth-service, messenger-service and the ops console
+# TOGETHER, an unbounded leak in ANY of them is a whole-host OOM: the kernel
+# picks a victim by RSS, and the victim it picks is usually Redis — which takes
+# every fenced sweep lock, the WS adapter and every live call with it.
+#
+# The budget below leaves ~2 GB of the 8 GB for the host, the ops console and
+# page cache, and never lets one service claim more than ~1.5 GB:
+#
+#   redis              512 MB  / 0.50 cpu
+#   messenger-service  1.5 GB  / 1.50 cpu   (heap ceiling 1024 MB)
+#   coturn             512 MB  / 1.00 cpu
+#   auth-service       1.5 GB  / 1.50 cpu   (systemd unit, heap ceiling 1024 MB)
+#
+# `mem_limit` / `cpus` are the Compose V2 non-swarm spelling — `docker compose`
+# applies them as cgroup limits directly. `memswap_limit` is pinned EQUAL to
+# `mem_limit` on purpose: without it a container may spill an equal amount into
+# swap, which turns a fast OOM-kill (systemd restarts it in 5 s) into a slow
+# host-wide thrash that takes everything else down with it.
+#
+# NODE HEAP CEILING: each Node service also gets --max-old-space-size at ~2/3 of
+# its cgroup limit. V8's default heap target is derived from HOST memory, not the
+# cgroup, so without this a container with a 1.5 GB limit still lets V8 grow its
+# old space toward ~4 GB and be OOM-killed mid-GC instead of throwing a
+# recoverable heap error. 1024 MB of heap under a 1536 MB limit leaves ~500 MB
+# for native allocations, buffers and the runtime itself.
+#
+# This changes NO application behaviour — it only bounds what a process may take.
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: bravo-redis
+    # E2E-21 — `--maxmemory` is the IN-PROCESS ceiling and `mem_limit` is the
+    # cgroup one; Redis must hit its own limit FIRST (and evict) rather than be
+    # OOM-killed by the kernel, so maxmemory is set below the cgroup limit.
+    # allkeys-lru is safe here: every key this deployment stores is a cache, a
+    # fenced sweep lock (TTL'd, re-acquired next tick), an idempotency slot
+    # (TTL'd) or a pub/sub buffer — nothing is a durable record of money.
+    command:
+      - 'redis-server'
+      - '--save'
+      - ''
+      - '--appendonly'
+      - 'no'
+      - '--maxmemory'
+      - '384mb'
+      - '--maxmemory-policy'
+      - 'allkeys-lru'
+    ports:
+      - '6379:6379'
+    restart: unless-stopped
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 0.5
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  messenger-service:
+    build:
+      context: ./apps/messenger-service
+      dockerfile: Dockerfile
+    image: bravo/messenger-service:local
+    container_name: bravo-messenger-service
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: '3100'
+      # E2E-21 — V8 sizes its heap from HOST memory, not the cgroup, so a
+      # container with mem_limit 1.5g still lets old space grow past it and get
+      # OOM-killed. ~2/3 of the limit; the rest is native + buffers + runtime.
+      NODE_OPTIONS: '${NODE_OPTIONS:---max-old-space-size=1024}'
+      # E2E-20 — global HTTP rate limiting. ENFORCED by default since
+      # 2026-09-03 (GlobalHttpThrottlerGuard); set to 'false' for ONE deploy to
+      # fall back to [throttle-shadow] logging if a rollout 429s real traffic.
+      # Listed here even though it is unset, so it is visible rather than
+      # invisible — the whole E2E-20 defect was a flag named in no file.
+      THROTTLE_ENFORCE: '${THROTTLE_ENFORCE:-true}'
+      JWT_ACCESS_SECRET: '${JWT_ACCESS_SECRET:-dev-access-secret-do-not-use-in-prod-xxxxxxxxxxxxxxxx}'
+      JWT_ISSUER: '${JWT_ISSUER:-auth-service}'
+      JWT_AUDIENCE: '${JWT_AUDIENCE:-bravo-api}'
+      REDIS_URL: 'redis://redis:6379'
+      WS_HEARTBEAT_MS: '30000'
+      # B-05 — feeds socket.io pingTimeout (redis-io.adapter.ts). MUST match the
+      # configuration.ts default (25000); at 10000 a late pong under Contabo/TURN
+      # latency spikes reaped the socket and kicked every participant of a live
+      # call at one heartbeat cycle. See sqa.md B-05.
+      WS_HEARTBEAT_GRACE: '25000'
+      # OR-5/SRV-07 — see apps/messenger-service/.env.example. Single-replica only.
+      WS_SESSION_RECOVERY: '${WS_SESSION_RECOVERY:-false}'
+      RELAY_DWELL_SECONDS: '2592000'
+      # TURN config — must match the coturn `static-auth-secret` below.
+      # The URL points at the host's published 3478/UDP because the
+      # client (mobile) reaches coturn directly, not via this container's
+      # Docker network. ADB reverse forwards 3478 from the phone back to
+      # the host, where coturn is listening.
+      TURN_STATIC_AUTH_SECRET: '${TURN_STATIC_AUTH_SECRET:-dev-turn-secret-rotate-in-prod}'
+      TURN_TTL_SECONDS: '86400'
+      TURN_URLS: '${TURN_URLS:-turn:127.0.0.1:3478?transport=udp,turn:127.0.0.1:3478?transport=tcp}'
+    ports:
+      - '3100:3100'
+    restart: unless-stopped
+    # E2E-21 — see the header. 1.5 GB / 1.5 cpu of the 8 GB / 4 vCPU box.
+    mem_limit: 1536m
+    memswap_limit: 1536m
+    cpus: 1.5
+
+  coturn:
+    image: coturn/coturn:4.6
+    container_name: bravo-coturn
+    # Host network keeps the TURN relay's announced public IP straight —
+    # coturn binds explicit ports and tells clients the SAME IP it sees
+    # them connect on. With Docker's default bridged network the relay
+    # would advertise the container's internal IP, which is unreachable
+    # from any phone on the LAN.
+    network_mode: host
+    command:
+      - -n # foreground (no daemonize)
+      - --no-tls
+      - --no-dtls
+      - --no-cli
+      - --listening-port=3478
+      - --min-port=49160
+      - --max-port=49200
+      - --realm=bravo.local
+      - --use-auth-secret
+      - --static-auth-secret=${TURN_STATIC_AUTH_SECRET:-dev-turn-secret-rotate-in-prod}
+      - --fingerprint
+      - --no-multicast-peers
+      # Audit P0-C4 — peer-IP denylist. Without these flags, every
+      # authed Bravo account is a 24h open SSRF tunnel: a client could
+      # ask coturn to relay packets to RFC1918 hosts (the VPC), the AWS
+      # IMDS endpoint (169.254.169.254 — instance metadata service,
+      # source of every classic AWS escalation), or loopback (services
+      # bound to 127.0.0.1 inside the coturn host). coturn relays
+      # blindly because it has no business-logic layer; the only place
+      # to gate this is the relay config.
+      #   --no-loopback-peers       — denies relay to 127.0.0.0/8 and
+      #                                ::1, so services bound locally
+      #                                on the coturn host stay invisible.
+      #   --denied-peer-ip ranges   — the canonical SSRF denylist:
+      #                                RFC1918 private space + RFC6890
+      #                                special-use + AWS/GCP IMDS.
+      #   --allowed-peer-ip empty   — explicit allowlist not used
+      #                                (every public peer remains open;
+      #                                this gate is denylist-only).
+      - --no-loopback-peers
+      # RFC1918
+      - --denied-peer-ip=10.0.0.0-10.255.255.255
+      - --denied-peer-ip=172.16.0.0-172.31.255.255
+      - --denied-peer-ip=192.168.0.0-192.168.255.255
+      # Link-local + IMDS (AWS / GCP / OpenStack all share 169.254.169.254)
+      - --denied-peer-ip=169.254.0.0-169.254.255.255
+      # Loopback (belt-and-braces with --no-loopback-peers)
+      - --denied-peer-ip=127.0.0.0-127.255.255.255
+      # IETF assignments — TEST-NET, benchmark, multicast, reserved
+      - --denied-peer-ip=0.0.0.0-0.255.255.255
+      - --denied-peer-ip=100.64.0.0-100.127.255.255
+      - --denied-peer-ip=192.0.0.0-192.0.0.255
+      - --denied-peer-ip=192.0.2.0-192.0.2.255
+      - --denied-peer-ip=198.18.0.0-198.19.255.255
+      - --denied-peer-ip=198.51.100.0-198.51.100.255
+      - --denied-peer-ip=203.0.113.0-203.0.113.255
+      - --denied-peer-ip=224.0.0.0-239.255.255.255
+      - --denied-peer-ip=240.0.0.0-255.255.255.255
+      # IPv6 loopback + link-local + ULA + IMDS-equivalent
+      - --denied-peer-ip=::-::
+      - --denied-peer-ip=::1-::1
+      - --denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+      - --denied-peer-ip=fe80::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+      - --denied-peer-ip=fd00:ec2::-fd00:ec2:ffff:ffff:ffff:ffff:ffff:ffff
+      - --log-file=stdout
+      - --simple-log
+    restart: unless-stopped
+    # E2E-21 — coturn relays media for every 1:1 call on this host and is the
+    # service most exposed to a traffic spike, so it is capped too. `network_mode:
+    # host` does not exempt a container from cgroup limits.
+    mem_limit: 512m
+    memswap_limit: 512m
+    cpus: 1.0

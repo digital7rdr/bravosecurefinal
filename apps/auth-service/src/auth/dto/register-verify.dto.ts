@@ -1,0 +1,24 @@
+import {IsEmail, IsString, MinLength, MaxLength, Matches, IsIn} from 'class-validator';
+import {DeviceIdentityDto} from './device-identity.dto';
+
+// DTO audit P0-V1 — `role` and `subscriptionTier` REMOVED from the
+// public registration body. The previous DTO accepted both with
+// `@IsOptional() @IsIn([...])` and the service wrote them straight
+// into `public.users`, which meant any unauthenticated registration
+// could self-grant `role='agent'` (the FSM-gated partner role) AND
+// `subscription_tier='pro'` (a paid SKU). Role flips now happen only
+// via the `/agents` create + ops `/ops/agents/:id/decide` flow; Pro
+// upgrades go through the wallet / Stripe path. Registration
+// inserts the defaults server-side ('individual', 'lite') in
+// auth.service.registerVerify.
+// B-794 — extends DeviceIdentityDto (optional device model/brand/OS/app).
+export class RegisterVerifyDto extends DeviceIdentityDto {
+  @IsEmail()       email!:       string;
+  @MinLength(8)    password!:    string;
+  @MinLength(1) @MaxLength(120) displayName!: string;
+  @Matches(/^\+\d{7,15}$/) phoneE164!: string;
+
+  @Matches(/^\d{4,8}$/)                     code!:     string;
+  @IsString() @MinLength(1) @MaxLength(128) deviceId!: string;
+  @IsIn(['ios','android','web'])            platform!: string;
+}

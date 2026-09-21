@@ -1,0 +1,41 @@
+diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/RNMBXPackage.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/RNMBXPackage.kt
+index 0b9bf05..ab4e389 100644
+--- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/RNMBXPackage.kt
++++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/RNMBXPackage.kt
+@@ -92,10 +92,36 @@ class RNMBXPackage : TurboReactPackage() {
+         viewTagResolver = null
+     }
+ 
++    // Bravo B-730 — the app strips BOTH Mapbox androidx.startup initializers from
++    // its manifest (W4/B-685 boot diet), so MapboxSDKCommon.appContext is unset
++    // until a MapView runs MapboxInitializer. RNMBXLocationModule's constructor
++    // reaches LocationServiceFactory BEFORE any map exists (TurboModuleRegistry
++    // .getEnforcing at JS module eval) and threw ExceptionInInitializerError on
++    // every agent/CPO boot. Run the common initializer here, once, before
++    // whichever rnmapbox module JS asks for first. Idempotent: Mapbox's own
++    // MapboxInitializer re-runs the same initializer per MapView.
++    @Volatile private var mapboxCommonInitialized = false
++    private fun ensureMapboxCommonInitialized(context: ReactApplicationContext) {
++        if (mapboxCommonInitialized) return
++        try {
++            // Reflection, not a direct call: androidx.startup.Initializer (the
++            // supertype) is not on this module's compile classpath, so a typed
++            // call fails compileReleaseKotlin. Same runtime behaviour.
++            val clazz = Class.forName("com.mapbox.common.MapboxSDKCommonInitializer")
++            val inst = clazz.getDeclaredConstructor().newInstance()
++            clazz.getMethod("create", android.content.Context::class.java)
++                .invoke(inst, context.applicationContext)
++            mapboxCommonInitialized = true
++        } catch (e: Throwable) {
++            android.util.Log.w("RNMBXPackage", "MapboxSDKCommon on-demand init failed: $e")
++        }
++    }
++
+     override fun getModule(
+         s: String,
+         reactApplicationContext: ReactApplicationContext
+     ): NativeModule? {
++        ensureMapboxCommonInitialized(reactApplicationContext)
+         when (s) {
+             RNMBXModule.REACT_CLASS -> return RNMBXModule(reactApplicationContext)
+             RNMBXLocationModule.REACT_CLASS -> return RNMBXLocationModule(reactApplicationContext)

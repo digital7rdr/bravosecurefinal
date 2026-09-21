@@ -1,0 +1,379 @@
+// B-39 hardening — dev auth bypasses (OTP + biometric) must NEVER be honored in
+// production, even if the env var is mistakenly set. `check()` treats devBypass
+// as "accept any code", so a stray OTP_DEV_BYPASS=true in a prod deploy collapses
+// MFA to single-factor. Force every dev-skip off when NODE_ENV=production so the
+// real Twilio Verify / integrity path is the only route in prod.
+const IS_PROD = (process.env['NODE_ENV'] ?? 'development') === 'production';
+const devFlag = (envVar: string | undefined): boolean => !IS_PROD && envVar === 'true';
+
+// P1-P-1 — 2FA seed at-rest encryption key. NEVER fall back to a literal
+// key in production: an unset TOTP_ENCRYPTION_KEY there would seal every
+// user's TOTP secret under a publicly-known constant, so a DB/backup leak
+// of totp_secrets is instantly decryptable. Fail CLOSED at boot (mirrors
+// the sender-cert / JWT_ACTION_SECRET pattern). Dev/test keep a fixed key
+// so a local run without secrets still boots.
+const DEV_TOTP_KEY = 'a'.repeat(64);
+function totpEncryptionKey(): string {
+  const key = process.env['TOTP_ENCRYPTION_KEY'] ?? '';
+  if (key) return key;
+  if (IS_PROD) {
+    throw new Error(
+      'TOTP_ENCRYPTION_KEY must be set in production (64 hex chars) — ' +
+      'refusing to boot with a default 2FA-at-rest encryption key',
+    );
+  }
+  return DEV_TOTP_KEY;
+}
+
+// Audit Rev2 SEC-01 — JWT secrets must be REAL in production.
+//
+// These used to be `process.env[...] ?? ''`, and jwt.service.ts encoded that
+// straight into an HMAC key. Signing and verifying HS256 with a zero-length key
+// is self-consistent, so the service boots and serves traffic normally — while
+// anyone who knows this forges {sub: <any user>, role: 'admin'}. The `?? ''`
+// was a TypeScript reflex (config.get returns string|undefined; '' compiles),
+// not a decision.
+//
+// Fail CLOSED at config load, mirroring totpEncryptionKey() above. This runs
+// inside ConfigModule.forRoot({load:[configuration]}) — i.e. during
+// NestFactory.create, before app.listen — so a misconfigured service refuses to
+// START rather than 500-ing (or, via JwtAuthGuard's blanket catch, misleadingly
+// 401-ing) on first request.
+const DEV_ACCESS_SECRET = 'dev-only-access-secret-not-for-production-0123456789abcdef';
+const DEV_ACTION_SECRET = 'dev-only-action-secret-not-for-production-0123456789abcdef';
+
+// An emptiness check alone is not enough, twice over:
+//   - infra/env/auth.env.example ships `<replace-with-output-of-openssl-rand-base64-64>`
+//     and bootstrap-staging.sh copies it VERBATIM to /etc/bravo/auth.env. Not empty.
+//   - docker-compose.yml publishes a 53-char dev secret with no angle brackets,
+//     which sails past both a length rule and a placeholder rule.
+const PUBLISHED_DEV_SECRETS = new Set([
+  'dev-access-secret-do-not-use-in-prod-xxxxxxxxxxxxxxxx',
+  DEV_ACCESS_SECRET,
+  DEV_ACTION_SECRET,
+]);
+
+function jwtSecret(name: 'JWT_ACCESS_SECRET' | 'JWT_ACTION_SECRET', devFallback: string): string {
+  const raw = process.env[name] ?? '';
+  const s   = raw.trim();
+
+  // 32 is a FLOOR on format, not a measure of entropy — it exists to catch
+  // truncation and obvious junk. Keep it at 32: the messenger-service test
+  // fixtures are 35 chars, and raising it to 64 would break them.
+  const problem =
+    !s                            ? 'missing or blank'
+    : /^<.*>$/.test(s)            ? 'still the <replace-me> placeholder from auth.env.example'
+    : s.length < 32               ? `too short (${s.length} chars, need at least 32)`
+    : PUBLISHED_DEV_SECRETS.has(raw) ? 'a development secret published in this repository'
+    : null;
+
+  if (!problem) return raw;
+  if (IS_PROD) {
+    throw new Error(`${name} is ${problem} — refusing to start`);
+  }
+  return devFallback;
+}
+
+function jwtSecrets(): {accessSecret: string; actionSecret: string} {
+  const accessSecret = jwtSecret('JWT_ACCESS_SECRET', DEV_ACCESS_SECRET);
+  // NO `?? JWT_ACCESS_SECRET` fallback. It used to inherit, which meant a File
+  // Vault MFA step-up token and an ordinary session token could be signed with
+  // the same key — defeating the entire point of a step-up.
+  const actionSecret = jwtSecret('JWT_ACTION_SECRET', DEV_ACTION_SECRET);
+  if (accessSecret === actionSecret) {
+    throw new Error(
+      'JWT_ACTION_SECRET must differ from JWT_ACCESS_SECRET — a step-up proof signed ' +
+      'with the session key proves nothing',
+    );
+  }
+  // NOTE FOR DEPLOYS: auth-service only SIGNS action tokens; messenger-service
+  // only VERIFIES them, with its own JWT_ACTION_SECRET and no fallback. The
+  // binding requirement is therefore that this value is IDENTICAL on both
+  // services — "present and distinct" is only half the contract.
+  return {accessSecret, actionSecret};
+}
+
+export default () => ({
+  port:        parseInt(process.env['PORT'] ?? '3001', 10),
+  nodeEnv:     process.env['NODE_ENV'] ?? 'development',
+  databaseUrl: process.env['DATABASE_URL'] ?? '',
+  redisUrl:    process.env['REDIS_URL'] ?? 'redis://127.0.0.1:7379',
+
+  jwt: {
+    ...jwtSecrets(),
+    accessTtl:    process.env['JWT_ACCESS_TTL']  ?? '15m',
+    refreshTtl:   process.env['JWT_REFRESH_TTL'] ?? '30d',
+  },
+
+  otp: {
+    length:        parseInt(process.env['OTP_LENGTH'] ?? '6', 10),
+    ttlMinutes:    parseInt(process.env['OTP_TTL_MINUTES'] ?? '10', 10),
+    maxAttempts:   parseInt(process.env['OTP_MAX_ATTEMPTS'] ?? '3', 10),
+    devReturnCode: devFlag(process.env['OTP_DEV_RETURN_CODE']),
+    // DEV ONLY — when true, send() is a no-op (no Twilio) and check() always returns true.
+    // Lets the full register/login flow work while Twilio is blocked or unavailable.
+    // B-39: forced OFF in production regardless of the env var (see devFlag above).
+    devBypass:     devFlag(process.env['OTP_DEV_BYPASS']),
+  },
+
+  twilio: {
+    accountSid: process.env['TWILIO_ACCOUNT_SID'] ?? '',
+    authToken:  process.env['TWILIO_AUTH_TOKEN']  ?? '',
+    fromNumber: process.env['TWILIO_FROM']         ?? '',
+    verifySid:  process.env['TWILIO_VERIFY_SID']   ?? '',  // Twilio Verify service SID (VA...)
+  },
+
+  totp: {
+    // P1-P-1 — throws at boot in production when unset (see totpEncryptionKey).
+    encryptionKey: totpEncryptionKey(),
+    issuer:        process.env['TOTP_ISSUER'] ?? 'Bravo Secure',
+  },
+
+  kafka: {
+    brokers:         (process.env['KAFKA_BROKERS'] ?? '').split(',').filter(Boolean),
+    auditTopic:      process.env['KAFKA_AUDIT_TOPIC'] ?? 'audit-events',
+    // BE-7.3 — geofence breach + escalation events land here for the
+    // dispatch / pager surfaces that subscribe downstream.
+    escalationTopic: process.env['KAFKA_ESCALATION_TOPIC'] ?? 'escalation-events',
+  },
+
+  biometric: {
+    // B-39 hardening — same production guard as OTP; a biometric dev-bypass in
+    // prod would defeat the Play Integrity / DeviceCheck gate.
+    devBypass:      devFlag(process.env['BIOMETRIC_DEV_BYPASS']),
+    googleApiKey:   process.env['GOOGLE_PLAY_INTEGRITY_KEY'] ?? '',
+    androidPackage: process.env['ANDROID_PACKAGE_NAME'] ?? 'com.bravosecure',
+    appleTeamId:    process.env['APPLE_TEAM_ID'] ?? '',
+    appleKeyId:     process.env['APPLE_DEVICE_CHECK_KEY_ID'] ?? '',
+    appleP8Key:     process.env['APPLE_DEVICE_CHECK_P8_KEY'] ?? '',
+    appleDevMode:   process.env['NODE_ENV'] !== 'production',
+  },
+
+  rateLimit: {
+    authPerHour: parseInt(process.env['RATE_LIMIT_AUTH_PER_HOUR'] ?? '5', 10),
+  },
+
+  senderCert: {
+    issuer:         process.env['SENDER_CERT_ISSUER'] ?? 'auth-service',
+    /** 24h default per Phase-1 WBS (BE-2.2). Short enough that revocation urgency is bounded, long enough to survive cert refresh hiccups. */
+    ttlSeconds:     parseInt(process.env['SENDER_CERT_TTL_SECONDS'] ?? '86400', 10),
+    /** 32-byte Curve25519 private key, base64. Generated once via the keypair script and stored in .env (never committed). */
+    privateKeyB64:  process.env['SENDER_CERT_PRIVATE_KEY_B64'] ?? '',
+  },
+
+  stripe: {
+    // Secret key is server-side only. Empty => /wallet/topup runs in
+    // "fallback" mode that still issues BC locally (no PaymentIntent).
+    secretKey:       process.env['STRIPE_SECRET_KEY'] ?? '',
+    webhookSecret:   process.env['STRIPE_WEBHOOK_SECRET'] ?? '',
+    // BRAVO_CREDITS_PER_USD removed 2026-07-05 (CREDITS_BC_AUDIT F-02): the peg
+    // is hard-coded at 1 fiat unit = 1 BC in WalletService.computeCreditsForFiat.
+    /** Stripe Price ids for the auto-renewing paid tiers. Empty
+     *  => auto-renew unavailable for that tier; manual BC subscribe still works. */
+    proPriceId:        process.env['STRIPE_PRO_PRICE_ID'] ?? '',
+    enterprisePriceId: process.env['STRIPE_ENTERPRISE_PRICE_ID'] ?? '',
+    apiBase:         process.env['STRIPE_API_BASE'] ?? 'https://api.stripe.com',
+    apiVersion:      process.env['STRIPE_API_VERSION'] ?? '2024-06-20',
+  },
+
+  telemetry: {
+    /** Max length per Redis Stream (XADD MAXLEN ~). Keeps ~50min of 6-sec fixes. */
+    streamMaxLen:    parseInt(process.env['TELEMETRY_STREAM_MAXLEN'] ?? '500', 10),
+    /** TTL on the entire stream key once the mission completes. */
+    streamTtlSec:    parseInt(process.env['TELEMETRY_STREAM_TTL_SEC'] ?? '86400', 10),
+  },
+
+  featureFlags: {
+    // Auto-dispatch (Uber-style nearest-agency matching). Default OFF so the
+    // legacy admin-mediated booking flow (POST /bookings -> PENDING_OPS) stays
+    // byte-for-byte unchanged while the feature ships dark. The booking
+    // create() branch that reads this flag lands in a later step.
+    autoDispatch: process.env['AUTO_DISPATCH_ENABLED'] === 'true',
+    // Department Chat v2 (provider↔CPO attendance verification + structured
+    // incident reporting). Default OFF so the legacy /attendance/* surface and
+    // the existing department chat stay byte-for-byte unchanged while the module
+    // ships dark. New controllers/routes 404/no-op when false; read via
+    // ConfigService.get('featureFlags.deptChatV2'). Flipped per-org at rollout
+    // (Step 17) — the flag gates the FEATURE only, never a security guard.
+    deptChatV2: process.env['DEPT_CHAT_V2_ENABLED'] === 'true',
+  },
+
+  // Fixed platform wallet accounts for the auto-dispatch escrow flow (Step 3).
+  // Plain wallet_balances rows seeded by 20260620000002_escrow_integrity.sql —
+  // these literals MUST match that migration (a unit test guards the drift).
+  // Deterministic system ids, NOT env-driven; distinct from
+  // SystemMessengerService.SYSTEM_USER_ID (…0001) so escrow money never lands
+  // on the messenger system actor.
+  platformAccounts: {
+    escrowId:      '00000000-0000-0000-0000-0000000000e5',
+    platformFeeId: '00000000-0000-0000-0000-0000000000fe',
+  },
+
+  // Auto-dispatch completion gate + dispute-window tunables (Step 10 §40). The
+  // proof-of-completion gate reads these to decide PENDING_RELEASE vs review_required.
+  dispatch: {
+    /** A GPS fix this close to pickup counts as "reached pickup" (meters). */
+    arrivalRadiusM:       parseInt(process.env['DISPATCH_ARRIVAL_RADIUS_M'] ?? '150', 10),
+    /** Min GPS pings during LIVE to count as real telemetry coverage (not a 30s "live"). */
+    minPings:             parseInt(process.env['DISPATCH_MIN_PINGS'] ?? '5', 10),
+    /** Min LIVE duration (seconds) for a completion to count as genuine on-task time. */
+    minOnTaskSeconds:     parseInt(process.env['DISPATCH_MIN_ONTASK_SECONDS'] ?? '300', 10),
+    /** Default dispute window (seconds) from completion to auto-release eligibility. */
+    disputeWindowSeconds: parseInt(process.env['DISPATCH_DISPUTE_WINDOW_SECONDS'] ?? '259200', 10), // 72h
+    /** Platform's cut of the gross at release, in percent (0 = agency keeps all).
+     *  Interim default 15% (founder: "set some for now, ops will tune it on the
+     *  console"). SAFE to default because the whole auto-dispatch escrow path is
+     *  dark until AUTO_DISPATCH_ENABLED is flipped, so nothing is charged yet.
+     *  env DISPATCH_PLATFORM_FEE_PCT overrides; the ops-console fee control that
+     *  writes a DB-backed value is the pending follow-up. */
+    platformFeePct:       parseInt(process.env['DISPATCH_PLATFORM_FEE_PCT'] ?? '15', 10),
+    /** Cancellation fee paid to the agency when a client cancels AFTER crew was
+     *  committed (a mission exists), in percent of gross (0 = full refund).
+     *  Interim default 25% — same dark-path safety + ops-console tuning as above.
+     *  ⚠️ When this goes live, exercise the post-crew cancel split path on a device
+     *  first (it has never run with a non-zero fee). */
+    cancelFeePct:         parseInt(process.env['DISPATCH_CANCEL_FEE_PCT'] ?? '25', 10),
+    /** Step 16 — minutes from crew-assign by which the assigned crew must reach
+     *  PICKUP. Past this the arrival-no-show watchdog re-dispatches the booking to
+     *  another agency (the escrow hold persists; the client is never re-charged). */
+    arrivalSlaMinutes:    parseInt(process.env['DISPATCH_ARRIVAL_SLA_MINUTES'] ?? '20', 10),
+    /** FRAUD-2 / P0 — when true, proof-of-completion check 5 REQUIRES a
+     *  server-verified guard-identity handshake (missions.identity_verified_at)
+     *  before a completion may auto-release escrow; without it the hold goes to
+     *  review_required (ops can release/refund via the §41 path). Ships DARK
+     *  (default false) so it cannot strand escrow before the mobile handshake
+     *  UI is live on BOTH the client (shows arrival_code) and the guard (enters
+     *  it); flip DISPATCH_REQUIRE_IDENTITY_HANDSHAKE=true once that ships. */
+    requireIdentityHandshake: process.env['DISPATCH_REQUIRE_IDENTITY_HANDSHAKE'] === 'true',
+    /** FRAUD-1 — when true, proof-of-completion also requires the LIVE telemetry
+     *  to show real spatial spread (a lead can't pass by posting N identical
+     *  fabricated fixes at the pickup point). Below minLiveMovementM of spread
+     *  the hold goes to review_required. Ships DARK (default false): a genuinely
+     *  stationary detail would trip it, so tune minLiveMovementM against real
+     *  missions before flipping DISPATCH_REQUIRE_LIVE_MOVEMENT=true. */
+    requireLiveMovement: process.env['DISPATCH_REQUIRE_LIVE_MOVEMENT'] === 'true',
+    /** Min bounding-box spread (meters) of the LIVE telemetry to count as movement. */
+    minLiveMovementM:     parseInt(process.env['DISPATCH_MIN_LIVE_MOVEMENT_M'] ?? '25', 10),
+
+    // ─── 2026-09-03 audit — settlement / EP-lifecycle tunables ──────────────
+    // Declared here so they are DISCOVERABLE and configurable. The settlement
+    // code already reads them as `get(...) ?? <same default>`, so declaring them
+    // changes no behaviour — it only means an operator can find them and an env
+    // override actually reaches them.
+
+    /** E2E-06 — minutes past `pickup_time` before the assigned lead may declare a
+     *  CLIENT no-show. Long enough that ordinary lateness is not a no-show;
+     *  short enough that a crew is not held indefinitely unpaid. Settles the
+     *  escrow PARTIAL on the `cancel_fee_pct` basis, and stamps
+     *  `escrow_holds.no_show_at` so the client's dispute door (openDispute) can
+     *  tell it apart from a client cancellation. */
+    clientNoShowGraceMinutes:  parseInt(process.env['DISPATCH_CLIENT_NO_SHOW_GRACE_MINUTES'] ?? '20', 10),
+
+    /** E2E-06 — how FRESH the lead's server-stamped `mission_telemetry` fix must
+     *  be for a client-no-show declaration to be accepted, in minutes.
+     *
+     *  The declaration moves money (a PARTIAL split on the `cancel_fee_pct`
+     *  basis), and the position it rests on is the ONLY evidence that the crew
+     *  was actually at the pickup. A body-supplied fix was farmable — the party
+     *  who profits from the no-show would have been the party stating where they
+     *  stood — so the coordinate is taken from the server-written telemetry row
+     *  instead, and this bounds its age. Too generous and a lead can drive away,
+     *  wait, and declare on a stale fix; too tight and a genuine no-show fails on
+     *  a dropped heartbeat. 10 min is ~20 missed 30 s fixes. */
+    noShowFixMaxAgeMinutes:    parseInt(process.env['DISPATCH_NO_SHOW_FIX_MAX_AGE_MINUTES'] ?? '10', 10),
+
+    /** E2E-05 — minutes a COMPLETED booking's escrow may sit HELD (settlement
+     *  threw after completion) before the retry sweep re-runs
+     *  `settleEscrowOnFinish`. Escrow used to strand HELD forever with no retry:
+     *  production evidence was 16 completed missions and zero `mission_payouts`. */
+    settleRetryGraceMinutes:   parseInt(process.env['DISPATCH_SETTLE_RETRY_GRACE_MINUTES'] ?? '10', 10),
+
+    /** E2E-05 — how many times that retry may claim one hold before it stops and
+     *  waits for a human. Bounded on purpose: a row failing for a structural
+     *  reason must page, not spin. The claim is conditional on the exact
+     *  `settle_attempts` value it read, which is what makes the retry
+     *  single-writer across pods. */
+    settleMaxAttempts:         parseInt(process.env['DISPATCH_SETTLE_MAX_ATTEMPTS'] ?? '5', 10),
+
+    /** E2E-13 — minutes past `pickup_time + duration_hours` before an Executive
+     *  Protection block is treated as ended. EP sells a CONTRACTED block and
+     *  nothing read its end: over-run was never billed and under-delivery never
+     *  detected. */
+    epBlockEndGraceMinutes:    parseInt(process.env['DISPATCH_EP_BLOCK_END_GRACE_MINUTES'] ?? '15', 10),
+
+    /** E2E-14 — minutes past an hourly check-in's due time before it counts as
+     *  MISSED. A missed check-in had no consequence at all: no sweep, no
+     *  escalation, no payout effect, while three UIs rendered an 'ISSUE' branch
+     *  that could never occur. */
+    checkinOverdueGraceMinutes: parseInt(process.env['DISPATCH_CHECKIN_OVERDUE_GRACE_MINUTES'] ?? '20', 10),
+
+    /** E2E-02 — minimum hourly check-ins an EP mission must have for its
+     *  completion proof to pass. The transport-shaped proof gate (displacement +
+     *  ≥25 m spread) can FAIL a genuinely stationary site-protection detail and
+     *  strand the agency's money; check-in cadence is the EP-native evidence. */
+    epMinCheckins:             parseInt(process.env['DISPATCH_EP_MIN_CHECKINS'] ?? '1', 10),
+  },
+
+  // Client booking policy.
+  booking: {
+    /** Hours after creation during which the CLIENT may self-cancel a booking.
+     *  After this window the booking is locked (ops can still cancel). Default 1h. */
+    cancelWindowHours: parseFloat(process.env['BOOKING_CANCEL_WINDOW_HOURS'] ?? '1'),
+    /**
+     * E2E-12 — LATE-CANCEL window for SCHEDULED bookings, in hours before the
+     * contracted `pickup_time`.
+     *
+     * Free outside it; inside it a cancel that already carries a HELD escrow
+     * pays the existing `cancel_fee_pct` split, whether or not crew was
+     * assigned. Applies to Executive Protection (always scheduled) and to any
+     * `booking_mode='later'` reservation — Secure Transfer ON-DEMAND is
+     * deliberately untouched and keeps the crew-committed rule.
+     *
+     * 12 h is the interim default: long enough that an agency which has
+     * rostered officers for a fixed block is not cancelled on for free, short
+     * enough that a client changing plans the day before still pays nothing.
+     * 0 DISABLES the rule entirely and restores the pre-2026-09-03 behaviour,
+     * which is the rollback if the fee ever needs to come off in a hurry.
+     *
+     * ⚠️ Env-configurable, not yet on the ops `service_pricing` board — that
+     * needs the ops PATCH bounds + audit path (OP-10 shape) which lives outside
+     * this module. Promoting it there is the follow-up; `cancel_fee_pct` (the
+     * amount) is already ops-editable, only the WINDOW is env.
+     */
+    lateCancelHours: parseFloat(process.env['BOOKING_LATE_CANCEL_HOURS'] ?? '12'),
+    /** Step 16 — E.164 hotline surfaced on the NO_PROVIDER fallback card so a client
+     *  stranded with no available agency can reach a human. Empty => card hides it. */
+    hotlineE164: process.env['BOOKING_HOTLINE_E164'] ?? '',
+    /** 2026-09-04 — how many NON-TERMINAL bookings one client may hold at once
+     *  (a customer may have several: today 17:00, tomorrow 10:00, Friday…).
+     *  Replaces the former one-active-booking guard; the cap only bounds a
+     *  runaway client. Whole number ≥ 1; default 5. */
+    maxOpenPerClient: parseInt(process.env['BOOKING_MAX_OPEN_PER_CLIENT'] ?? '5', 10),
+  },
+
+  // FX rate table — UNITS of fiat per 1 USD, used to convert a fiat top-up/charge
+  // into Bravo Credits (computeCreditsForFiat) and to stamp the rate onto each money
+  // row's metadata. Pegged currencies (aed/sar) are exact; eur/gbp are the inverse of
+  // the USD-per-unit market rate. Regions are AE/SA/BD/GB + the usd/eur base (D4).
+  // ⚠️ ALL non-USD rates are DEMO PLACEHOLDERS — a finance/CFO-signed table is required
+  // before cut-over. Env-overridable so finance sets the signed rates without a deploy.
+  fx: {
+    usd: parseFloat(process.env['FX_UNITS_PER_USD_USD'] ?? '1'),
+    aed: parseFloat(process.env['FX_UNITS_PER_USD_AED'] ?? '3.67'),
+    eur: parseFloat(process.env['FX_UNITS_PER_USD_EUR'] ?? '0.9259259259'), // 1/1.08
+    sar: parseFloat(process.env['FX_UNITS_PER_USD_SAR'] ?? '3.75'),
+    gbp: parseFloat(process.env['FX_UNITS_PER_USD_GBP'] ?? '0.7874015748'), // 1/1.27
+    bdt: parseFloat(process.env['FX_UNITS_PER_USD_BDT'] ?? '110'),
+  },
+
+  // F1 — per-region VAT/tax percent BROKEN OUT of the (tax-inclusive) credit
+  // total on invoices. ⚠️ Ships 0 everywhere until finance signs real rates
+  // (expected first entries: AE 5, GB 20). Env-overridable per region.
+  regionTaxPct: {
+    AE: parseFloat(process.env['TAX_PCT_AE'] ?? '0'),
+    SA: parseFloat(process.env['TAX_PCT_SA'] ?? '0'),
+    BD: parseFloat(process.env['TAX_PCT_BD'] ?? '0'),
+    GB: parseFloat(process.env['TAX_PCT_GB'] ?? '0'),
+    ZA: parseFloat(process.env['TAX_PCT_ZA'] ?? '0'),
+  },
+});
