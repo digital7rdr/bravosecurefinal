@@ -21,7 +21,7 @@
 | Point-in-time recovery (PITR)        | Supabase add-on — **confirm whether it is enabled** in Dashboard → Database → Backups     | Supabase |
 | On-demand logical backup             | `supabase db dump` — §3 below                                                             | Bravo    |
 | Object storage (avatars, KYC, media) | Supabase Storage — **not** included in any `pg_dump`                                      | §5       |
-| Schema definition                    | `supabase/migrations/**` in git — 148 migrations, rebuilds an empty database from scratch | Bravo    |
+| Schema definition                    | `supabase/migrations/**` in git — 186 migrations, rebuilds an empty database from scratch | Bravo    |
 
 **The schema is always recoverable from git.** What only exists in the database is
 _data_, so the procedures below are about data.

@@ -496,8 +496,18 @@ NOT auto-loaded. It defines:
   states, performance) and the **device/breakpoint matrix** (320→430dp, foldables, tablets,
   fontScale ≥ 1.3, real test devices).
 - The **quality gates** (incl. G8 = **no design-system deviation**: the app surface is
-  **obsidian** `#07090D` / cobalt `#5B8DEF`; any screen still on the legacy Command-Navy
-  palette is a Major to migrate — everything must be consistent).
+  **Command Navy** `#0A1F3F` bg / **`#1E88FF`** action, the live bravo-secure.com identity;
+  any screen still on the Obsidian palette (`#07090D` / `#5B8DEF`) is a Major to migrate —
+  everything must be consistent).
+
+  > **2026-09-21 — this gate was INVERTED.** It previously named Obsidian as the system and
+  > called Command Navy "legacy". Founder instruction is to follow the live site, and the
+  > site's own canvas IS Command Navy, so the direction is now the other way. The mobile
+  > repaint (886 references, 165 files) and the ops-console retheme both landed under this
+  > reading. `src/theme/colors.ts` had `primary: '#1E88FF'` the whole time — screens were
+  > bypassing the token and hardcoding the Obsidian cobalt, so this aligns the rendered app
+  > with the token file it already had. The booking-flow slate set and the agent gold/purple
+  > identity in `Palette` are explicitly OUT of scope and stay as they are.
 - How to run it under ultracode (fan-out auditors via the Workflow tool, adversarial verify,
   then fix) and the per-iteration deliverable format + scores.
 
@@ -675,7 +685,7 @@ All commands are run from the repo root unless noted otherwise.
 
 ### Quality gates
 
-- Typecheck (mobile): `npm run typecheck` — must NOT exceed the baseline error count in `.tsc-baseline.json` (currently **47**). Use `npm run tsc:rebaseline` only when intentionally lowering the count.
+- Typecheck (mobile): `npm run typecheck` — must NOT exceed the baseline error count in `.tsc-baseline.json` (currently **46**; this line said 47 until 2026-09-21 — the hook reads the JSON, so the JSON is authoritative). Use `npm run tsc:rebaseline` only when intentionally lowering the count.
 - Lint: `npm run lint` (or `npm run lint:fix`)
 - Dead code: `npm run deadcode` (knip)
 - Audit: `npm run audit:high`

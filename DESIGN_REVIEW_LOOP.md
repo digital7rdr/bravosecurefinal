@@ -34,9 +34,14 @@ and **Production Readiness ≥ 95/100**.
 
 - **Stack:** React Native 0.81 + Expo SDK 54, TypeScript 5.9, React 19. Ops-console: Next.js 15.
 - **Design system is LOCKED.** Follow the tokens in the _Bravo Secure Design System Master_
-  memory AND the **obsidian migration** (current app surface = obsidian `#07090D` bg /
-  cobalt `#5B8DEF` accent; `MainNavigator` `CustomTabBar` is the universal footer; Secure/Lite
-  home = `BookingHomeScreen`). **No new colours, no arbitrary spacing (8pt grid: 4/8/12/16/24/32/40),
+  memory AND the **bravo-secure.com identity** (current app surface = Command Navy `#0A1F3F`
+  bg / `#1E88FF` action, with `#06142B` for depth layers; `MainNavigator` `CustomTabBar` is
+  the universal footer; Secure/Lite home = `BookingHomeScreen`).
+
+  > **2026-09-21 — reversed from the obsidian migration.** The app was on obsidian `#07090D` /
+  > cobalt `#5B8DEF`; it is now on the live site palette, measured from bravo-secure.com's
+  > computed styles. Every value lives in `src/theme/colors.ts` — use the token, never a raw
+  > hex. Obsidian hexes in a new diff are a Major. **No new colours, no arbitrary spacing (8pt grid: 4/8/12/16/24/32/40),
   one primary action per screen.** A palette or spacing deviation is an automatic **Major**.
 - **Reuse before inventing.** There is already a responsive helper (`@utils/scaling` —
   `scaleTextStyles` / scale fns), `react-native-safe-area-context` (`useSafeAreaInsets`),
