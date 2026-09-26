@@ -5,7 +5,7 @@
   "sideEffects": [
     "**/*.css"
   ],
-  "description": "Bravo Secure — Ops Admin Console (Next.js 15, desktop-first)",
+  "description": "Bravo Secure \u2014 Ops Admin Console (Next.js 15, desktop-first)",
   "scripts": {
     "dev": "next dev --port 3002",
     "build": "next build",
@@ -18,7 +18,7 @@
     "buffer": "^6.0.3",
     "idb": "^8.0.3",
     "mapbox-gl": "^3.9.0",
-    "next": "15.5.20",
+    "next": "^15.5.26",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "socket.io-client": "^4.8.3",
@@ -35,5 +35,12 @@
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.7.3"
+  },
+  "overrides": {
+    "socket.io-parser": "^4.2.7",
+    "nanoid": "^3.3.18",
+    "next": {
+      "postcss": "^8.5.28"
+    }
   }
 }
