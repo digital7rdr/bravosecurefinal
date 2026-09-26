@@ -154,3 +154,6 @@ HANDOVER_SCHEMA_*.sql
 *.dump
 data_*.sql
 roles_*.sql
+
+# Claude desktop app writes session deliverables (screenshots, previews) here
+/Claude outputs/
