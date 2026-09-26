@@ -14,7 +14,7 @@ import type {RedisService} from '../../redis/redis.service';
  * cache when the number moved. Fail-open everywhere: no Redis → the 60 s TTL
  * stays the fallback, exactly the pre-fix behaviour.
  */
-export type ConfigVersionKey = 'pricing' | 'regions';
+export type ConfigVersionKey = 'pricing' | 'regions' | 'integrations';
 
 const key = (k: ConfigVersionKey) => `cfgver:${k}`;
 

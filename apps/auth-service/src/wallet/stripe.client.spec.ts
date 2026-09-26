@@ -10,7 +10,9 @@ function mkCfg(overrides: Record<string, unknown> = {}) {
     'stripe.apiVersion': '2024-06-20',
     ...overrides,
   } as Record<string, unknown>;
-  return {get: (k: string) => cfg[k]} as never;
+  // StripeClient reads via SettingsService.getSync; delegate to the same map
+  // so every existing case (secret key, webhook secret, live-mode) is unchanged.
+  return {getSync: (k: string) => cfg[k], get: (k: string) => cfg[k]} as never;
 }
 
 describe('StripeClient', () => {

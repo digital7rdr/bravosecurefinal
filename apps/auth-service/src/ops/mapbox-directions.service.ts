@@ -1,4 +1,5 @@
 import {Injectable, Logger} from '@nestjs/common';
+import {SettingsService} from '../settings/settings.service';
 import {fetchWithDeadline} from '../common/http/fetchWithDeadline';
 
 /**
@@ -14,10 +15,12 @@ import {fetchWithDeadline} from '../common/http/fetchWithDeadline';
 @Injectable()
 export class MapboxDirectionsService {
   private readonly log = new Logger(MapboxDirectionsService.name);
-  private readonly token: string | undefined =
-    process.env.MAPBOX_ACCESS_TOKEN
-    ?? process.env.NEXT_PUBLIC_MAPBOX_TOKEN
-    ?? process.env.EXPO_PUBLIC_MAPBOX_TOKEN;
+  constructor(private readonly settings: SettingsService) {}
+
+  /** Mapbox server token — DB override (Integrations tab) → env fallback. */
+  private get token(): string | undefined {
+    return this.settings.getSync('mapbox.serverToken');
+  }
 
   async getRoute(
     pickup:  {lat: number; lng: number},

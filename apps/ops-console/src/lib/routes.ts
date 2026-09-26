@@ -98,6 +98,7 @@ export const routes = {
     packages: '/config/packages',
     tierGrants: '/config/tier-grants',
     switches: '/config/switches',
+    integrations: '/config/integrations',
   },
 
   finance: {

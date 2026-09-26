@@ -1,4 +1,5 @@
 import {Injectable, Logger} from '@nestjs/common';
+import {SettingsService} from '../settings/settings.service';
 import {fetchWithDeadline} from '../common/http/fetchWithDeadline';
 import {TtlCache} from './ttlCache';
 
@@ -27,10 +28,12 @@ export interface RegionFix {
 @Injectable()
 export class GeocodeService {
   private readonly log = new Logger(GeocodeService.name);
-  private readonly token: string | undefined =
-    process.env.MAPBOX_ACCESS_TOKEN
-    ?? process.env.NEXT_PUBLIC_MAPBOX_TOKEN
-    ?? process.env.EXPO_PUBLIC_MAPBOX_TOKEN;
+  constructor(private readonly settings: SettingsService) {}
+
+  /** Mapbox server token — DB override (Integrations tab) → env fallback. */
+  private get token(): string | undefined {
+    return this.settings.getSync('mapbox.serverToken');
+  }
 
   private static readonly TTL_MS = 60 * 60 * 1000;
   // Bounded (audit M-7) — 1km grid cells accumulate as principals move.

@@ -192,6 +192,12 @@ export function canFlipKillswitch(role: AdminRole | undefined): boolean {
 
 // RS-09 — admin lifecycle (invites + role changes). Backend: the whole
 // /ops/admins surface is @RequireRoles('ADMIN') class-wide.
+/** 2026-09-27 — Integrations (Stripe/Twilio/Mapbox keys). Backend: /ops/settings is
+ *  @RequireRoles('SUPER_ADMIN') → rank 3 (legacy ADMIN is the same rank). */
+export function canManageIntegrations(role: AdminRole | undefined): boolean {
+  return hasRole(role, 'ADMIN');
+}
+
 export function canManageAdmins(role: AdminRole | undefined): boolean {
   return hasRole(role, 'ADMIN');
 }

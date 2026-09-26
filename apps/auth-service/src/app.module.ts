@@ -6,6 +6,7 @@ import {GlobalHttpThrottlerGuard} from './common/guards/global-http-throttler.gu
 import configuration      from './config/configuration';
 import {DatabaseModule}   from './database/database.module';
 import {RedisModule}      from './redis/redis.module';
+import {SettingsModule}     from './settings/settings.module';
 import {KafkaModule}      from './kafka/kafka.module';
 import {AuthModule}       from './auth/auth.module';
 import {KeysModule}       from './keys/keys.module';
@@ -97,6 +98,7 @@ import {ObservabilityModule} from './observability/observability.module';
 
     DatabaseModule,
     RedisModule,
+    SettingsModule,
     KafkaModule,
 
     AuthModule,

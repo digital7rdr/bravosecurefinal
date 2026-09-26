@@ -8,6 +8,7 @@ import {MissionEventsService} from '../ops/mission-events.service';
 import {SosService} from '../sos/sos.service';
 import {SmsService} from '../common/services/sms.service';
 import {GeocodeService} from './geocode.service';
+import {SettingsService} from '../settings/settings.service';
 import {GdeltService, type ThreatItem} from './gdelt.service';
 import {NewsDataService} from './newsdata.service';
 import {GoogleNewsService} from './googlenews.service';
@@ -133,10 +134,10 @@ function haversineKm(aLat: number, aLng: number, bLat: number, bLng: number): nu
 @Injectable()
 export class VbgService implements OnModuleInit, OnModuleDestroy {
   private readonly log = new Logger(VbgService.name);
-  private readonly mapboxToken: string | undefined =
-    process.env.MAPBOX_ACCESS_TOKEN
-    ?? process.env.NEXT_PUBLIC_MAPBOX_TOKEN
-    ?? process.env.EXPO_PUBLIC_MAPBOX_TOKEN;
+  /** Mapbox server token — DB override (Integrations tab) → env fallback. */
+  private get mapboxToken(): string | undefined {
+    return this.settings.getSync('mapbox.serverToken');
+  }
 
   constructor(
     private readonly db:       DatabaseService,
@@ -146,6 +147,7 @@ export class VbgService implements OnModuleInit, OnModuleDestroy {
     private readonly sos:      SosService,
     private readonly sms:      SmsService,
     private readonly geocode:  GeocodeService,
+    private readonly settings: SettingsService,
     private readonly gdelt:      GdeltService,
     private readonly geofence:   GeofenceService,
     private readonly newsdata:   NewsDataService,

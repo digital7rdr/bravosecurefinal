@@ -3,6 +3,7 @@ import {ConfigService}       from '@nestjs/config';
 import {HttpException}       from '@nestjs/common';
 import {OtpService}          from './otp.service';
 import {RedisService}        from '../../redis/redis.service';
+import {SettingsService}     from '../../settings/settings.service';
 
 // Mock twilio before any imports so the dynamic import() in send() is intercepted
 const mockCreate          = jest.fn().mockResolvedValue({});
@@ -40,6 +41,9 @@ async function build(cfg: ConfigService): Promise<OtpService> {
       OtpService,
       {provide: ConfigService, useValue: cfg},
       {provide: RedisService,  useValue: mockRedis},
+      // OtpService now reads twilio.* through SettingsService.getSync; delegate to
+      // the same cfg so overrides in makeConfig() still drive the Twilio path.
+      {provide: SettingsService, useValue: {getSync: (k: string) => (cfg as unknown as {get: (k: string) => unknown}).get(k)}},
     ],
   }).compile();
   return module.get(OtpService);

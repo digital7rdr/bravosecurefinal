@@ -30,6 +30,29 @@ if (!ENV_BASE && process.env.NODE_ENV === 'production') {
 }
 const BASE = ENV_BASE ?? 'http://localhost:3001';
 
+/** One runtime-editable third-party setting, as the backend reports it. */
+export interface IntegrationSetting {
+  key: string;
+  category: string;
+  label: string;
+  help?: string;
+  secret: boolean;
+  placeholder?: string;
+  configured: boolean;
+  /** db = set in this console · env = deployment env fallback · unset = neither */
+  source: 'db' | 'env' | 'unset';
+  /** Masked for secrets (••••1234), plain for non-secrets, null when unset. */
+  preview: string | null;
+  updatedAt: string | null;
+  updatedBy: string | null;
+}
+export interface IntegrationSettingsResponse {
+  encryptionAvailable: boolean;
+  encryptionReason: string | null;
+  categories: {id: string; label: string}[];
+  settings: IntegrationSetting[];
+}
+
 export class ApiError extends Error {
   constructor(public status: number, public body: unknown, message: string) {
     super(message);
@@ -1173,6 +1196,17 @@ export const opsApi = {
   setKillswitch: (enabled: boolean) =>
     fetchJson<{ok: true; enabled: boolean}>(`/ops/dispatch/killswitch`, {
       method: 'PUT', body: JSON.stringify({enabled}),
+    }),
+  // 2026-09-27 — runtime third-party integration settings (Integrations tab).
+  // SUPER_ADMIN only. Secrets are write-only: reads return a masked preview.
+  integrationSettings: () => fetchJson<IntegrationSettingsResponse>(`/ops/settings`),
+  setIntegrationSetting: (key: string, value: string) =>
+    fetchJson<{ok: true; setting: IntegrationSetting | null}>(`/ops/settings/${encodeURIComponent(key)}`, {
+      method: 'PUT', body: JSON.stringify({value}),
+    }),
+  clearIntegrationSetting: (key: string) =>
+    fetchJson<{ok: true; setting: IntegrationSetting | null}>(`/ops/settings/${encodeURIComponent(key)}`, {
+      method: 'DELETE',
     }),
   // B-788a — Dispatch v2: operational areas, provider ladders, the routing switch.
   dispatchAreas: () => fetchJson<DispatchAreasResponse>(`/ops/dispatch/areas`),

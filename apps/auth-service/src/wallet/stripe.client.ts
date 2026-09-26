@@ -1,5 +1,5 @@
 import {HttpException, Injectable, Logger} from '@nestjs/common';
-import {ConfigService} from '@nestjs/config';
+import {SettingsService} from '../settings/settings.service';
 import {createHmac, timingSafeEqual} from 'crypto';
 
 export interface StripePaymentIntent {
@@ -36,10 +36,10 @@ export interface StripeCard {
 export class StripeClient {
   private readonly log = new Logger(StripeClient.name);
 
-  constructor(private readonly cfg: ConfigService) {}
+  constructor(private readonly settings: SettingsService) {}
 
   get enabled(): boolean {
-    return !!this.cfg.get<string>('stripe.secretKey');
+    return !!this.settings.getSync('stripe.secretKey');
   }
 
   async createPaymentIntent(opts: {
@@ -72,9 +72,9 @@ export class StripeClient {
    */
   async getPaymentIntent(id: string): Promise<StripePaymentIntent> {
     if (!this.enabled) throw new HttpException('stripe_disabled', 503);
-    const base = this.cfg.get<string>('stripe.apiBase') ?? 'https://api.stripe.com';
-    const version = this.cfg.get<string>('stripe.apiVersion') ?? '2024-06-20';
-    const key = this.cfg.get<string>('stripe.secretKey')!;
+    const base = this.settings.getSync('stripe.apiBase') ?? 'https://api.stripe.com';
+    const version = this.settings.getSync('stripe.apiVersion') ?? '2024-06-20';
+    const key = this.settings.getSync('stripe.secretKey')!;
     const res = await fetch(`${base}/v1/payment_intents/${encodeURIComponent(id)}`, {
       method: 'GET',
       headers: {Authorization: `Bearer ${key}`, 'Stripe-Version': version},
@@ -107,8 +107,8 @@ export class StripeClient {
   }, idempotencyKey?: string): Promise<{id: string; status: string; current_period_end: number}> {
     if (!this.enabled) throw new HttpException('stripe_disabled', 503);
     const priceId = opts.tier === 'enterprise'
-      ? this.cfg.get<string>('stripe.enterprisePriceId')
-      : this.cfg.get<string>('stripe.proPriceId');
+      ? this.settings.getSync('stripe.enterprisePriceId')
+      : this.settings.getSync('stripe.proPriceId');
     if (!priceId) throw new HttpException(`stripe_${opts.tier ?? 'pro'}_price_not_configured`, 503);
     const body = new URLSearchParams();
     body.set('customer', opts.customerId);
@@ -127,9 +127,9 @@ export class StripeClient {
   /** Cancel a subscription immediately (used on user-initiated cancel). */
   async cancelSubscription(subscriptionId: string): Promise<{id: string; status: string}> {
     if (!this.enabled) throw new HttpException('stripe_disabled', 503);
-    const base = this.cfg.get<string>('stripe.apiBase') ?? 'https://api.stripe.com';
-    const version = this.cfg.get<string>('stripe.apiVersion') ?? '2024-06-20';
-    const key = this.cfg.get<string>('stripe.secretKey')!;
+    const base = this.settings.getSync('stripe.apiBase') ?? 'https://api.stripe.com';
+    const version = this.settings.getSync('stripe.apiVersion') ?? '2024-06-20';
+    const key = this.settings.getSync('stripe.secretKey')!;
     const res = await fetch(`${base}/v1/subscriptions/${encodeURIComponent(subscriptionId)}`, {
       method: 'DELETE',
       headers: {Authorization: `Bearer ${key}`, 'Stripe-Version': version},
@@ -211,9 +211,9 @@ export class StripeClient {
   }
 
   private async get<T>(path: string): Promise<T> {
-    const base = this.cfg.get<string>('stripe.apiBase') ?? 'https://api.stripe.com';
-    const version = this.cfg.get<string>('stripe.apiVersion') ?? '2024-06-20';
-    const key = this.cfg.get<string>('stripe.secretKey')!;
+    const base = this.settings.getSync('stripe.apiBase') ?? 'https://api.stripe.com';
+    const version = this.settings.getSync('stripe.apiVersion') ?? '2024-06-20';
+    const key = this.settings.getSync('stripe.secretKey')!;
     const res = await fetch(`${base}${path}`, {
       method: 'GET',
       headers: {Authorization: `Bearer ${key}`, 'Stripe-Version': version},
@@ -236,7 +236,7 @@ export class StripeClient {
   verifyWebhook(rawBody: Buffer | string, signatureHeader: string | undefined, toleranceSec = 300): StripeEvent {
     // Why: comma-separated list — during an endpoint-secret roll BOTH the old
     // and new secret must verify or every webhook 400s for the whole window.
-    const secrets = (this.cfg.get<string>('stripe.webhookSecret') ?? '')
+    const secrets = (this.settings.getSync('stripe.webhookSecret') ?? '')
       .split(',').map(s => s.trim()).filter(Boolean);
     if (secrets.length === 0) throw new HttpException('webhook_secret_missing', 500);
     if (!signatureHeader) throw new HttpException('missing_signature', 400);
@@ -271,7 +271,7 @@ export class StripeClient {
     const event = JSON.parse(payload) as StripeEvent;
     // Why: a deploy holding test-mode keys must not let test events (anyone
     // with the test account can mint them) mutate production wallets.
-    const expectLive = (this.cfg.get<string>('stripe.secretKey') ?? '').startsWith('sk_live_');
+    const expectLive = (this.settings.getSync('stripe.secretKey') ?? '').startsWith('sk_live_');
     if (typeof event.livemode === 'boolean' && event.livemode !== expectLive) {
       throw new HttpException('livemode_mismatch', 400);
     }
@@ -279,9 +279,9 @@ export class StripeClient {
   }
 
   private async post<T>(path: string, body: URLSearchParams, idempotencyKey?: string): Promise<T> {
-    const base = this.cfg.get<string>('stripe.apiBase') ?? 'https://api.stripe.com';
-    const version = this.cfg.get<string>('stripe.apiVersion') ?? '2024-06-20';
-    const key = this.cfg.get<string>('stripe.secretKey')!;
+    const base = this.settings.getSync('stripe.apiBase') ?? 'https://api.stripe.com';
+    const version = this.settings.getSync('stripe.apiVersion') ?? '2024-06-20';
+    const key = this.settings.getSync('stripe.secretKey')!;
     const headers: Record<string, string> = {
       Authorization: `Bearer ${key}`,
       'Content-Type': 'application/x-www-form-urlencoded',

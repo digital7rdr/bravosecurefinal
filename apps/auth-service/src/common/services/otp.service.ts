@@ -2,6 +2,7 @@ import {HttpException, HttpStatus, Injectable, Logger} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {randomInt, createHash} from 'node:crypto';
 import {RedisService} from '../../redis/redis.service';
+import {SettingsService} from '../../settings/settings.service';
 
 @Injectable()
 export class OtpService {
@@ -10,6 +11,7 @@ export class OtpService {
   constructor(
     private readonly config: ConfigService,
     private readonly redis:  RedisService,
+    private readonly settings: SettingsService,
   ) {}
 
   generate(): string {
@@ -57,9 +59,9 @@ export class OtpService {
       throw new HttpException('otp_send_rate_limited', HttpStatus.TOO_MANY_REQUESTS);
     }
 
-    const sid      = this.config.get<string>('twilio.accountSid');
-    const tok      = this.config.get<string>('twilio.authToken');
-    const verifySid = this.config.get<string>('twilio.verifySid');
+    const sid      = this.settings.getSync('twilio.accountSid');
+    const tok      = this.settings.getSync('twilio.authToken');
+    const verifySid = this.settings.getSync('twilio.verifySid');
 
     if (sid && tok && verifySid) {
       // Twilio Verify API — preferred: delivers and manages OTP lifecycle via Twilio.
@@ -73,7 +75,7 @@ export class OtpService {
     }
 
     // Fallback: Programmable SMS when Verify service SID not provisioned.
-    const from = this.config.get<string>('twilio.fromNumber');
+    const from = this.settings.getSync('twilio.fromNumber');
     if (!sid || !tok || !from) {
       throw new Error('Twilio credentials not configured (need TWILIO_ACCOUNT_SID + TWILIO_AUTH_TOKEN + TWILIO_FROM or TWILIO_VERIFY_SID)');
     }
@@ -97,9 +99,9 @@ export class OtpService {
       return /^\d{4,8}$/.test(code);
     }
 
-    const sid       = this.config.get<string>('twilio.accountSid');
-    const tok       = this.config.get<string>('twilio.authToken');
-    const verifySid = this.config.get<string>('twilio.verifySid');
+    const sid       = this.settings.getSync('twilio.accountSid');
+    const tok       = this.settings.getSync('twilio.authToken');
+    const verifySid = this.settings.getSync('twilio.verifySid');
     if (!sid || !tok || !verifySid) {
       throw new Error('Twilio Verify not configured (TWILIO_VERIFY_SID required for OTP check)');
     }

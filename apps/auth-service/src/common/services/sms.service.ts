@@ -1,5 +1,6 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
+import {SettingsService} from '../../settings/settings.service';
 
 /**
  * Thin Twilio SMS sender for arbitrary message bodies — used by the VBG
@@ -15,16 +16,19 @@ import {ConfigService} from '@nestjs/config';
 export class SmsService {
   private readonly log = new Logger(SmsService.name);
 
-  constructor(private readonly config: ConfigService) {}
+  constructor(
+    private readonly config: ConfigService,
+    private readonly settings: SettingsService,
+  ) {}
 
   async sendSms(to: string, body: string): Promise<{sent: boolean}> {
     if (this.config.get<boolean>('otp.devBypass') || this.config.get<boolean>('otp.devReturnCode')) {
       this.log.log(`SMS (dev bypass) → ${maskPhone(to)}`);
       return {sent: false};
     }
-    const sid  = this.config.get<string>('twilio.accountSid');
-    const tok  = this.config.get<string>('twilio.authToken');
-    const from = this.config.get<string>('twilio.fromNumber');
+    const sid  = this.settings.getSync('twilio.accountSid');
+    const tok  = this.settings.getSync('twilio.authToken');
+    const from = this.settings.getSync('twilio.fromNumber');
     if (!sid || !tok || !from) {
       this.log.warn('SMS not sent — Twilio FROM/credentials missing');
       return {sent: false};

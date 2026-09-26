@@ -12,6 +12,7 @@ import {NewsDataService}      from './newsdata.service';
 import {GoogleNewsService}    from './googlenews.service';
 import {GeofenceService}      from './geofence.service';
 import {VbgService, telemetryAad, escalationTrend, buildExecutiveSummary} from './vbg.service';
+import {SettingsService} from '../settings/settings.service';
 import type {SraSnapshotDto} from './vbg.service';
 import type {ThreatItem} from './gdelt.service';
 import {generateTelemetryKeyB64, sealTelemetry} from './telemetryCrypto';
@@ -65,6 +66,9 @@ describe('VbgService', () => {
         {provide: NewsDataService,      useValue: mockNewsData},
         {provide: GoogleNewsService,    useValue: mockGoogleNews},
         {provide: GeofenceService,      useValue: mockGeofence},
+        // mapboxToken previously came from process.env (unset in tests → undefined);
+        // preserve that by returning undefined from the settings resolver.
+        {provide: SettingsService, useValue: {getSync: () => undefined}},
       ],
     }).compile();
     service = module.get(VbgService);
