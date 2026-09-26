@@ -39,8 +39,28 @@ fi
 
 # 2. Test only what your branch actually changed since origin/main.
 #    Full suite still runs in CI — this is the fast feedback gate.
+#
+#    BOOTSTRAP GUARD (2026-09-27): --changedSince needs origin/main to be a
+#    resolvable ref. On the very first push to a brand-new remote there is no
+#    origin/main yet, so jest aborts with
+#        fatal: bad revision 'origin/main...HEAD'
+#    and the push can never succeed — the gate is unpassable by construction,
+#    and the only way through is --no-verify, which also skips the tsc ratchet
+#    and the scanner sweep below. That is a worse outcome than skipping one
+#    step, so check the ref first. Same guard covers a fresh clone that has not
+#    fetched main yet, and a branch pushed before origin/main exists.
+#
+#    Nothing is lost when it skips: "changed since main" has no meaning when
+#    there is no main, CI runs the full suite on push, and the unconditional
+#    static-scan sweep in step 3 still runs here.
 echo "[pre-push] jest --changedSince=origin/main…"
-npm run test:changed --silent
+if git rev-parse --verify --quiet origin/main >/dev/null 2>&1; then
+  npm run test:changed --silent
+else
+  echo "[pre-push] SKIPPED — origin/main does not exist yet (first push to an"
+  echo "           empty remote, or main not fetched). Nothing to diff against."
+  echo "           The scanner sweep below still runs, and CI runs the full suite."
+fi
 
 # 3. Static-scan sweep (W7). --changedSince selects a test only if that test
 #    TRANSITIVELY IMPORTS the changed file. A scanner reads its target with

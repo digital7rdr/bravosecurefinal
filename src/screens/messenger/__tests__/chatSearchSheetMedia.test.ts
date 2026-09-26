@@ -14,9 +14,13 @@
  *
  * `ChatScreen.tsx` mounts native modules and cannot be imported by a test, so
  * this is a source scan — which makes the two CLAUDE.md rules load-bearing:
- * the file is CRLF (nothing may be `\n`-anchored) and comments are stripped
- * first (prose naming the banned token is the classic false pass). Both are
- * guarded by the self-check below.
+ * never anchor on a bare `\n` (always `\r?\n`) and strip comments first
+ * (prose naming the banned token is the classic false pass). Both are guarded
+ * by the self-check below.
+ *
+ * The line-ending rule is about the ANCHOR, not about the file: `.gitattributes`
+ * declares `* text=auto` with no `eol` override, so this file checks out CRLF on
+ * Windows and LF on macOS and Linux. Either is correct.
  */
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
@@ -67,10 +71,20 @@ function searchSheet(): string {
 }
 
 describe('the scan itself is not vacuous', () => {
-  it('the file really is CRLF, so a `\\n` anchor would have matched nothing', () => {
-    // If this ever flips to LF the test still holds — what must never happen
-    // is an assertion below silently passing because its anchor never matched.
-    expect(raw.includes('\r\n') || !raw.includes('\n')).toBe(true);
+  it('the `\\r?\\n` anchor really matches, so the scans below are not vacuous', () => {
+    // This assertion used to be `raw.includes('\r\n') || !raw.includes('\n')`
+    // — "the file really is CRLF". Its own comment said "if this ever flips to
+    // LF the test still holds", but the expression is FALSE for an LF file that
+    // has newlines, so the code contradicted the comment: the suite could only
+    // pass on Windows and was red on every mac and in CI (ubuntu-latest).
+    //
+    // `.gitattributes` declares `* text=auto` with no `eol` override, so this
+    // file is CRLF on Windows and LF elsewhere — both correct. What the check
+    // is actually for is non-vacuity: the anchor the scanners use (`/\r?\n/`,
+    // in stripSourceComments above) must really split this file, or an
+    // assertion below could pass by matching nothing at all.
+    expect(raw).toMatch(/\r?\n/);
+    expect(raw.split(/\r?\n/).length).toBeGreaterThan(100);
   });
 
   it('stripping comments does not swallow the code it is meant to keep', () => {
