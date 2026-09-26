@@ -63,7 +63,7 @@ describe('tapping a reply quote jumps to the quoted message', () => {
 
   it('the bubble actually renders the highlight', () => {
     expect(dept).toMatch(/highlightedId === m\.id && styles\.bubbleJumped/);
-    expect(dept).toMatch(/bubbleJumped: \{backgroundColor: 'rgba\(91,141,239,0\.32\)'/);
+    expect(dept).toMatch(/bubbleJumped: \{backgroundColor: 'rgba\(30,136,255,0\.32\)'/);
   });
 
   it('ChatScreen still has its own equivalent', () => {

@@ -209,7 +209,7 @@ describe('B-830 (d) — the pill is highlighted and meets the touch-target rule'
   it('carries the accent border and tint, from the token — no invented colour', () => {
     expect(SEARCH_STYLE).toMatch(/borderWidth:\s*1\.5/);
     expect(SEARCH_STYLE).toMatch(/borderColor:\s*UI\.accent/);
-    expect(SEARCH_STYLE).toMatch(/backgroundColor:\s*'rgba\(91,141,239,0\.18\)'/);
+    expect(SEARCH_STYLE).toMatch(/backgroundColor:\s*'rgba\(30,136,255,0\.18\)'/);
     expect(SEARCH_STYLE).toMatch(/borderRadius:\s*14/);
   });
 
@@ -226,11 +226,13 @@ describe('B-830 (d) — the pill is highlighted and meets the touch-target rule'
 });
 
 describe('B-830 — the scan itself is not vacuous', () => {
-  it('the source really is CRLF, and every anchor is matched normalised', () => {
-    // If this file ever became LF the assertions would still hold, but the
-    // reverse (a `\n`-only anchor on a CRLF file) is the trap. Prove the
-    // normalisation is doing work.
-    expect(RAW).toContain('\r\n');
+  it('the source has real line structure, and every anchor is matched normalised', () => {
+    // `.gitattributes` is `* text=auto`, so this file checks out CRLF on
+    // Windows and LF on macOS/Linux/CI. Assert the scan is non-vacuous on
+    // either ending rather than pinning one: the source must have many lines
+    // and the normalised copy must carry no `\r` for the anchors to hit.
+    expect(RAW).toMatch(/\r?\n/);
+    expect(RAW.split(/\r?\n/).length).toBeGreaterThan(100);
     expect(SRC).not.toContain('\r');
   });
 
