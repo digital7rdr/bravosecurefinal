@@ -188,7 +188,7 @@ reverse-geocode (`bravoLocationPickerMapHtml.ts:200`). The token lives **only** 
 basemap ("stuck"), `/suggest` 401 (no search results), reverse-geocode 401. **Same bug blanks every
 Mapbox WebView screen** (VBGGeoRisk, LiveTracking, AgentLiveTracker, BravoBookingMap, etc.).
 
-**E1 — Fix (config only):** add `EXPO_PUBLIC_MAPBOX_TOKEN=pk.PURGED_FROM_HISTORY_see_env_production_local`
+**E1 — Fix (config only):** add `EXPO_PUBLIC_MAPBOX_TOKEN=pk.<the public token — .env.production.local, never a tracked file>`
 to **each** `cross-env`/`cross-env-shell` line in `package.json:14-16` (alongside the existing
 `EXPO_PUBLIC_*`), AND to `.env.staging.local` + `.env.production`, AND the committed templates
 `.env.staging.local.example` + `.env.example`. Do **both** (the `apk:*` scripts use `cross-env`, not dotenv).

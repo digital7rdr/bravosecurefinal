@@ -25,8 +25,7 @@
         "EXPO_PUBLIC_API_BASE_URL": "https://auth.94-136-184-52.sslip.io",
         "EXPO_PUBLIC_MSG_BASE_URL": "https://relay.94-136-184-52.sslip.io",
         "EXPO_PUBLIC_SUPABASE_URL": "https://qkkfkicgoncxslbwhyhz.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFra2ZraWNnb25jeHNsYndoeWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NDEyNDAsImV4cCI6MjA5MzIxNzI0MH0.URJEGJBO3T1Z1Cr8QBNpfXWiO9Skbwea52ifjG7_Rdg",
-        "EXPO_PUBLIC_MAPBOX_TOKEN": "pk.PURGED_FROM_HISTORY_see_env_production_local"
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFra2ZraWNnb25jeHNsYndoeWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NDEyNDAsImV4cCI6MjA5MzIxNzI0MH0.URJEGJBO3T1Z1Cr8QBNpfXWiO9Skbwea52ifjG7_Rdg"
       }
     },
     "preview-local": {
@@ -47,8 +46,7 @@
         "EXPO_PUBLIC_API_BASE_URL": "https://auth.94-136-184-52.sslip.io",
         "EXPO_PUBLIC_MSG_BASE_URL": "https://relay.94-136-184-52.sslip.io",
         "EXPO_PUBLIC_SUPABASE_URL": "https://qkkfkicgoncxslbwhyhz.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFra2ZraWNnb25jeHNsYndoeWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NDEyNDAsImV4cCI6MjA5MzIxNzI0MH0.URJEGJBO3T1Z1Cr8QBNpfXWiO9Skbwea52ifjG7_Rdg",
-        "EXPO_PUBLIC_MAPBOX_TOKEN": "pk.PURGED_FROM_HISTORY_see_env_production_local"
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFra2ZraWNnb25jeHNsYndoeWh6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2NDEyNDAsImV4cCI6MjA5MzIxNzI0MH0.URJEGJBO3T1Z1Cr8QBNpfXWiO9Skbwea52ifjG7_Rdg"
       }
     },
     "production": {
@@ -56,9 +54,6 @@
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
-      },
-      "env": {
-        "EXPO_PUBLIC_MAPBOX_TOKEN": "pk.PURGED_FROM_HISTORY_see_env_production_local"
       }
     }
   },

@@ -21,7 +21,13 @@
 $ErrorActionPreference = 'Stop'
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 
-$env:EXPO_PUBLIC_MAPBOX_TOKEN = 'pk.PURGED_FROM_HISTORY_see_env_production_local'
+# EXPO_PUBLIC_MAPBOX_TOKEN is deliberately NOT set here (or in any tracked file)
+# since 2026-09-27: GitHub push protection rejects Mapbox tokens. It lives in the
+# gitignored .env.production.local, which `expo export:embed` loads itself during
+# assembleRelease. Fail fast if it is missing so a map-less APK can never be built
+# silently (mapToken.ts only logs at bundle time — B-89 MG-04).
+& node (Join-Path $RepoRoot 'scripts\check-mapbox-token.mjs')
+if ($LASTEXITCODE -ne 0) { throw 'EXPO_PUBLIC_MAPBOX_TOKEN missing - put it in .env.production.local (see docs/runbooks/MOBILE_BUILD_ENV.md)' }
 $env:EXPO_PUBLIC_API_BASE_URL = 'https://auth.94-136-184-52.sslip.io'
 $env:EXPO_PUBLIC_MSG_BASE_URL = 'https://relay.94-136-184-52.sslip.io'
 $env:EXPO_PUBLIC_AUTO_DISPATCH = 'true'
