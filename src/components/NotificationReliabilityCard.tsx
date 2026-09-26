@@ -127,7 +127,7 @@ export default function NotificationReliabilityCard() {
       <Icon
         name={needBatt ? 'battery-alert-variant-outline' : needAuto ? 'restart' : needFsi ? 'phone-lock' : 'minus-circle-outline'}
         size={16}
-        color="#5B8DEF"
+        color="#1E88FF"
       />
       <Text style={s.text} numberOfLines={3}>
         {text}
@@ -171,7 +171,7 @@ export default function NotificationReliabilityCard() {
   );
 }
 
-// Obsidian language (bg #07090D family, accent #5B8DEF) — a cobalt-tinted
+// Obsidian language (bg #0A1F3F family, accent #1E88FF) — a cobalt-tinted
 // sibling of the N-31 red strip so "reliability" reads as guidance, not error.
 const s = StyleSheet.create({
   wrap: {
@@ -181,5 +181,5 @@ const s = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: 'rgba(91,141,239,0.25)',
   },
   text: {flex: 1, color: '#C9D7F2', fontSize: 12.5},
-  action: {color: '#5B8DEF', fontSize: 12.5, fontWeight: '700'},
+  action: {color: '#1E88FF', fontSize: 12.5, fontWeight: '700'},
 });

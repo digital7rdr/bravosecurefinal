@@ -135,7 +135,7 @@ export function VbgKeyPointsMap({
           hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
           onPress={onExpand}>
           <Svg width={12} height={12} viewBox="0 0 14 14">
-            <Path d="M8.5 1h4.5v4.5M13 1L8 6M5.5 13H1V8.5M1 13l5-5" stroke="#F2F4F8" strokeWidth={1.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+            <Path d="M8.5 1h4.5v4.5M13 1L8 6M5.5 13H1V8.5M1 13l5-5" stroke="#FFFFFF" strokeWidth={1.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
           </Svg>
         </TouchableOpacity>
       ) : null}
@@ -147,8 +147,8 @@ export function VbgKeyPointsMap({
 }
 
 const styles = StyleSheet.create({
-  wrap: {overflow: 'hidden', borderRadius: 18, backgroundColor: '#07090D', borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)'},
-  web: {flex: 1, backgroundColor: '#07090D'},
+  wrap: {overflow: 'hidden', borderRadius: 18, backgroundColor: '#0A1F3F', borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)'},
+  web: {flex: 1, backgroundColor: '#0A1F3F'},
   // Top-left, mirroring the in-map chrome (the style segment sits top-right).
   expandBtn: {
     position: 'absolute', top: 10, left: 10, width: 28, height: 28,

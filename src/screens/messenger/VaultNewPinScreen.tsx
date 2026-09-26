@@ -234,7 +234,7 @@ export default function VaultNewPinScreen() {
    */
   const handleReadopt = async (pin: string) => {
     setBusy(true);
-    setStatus({text: 'Checking your PIN…', color: '#5B8DEF'});
+    setStatus({text: 'Checking your PIN…', color: '#1E88FF'});
     try {
       const {authApi} = require('@/services/api') as typeof import('@/services/api');
       await authApi.verifyVaultPin({pin});
@@ -248,7 +248,7 @@ export default function VaultNewPinScreen() {
         // Raced a reset elsewhere — fall through to fresh setup.
         setMode('create');
         setEntered('');
-        setStatus({text: 'No PIN on record — set a new one', color: '#5B8DEF'});
+        setStatus({text: 'No PIN on record — set a new one', color: '#1E88FF'});
       } else if (codeVal === null) {
         failEntry('Can’t reach the server — check your connection', false);
       } else {
@@ -263,7 +263,7 @@ export default function VaultNewPinScreen() {
    *  files are untouched (setupPin never touches the index). */
   const handleResetComplete = async (pin: string) => {
     setBusy(true);
-    setStatus({text: 'Saving your new PIN…', color: '#5B8DEF'});
+    setStatus({text: 'Saving your new PIN…', color: '#1E88FF'});
     try {
       const {authApi} = require('@/services/api') as typeof import('@/services/api');
       await authApi.completeVaultPinReset({resetToken: resetToken!, pin});
@@ -296,7 +296,7 @@ export default function VaultNewPinScreen() {
       setNewPin(pin);
       setEntered('');
       setStep('confirm');
-      setStatus({text: 'PIN set — now confirm it', color: '#5B8DEF'});
+      setStatus({text: 'PIN set — now confirm it', color: '#1E88FF'});
     } else {
       if (pin === newPin) {
         if (mode === 'reset') {
@@ -357,7 +357,7 @@ export default function VaultNewPinScreen() {
       {/* Icon + title */}
       <View style={styles.iconSection}>
         <View style={styles.iconWrap}>
-          <Icon name={isReadopt || isConfirm ? 'lock' : 'lock-open-variant'} size={24} color="#5B8DEF" />
+          <Icon name={isReadopt || isConfirm ? 'lock' : 'lock-open-variant'} size={24} color="#1E88FF" />
         </View>
         <Text style={styles.title}>
           {isReadopt ? 'Enter Your Vault PIN' : isConfirm ? 'Confirm New PIN' : 'Set New PIN'}
@@ -440,18 +440,18 @@ const styles = StyleSheet.create({
 
   iconSection: {alignItems: 'center', paddingTop: 16, paddingBottom: 8},
   iconWrap: {width: 48, height: 48, borderRadius: 16, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 8},
-  title: {fontSize: 16, fontWeight: '800', color: '#F2F4F8', marginBottom: 2},
+  title: {fontSize: 16, fontWeight: '800', color: '#FFFFFF', marginBottom: 2},
   sub: {fontSize: 11, color: 'rgba(180,188,204,0.45)'},
 
   dotsRow: {flexDirection: 'row', justifyContent: 'center', gap: 16, marginTop: 12, marginBottom: 4},
   dot: {width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: 'rgba(255,255,255,0.06)', backgroundColor: 'transparent'},
-  dotFilled: {backgroundColor: '#5B8DEF', borderColor: '#5B8DEF'},
+  dotFilled: {backgroundColor: '#1E88FF', borderColor: '#1E88FF'},
   dotSuccess: {backgroundColor: '#00C853', borderColor: '#00C853'},
   dotError: {backgroundColor: '#D50000', borderColor: '#D50000'},
 
   statusMsg: {textAlign: 'center', fontSize: 11, fontWeight: '600', minHeight: 16, marginBottom: 8},
   forgotBtn: {alignSelf: 'center', paddingVertical: 6, paddingHorizontal: 12},
-  forgotText: {fontSize: 12, fontWeight: '700', color: '#5B8DEF'},
+  forgotText: {fontSize: 12, fontWeight: '700', color: '#1E88FF'},
 
   keypad: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, paddingHorizontal: 24},
   keyRow: {flexDirection: 'row', gap: 20},
@@ -466,6 +466,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   keyBtnEmpty: {width: 58, height: 58},
-  keyNum: {fontSize: 19, fontWeight: '700', color: '#F2F4F8', lineHeight: 22},
+  keyNum: {fontSize: 19, fontWeight: '700', color: '#FFFFFF', lineHeight: 22},
   keySub: {fontSize: 7, fontWeight: '600', color: 'rgba(180,188,204,0.45)', letterSpacing: 1.5, marginTop: 1},
 });

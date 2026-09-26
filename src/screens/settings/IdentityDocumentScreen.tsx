@@ -346,7 +346,7 @@ export default function IdentityDocumentScreen({onDone}: Props) {
             accessibilityState={{disabled: !canSubmit}}
             testID="identity-submit">
             <LinearGradient
-              colors={['#6E9BF5', UI.accent, UI.accentDeep]}
+              colors={['#3BA6FF', UI.accent, UI.accentDeep]}
               locations={[0, 0.55, 1]}
               start={{x: 0, y: 0}}
               end={{x: 0, y: 1}}
@@ -361,7 +361,7 @@ export default function IdentityDocumentScreen({onDone}: Props) {
           </TouchableOpacity>
         ) : gateMode ? (
           <TouchableOpacity activeOpacity={0.9} onPress={onDone} accessibilityRole="button">
-            <LinearGradient colors={['#6E9BF5', UI.accent, UI.accentDeep]} style={s.cta}>
+            <LinearGradient colors={['#3BA6FF', UI.accent, UI.accentDeep]} style={s.cta}>
               <Text style={s.ctaText}>Continue</Text>
               <Icon name="arrow-right" size={19} color="#fff" importantForAccessibility="no" />
             </LinearGradient>

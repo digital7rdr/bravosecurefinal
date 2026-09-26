@@ -47,8 +47,8 @@ import {
  * drift (a Pressable's press rectangle would end the recording on a wander).
  */
 const C = {
-  bg: '#07090D',
-  accent: '#5B8DEF',
+  bg: '#0A1F3F',
+  accent: '#1E88FF',
   rec: '#F87171',
   white: '#FFFFFF',
   dim: 'rgba(255,255,255,0.72)',

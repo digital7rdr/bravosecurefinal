@@ -13,7 +13,7 @@ export function BravoMark({size = 28}: {size?: number}) {
       <Defs>
         <SvgGradient id={id} x1="0" y1="0" x2="1" y2="1">
           <Stop offset="0" stopColor="#7FA8FF" />
-          <Stop offset="1" stopColor="#2F5BE0" />
+          <Stop offset="1" stopColor="#166ED1" />
         </SvgGradient>
       </Defs>
       <Path

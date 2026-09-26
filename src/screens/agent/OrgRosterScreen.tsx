@@ -38,16 +38,16 @@ type Nav = NativeStackNavigationProp<AgentStackParamList>;
 
 // Design tokens (Bravo "CPO Roster" handoff — obsidian + platinum cobalt).
 const D = {
-  bg:         '#07090D',
-  text:       '#F2F4F8',
+  bg:         '#0A1F3F',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   textFaint:  'rgba(180,188,204,0.28)',
   hair:       'rgba(255,255,255,0.06)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentSoft: '#A9C5FF',
-  accentDeep: '#2F5BE0',
+  accent:     '#1E88FF',
+  accentSoft: '#3BA6FF',
+  accentDeep: '#166ED1',
   amber:      '#F5C76B',
   signal:     '#4ADE80',
   alert:      '#FF5D5D',
@@ -449,7 +449,7 @@ export default function OrgRosterScreen() {
         style={{paddingHorizontal: 20, paddingTop: 14, paddingBottom: bottomPad(14)}}>
         <View style={{flexDirection: 'row', gap: 10}}>
           <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('OrgCreateCpo')} style={{flex: 1}}>
-            <LinearGradient colors={['#6E9BF5', D.accent, D.accentDeep]} style={s.cta}>
+            <LinearGradient colors={['#3BA6FF', D.accent, D.accentDeep]} style={s.cta}>
               <Icon name="plus" size={19} color="#fff" />
               <Text style={s.ctaText} numberOfLines={1}>Add CPO</Text>
             </LinearGradient>

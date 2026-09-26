@@ -94,16 +94,16 @@ const MODE_LABELS: Record<ExecTransportMode, string> = {
 
 // Design tokens — obsidian/cobalt premium (mirrors the executive/Lite wizard).
 const D = {
-  bg:         '#07090D',
-  text:       '#F2F4F8',
+  bg:         '#0A1F3F',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   textFaint:  'rgba(180,188,204,0.28)',
   hair:       'rgba(255,255,255,0.06)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentDeep: '#2F5BE0',
-  accentSoft: '#A9C5FF',
+  accent:     '#1E88FF',
+  accentDeep: '#166ED1',
+  accentSoft: '#3BA6FF',
   amber:      '#F5C76B',
   signal:     '#4ADE80',
   fSans:    'Manrope_500Medium',
@@ -1139,7 +1139,7 @@ export default function ExecReviewScreen() {
                       accessibilityRole="button"
                       accessibilityLabel="Add passenger"
                       hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-                      <LinearGradient colors={['#6E9BF5', D.accentDeep]} start={{x: 0, y: 0}} end={{x: 0, y: 1}} style={s.counterBtnPri}>
+                      <LinearGradient colors={['#3BA6FF', D.accentDeep]} start={{x: 0, y: 0}} end={{x: 0, y: 1}} style={s.counterBtnPri}>
                         <Icon name="plus" size={16} color="#fff" />
                       </LinearGradient>
                     </TouchableOpacity>
@@ -1376,7 +1376,7 @@ export default function ExecReviewScreen() {
                 onChange={onLaterDateChange}
               />
               <TouchableOpacity activeOpacity={0.9} onPress={() => setDateOpen(false)}>
-                <LinearGradient colors={['#6E9BF5', D.accent, D.accentDeep]} locations={[0, 0.55, 1]} start={{x: 0, y: 0}} end={{x: 0, y: 1}} style={s.iosDone}>
+                <LinearGradient colors={['#3BA6FF', D.accent, D.accentDeep]} locations={[0, 0.55, 1]} start={{x: 0, y: 0}} end={{x: 0, y: 1}} style={s.iosDone}>
                   <Text style={s.iosDoneText}>Done</Text>
                 </LinearGradient>
               </TouchableOpacity>
@@ -1401,7 +1401,7 @@ export default function ExecReviewScreen() {
           accessibilityHint={ctaBlocked ? gateHint ?? undefined : undefined}
           accessibilityState={{busy: submitting}}>
           <LinearGradient
-            colors={ctaBlocked ? ['#27324A', '#1C2436'] : ['#6E9BF5', D.accent, D.accentDeep]}
+            colors={ctaBlocked ? ['#27324A', '#1C2436'] : ['#3BA6FF', D.accent, D.accentDeep]}
             locations={[0, 0.55, 1]}
             start={{x: 0, y: 0}}
             end={{x: 0, y: 1}}
@@ -1449,7 +1449,7 @@ function Stepper({value, unit, onMinus, onPlus, minusDisabled, plusDisabled}: {
         accessibilityLabel={`Add ${unit}`}
         hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
         <LinearGradient
-          colors={plusDisabled ? ['#27324A', '#1C2436'] : ['#6E9BF5', D.accentDeep]}
+          colors={plusDisabled ? ['#27324A', '#1C2436'] : ['#3BA6FF', D.accentDeep]}
           start={{x: 0, y: 0}}
           end={{x: 0, y: 1}}
           style={s.stepBtnPri}>

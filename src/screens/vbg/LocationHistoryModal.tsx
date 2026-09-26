@@ -151,7 +151,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   backdrop: {position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)'},
   sheet: {
     position: 'absolute', left: 0, right: 0, bottom: 0,
-    backgroundColor: '#0B0E14', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    backgroundColor: '#0A1F3F', borderTopLeftRadius: 24, borderTopRightRadius: 24,
     borderWidth: 1, borderColor: VBG.hair2, paddingHorizontal: 20, paddingTop: 12,
   },
   grabber: {alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.18)', marginBottom: 16},

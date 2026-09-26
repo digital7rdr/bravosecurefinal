@@ -40,7 +40,7 @@ describe('no mentions — the untouched path', () => {
   });
 
   it('still linkifies URLs when no mentions are present', () => {
-    const tree = render(<LinkifiedText text="see https://bravo.example now" linkColor="#A9C5FF" />);
+    const tree = render(<LinkifiedText text="see https://bravo.example now" linkColor="#3BA6FF" />);
     expect(texts(tree)).toContain('https://bravo.example');
     expect(styleOf(tree, 'https://bravo.example')).toMatchObject({textDecorationLine: 'underline'});
   });
@@ -54,10 +54,10 @@ describe('no mentions — the untouched path', () => {
 describe('mentions', () => {
   it('renders the mention as its OWN span, tinted', () => {
     const tree = render(
-      <LinkifiedText text="hey @Alice how are you" linkColor="#fff" mentionColor="#5B8DEF" mentions={MENTIONS} />,
+      <LinkifiedText text="hey @Alice how are you" linkColor="#fff" mentionColor="#1E88FF" mentions={MENTIONS} />,
     );
     expect(texts(tree)).toEqual(expect.arrayContaining(['hey ', '@Alice', ' how are you']));
-    expect(styleOf(tree, '@Alice')).toMatchObject({color: '#5B8DEF'});
+    expect(styleOf(tree, '@Alice')).toMatchObject({color: '#1E88FF'});
   });
 
   it('is distinguishable by MORE than colour — weight + chip background', () => {
@@ -118,12 +118,12 @@ describe('mentions', () => {
     const tree = render(
       <LinkifiedText
         text="@Alice see https://bravo.example"
-        linkColor="#A9C5FF"
-        mentionColor="#5B8DEF"
+        linkColor="#3BA6FF"
+        mentionColor="#1E88FF"
         mentions={MENTIONS}
       />,
     );
-    expect(styleOf(tree, '@Alice')).toMatchObject({color: '#5B8DEF'});
+    expect(styleOf(tree, '@Alice')).toMatchObject({color: '#1E88FF'});
     expect(styleOf(tree, 'https://bravo.example')).toMatchObject({textDecorationLine: 'underline'});
   });
 

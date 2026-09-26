@@ -1630,11 +1630,11 @@ export default function DepartmentChatScreen() {
                 enableRecentlyUsed
                 theme={{
                   knob: OB.accent,
-                  container: '#0C1018',
-                  header: '#F2F4F8',
+                  container: '#122747',
+                  header: '#FFFFFF',
                   skinTonesContainer: '#161B25',
-                  category: {icon: '#7E8AA6', iconActive: '#F2F4F8', container: '#0C1018', containerActive: OB.accent},
-                  search: {background: 'rgba(255,255,255,0.05)', text: '#F2F4F8', placeholder: '#7E8AA6', icon: '#7E8AA6'},
+                  category: {icon: '#7E8AA6', iconActive: '#FFFFFF', container: '#122747', containerActive: OB.accent},
+                  search: {background: 'rgba(255,255,255,0.05)', text: '#FFFFFF', placeholder: '#7E8AA6', icon: '#7E8AA6'},
                 }}
               />
             </View>
@@ -1990,7 +1990,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   // rest — the state the composer is in almost always — the controls sat
   // visibly below the pill's centre.
   composer: {flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 14, paddingTop: 6, borderTopWidth: 1, borderTopColor: OB.hair, backgroundColor: OB.bg},
-  emojiPanel: {backgroundColor: '#0C1018', borderTopWidth: 1, borderTopColor: OB.hair, overflow: 'hidden'},
+  emojiPanel: {backgroundColor: '#122747', borderTopWidth: 1, borderTopColor: OB.hair, overflow: 'hidden'},
   annToggle: {
     width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: OB.hair2,
@@ -2063,7 +2063,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   // Bottom-sheet chrome shared by the forward picker + action sheet
   sheetBackdrop: {flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.6)'},
   sheet: {
-    backgroundColor: '#0C1018', borderTopLeftRadius: 22, borderTopRightRadius: 22,
+    backgroundColor: '#122747', borderTopLeftRadius: 22, borderTopRightRadius: 22,
     paddingTop: 14, paddingBottom: 10, borderWidth: 1, borderColor: OB.hair2, borderBottomWidth: 0,
   },
   sheetTitle: {color: OB.text, fontFamily: BravoFont.bold, fontSize: 15, paddingHorizontal: 18, paddingBottom: 10},
@@ -2084,7 +2084,7 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   // Attach sheet
   attachSheet: {
-    backgroundColor: '#0C1018', borderTopLeftRadius: 22, borderTopRightRadius: 22,
+    backgroundColor: '#122747', borderTopLeftRadius: 22, borderTopRightRadius: 22,
     paddingHorizontal: 18, paddingTop: 10, paddingBottom: 24, borderWidth: 1, borderColor: OB.hair2, borderBottomWidth: 0,
   },
   attachHandle: {alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: OB.hair2, marginBottom: 14},

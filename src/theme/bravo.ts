@@ -11,8 +11,8 @@ import {Platform} from 'react-native';
 export const Bravo = {
   // ─── Backgrounds ──────────────────────────────────────────────
   // B-90 T-13 — retargeted to the obsidian system (see theme/colors.ts).
-  bg:        '#07090D',   // Obsidian — main app bg (was Command Navy #0A1F3F)
-  bgSoft:    '#05070B',   // Obsidian depth layers (was Tactical Midnight #06142B)
+  bg:        '#0A1F3F',   // Obsidian — main app bg (was Command Navy #0A1F3F)
+  bgSoft:    '#06142B',   // Obsidian depth layers (was Tactical Midnight #06142B)
 
   // ─── Surfaces ──────────────────────────────────────────────────
   card:      'rgba(27, 58, 102, 0.72)',   // surface-1 with alpha

@@ -55,14 +55,14 @@ type Rt  = RouteProp<BookingStackParamList, 'ZoneMap'>;
 // Kept inline so this screen matches the mockup exactly; the older
 // Command-Navy theme isn't applied here on purpose.
 const D = {
-  bg:         '#07090D',
-  text:       '#F2F4F8',
+  bg:         '#0A1F3F',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   hair:       'rgba(255,255,255,0.06)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentDeep: '#2F5BE0',
+  accent:     '#1E88FF',
+  accentDeep: '#166ED1',
   accentGlow: 'rgba(91,141,239,0.35)',
   signal:     '#4ADE80',
   amber:      '#F5C76B',
@@ -131,7 +131,7 @@ function ZoneRow({region, selected, loaded, onPress}: {region: Region; selected:
       {/* code tile */}
       {selected ? (
         <LinearGradient
-          colors={['#6E9BF5', D.accentDeep]}
+          colors={['#3BA6FF', D.accentDeep]}
           start={{x: 0.15, y: 0}}
           end={{x: 0.85, y: 1}}
           style={s.codeTile}>
@@ -166,7 +166,7 @@ function ZoneRow({region, selected, loaded, onPress}: {region: Region; selected:
 
       {live && (
         <View style={[s.chev, selected ? s.chevSelected : s.chevIdle]}>
-          <Icon name="chevron-right" size={16} color={selected ? '#A9C5FF' : D.textMute} />
+          <Icon name="chevron-right" size={16} color={selected ? '#3BA6FF' : D.textMute} />
         </View>
       )}
     </TouchableOpacity>
@@ -451,7 +451,7 @@ export default function ZoneMapScreen() {
           disabled={!ctaEnabled}
           onPress={handleContinue}>
           <LinearGradient
-            colors={ctaEnabled ? ['#6E9BF5', D.accent, D.accentDeep] : ['#27324A', '#1C2436']}
+            colors={ctaEnabled ? ['#3BA6FF', D.accent, D.accentDeep] : ['#27324A', '#1C2436']}
             locations={[0, 0.55, 1]}
             start={{x: 0, y: 0}}
             end={{x: 0, y: 1}}

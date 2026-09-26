@@ -24,7 +24,7 @@ export function UnreadPill({count}: {count: number}) {
   if (count <= 0) {return null;}
   return (
     <LinearGradient
-      colors={['#6E9BF5', OB.accentDeep]}
+      colors={['#3BA6FF', OB.accentDeep]}
       start={{x: 0, y: 0}}
       end={{x: 0, y: 1}}
       style={s.pill}>

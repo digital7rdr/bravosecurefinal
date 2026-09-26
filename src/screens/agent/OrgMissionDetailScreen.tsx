@@ -26,9 +26,9 @@ interface Escrow {
 }
 
 const D = {
-  bg: '#07090D', card: '#11151D', text: '#F2F4F8',
+  bg: '#0A1F3F', card: '#11151D', text: '#FFFFFF',
   textDim: 'rgba(229,233,242,0.62)', textMute: 'rgba(180,188,204,0.45)',
-  hair: 'rgba(255,255,255,0.07)', accent: '#5B8DEF', accentSoft: '#A9C5FF',
+  hair: 'rgba(255,255,255,0.07)', accent: '#1E88FF', accentSoft: '#3BA6FF',
   amber: '#F5C76B', signal: '#4ADE80',
   fSans: 'Manrope_500Medium', fSemi: 'Manrope_600SemiBold', fBold: 'Manrope_700Bold', fMono: 'monospace',
 };

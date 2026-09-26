@@ -17,7 +17,7 @@ const FALLBACK: StatusDisplay = {
 const CONFIG: Record<string, StatusDisplay> = {
   DRAFT:           {label: 'DRAFT',       color: '#475569', isActive: false, needsAttention: false},
   // Auto-dispatch (Uber-style): searching for the nearest agency — active, no attention.
-  DISPATCHING:     {label: 'SEARCHING',   color: '#5B8DEF', isActive: true,  needsAttention: false},
+  DISPATCHING:     {label: 'SEARCHING',   color: '#1E88FF', isActive: true,  needsAttention: false},
   // Ops-gated auto dispatch: an AUTO booking now parks here after submit too
   // ("Submitted — awaiting ops approval", same OpsRoomReview presentation as legacy);
   // the server flips it OPS_APPROVED → DISPATCHING once ops approve.
@@ -200,7 +200,7 @@ export type RowPaymentState =
 
 const C = {
   live:   '#4ADE80',
-  active: '#5B8DEF',
+  active: '#1E88FF',
   wait:   '#FBBF24',
   info:   '#60A5FA',
   done:   '#475569',

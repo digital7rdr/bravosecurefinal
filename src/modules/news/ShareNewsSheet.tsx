@@ -270,7 +270,7 @@ export const ShareNewsSheet = React.memo(function ShareNewsSheet({item, onClose}
               accessibilityRole="button"
               accessibilityLabel="Back to all share targets"
               onPress={() => setOpenGroupId(null)}>
-              <Icon name="chevron-left" size={20} color="#5B8DEF" />
+              <Icon name="chevron-left" size={20} color="#1E88FF" />
               <Text style={s.backText} numberOfLines={1}>{openGroup.name}</Text>
             </TouchableOpacity>
           ) : (
@@ -281,7 +281,7 @@ export const ShareNewsSheet = React.memo(function ShareNewsSheet({item, onClose}
           )}
 
           {sending ? (
-            <View style={s.sending}><ActivityIndicator color="#5B8DEF" /></View>
+            <View style={s.sending}><ActivityIndicator color="#1E88FF" /></View>
           ) : openGroup ? (
             <ShareChannelList group={openGroup} onPickChannel={t => { void sendToChannel(t); }} />
           ) : (
@@ -310,7 +310,7 @@ export const ShareNewsSheet = React.memo(function ShareNewsSheet({item, onClose}
                     accessibilityRole="button"
                     accessibilityLabel="Share outside Bravo"
                     onPress={() => { void shareOutside(); }}>
-                    <View style={s.outsideIcon}><Icon name="share-variant" size={18} color="#5B8DEF" /></View>
+                    <View style={s.outsideIcon}><Icon name="share-variant" size={18} color="#1E88FF" /></View>
                     <View style={{flex: 1, minWidth: 0}}>
                       <Text style={s.outsideTitle}>Share outside Bravo</Text>
                       <Text style={s.outsideSub} numberOfLines={1}>WhatsApp, Messages, email — any app on this phone</Text>
@@ -334,16 +334,16 @@ export const ShareNewsSheet = React.memo(function ShareNewsSheet({item, onClose}
 
 const s = StyleSheet.create({
   backdrop: {flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end'},
-  sheet: {backgroundColor: '#0C1018', borderTopLeftRadius: 18, borderTopRightRadius: 18, paddingTop: 10, maxHeight: '72%'},
+  sheet: {backgroundColor: '#122747', borderTopLeftRadius: 18, borderTopRightRadius: 18, paddingTop: 10, maxHeight: '72%'},
   grabber: {alignSelf: 'center', width: 38, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.18)', marginBottom: 10},
-  title: {color: '#F2F4F8', fontSize: 15, fontWeight: '700', paddingHorizontal: 18},
+  title: {color: '#FFFFFF', fontSize: 15, fontWeight: '700', paddingHorizontal: 18},
   sub: {color: 'rgba(229,233,242,0.62)', fontSize: 12, paddingHorizontal: 18, paddingTop: 2, paddingBottom: 10},
   backRow: {flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, paddingBottom: 10},
-  backText: {color: '#F2F4F8', fontSize: 15, fontWeight: '700', flex: 1},
+  backText: {color: '#FFFFFF', fontSize: 15, fontWeight: '700', flex: 1},
   section: {color: 'rgba(180,188,204,0.45)', fontSize: 10, fontWeight: '800', letterSpacing: 1.4, paddingHorizontal: 18, paddingTop: 12, paddingBottom: 6},
   sending: {paddingVertical: 34, alignItems: 'center'},
   outsideRow: {flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 14, marginBottom: 4, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)'},
   outsideIcon: {width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,141,239,0.16)'},
-  outsideTitle: {color: '#F2F4F8', fontSize: 14, fontWeight: '700'},
+  outsideTitle: {color: '#FFFFFF', fontSize: 14, fontWeight: '700'},
   outsideSub: {color: 'rgba(229,233,242,0.62)', fontSize: 11.5, marginTop: 1},
 });

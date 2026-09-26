@@ -43,17 +43,17 @@ import {roleLabel} from '@utils/roleLabel';
 // src/theme/bravo.ts token (used app-wide). The app tab bar staying navy is
 // an accepted, known seam — see the re-skin brief.
 const T = {
-  bg:           '#07090D',
-  bgSoft:       '#0B0E14',
+  bg:           '#0A1F3F',
+  bgSoft:       '#0A1F3F',
   cardSolid:    'rgba(17,21,29,0.9)',
-  text:         '#F2F4F8',
+  text:         '#FFFFFF',
   textDim:      'rgba(229,233,242,0.62)',
   textMute:     'rgba(180,188,204,0.45)',
   textFaint:    'rgba(180,188,204,0.28)',
   hair:         'rgba(255,255,255,0.06)',
   hair2:        'rgba(255,255,255,0.09)',
-  accent:       '#5B8DEF',
-  accentDeep:   '#2F5BE0',
+  accent:       '#1E88FF',
+  accentDeep:   '#166ED1',
   accentSoft:   '#7FA8FF',
   accentGlow:   'rgba(91,141,239,0.35)',
   signal:       '#4ADE80',
@@ -62,7 +62,7 @@ const T = {
   amber:        '#F5B544',
   // module tints (vbg-command-home.jsx SVC):
   tintIndigo:   '#818CF8', tintIndigoIc: '#B7BEFF', tintIndigoBd: 'rgba(129,140,248,0.38)', tintIndigoGlow: 'rgba(129,140,248,0.26)',
-  tintBlue:     '#5B8DEF', tintBlueIc:   '#A9C5FF', tintBlueBd:   'rgba(91,141,239,0.4)',   tintBlueGlow:   'rgba(91,141,239,0.3)',
+  tintBlue:     '#1E88FF', tintBlueIc:   '#3BA6FF', tintBlueBd:   'rgba(91,141,239,0.4)',   tintBlueGlow:   'rgba(91,141,239,0.3)',
   tintViolet:   '#A78BFA', tintVioletIc: '#C7B6FF', tintVioletBd: 'rgba(167,139,250,0.38)', tintVioletGlow: 'rgba(167,139,250,0.26)',
 } as const;
 
@@ -444,7 +444,7 @@ export default function DashboardScreen() {
             ) : (
               <>
                 <LinearGradient
-                  colors={['#6E9BF5', T.accentDeep]}
+                  colors={['#3BA6FF', T.accentDeep]}
                   start={{x: 0.1, y: 0}}
                   end={{x: 0.9, y: 1}}
                   style={StyleSheet.absoluteFill}
@@ -491,7 +491,7 @@ export default function DashboardScreen() {
           <TouchableOpacity activeOpacity={0.9} onPress={goToSecure} accessibilityRole="button"
             accessibilityLabel="Protect me now — auto-dispatch"
             style={{borderRadius: 20, overflow: 'hidden', marginBottom: 16, borderWidth: 1, borderColor: 'rgba(91,141,239,0.30)'}}>
-            <LinearGradient colors={['#2F5BE0', '#16307E']} start={{x: 0, y: 0}} end={{x: 1, y: 1}}
+            <LinearGradient colors={['#166ED1', '#16307E']} start={{x: 0, y: 0}} end={{x: 1, y: 1}}
               style={{flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18, paddingVertical: 17}}>
               <View style={{width: 48, height: 48, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center'}}>
                 <Icon name="shield-account" size={26} color="#fff" />
@@ -1210,7 +1210,7 @@ const notifRowStyles = StyleSheet.create(scaleTextStyles({
     paddingVertical: 12, paddingHorizontal: 16,
     borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
   },
-  unreadDot: {width: 7, height: 7, borderRadius: 4, backgroundColor: '#5B8DEF'},
+  unreadDot: {width: 7, height: 7, borderRadius: 4, backgroundColor: '#1E88FF'},
   title: {color: '#E8ECF4', fontSize: 13, fontWeight: '700'},
   subtitle: {color: 'rgba(232,236,244,0.6)', fontSize: 12, marginTop: 2},
   time: {color: 'rgba(232,236,244,0.4)', fontSize: 11},

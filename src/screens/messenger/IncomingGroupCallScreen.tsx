@@ -35,7 +35,7 @@ import {useContentWidth} from '@utils/scaling';
 type Props = MessengerScreenProps<'IncomingGroupCallScreen'>;
 
 const C = {
-  bg:    '#07090D',
+  bg:    '#0A1F3F',
   surf1: '#13182A',
   bd:    'rgba(255,255,255,0.14)',
   bd2:   'rgba(255,255,255,0.08)',
@@ -44,7 +44,7 @@ const C = {
   tx3:   '#7E8AA6',
   ok:    '#00C853',
   err:   '#D5212B',
-  glow:  '#5B8DEF',
+  glow:  '#1E88FF',
 };
 
 const MONO = Platform.select({ios: 'Menlo', default: 'monospace'});

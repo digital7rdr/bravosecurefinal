@@ -26,15 +26,15 @@ const OTP_LENGTH = 6;
 // Why: same tokens as the sibling Login / OTPVerification screens so the
 // login OTP step is visually indistinguishable from the signup one.
 const T = {
-  bg:         '#07090D',
-  text:       '#F2F4F8',
+  bg:         '#0A1F3F',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   textFaint:  'rgba(180,188,204,0.28)',
   hair:       'rgba(255,255,255,0.06)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentDeep: '#2F5BE0',
+  accent:     '#1E88FF',
+  accentDeep: '#166ED1',
   accentGlow: 'rgba(91,141,239,0.35)',
   danger:     '#FF8B8B',
 } as const;
@@ -245,7 +245,7 @@ export default function OtpVerifyScreen({navigation, route}: Props) {
             end={{x: 0.8, y: 1}}
             style={StyleSheet.absoluteFill}
           />
-          <IcLockTile c="#A9C5FF" />
+          <IcLockTile c="#3BA6FF" />
         </View>
         <Text style={s.title}>Two-factor check</Text>
         <Text style={s.subtitle}>
@@ -288,7 +288,7 @@ export default function OtpVerifyScreen({navigation, route}: Props) {
           style={[s.ctaWrap, isComplete && !verifying && s.ctaGlow]}>
           {isComplete ? (
             <LinearGradient
-              colors={['#6E9BF5', T.accent, T.accentDeep]}
+              colors={['#3BA6FF', T.accent, T.accentDeep]}
               start={{x: 0.5, y: 0}}
               end={{x: 0.5, y: 1}}
               style={s.cta}>

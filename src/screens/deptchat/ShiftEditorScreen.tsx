@@ -843,5 +843,5 @@ const s = StyleSheet.create(scaleTextStyles({
   },
 
   iosBackdrop: {flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end'},
-  iosCard: {backgroundColor: '#10141C', padding: 16, paddingBottom: 28, gap: 12, borderTopLeftRadius: 20, borderTopRightRadius: 20},
+  iosCard: {backgroundColor: '#162F54', padding: 16, paddingBottom: 28, gap: 12, borderTopLeftRadius: 20, borderTopRightRadius: 20},
 }));

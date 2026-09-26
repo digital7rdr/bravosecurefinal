@@ -33,16 +33,16 @@ type IconName = React.ComponentProps<typeof Icon>['name'];
 
 // Design tokens (Bravo "Add CPO" handoff — obsidian + platinum cobalt).
 const D = {
-  bg:         '#07090D',
-  text:       '#F2F4F8',
+  bg:         '#0A1F3F',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   textFaint:  'rgba(180,188,204,0.28)',
   hair:       'rgba(255,255,255,0.06)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentSoft: '#A9C5FF',
-  accentDeep: '#2F5BE0',
+  accent:     '#1E88FF',
+  accentSoft: '#3BA6FF',
+  accentDeep: '#166ED1',
   amber:      '#F5C76B',
   signal:     '#4ADE80',
   signalSoft: '#8FE6B4',
@@ -195,7 +195,7 @@ export default function OrgCreateCpoScreen() {
         <View style={s.progressRow}>
           <View style={s.progressTrack}>
             <LinearGradient
-              colors={[D.accent, '#6E9BF5']} start={{x: 0, y: 0}} end={{x: 1, y: 0}}
+              colors={[D.accent, '#3BA6FF']} start={{x: 0, y: 0}} end={{x: 1, y: 0}}
               style={[s.progressFill, {width: `${pct}%`}]} />
           </View>
           <Text style={[s.progressText, valid && {color: D.signal}]}>{reqDone}/4 REQUIRED</Text>
@@ -283,7 +283,7 @@ export default function OrgCreateCpoScreen() {
         <TouchableOpacity activeOpacity={0.85} disabled={!valid || submitting}
           onPress={() => { void submit(); }}>
           {valid && !submitting ? (
-            <LinearGradient colors={['#6E9BF5', D.accent, D.accentDeep]} style={s.cta}>
+            <LinearGradient colors={['#3BA6FF', D.accent, D.accentDeep]} style={s.cta}>
               <Icon name="plus" size={19} color="#fff" />
               <Text style={s.ctaText}>{isManager ? 'Add Manager to Roster' : 'Add CPO to Roster'}</Text>
             </LinearGradient>
@@ -329,7 +329,7 @@ const s = StyleSheet.create(scaleTextStyles({
   // role segmented control (Step 20)
   segment: {flexDirection: 'row', gap: 6, padding: 4, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)'},
   segBtn: {flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 44, borderRadius: 10},
-  segBtnOn: {backgroundColor: '#5B8DEF'},
+  segBtnOn: {backgroundColor: '#1E88FF'},
   segText: {fontFamily: 'Manrope_600SemiBold', fontSize: 13.5, color: 'rgba(180,188,204,0.45)'},
   segTextOn: {color: '#fff', fontFamily: 'Manrope_700Bold'},
   roleHint: {fontFamily: 'Manrope_500Medium', fontSize: 11.5, color: 'rgba(180,188,204,0.45)', paddingLeft: 2},

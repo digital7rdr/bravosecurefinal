@@ -16,12 +16,12 @@ import {
 } from '@utils/protectionReadiness';
 
 const D = {
-  text:     '#F2F4F8',
+  text:     '#FFFFFF',
   textDim:  'rgba(229,233,242,0.62)',
   textMute: 'rgba(180,188,204,0.45)',
   hair:     'rgba(255,255,255,0.09)',
-  accent:   '#5B8DEF',
-  accentSoft: '#A9C5FF',
+  accent:   '#1E88FF',
+  accentSoft: '#3BA6FF',
   warn:     '#F5A524',
   fSans: 'Manrope_500Medium',
   fSemi: 'Manrope_600SemiBold',

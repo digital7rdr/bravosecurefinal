@@ -22,7 +22,7 @@ export function buildBravoMapHtml(mapboxToken: string): string {
 <title>Bravo Map</title>
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.css" rel="stylesheet"/>
 <style>
-  html, body { margin: 0; padding: 0; background: #06080C; color: #F2F4F8;
+  html, body { margin: 0; padding: 0; background: #06080C; color: #FFFFFF;
     font-family: ui-monospace, Menlo, Consolas, "Roboto Mono", monospace;
     -webkit-font-smoothing: antialiased; overflow: hidden; height: 100%; }
   *, *::before, *::after { box-sizing: border-box; }
@@ -70,7 +70,7 @@ export function buildBravoMapHtml(mapboxToken: string): string {
      inset highlight and the drop shadow, which are all free. */
   .zoom-btn { width:40px; height:40px; border-radius:12px; cursor:pointer;
     background: rgba(15,20,30,0.94); border:1px solid rgba(255,255,255,0.09);
-    display:flex; align-items:center; justify-content:center; color:#F2F4F8;
+    display:flex; align-items:center; justify-content:center; color:#FFFFFF;
     box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.06);
     transition: transform 0.15s ease, background 0.15s ease; user-select:none;
     -webkit-tap-highlight-color: transparent; }
@@ -270,7 +270,7 @@ export function buildBravoMapHtml(mapboxToken: string): string {
   function severityColor(sev) {
     // Founder 2026-09-02 — risk classification removed from News until an
     // Intelligence/OSINT desk can verify sources: every marker is cobalt.
-    return '#5B8DEF';
+    return '#1E88FF';
   }
 
   function subLabel(sev, count) {

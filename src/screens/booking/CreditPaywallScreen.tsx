@@ -877,7 +877,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     borderRadius: 12, backgroundColor: 'rgba(91,141,239,0.14)',
     borderWidth: 1, borderColor: 'rgba(91,141,239,0.38)',
   },
-  footerRate: {textAlign: 'center', fontSize: 15, color: '#A9C5FF', fontWeight: '700', letterSpacing: 0.3},
+  footerRate: {textAlign: 'center', fontSize: 15, color: '#3BA6FF', fontWeight: '700', letterSpacing: 0.3},
 
   successOverlay: {flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24},
   successIconWrap: {position: 'relative', width: 160, height: 160, alignItems: 'center', justifyContent: 'center', marginBottom: 24},

@@ -79,7 +79,7 @@ function GroupRow({item, onPress}: {item: GroupItem; onPress: () => void}) {
       <View style={styles.avatarWrap}>
         <View style={[
           styles.avatar,
-          {backgroundColor: item.avatarBg === 'linear' ? '#5B8DEF' : item.avatarBg},
+          {backgroundColor: item.avatarBg === 'linear' ? '#1E88FF' : item.avatarBg},
         ]}>
           {item.avatarIcon
             ? <Icon name={item.avatarIcon} size={22} color={item.avatarIconColor ?? '#FFF'} />
@@ -214,7 +214,7 @@ export default function GroupsScreen() {
           style={styles.newGroupBtn}
           activeOpacity={0.8}
           onPress={() => navigation.navigate('NewChat')}>
-          <Icon name="plus" size={14} color="#5B8DEF" />
+          <Icon name="plus" size={14} color="#1E88FF" />
           <Text style={styles.newGroupText}>New Group</Text>
         </TouchableOpacity>
       </View>
@@ -236,7 +236,7 @@ export default function GroupsScreen() {
 
         {groups.length === 0 ? (
           <View style={styles.emptyWrap}>
-            <Icon name="account-group-outline" size={44} color="#5B8DEF" />
+            <Icon name="account-group-outline" size={44} color="#1E88FF" />
             <Text style={styles.emptyTitle}>No groups yet</Text>
             <Text style={styles.emptyHint}>
               Groups broadcast as N pairwise sealed Signal envelopes — the
@@ -276,9 +276,9 @@ const styles = StyleSheet.create(scaleTextStyles({
   root: {flex: 1, backgroundColor: Colors.background},
 
   header: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.09)'},
-  headerTitle: {fontSize: 17, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 3, color: '#F2F4F8'},
+  headerTitle: {fontSize: 17, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 3, color: '#FFFFFF'},
   newGroupBtn: {flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 99, backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)'},
-  newGroupText: {fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.5, color: '#5B8DEF'},
+  newGroupText: {fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.5, color: '#1E88FF'},
 
   sectionLabel: {fontSize: 9, fontWeight: '800', letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(180,188,204,0.45)', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 6},
 
@@ -290,19 +290,19 @@ const styles = StyleSheet.create(scaleTextStyles({
   missionDot: {position: 'absolute', top: -4, right: -4, width: 8, height: 8, borderRadius: 4, backgroundColor: '#ef4444', shadowColor: '#ef4444', shadowOffset: {width: 0, height: 0}, shadowOpacity: 0.6, shadowRadius: 4},
   groupInfo: {flex: 1, minWidth: 0},
   groupTopRow: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 3},
-  groupName: {fontSize: 13, fontWeight: '700', color: '#F2F4F8', flex: 1},
+  groupName: {fontSize: 13, fontWeight: '700', color: '#FFFFFF', flex: 1},
   groupTime: {fontSize: 10, color: 'rgba(180,188,204,0.45)', flexShrink: 0, marginLeft: 8},
   groupBottomRow: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'},
   groupLastMsg: {fontSize: 11, color: 'rgba(229,233,242,0.62)', flex: 1},
-  unreadBadge: {minWidth: 18, minHeight: 18, borderRadius: 9, paddingVertical: 1, backgroundColor: '#5B8DEF', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6, marginLeft: 8},
+  unreadBadge: {minWidth: 18, minHeight: 18, borderRadius: 9, paddingVertical: 1, backgroundColor: '#1E88FF', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6, marginLeft: 8},
   unreadText: {fontSize: 10, fontWeight: '800', color: '#FFF'},
   memberCount: {fontSize: 10, color: 'rgba(180,188,204,0.45)', marginLeft: 8},
 
-  fab: {position: 'absolute', right: 20, width: 52, height: 52, borderRadius: 26, backgroundColor: '#5B8DEF', alignItems: 'center', justifyContent: 'center', shadowColor: '#5B8DEF', shadowOffset: {width: 0, height: 8}, shadowOpacity: 0.5, shadowRadius: 16, elevation: 8},
+  fab: {position: 'absolute', right: 20, width: 52, height: 52, borderRadius: 26, backgroundColor: '#1E88FF', alignItems: 'center', justifyContent: 'center', shadowColor: '#1E88FF', shadowOffset: {width: 0, height: 8}, shadowOpacity: 0.5, shadowRadius: 16, elevation: 8},
 
   emptyWrap: {alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32, gap: 10},
   emptyTitle: {color: 'rgba(229,233,242,0.62)', fontSize: 14, fontWeight: '700', marginTop: 8},
   emptyHint: {color: 'rgba(180,188,204,0.45)', fontSize: 11, textAlign: 'center', lineHeight: 16, maxWidth: 300},
-  emptyCta: {flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 18, paddingHorizontal: 22, paddingVertical: 12, borderRadius: 99, backgroundColor: '#5B8DEF'},
+  emptyCta: {flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 18, paddingHorizontal: 22, paddingVertical: 12, borderRadius: 99, backgroundColor: '#1E88FF'},
   emptyCtaText: {color: '#FFF', fontSize: 13, fontWeight: '700', letterSpacing: 0.5},
 }));

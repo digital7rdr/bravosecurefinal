@@ -4,7 +4,7 @@
  * The backdrop puts a photograph behind card copy. Two properties are
  * load-bearing and neither is visible in a screenshot review:
  *
- *   * CONTRAST — card text is white / dim-white on obsidian `#07090D`. The
+ *   * CONTRAST — card text is white / dim-white on obsidian `#0A1F3F`. The
  *     scrim's job is to hold the effective background dark enough that body
  *     copy stays above the 4.5:1 WCAG AA bar (DESIGN_REVIEW_LOOP §3.4 makes a
  *     contrast miss an automatic Major). "Make the photo pop" is exactly the
@@ -79,7 +79,7 @@ describe('ImageryBackdrop', () => {
   it('never lets a variant drop below the AA-safe floor', () => {
     // 0.78 is the measured floor: against a worst-case BRIGHT source pixel it
     // keeps the dimmest token this app puts on imagery (`textMute`) at the
-    // same contrast it already has on flat #07090D. Below that the photo makes
+    // same contrast it already has on flat #0A1F3F. Below that the photo makes
     // an already-marginal token worse. Lower it only with new numbers.
     for (const v of VARIANTS) {
       expect(SCRIM_TEXT_ALPHA[v]).toBeGreaterThanOrEqual(0.78);

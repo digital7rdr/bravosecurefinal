@@ -256,7 +256,7 @@ export default function PermissionsScreen({navigation, onDone}: Props) {
             on PermGate, present on the (unreachable) AuthNavigator route. */}
         {navigation?.canGoBack?.() ? (
           <TouchableOpacity style={s.backBtn} onPress={() => goBackOnce(navigation)} activeOpacity={0.7}>
-            <Icon name="chevron-left" size={22} color="#F2F4F8" />
+            <Icon name="chevron-left" size={22} color="#FFFFFF" />
           </TouchableOpacity>
         ) : null}
 
@@ -267,7 +267,7 @@ export default function PermissionsScreen({navigation, onDone}: Props) {
             <View style={s.halo} />
             <View style={s.halo2} />
             <View style={s.markTile}>
-              <BravoMark size={40} primary="#FFFFFF" accent="#5B8DEF" />
+              <BravoMark size={40} primary="#FFFFFF" accent="#1E88FF" />
             </View>
           </View>
           <Text style={s.title}>
@@ -388,7 +388,7 @@ export default function PermissionsScreen({navigation, onDone}: Props) {
       <View style={s.footer}>
         <TouchableOpacity onPress={handleContinue} activeOpacity={0.85} style={s.ctaWrap}>
           <LinearGradient
-            colors={locGranted ? ['#6FA0FF', '#5B8DEF'] : ['#33415E', '#2A3550']}
+            colors={locGranted ? ['#6FA0FF', '#1E88FF'] : ['#33415E', '#2A3550']}
             start={{x: 0.5, y: 0}}
             end={{x: 0.5, y: 1}}
             style={s.cta}>
@@ -409,8 +409,8 @@ export default function PermissionsScreen({navigation, onDone}: Props) {
 
 // Obsidian surface (design-system master; G8 — this screen was the last of the
 // auth flow still on Command-Navy).
-const BG     = '#07090D';
-const ACCENT = '#5B8DEF';
+const BG     = '#0A1F3F';
+const ACCENT = '#1E88FF';
 const HAIR   = 'rgba(255,255,255,0.07)';
 const OK     = '#4ADE80';
 const ERR    = '#FF5D5D';
@@ -431,7 +431,7 @@ const s = StyleSheet.create(scaleTextStyles({
   markTile: {width:60, height:60, borderRadius:19, alignItems:'center', justifyContent:'center',
     backgroundColor:'rgba(91,141,239,0.14)', borderWidth:1, borderColor:'rgba(91,141,239,0.4)',
     shadowColor:ACCENT, shadowOpacity:0.45, shadowRadius:15, shadowOffset:{width:0, height:6}, elevation:8},
-  title:       {fontSize:29, fontWeight:'400', lineHeight:34, letterSpacing:-0.9, color:'#F2F4F8'},
+  title:       {fontSize:29, fontWeight:'400', lineHeight:34, letterSpacing:-0.9, color:'#FFFFFF'},
   titleAccent: {fontWeight:'700', color:ACCENT},
   lede:        {fontSize:13.5, lineHeight:21, color:'rgba(180,188,204,0.75)', marginTop:13, maxWidth:318},
 
@@ -461,7 +461,7 @@ const s = StyleSheet.create(scaleTextStyles({
 
   rowText:     {flex:1, minWidth:0},
   rowLabelRow: {flexDirection:'row', alignItems:'center', gap:7, marginBottom:2},
-  rowLabel:    {fontSize:14.5, fontWeight:'500', color:'#F2F4F8', letterSpacing:-0.1, flexShrink:1, minWidth:0},
+  rowLabel:    {fontSize:14.5, fontWeight:'500', color:'#FFFFFF', letterSpacing:-0.1, flexShrink:1, minWidth:0},
   rowDesc:     {fontSize:12, color:'rgba(180,188,204,0.75)', lineHeight:16},
   deniedHint:  {fontSize:11, color:WARN, marginTop:4, fontStyle:'italic'},
 

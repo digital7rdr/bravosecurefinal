@@ -3,7 +3,7 @@
  * family keeps the old key on purpose) shared design system.
  *
  * React Native port of the standalone design mockup's atoms — the
- * "obsidian premium" look (deep #07090D bg, glass cards with a top
+ * "obsidian premium" look (deep #0A1F3F bg, glass cards with a top
  * edge-light, accent rails, mono eyebrows, tactical map). Every VBG
  * screen composes these so the four screens stay visually consistent
  * and the markup per screen stays small.
@@ -32,13 +32,13 @@ import {scaleTextStyles} from '@utils/scaling';
 
 // ── Design tokens (mirrors mockup `BRAVO`) ────────────────────────────────────
 export const VBG = {
-  bg:        '#07090D',
+  bg:        '#0A1F3F',
   hair:      'rgba(255,255,255,0.06)',
   hair2:     'rgba(255,255,255,0.09)',
   cardTop:   'rgba(22,27,37,0.9)',
   cardBot:   'rgba(17,21,29,0.82)',
 
-  text:      '#F2F4F8',
+  text:      '#FFFFFF',
   textDim:   'rgba(229,233,242,0.62)',
   textMute:  'rgba(180,188,204,0.45)',
   textFaint: 'rgba(180,188,204,0.28)',
@@ -51,10 +51,10 @@ export const VBG = {
   alertDim:  'rgba(255,93,93,0.16)',
   info:      '#6EA8FE',
 
-  accent:     '#5B8DEF',
-  accentDeep: '#2F5BE0',
+  accent:     '#1E88FF',
+  accentDeep: '#166ED1',
   accentGlow: 'rgba(91,141,239,0.35)',
-  accentSoft: '#A9C5FF',
+  accentSoft: '#3BA6FF',
 
   indigo:    '#A78BFA',
 } as const;
@@ -182,7 +182,7 @@ const RISK: Record<RiskLevel, {fg: string; bg: string; bd: string}> = {
   caution:  {fg: VBG.amber, bg: VBG.amberDim,           bd: 'rgba(245,181,68,0.30)'},
   low:      {fg: VBG.signal, bg: VBG.signalDim,         bd: 'rgba(74,222,128,0.30)'},
   info:     {fg: VBG.info,  bg: 'rgba(110,168,254,0.12)', bd: 'rgba(110,168,254,0.30)'},
-  blue:     {fg: '#A9C5FF', bg: 'rgba(91,141,239,0.13)', bd: 'rgba(91,141,239,0.32)'},
+  blue:     {fg: '#3BA6FF', bg: 'rgba(91,141,239,0.13)', bd: 'rgba(91,141,239,0.32)'},
 };
 
 export function RiskBadge({
@@ -220,7 +220,7 @@ export function Chip({
   return (
     <TouchableOpacity activeOpacity={0.75} onPress={onPress}
       style={[styles.chip, active ? styles.chipOn : styles.chipOff]}>
-      <Text style={[styles.chipText, {color: active ? '#A9C5FF' : VBG.textMute}]}>{children}</Text>
+      <Text style={[styles.chipText, {color: active ? '#3BA6FF' : VBG.textMute}]}>{children}</Text>
     </TouchableOpacity>
   );
 }

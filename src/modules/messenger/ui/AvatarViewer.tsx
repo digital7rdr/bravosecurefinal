@@ -59,7 +59,7 @@ export function AvatarViewer({target, onClose}: {
               accessibilityRole="button"
               accessibilityLabel="Retry loading the photo"
               testID="avatar-viewer-retry">
-              <Icon name="refresh" size={15} color="#F2F4F8" />
+              <Icon name="refresh" size={15} color="#FFFFFF" />
               <Text style={styles.retryText}>Retry</Text>
             </TouchableOpacity>
           </View>
@@ -90,7 +90,7 @@ export function AvatarViewer({target, onClose}: {
           hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
           accessibilityRole="button"
           accessibilityLabel="Close">
-          <Icon name="close" size={20} color="#F2F4F8" />
+          <Icon name="close" size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </Pressable>
     </Modal>
@@ -105,16 +105,16 @@ const styles = StyleSheet.create({
     width: 104, height: 104, borderRadius: 52, alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
   },
-  fallbackInitials: {color: '#F2F4F8', fontSize: 34, fontWeight: '700', letterSpacing: 0.5},
+  fallbackInitials: {color: '#FFFFFF', fontSize: 34, fontWeight: '700', letterSpacing: 0.5},
   fallbackText: {color: 'rgba(242,244,248,0.7)', fontSize: 13.5, textAlign: 'center'},
   retry: {
     flexDirection: 'row', alignItems: 'center', gap: 7,
     paddingVertical: 8, paddingHorizontal: 16, borderRadius: 14,
     backgroundColor: 'rgba(255,255,255,0.10)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)',
   },
-  retryText: {color: '#F2F4F8', fontSize: 13.5, fontWeight: '600'},
+  retryText: {color: '#FFFFFF', fontSize: 13.5, fontWeight: '600'},
   captionWrap: {position: 'absolute', bottom: 48, left: 24, right: 24, alignItems: 'center'},
-  caption: {color: '#F2F4F8', fontSize: 15, fontWeight: '700', letterSpacing: -0.2},
+  caption: {color: '#FFFFFF', fontSize: 15, fontWeight: '700', letterSpacing: -0.2},
   close: {
     position: 'absolute', top: 54, right: 20, width: 36, height: 36, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center',

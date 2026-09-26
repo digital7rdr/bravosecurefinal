@@ -46,7 +46,7 @@ export const MSG_TAB_HEIGHT = 60;
  */
 export type MessengerBarNavigation = Pick<NativeStackNavigationProp<MessengerStackParamList>, 'navigate'>;
 
-const BAR_BG = '#07090D';
+const BAR_BG = '#0A1F3F';
 
 type MsgTab = {
   icon: React.ComponentProps<typeof Icon>['name'];
@@ -163,7 +163,7 @@ export function MessengerTabBar({
               hitSlop={{top: 8, bottom: 8, left: 4, right: 4}}
               onPress={() => handlePress(tab)}>
               {active && <View style={msgTabStyles.activeBar} />}
-              <Icon name={tab.icon} size={22} color={active ? '#5B8DEF' : 'rgba(180,188,204,0.45)'} />
+              <Icon name={tab.icon} size={22} color={active ? '#1E88FF' : 'rgba(180,188,204,0.45)'} />
               <FitLine style={[msgTabStyles.label, active && msgTabStyles.labelActive]} floorScale={0.75} text={tab.label} />
             </TouchableOpacity>
           );
@@ -185,9 +185,9 @@ const msgTabStyles = StyleSheet.create(scaleTextStyles({
   item: {flex: 1, alignItems: 'center', justifyContent: 'flex-start', gap: 3, position: 'relative'},
   activeBar: {
     position: 'absolute', top: -10, width: 28, height: 2.5, borderRadius: 2,
-    backgroundColor: '#5B8DEF',
-    shadowColor: '#5B8DEF', shadowOpacity: 1, shadowRadius: 8, shadowOffset: {width: 0, height: 0}, elevation: 4,
+    backgroundColor: '#1E88FF',
+    shadowColor: '#1E88FF', shadowOpacity: 1, shadowRadius: 8, shadowOffset: {width: 0, height: 0}, elevation: 4,
   },
   label: {fontFamily: BravoFont.sans, fontSize: 10, fontWeight: '600', letterSpacing: 0.4, textTransform: 'uppercase', textAlign: 'center', color: 'rgba(180,188,204,0.45)'},
-  labelActive: {color: '#F2F4F8'},
+  labelActive: {color: '#FFFFFF'},
 }));

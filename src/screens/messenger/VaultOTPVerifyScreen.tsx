@@ -133,7 +133,7 @@ export default function VaultOTPVerifyScreen() {
         {/* The one code that matters */}
         <View style={styles.otpBlock}>
           <View style={styles.otpLabelRow}>
-            <Icon name="phone-outline" size={15} color="#5B8DEF" />
+            <Icon name="phone-outline" size={15} color="#1E88FF" />
             <Text style={styles.otpLabel}>Verification code</Text>
           </View>
           <View style={styles.boxRow}>
@@ -199,9 +199,9 @@ const styles = StyleSheet.create(scaleTextStyles({
   backBtn: {width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center'},
 
   main: {paddingHorizontal: 20, paddingBottom: 24, flexGrow: 1},
-  heading: {fontSize: 24, fontWeight: '700', color: '#F2F4F8', marginBottom: 4},
+  heading: {fontSize: 24, fontWeight: '700', color: '#FFFFFF', marginBottom: 4},
   sub: {fontSize: 14, color: 'rgba(229,233,242,0.62)', lineHeight: 20, marginBottom: 20},
-  subStrong: {color: '#F2F4F8', fontWeight: '700'},
+  subStrong: {color: '#FFFFFF', fontWeight: '700'},
 
   otpBlock: {marginBottom: 4},
   otpLabelRow: {flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8},
@@ -218,19 +218,19 @@ const styles = StyleSheet.create(scaleTextStyles({
     textAlign: 'center',
     fontSize: 18,
     fontWeight: '800',
-    color: '#F2F4F8',
+    color: '#FFFFFF',
   },
-  otpBoxFilled: {borderColor: '#5B8DEF', borderWidth: 2},
+  otpBoxFilled: {borderColor: '#1E88FF', borderWidth: 2},
   otpBoxError: {borderColor: '#D50000', borderWidth: 2},
   errorText: {fontSize: 12, color: '#f87171', fontWeight: '600', marginTop: 4, minHeight: 16},
 
   resendRow: {alignItems: 'center', marginBottom: 16, marginTop: 4},
   resendLabel: {fontSize: 14, color: 'rgba(229,233,242,0.62)'},
-  resendTimer: {color: '#5B8DEF', fontWeight: '700'},
-  resendActive: {fontSize: 14, color: '#5B8DEF', fontWeight: '700'},
+  resendTimer: {color: '#1E88FF', fontWeight: '700'},
+  resendActive: {fontSize: 14, color: '#1E88FF', fontWeight: '700'},
 
   btnWrap: {marginTop: 'auto'},
-  verifyBtn: {backgroundColor: '#5B8DEF', borderRadius: 12, paddingVertical: 16, alignItems: 'center'},
+  verifyBtn: {backgroundColor: '#1E88FF', borderRadius: 12, paddingVertical: 16, alignItems: 'center'},
   verifyBtnDisabled: {backgroundColor: 'rgba(255,255,255,0.09)', opacity: 0.6},
   verifyBtnText: {fontSize: 15, fontWeight: '700', color: '#FFF'},
 

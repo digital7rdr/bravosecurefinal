@@ -25,10 +25,10 @@ export function buildVbgKeyPointsMapHtml(mapboxToken: string): string {
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover"/>
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.css" rel="stylesheet"/>
 <style>
-  html, body { margin:0; padding:0; height:100%; background:#07090D; overflow:hidden;
+  html, body { margin:0; padding:0; height:100%; background:#0A1F3F; overflow:hidden;
     font-family:-apple-system,"Segoe UI",Roboto,sans-serif; -webkit-font-smoothing:antialiased; }
   *,*::before,*::after { box-sizing:border-box; }
-  #map { position:absolute; inset:0; background:#07090D; }
+  #map { position:absolute; inset:0; background:#0A1F3F; }
   body.light #map { background:#F4F5F7; }
 
   /* style segment control */
@@ -43,12 +43,12 @@ export function buildVbgKeyPointsMapHtml(mapboxToken: string): string {
     overflow:hidden; -webkit-tap-highlight-color:transparent; user-select:none; }
   .styleseg .seg { padding:5px 10px; font-size:9px; font-weight:700; letter-spacing:1px;
     color:rgba(180,188,204,0.6); cursor:pointer; }
-  .styleseg .seg.on { background:#5B8DEF; color:#fff; }
+  .styleseg .seg.on { background:#1E88FF; color:#fff; }
 
   /* principal locator */
   .me { width:0; height:0; }
   .me .core { position:absolute; left:-8px; top:-8px; width:16px; height:16px; border-radius:50%;
-    background:#5B8DEF; border:2px solid #fff; box-shadow:0 0 10px #5B8DEF; }
+    background:#1E88FF; border:2px solid #fff; box-shadow:0 0 10px #1E88FF; }
   .me .ring { position:absolute; left:-18px; top:-18px; width:36px; height:36px; border-radius:50%;
     border:1px solid rgba(91,141,239,0.5); animation:pulse 2s infinite; }
   @keyframes pulse { 0%{transform:scale(0.6);opacity:0.9} 100%{transform:scale(1.4);opacity:0} }
@@ -59,7 +59,7 @@ export function buildVbgKeyPointsMapHtml(mapboxToken: string): string {
     border:1.5px solid rgba(255,255,255,0.7); box-shadow:0 0 8px currentColor; }
   .kp .tip { position:absolute; left:50%; bottom:12px; transform:translateX(-50%);
     white-space:nowrap; background:rgba(7,12,22,0.9); border:1px solid rgba(255,255,255,0.15);
-    border-radius:6px; padding:3px 7px; font-size:10px; color:#F2F4F8; font-weight:600; }
+    border-radius:6px; padding:3px 7px; font-size:10px; color:#FFFFFF; font-weight:600; }
 </style>
 </head>
 <body>
@@ -71,7 +71,7 @@ export function buildVbgKeyPointsMapHtml(mapboxToken: string): string {
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.js"></script>
 <script>
   var RN = window.ReactNativeWebView;
-  var COLOR = { police:'#5B8DEF', hospital:'#4ADE80', embassy:'#F5B544', fire:'#FF7A5C' };
+  var COLOR = { police:'#1E88FF', hospital:'#4ADE80', embassy:'#F5B544', fire:'#FF7A5C' };
   var STYLES = { dark:'mapbox://styles/mapbox/dark-v11', light:'mapbox://styles/mapbox/light-v11' };
   var currentStyle = 'dark';
 
@@ -174,9 +174,9 @@ export function buildVbgKeyPointsMapHtml(mapboxToken: string): string {
     if (map.getSource('radius')){ map.getSource('radius').setData(data); return; }
     map.addSource('radius', {type:'geojson', data:data});
     map.addLayer({id:'radius-fill', type:'fill', source:'radius',
-      paint:{'fill-color':'#5B8DEF','fill-opacity':0.10}});
+      paint:{'fill-color':'#1E88FF','fill-opacity':0.10}});
     map.addLayer({id:'radius-line', type:'line', source:'radius',
-      paint:{'line-color':'#5B8DEF','line-width':1.5,'line-opacity':0.7}});
+      paint:{'line-color':'#1E88FF','line-width':1.5,'line-opacity':0.7}});
   }
 
   // Style swap: setStyle drops user sources/layers — re-mount the radius +
@@ -214,7 +214,7 @@ export function buildVbgKeyPointsMapHtml(mapboxToken: string): string {
     markers.push(new mapboxgl.Marker({element:meEl}).setLngLat([centre.lng, centre.lat]).addTo(map));
     // key points
     (points||[]).forEach(function(p){
-      var c = COLOR[p.kind] || '#5B8DEF';
+      var c = COLOR[p.kind] || '#1E88FF';
       var el = document.createElement('div'); el.className='kp'; el.style.color=c;
       el.innerHTML = '<div class="pin" style="background:'+c+'"></div>';
       // Label via textContent — OSM names are untrusted, never innerHTML.

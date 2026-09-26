@@ -27,15 +27,15 @@ type Props = AuthScreenProps<'Login'>;
 // screen matches the premium "Welcome back" sign-in mock, matching the sibling
 // Onboarding / RoleSelection screens rather than the older Command-Navy palette.
 const T = {
-  bg:         '#07090D',
-  text:       '#F2F4F8',
+  bg:         '#0A1F3F',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   textFaint:  'rgba(180,188,204,0.28)',
   hair:       'rgba(255,255,255,0.06)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentDeep: '#2F5BE0',
+  accent:     '#1E88FF',
+  accentDeep: '#166ED1',
   accentGlow: 'rgba(91,141,239,0.35)',
   signal:     '#4ADE80',
   danger:     '#FF8B8B',
@@ -156,7 +156,7 @@ function Field({
     }).start();
   }, [active, anim]);
 
-  const iconColor = focused ? '#A9C5FF' : T.textMute;
+  const iconColor = focused ? '#3BA6FF' : T.textMute;
   const borderColor = hasError
     ? 'rgba(255,93,93,0.5)'
     : focused
@@ -196,7 +196,7 @@ function Field({
           style={[
             styles.fieldLabel,
             {
-              color: focused ? '#A9C5FF' : T.textMute,
+              color: focused ? '#3BA6FF' : T.textMute,
               transform: [
                 {translateY: anim.interpolate({inputRange: [0, 1], outputRange: [0, -13]})},
               ],
@@ -355,7 +355,7 @@ export default function LoginScreen({navigation}: Props) {
                 end={{x: 0.9, y: 1}}
                 style={StyleSheet.absoluteFill}
               />
-              <BravoMark size={38} primary="#FFFFFF" accent="#5B8DEF" />
+              <BravoMark size={38} primary="#FFFFFF" accent="#1E88FF" />
             </View>
             <Text style={styles.eyebrow}>Sign In</Text>
             <Text style={styles.title}>Welcome back</Text>
@@ -406,7 +406,7 @@ export default function LoginScreen({navigation}: Props) {
                   style={styles.eyeBtn}
                   accessibilityRole="button"
                   accessibilityLabel={showPw ? 'Hide password' : 'Show password'}>
-                  <IcEye c={showPw ? '#A9C5FF' : T.textMute} off={showPw} />
+                  <IcEye c={showPw ? '#3BA6FF' : T.textMute} off={showPw} />
                 </TouchableOpacity>
               }
             />
@@ -430,7 +430,7 @@ export default function LoginScreen({navigation}: Props) {
               disabled={!canSubmit}
               style={!canSubmit && styles.ctaDisabled}>
               <LinearGradient
-                colors={['#6E9BF5', T.accent, T.accentDeep]}
+                colors={['#3BA6FF', T.accent, T.accentDeep]}
                 start={{x: 0.5, y: 0}}
                 end={{x: 0.5, y: 1}}
                 style={styles.cta}>

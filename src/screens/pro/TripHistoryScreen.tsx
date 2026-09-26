@@ -22,19 +22,19 @@ import {goBackOnce} from '@navigation/tapGuard';
 
 type Nav = NativeStackNavigationProp<BookingStackParamList>;
 
-const PRO_INDIGO = '#5B8DEF';
+const PRO_INDIGO = '#1E88FF';
 const PRO_INDIGO_LIGHT = '#7FA8FF';
 
 const T = {
-  bg:        '#07090D',
-  text:      '#F2F4F8',
+  bg:        '#0A1F3F',
+  text:      '#FFFFFF',
   textDim:   'rgba(229,233,242,0.62)',
   textMute:  'rgba(180,188,204,0.45)',
   textFaint: 'rgba(180,188,204,0.28)',
   hair:      'rgba(255,255,255,0.06)',
   hair2:     'rgba(255,255,255,0.09)',
-  accent:    '#5B8DEF',
-  blue:      '#A9C5FF',
+  accent:    '#1E88FF',
+  blue:      '#3BA6FF',
   card:      'rgba(18,22,30,0.85)',
 } as const;
 
@@ -93,13 +93,13 @@ function bookingToTrip(b: Booking): TripItem {
     // Why: total_eur is the canonical BC amount (1 BC = 1 EUR); total_aed is 4.07× and display-only.
     credits: Number(b.total_eur) > 0 ? `${Math.round(Number(b.total_eur)).toLocaleString()} BC` : '—',
     riskTag: ongoing
-      ? {label: 'ONGOING', color: '#A9C5FF', bg: 'rgba(91,141,239,0.16)'}
+      ? {label: 'ONGOING', color: '#3BA6FF', bg: 'rgba(91,141,239,0.16)'}
       : cancelled
       ? {label: 'CANCELLED', color: '#FCA5A5', bg: 'rgba(239,68,68,0.15)'}
       : {label: b.status, color: '#86efac', bg: 'rgba(34,197,94,0.1)'},
     status: b.status,
     tag: [b.status === 'COMPLETED' ? 'completed' : null, ongoing ? 'ongoing' : null].filter(Boolean) as TripTag[],
-    progressColor: ongoing ? '#5B8DEF' : cancelled ? '#ef4444' : PRO_INDIGO,
+    progressColor: ongoing ? '#1E88FF' : cancelled ? '#ef4444' : PRO_INDIGO,
     ongoing,
     target,
   };
@@ -180,7 +180,7 @@ export default function TripHistoryScreen() {
             <Text style={styles.statLabel}>{isAgent ? 'Missions' : 'Bookings'}</Text>
           </View>
           <View style={[styles.statCard, {borderColor: isAgent ? 'rgba(239,68,68,0.25)' : 'rgba(91,141,239,0.25)'}]}>
-            <Text style={[styles.statValue, {color: isAgent ? '#F87171' : '#A9C5FF'}]}>{midCount}</Text>
+            <Text style={[styles.statValue, {color: isAgent ? '#F87171' : '#3BA6FF'}]}>{midCount}</Text>
             <Text style={styles.statLabel}>{isAgent ? 'Incident' : 'Ongoing'}</Text>
           </View>
           <View style={[styles.statCard, {borderColor: 'rgba(99,102,241,0.2)'}]}>
@@ -226,7 +226,7 @@ export default function TripHistoryScreen() {
             onPress={() => { if (trip.target) {openTarget(trip.target);} }}
             style={[
               styles.tripCard,
-              {borderLeftWidth: 3, borderLeftColor: trip.ongoing ? '#5B8DEF' : trip.borderLeft ?? '#1E2D45'},
+              {borderLeftWidth: 3, borderLeftColor: trip.ongoing ? '#1E88FF' : trip.borderLeft ?? '#1E2D45'},
             ]}>
             <View style={styles.tripTop}>
               <View style={styles.tripLeft}>
@@ -247,12 +247,12 @@ export default function TripHistoryScreen() {
 
             <View style={styles.tripBottom}>
               <View style={[styles.completedBadge, trip.ongoing && {backgroundColor: 'rgba(91,141,239,0.12)', borderColor: 'rgba(91,141,239,0.3)'}]}>
-                <Text style={[styles.completedBadgeText, trip.ongoing && {color: '#A9C5FF'}]}>● {trip.status || 'COMPLETED'}</Text>
+                <Text style={[styles.completedBadgeText, trip.ongoing && {color: '#3BA6FF'}]}>● {trip.status || 'COMPLETED'}</Text>
               </View>
               {trip.target && (
                 <View style={{flexDirection: 'row', alignItems: 'center', gap: 3}}>
-                  <Text style={{color: '#A9C5FF', fontSize: 9, fontWeight: '800', letterSpacing: 0.5}}>TAP TO TRACK</Text>
-                  <Icon name="chevron-right" size={13} color="#A9C5FF" />
+                  <Text style={{color: '#3BA6FF', fontSize: 9, fontWeight: '800', letterSpacing: 0.5}}>TAP TO TRACK</Text>
+                  <Icon name="chevron-right" size={13} color="#3BA6FF" />
                 </View>
               )}
             </View>

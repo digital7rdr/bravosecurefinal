@@ -161,7 +161,7 @@ export default function PricingScreen() {
         {/* Current plan */}
         <View style={styles.currentCard}>
           <View style={styles.currentIcon}>
-            <Icon name={current === 'lite' ? 'account' : current === 'pro' ? 'shield-star' : 'office-building'} size={22} color="#A9C5FF" />
+            <Icon name={current === 'lite' ? 'account' : current === 'pro' ? 'shield-star' : 'office-building'} size={22} color="#3BA6FF" />
           </View>
           <View style={{flex: 1, minWidth: 0}}>
             <Text style={styles.currentLabel}>CURRENT PLAN</Text>
@@ -172,7 +172,7 @@ export default function PricingScreen() {
               </Text>
             )}
           </View>
-          {cancelling && <ActivityIndicator color="#5B8DEF" />}
+          {cancelling && <ActivityIndicator color="#1E88FF" />}
         </View>
 
         {/* Tier cards — full matrix columns, never shorthand (M1A §2). */}
@@ -216,7 +216,7 @@ export default function PricingScreen() {
   );
 }
 
-const T = {bg: '#07090D', card: '#0D1421', hair: '#1C2536', text: '#F2F4F8', dim: '#94A3B8', mute: '#64748B', accent: '#5B8DEF'};
+const T = {bg: '#0A1F3F', card: '#0D1421', hair: '#1C2536', text: '#FFFFFF', dim: '#94A3B8', mute: '#64748B', accent: '#1E88FF'};
 
 const styles = StyleSheet.create(scaleTextStyles({
   root: {flex: 1, backgroundColor: T.bg},

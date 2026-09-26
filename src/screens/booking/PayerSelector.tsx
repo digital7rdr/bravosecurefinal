@@ -19,12 +19,12 @@ import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import {buildPayerChoices, SELF_PAYER_KEY, type PayerMembershipInput} from './payerOptions';
 
 const T = {
-  text:      '#F2F4F8',
+  text:      '#FFFFFF',
   textDim:   'rgba(229,233,242,0.62)',
   textMute:  'rgba(180,188,204,0.45)',
   hair:      'rgba(255,255,255,0.09)',
-  accent:    '#5B8DEF',
-  accentSoft:'#A9C5FF',
+  accent:    '#1E88FF',
+  accentSoft:'#3BA6FF',
   card:      'rgba(18,22,30,0.85)',
   rowOn:     'rgba(91,141,239,0.12)',
 } as const;

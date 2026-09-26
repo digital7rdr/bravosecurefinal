@@ -275,7 +275,7 @@ export function ProfileDrawerModal({visible, onClose, switchGuard}: Props) {
                 // Unify the two renderers and you must drop one of the calls.
                 onPress={() => (row.confirm ? confirmSwitchDashboard(row.label, row.go) : row.go())}>
                 <View style={s.rowLeft}>
-                  <Icon name={row.icon} size={19} color="#5B8DEF" />
+                  <Icon name={row.icon} size={19} color="#1E88FF" />
                   <Text style={s.rowLabel} numberOfLines={1}>{row.label}</Text>
                 </View>
                 <View style={s.rowRight}>
@@ -301,7 +301,7 @@ export function ProfileDrawerModal({visible, onClose, switchGuard}: Props) {
                   // beside them, and the row itself says "Return to Dashboard".
                   onPress={() => confirmSwitchDashboard('Dashboard', () => go(dashboardRoute))}>
                   <View style={s.rowLeft}>
-                    <Icon name="view-dashboard-outline" size={19} color="#5B8DEF" />
+                    <Icon name="view-dashboard-outline" size={19} color="#1E88FF" />
                     <Text style={s.rowLabel}>Return to Dashboard</Text>
                   </View>
                   <Icon name="chevron-right" size={17} color="rgba(180,188,204,0.45)" />
@@ -327,7 +327,7 @@ export function ProfileDrawerModal({visible, onClose, switchGuard}: Props) {
                       // physical row.
                       onPress={() => confirmSwitchDashboard(deptRow.label, deptRow.go)}>
                       <View style={s.rowLeft}>
-                        <Icon name={deptRow.icon} size={19} color="#5B8DEF" />
+                        <Icon name={deptRow.icon} size={19} color="#1E88FF" />
                         <Text style={s.rowLabel}>{deptRow.label}</Text>
                       </View>
                       <View style={s.rowRight}>
@@ -364,7 +364,7 @@ const s = StyleSheet.create({
   backdrop: {flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', flexDirection: 'row'},
   panel: {
     width: '78%', maxWidth: 340, height: '100%',
-    backgroundColor: '#07090D', paddingHorizontal: 18,
+    backgroundColor: '#0A1F3F', paddingHorizontal: 18,
     borderRightWidth: 1, borderRightColor: 'rgba(255,255,255,0.08)',
   },
   identity: {
@@ -377,8 +377,8 @@ const s = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)',
   },
-  avatarText: {color: '#A9C5FF', fontSize: 15, fontWeight: '800'},
-  name: {color: '#F2F4F8', fontSize: 15, fontWeight: '700'},
+  avatarText: {color: '#3BA6FF', fontSize: 15, fontWeight: '800'},
+  name: {color: '#FFFFFF', fontSize: 15, fontWeight: '700'},
   email: {color: 'rgba(180,188,204,0.45)', fontSize: 11.5, marginTop: 2},
   row: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -386,11 +386,11 @@ const s = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
   },
   rowLeft: {flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 12},
-  rowLabel: {flexShrink: 1, minWidth: 0, color: '#F2F4F8', fontSize: 14, fontWeight: '600'},
+  rowLabel: {flexShrink: 1, minWidth: 0, color: '#FFFFFF', fontSize: 14, fontWeight: '600'},
   // Departmental Chat row (moved here from the Groups screen, 2026-08-05).
   rowRight: {flexDirection: 'row', alignItems: 'center', gap: 8},
   rowDimmed: {opacity: 0.55},
-  rowPill: {backgroundColor: '#2F5BE0', borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2},
+  rowPill: {backgroundColor: '#166ED1', borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2},
   rowPillText: {color: '#FFFFFF', fontSize: 9, fontWeight: '800', letterSpacing: 0.8},
   logout: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9,

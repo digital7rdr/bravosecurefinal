@@ -70,5 +70,5 @@ const s = StyleSheet.create({
     borderBottomWidth: 1, borderBottomColor: 'rgba(239,68,68,0.25)',
   },
   text: {flex: 1, color: '#F5D6D6', fontSize: 12.5},
-  action: {color: '#5B8DEF', fontSize: 12.5, fontWeight: '700'},
+  action: {color: '#1E88FF', fontSize: 12.5, fontWeight: '700'},
 });

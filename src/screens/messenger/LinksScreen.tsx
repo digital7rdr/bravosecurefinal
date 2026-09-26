@@ -146,7 +146,7 @@ export default function LinksScreen() {
           accessibilityLabel="Back"
           hitSlop={{top: 8, left: 8, right: 8, bottom: 8}}
           style={{paddingRight: 12}}>
-          <Icon name="arrow-left" size={20} color="#F2F4F8" />
+          <Icon name="arrow-left" size={20} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, {flex: 1}]}>Links</Text>
       </View>
@@ -177,7 +177,7 @@ export default function LinksScreen() {
             accessibilityLabel={`Open ${item.url}`}
             onPress={() => { void Linking.openURL(item.url).catch(() => {}); }}>
             <View style={styles.linkIcon}>
-              <Icon name="link-variant" size={18} color="#5B8DEF" />
+              <Icon name="link-variant" size={18} color="#1E88FF" />
             </View>
             <View style={styles.linkInfo}>
               <Text style={styles.linkUrl} numberOfLines={1}>{item.url}</Text>
@@ -208,12 +208,12 @@ const styles = StyleSheet.create(scaleTextStyles({
   root: {flex: 1, backgroundColor: Colors.background},
 
   header: {flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.09)'},
-  headerTitle: {fontSize: 17, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 3, color: '#F2F4F8'},
+  headerTitle: {fontSize: 17, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 3, color: '#FFFFFF'},
 
   linkRow: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)'},
   linkIcon: {width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)', flexShrink: 0},
   linkInfo: {flex: 1, minWidth: 0},
-  linkUrl: {fontSize: 13, fontWeight: '600', color: '#F2F4F8'},
+  linkUrl: {fontSize: 13, fontWeight: '600', color: '#FFFFFF'},
   linkMetaRow: {flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3},
   linkHost: {fontSize: 11, color: 'rgba(180,188,204,0.45)', flexShrink: 1},
   linkDot: {fontSize: 11, color: 'rgba(180,188,204,0.45)'},

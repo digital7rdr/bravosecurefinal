@@ -18,11 +18,11 @@ import {useProductStore, type BravoProduct} from '@store/productStore';
 import {scaleTextStyles} from '@utils/scaling';
 
 const T = {
-  bg: '#07090D',
-  text: '#F2F4F8',
+  bg: '#0A1F3F',
+  text: '#FFFFFF',
   textDim: 'rgba(229,233,242,0.62)',
   textMute: 'rgba(180,188,204,0.45)',
-  accent: '#5B8DEF',
+  accent: '#1E88FF',
   hair: 'rgba(255,255,255,0.08)',
 };
 

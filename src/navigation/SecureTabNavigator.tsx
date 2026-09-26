@@ -59,10 +59,10 @@ function SecureHomeTab(): React.ReactElement {
 }
 
 const OB = {
-  bg: '#07090D',
-  accent: '#5B8DEF',
+  bg: '#0A1F3F',
+  accent: '#1E88FF',
   mute: 'rgba(180,188,204,0.45)',
-  text: '#F2F4F8',
+  text: '#FFFFFF',
 } as const;
 
 // Icon map for the shared ObsidianTabBar — the SAME renderer the root shell,

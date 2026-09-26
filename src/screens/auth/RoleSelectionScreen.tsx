@@ -26,14 +26,14 @@ type Choice = 'lite' | 'pro' | 'enterprise' | 'provider';
 // this screen matches the refined "Select Your Role" mock exactly, rather
 // than the older Command-Navy palette still in @/theme/bravo.
 const T = {
-  bg:         '#07090D',
-  text:       '#F2F4F8',
+  bg:         '#0A1F3F',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   hair:       'rgba(255,255,255,0.06)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentDeep: '#2F5BE0',
+  accent:     '#1E88FF',
+  accentDeep: '#166ED1',
   accentGlow: 'rgba(91,141,239,0.35)',
   signal:     '#4ADE80',
 } as const;
@@ -98,7 +98,7 @@ function Radio({on}: {on: boolean}) {
       ]}>
       {on && (
         <LinearGradient
-          colors={['#6E9BF5', T.accent, T.accentDeep]}
+          colors={['#3BA6FF', T.accent, T.accentDeep]}
           start={{x: 0.2, y: 0.1}}
           end={{x: 0.9, y: 1}}
           style={styles.radioFill}>
@@ -126,7 +126,7 @@ function SubCard({
   const Body = (
     <>
       <View style={styles.subTop}>
-        <Text style={[styles.subName, on && !soon && {color: '#A9C5FF'}]}>{name}</Text>
+        <Text style={[styles.subName, on && !soon && {color: '#3BA6FF'}]}>{name}</Text>
         <View
           style={[
             styles.subCheck,
@@ -300,7 +300,7 @@ export default function RoleSelectionScreen({navigation}: Props) {
         <View style={styles.cards}>
           {cards.map(card => {
             const active = selected === card.id;
-            const iconColor = active ? '#A9C5FF' : T.textDim;
+            const iconColor = active ? '#3BA6FF' : T.textDim;
             return (
               <TouchableOpacity
                 key={card.id}
@@ -352,7 +352,7 @@ export default function RoleSelectionScreen({navigation}: Props) {
                       <Text
                         style={[
                           styles.cardEyebrow,
-                          {color: active ? '#A9C5FF' : T.textMute},
+                          {color: active ? '#3BA6FF' : T.textMute},
                         ]}>
                         {card.eyebrow.toUpperCase()}
                       </Text>
@@ -421,7 +421,7 @@ export default function RoleSelectionScreen({navigation}: Props) {
           disabled={continueDisabled}
           style={continueDisabled && {opacity: 0.5}}>
           <LinearGradient
-            colors={['#6E9BF5', T.accent, T.accentDeep]}
+            colors={['#3BA6FF', T.accent, T.accentDeep]}
             start={{x: 0.5, y: 0}}
             end={{x: 0.5, y: 1}}
             style={styles.btn}>
@@ -506,7 +506,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   soonBadge: {
     position: 'absolute', top: -1, right: 12,
     paddingHorizontal: 7, paddingVertical: 2, borderRadius: 99,
-    backgroundColor: '#05070B', borderWidth: 1, borderColor: T.accent,
+    backgroundColor: '#06142B', borderWidth: 1, borderColor: T.accent,
   },
   soonText: {fontSize: 7.5, letterSpacing: 1.2, fontWeight: '800', color: T.accent},
 

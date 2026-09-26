@@ -513,8 +513,8 @@ function LockView({status, onRetry}: {status: Status; onRetry: () => void}) {
   );
 }
 
-const PRIMARY = '#5B8DEF';
-const BG      = '#07090D';
+const PRIMARY = '#1E88FF';
+const BG      = '#0A1F3F';
 
 const s = StyleSheet.create({
   root: {
@@ -527,7 +527,7 @@ const s = StyleSheet.create({
   title: {
     fontFamily: 'Manrope_800ExtraBold',
     fontSize: 24,
-    color: '#F2F4F8',
+    color: '#FFFFFF',
     letterSpacing: -0.3,
     marginTop: 24,
     marginBottom: 8,

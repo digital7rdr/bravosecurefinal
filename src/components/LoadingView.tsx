@@ -10,15 +10,15 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
  * access look (design-system tokens, matches the VBG/obsidian surface).
  */
 const T = {
-  bg:        '#07090D',
-  accent:    '#5B8DEF',
+  bg:        '#0A1F3F',
+  accent:    '#1E88FF',
   signal:    '#4ADE80',
-  text:      '#F2F4F8',
+  text:      '#FFFFFF',
   textDim:   'rgba(229,233,242,0.62)',
   textMute:  'rgba(180,188,204,0.45)',
   textFaint: 'rgba(180,188,204,0.28)',
   hair2:     'rgba(255,255,255,0.09)',
-  blue:      '#A9C5FF',
+  blue:      '#3BA6FF',
 } as const;
 
 const FONT = {

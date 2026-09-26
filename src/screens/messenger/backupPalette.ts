@@ -8,14 +8,14 @@
  * change.
  */
 export const BACKUP_BASE = {
-  bg:    '#07090D',
-  surf2: '#0C1018',
+  bg:    '#0A1F3F',
+  surf2: '#122747',
   bd:    'rgba(255,255,255,0.09)',
   bd2:   'rgba(255,255,255,0.06)',
-  tx1:   '#F2F4F8',
+  tx1:   '#FFFFFF',
   tx2:   'rgba(229,233,242,0.62)',
   tx3:   'rgba(180,188,204,0.45)',
   warn:  '#FFC107',
   err:   '#FF3B3B',
-  act:   '#5B8DEF',
+  act:   '#1E88FF',
 } as const;

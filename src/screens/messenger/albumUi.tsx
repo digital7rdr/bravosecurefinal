@@ -305,6 +305,6 @@ const s = StyleSheet.create(scaleTextStyles({
   btnWide:  {flex: 0, marginTop: 6},
   btnGhost: {backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)'},
   btnGhostText:   {color: OB.textDim, fontSize: 13.5, fontWeight: '700'},
-  btnPrimary:     {backgroundColor: '#2F5BE0'},
+  btnPrimary:     {backgroundColor: '#166ED1'},
   btnPrimaryText: {color: '#FFFFFF', fontSize: 13.5, fontWeight: '700'},
 }));

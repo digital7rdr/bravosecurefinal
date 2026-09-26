@@ -266,7 +266,7 @@ function TierPaywall({tier, onDone, standalone = false, onBack}: Props) {
   );
 }
 
-const T = {bg: '#07090D', card: '#0D1421', hair: '#1C2536', text: '#F2F4F8', dim: '#94A3B8', mute: '#64748B', accent: '#5B8DEF'};
+const T = {bg: '#0A1F3F', card: '#0D1421', hair: '#1C2536', text: '#FFFFFF', dim: '#94A3B8', mute: '#64748B', accent: '#1E88FF'};
 
 const styles = StyleSheet.create(scaleTextStyles({
   root: {flex: 1, backgroundColor: T.bg},

@@ -80,11 +80,11 @@ type Nav = NativeStackNavigationProp<MessengerStackParamList>;
 type MsgLocalTab = MessengerLocalTab;
 
 // Obsidian base from the Bravo Messenger design tokens (tokens.jsx
-// `bg: #07090D`). Matches Command Home — the Messenger list is part of
+// `bg: #0A1F3F`). Matches Command Home — the Messenger list is part of
 // the same re-skin. Local constant so we don't mutate the app-wide
 // Bravo.bg (which other navy screens still use). VISUAL ONLY — no data
 // or backend wiring changes on this screen.
-const MSG_BG = '#07090D';
+const MSG_BG = '#0A1F3F';
 
 // Module-level keyExtractor so FlatList sees a stable function identity
 // across renders. Inline arrows allocate a fresh closure per render and
@@ -1026,7 +1026,7 @@ export default function MessengerHomeScreen() {
                 activeOpacity={0.7}
                 accessibilityRole="button"
                 accessibilityLabel="Exit selection">
-                <Icon name="close" size={17} color={'#F2F4F8'} />
+                <Icon name="close" size={17} color={'#FFFFFF'} />
               </TouchableOpacity>
               <View style={{marginLeft: 8}}>
                 <Text style={styles.headerTitle}>{selectedList.length} SELECTED</Text>
@@ -1040,7 +1040,7 @@ export default function MessengerHomeScreen() {
                 activeOpacity={0.7}
                 accessibilityRole="button"
                 accessibilityLabel={allPinned ? 'Unpin selected chats' : 'Pin selected chats'}>
-                <Icon name={allPinned ? 'pin-off-outline' : 'pin-outline'} size={17} color={'#F2F4F8'} />
+                <Icon name={allPinned ? 'pin-off-outline' : 'pin-outline'} size={17} color={'#FFFFFF'} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.iconPill}
@@ -1048,7 +1048,7 @@ export default function MessengerHomeScreen() {
                 activeOpacity={0.7}
                 accessibilityRole="button"
                 accessibilityLabel={allMuted ? 'Unmute selected chats' : 'Mute selected chats'}>
-                <Icon name={allMuted ? 'bell-outline' : 'bell-off-outline'} size={17} color={'#F2F4F8'} />
+                <Icon name={allMuted ? 'bell-outline' : 'bell-off-outline'} size={17} color={'#FFFFFF'} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.iconPill, styles.iconPillDanger]}
@@ -1076,7 +1076,7 @@ export default function MessengerHomeScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Back to Secure Services"
                 onPress={() => navigateOnce(navigation, 'SecureTab' as never)}>
-                <Icon name="chevron-left" size={22} color={'#F2F4F8'} />
+                <Icon name="chevron-left" size={22} color={'#FFFFFF'} />
               </TouchableOpacity>
             )}
             {/* B-91 M1 R9 — profile drawer entry (spec p.12): account rows +
@@ -1106,7 +1106,7 @@ export default function MessengerHomeScreen() {
              */}
             {!inSecureProduct && (
               <View style={styles.headerMark}>
-                <Icon name="message-processing" size={17} color={'#A9C5FF'} />
+                <Icon name="message-processing" size={17} color={'#3BA6FF'} />
               </View>
             )}
             <View style={styles.headerTitleCol}>
@@ -1134,13 +1134,13 @@ export default function MessengerHomeScreen() {
               activeOpacity={0.7}
               accessibilityRole="button"
               accessibilityLabel="Group chats">
-              <Icon name="account-group-outline" size={17} color={'#F2F4F8'} />
+              <Icon name="account-group-outline" size={17} color={'#FFFFFF'} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconPill} onPress={() => navigateOnce(navigation, 'NewChat')} activeOpacity={0.7}>
-              <Icon name="pencil-box-outline" size={17} color={'#F2F4F8'} />
+              <Icon name="pencil-box-outline" size={17} color={'#FFFFFF'} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconPill} onPress={() => navigateOnce(navigation, 'MessengerSettings')} activeOpacity={0.7}>
-              <Icon name="cog-outline" size={17} color={'#F2F4F8'} />
+              <Icon name="cog-outline" size={17} color={'#FFFFFF'} />
             </TouchableOpacity>
           </View>
         </View>
@@ -1245,7 +1245,7 @@ export default function MessengerHomeScreen() {
         accessibilityRole="button"
         accessibilityLabel="Compose new message">
         <LinearGradient
-          colors={['#A9C5FF', '#5B8DEF', '#2F5BE0']}
+          colors={['#3BA6FF', '#1E88FF', '#166ED1']}
           start={{x: 0.3, y: 0.2}}
           end={{x: 0.8, y: 1}}
           style={styles.fab}>
@@ -1370,7 +1370,7 @@ const ChatListRow = React.memo(function ChatListRow({
       renderLeftActions={(progress) => (
         <SwipeActionRevealSingle
           progress={progress}
-          bg={'#5B8DEF'}
+          bg={'#1E88FF'}
           icon={c.is_pinned ? 'pin-off' : 'pin'}
           label={c.is_pinned ? 'Unpin' : 'Pin'}
           onPress={handlePin}
@@ -1550,7 +1550,7 @@ function ConvTick({kind}: {kind?: TickKind}) {
     case 'double':
       return <Icon name="check-all" size={15} color={'rgba(180,188,204,0.45)'} style={{opacity: 0.85}} />;
     case 'double-read':
-      return <Icon name="check-all" size={15} color={'#5B8DEF'} style={{opacity: 0.85}} />;
+      return <Icon name="check-all" size={15} color={'#1E88FF'} style={{opacity: 0.85}} />;
     case 'failed':
       return <Icon name="alert-circle" size={15} color={Bravo.alert} style={{opacity: 0.85}} />;
     // 'pending' and 'none' render nothing — an in-flight or incoming last
@@ -1575,9 +1575,9 @@ function ConvBody({name, handle, preview, previewKind, time, unread, read, tick,
           <Text style={styles.rowName} numberOfLines={1}>{name}</Text>
           {handle ? <Text style={styles.rowHandle} numberOfLines={1}>· {handle}</Text> : null}
           {muted  && <Icon name="bell-off" size={12} color={'rgba(180,188,204,0.45)'} />}
-          {pinned && <Icon name="pin"      size={12} color={'#5B8DEF'} />}
+          {pinned && <Icon name="pin"      size={12} color={'#1E88FF'} />}
         </View>
-        <Text style={[styles.rowTime, unread > 0 && {color: '#5B8DEF', fontWeight: '600'}]}>{time}</Text>
+        <Text style={[styles.rowTime, unread > 0 && {color: '#1E88FF', fontWeight: '600'}]}>{time}</Text>
       </View>
       <View style={styles.rowBottom}>
         <View style={styles.previewRow}>
@@ -1804,7 +1804,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)',
   },
   headerAvatarImg: {width: 34, height: 34, borderRadius: 17},
-  headerAvatarText: {color: '#A9C5FF', fontSize: 12, fontWeight: '800'},
+  headerAvatarText: {color: '#3BA6FF', fontSize: 12, fontWeight: '800'},
   // B-661 - same box as iconPill (34) so every header control matches.
   headerMark: {
     width: 34, height: 34, borderRadius: 11,
@@ -1816,7 +1816,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   // `numberOfLines={1}` that turns the shrink into an ellipsis rather than a
   // wrap is a JSX PROP on the <Text>, not a style — a style-shape test cannot
   // see it, which is why the render test asserts the prop directly.
-  headerTitle: {flexShrink: 1, fontFamily: BravoFont.display, color: '#F2F4F8', fontSize: 16, fontWeight: '700', letterSpacing: 1.1, lineHeight: 19},
+  headerTitle: {flexShrink: 1, fontFamily: BravoFont.display, color: '#FFFFFF', fontSize: 16, fontWeight: '700', letterSpacing: 1.1, lineHeight: 19},
   headerTitleRow: {flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0, flexShrink: 1},
   // flexShrink: 0 IS load-bearing here even though Yoga already defaults to 0 —
   // the chip sits inside a row that now shrinks, and stating it stops a later
@@ -1841,7 +1841,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)',
   },
   searchHint: {color:'rgba(229,233,242,0.62)', fontSize:11, fontWeight:'800', letterSpacing:2},
-  searchInput: {flex:1, color: '#F2F4F8', fontSize: 14, fontFamily: BravoFont.sans, letterSpacing: 0.2, padding: 0},
+  searchInput: {flex:1, color: '#FFFFFF', fontSize: 14, fontFamily: BravoFont.sans, letterSpacing: 0.2, padding: 0},
   kbdHint: {
     paddingHorizontal: 7, paddingVertical: 3, borderRadius: 5,
     backgroundColor: 'rgba(255,255,255,0.06)',
@@ -1864,21 +1864,21 @@ const styles = StyleSheet.create(scaleTextStyles({
   rowBody: {flex: 1, minWidth: 0},
   rowTop: {flexDirection: 'row', alignItems: 'baseline', gap: 6, marginBottom: 3},
   nameRow: {flexDirection: 'row', alignItems: 'baseline', gap: 6, flex: 1},
-  rowName: {fontFamily: BravoFont.display, color: '#F2F4F8', fontSize: 15, fontWeight: '600', letterSpacing: -0.15, flexShrink: 1},
+  rowName: {fontFamily: BravoFont.display, color: '#FFFFFF', fontSize: 15, fontWeight: '600', letterSpacing: -0.15, flexShrink: 1},
   rowTime: {fontFamily: BravoFont.mono, color: 'rgba(180,188,204,0.45)', fontSize: 10, letterSpacing: 0.3, flexShrink: 0},
   rowBottom: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8},
   rowPreview: {fontFamily: BravoFont.sans, color: 'rgba(229,233,242,0.62)', fontSize: 12.5, letterSpacing: -0.1, flex: 1},
   badge: {
     minWidth: 20, minHeight: 20, borderRadius: 10, paddingHorizontal: 6, paddingVertical: 2,
-    backgroundColor: '#5B8DEF',
+    backgroundColor: '#1E88FF',
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#5B8DEF', shadowOffset: {width: 0, height: 3}, shadowOpacity: 0.45, shadowRadius: 10, elevation: 4,
+    shadowColor: '#1E88FF', shadowOffset: {width: 0, height: 3}, shadowOpacity: 0.45, shadowRadius: 10, elevation: 4,
   },
   badgeText: {fontFamily: BravoFont.sans, color: '#FFF', fontSize: 11, fontWeight: '700'},
 
   emptyWrap: {alignItems:'center', paddingVertical:60, paddingHorizontal:32, gap:12, flex:1, justifyContent:'center'},
   emptyIconWrap: {width:80, height:80, borderRadius:40, backgroundColor:'rgba(91,141,239,0.08)', borderWidth:1, borderColor:'rgba(255,255,255,0.06)', alignItems:'center', justifyContent:'center', marginBottom:8},
-  emptyTitle: {color:'#F2F4F8', fontSize:15, fontWeight:'700'},
+  emptyTitle: {color:'#FFFFFF', fontSize:15, fontWeight:'700'},
   emptyHint: {color:'rgba(229,233,242,0.62)', fontSize:12, textAlign:'center', lineHeight:18, maxWidth:300},
   emptyBtn: {marginTop:12, flexDirection:'row', alignItems:'center', gap:6, paddingHorizontal:20, paddingVertical:10, borderRadius:99, backgroundColor:Colors.primary},
   emptyBtnText: {color:'#FFF', fontSize:12, fontWeight:'800', letterSpacing:1.5},
@@ -1888,7 +1888,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   fabWrap: {
     position: 'absolute', right: 22,
     width: 56, height: 56, borderRadius: 28,
-    shadowColor: '#5B8DEF', shadowOffset: {width: 0, height: 12}, shadowOpacity: 0.55, shadowRadius: 24, elevation: 10,
+    shadowColor: '#1E88FF', shadowOffset: {width: 0, height: 12}, shadowOpacity: 0.55, shadowRadius: 24, elevation: 10,
   },
   fab: {
     width: 56, height: 56, borderRadius: 28,
@@ -1920,11 +1920,11 @@ const styles = StyleSheet.create(scaleTextStyles({
   // every row keeps layout identical when selection paints the accent bar.
   rowSelected: {
     backgroundColor: 'rgba(91,141,239,0.22)',
-    borderLeftColor: '#5B8DEF',
+    borderLeftColor: '#1E88FF',
   },
   selBadge: {
     position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: 9,
-    backgroundColor: '#5B8DEF', borderWidth: 2, borderColor: MSG_BG,
+    backgroundColor: '#1E88FF', borderWidth: 2, borderColor: MSG_BG,
     alignItems: 'center', justifyContent: 'center',
   },
   iconPillDanger: {backgroundColor: 'rgba(248,113,113,0.08)', borderColor: 'rgba(248,113,113,0.3)'},

@@ -32,9 +32,9 @@ import {scaleTextStyles} from '@utils/scaling';
 import {goBackOnce} from '@navigation/tapGuard';
 
 const D = {
-  bg: '#07090D', text: '#F2F4F8', textDim: 'rgba(229,233,242,0.62)',
+  bg: '#0A1F3F', text: '#FFFFFF', textDim: 'rgba(229,233,242,0.62)',
   textMute: 'rgba(180,188,204,0.45)', hair: 'rgba(255,255,255,0.06)', hair2: 'rgba(255,255,255,0.09)',
-  accent: '#5B8DEF', accentSoft: '#A9C5FF', accentDeep: '#2F5BE0',
+  accent: '#1E88FF', accentSoft: '#3BA6FF', accentDeep: '#166ED1',
   amber: '#F5C76B', signal: '#4ADE80', alert: '#FF5D5D',
   fSans: 'Manrope_500Medium', fSemi: 'Manrope_600SemiBold', fBold: 'Manrope_700Bold', fMono: 'monospace',
 };
@@ -296,7 +296,7 @@ const s = StyleSheet.create(scaleTextStyles({
   signOutText: {fontFamily: D.fBold, fontSize: 14, color: D.alert, letterSpacing: 0.2},
 
   modalOverlay: {flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28},
-  modalCard: {width: '100%', maxWidth: 360, borderRadius: 20, padding: 20, gap: 14, backgroundColor: '#0C1018', borderWidth: 1, borderColor: D.hair2},
+  modalCard: {width: '100%', maxWidth: 360, borderRadius: 20, padding: 20, gap: 14, backgroundColor: '#122747', borderWidth: 1, borderColor: D.hair2},
   modalTitle: {fontFamily: D.fBold, fontSize: 16, color: D.text},
   modalInput: {
     height: 46, borderRadius: 12, paddingHorizontal: 14, fontFamily: D.fSans, fontSize: 14, color: D.text,

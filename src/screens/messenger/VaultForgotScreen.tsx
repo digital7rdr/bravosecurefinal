@@ -114,7 +114,7 @@ export default function VaultForgotScreen() {
         {/* Icon + title */}
         <View style={styles.iconSection}>
           <View style={styles.iconWrap}>
-            <Icon name="lock-reset" size={28} color="#5B8DEF" />
+            <Icon name="lock-reset" size={28} color="#1E88FF" />
           </View>
           <Text style={styles.title}>Forgot Your PIN?</Text>
           <Text style={styles.sub}>
@@ -144,7 +144,7 @@ export default function VaultForgotScreen() {
 
         {/* Info note */}
         <View style={styles.infoNote}>
-          <Icon name="information-outline" size={16} color="#5B8DEF" />
+          <Icon name="information-outline" size={16} color="#1E88FF" />
           <Text style={styles.infoText}>
             Resetting your PIN never touches the files in your vault. The code
             goes to the phone number on your account — it cannot be changed here.
@@ -183,20 +183,20 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   iconSection: {alignItems: 'center', marginBottom: 24},
   iconWrap: {width: 56, height: 56, borderRadius: 16, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 12},
-  title: {fontSize: 18, fontWeight: '800', color: '#F2F4F8', marginBottom: 4},
+  title: {fontSize: 18, fontWeight: '800', color: '#FFFFFF', marginBottom: 4},
   sub: {fontSize: 11, color: 'rgba(180,188,204,0.45)', textAlign: 'center', lineHeight: 18},
 
   fieldGroup: {marginBottom: 16},
-  fieldLabel: {fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2, color: '#5B8DEF', marginBottom: 6},
+  fieldLabel: {fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2, color: '#1E88FF', marginBottom: 6},
   fieldRow: {flexDirection: 'row', alignItems: 'center', height: 44, paddingHorizontal: 12, gap: 8, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', borderRadius: 12},
-  fieldInput: {flex: 1, fontSize: 13, fontWeight: '500', color: '#F2F4F8'},
+  fieldInput: {flex: 1, fontSize: 13, fontWeight: '500', color: '#FFFFFF'},
 
   errorText: {fontSize: 11, fontWeight: '600', color: '#D50000', marginBottom: 12, textAlign: 'center'},
 
   infoNote: {flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: 'rgba(91,141,239,0.07)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.15)', borderRadius: 12, padding: 12, marginBottom: 24},
   infoText: {flex: 1, fontSize: 11, color: 'rgba(229,233,242,0.62)', lineHeight: 17},
 
-  sendBtn: {backgroundColor: '#5B8DEF', borderRadius: 12, height: 44, alignItems: 'center', justifyContent: 'center', marginBottom: 16},
+  sendBtn: {backgroundColor: '#1E88FF', borderRadius: 12, height: 44, alignItems: 'center', justifyContent: 'center', marginBottom: 16},
   sendBtnText: {fontSize: 13, fontWeight: '800', color: '#FFF', textTransform: 'uppercase', letterSpacing: 2},
 
   backLink: {alignItems: 'center', paddingVertical: 8},

@@ -49,17 +49,17 @@ type IconName = React.ComponentProps<typeof Icon>['name'];
 
 // Design tokens (Bravo "Agent Dashboard" handoff — obsidian/cobalt premium).
 const D = {
-  bg:         '#07090D',
-  text:       '#F2F4F8',
+  bg:         '#0A1F3F',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   textFaint:  'rgba(180,188,204,0.28)',
   hair:       'rgba(255,255,255,0.06)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentDeep: '#2F5BE0',
+  accent:     '#1E88FF',
+  accentDeep: '#166ED1',
   accentGlow: 'rgba(91,141,239,0.35)',
-  accentSoft: '#A9C5FF',
+  accentSoft: '#3BA6FF',
   signal:     '#4ADE80',
   amber:      '#F5C76B',
   alert:      '#F58B97',
@@ -74,7 +74,7 @@ const NAV_TINT = {
   amber:  {fg: '#F5C76B', bg: 'rgba(245,181,68,0.12)',  bd: 'rgba(245,181,68,0.34)'},
   signal: {fg: '#7FE6A8', bg: 'rgba(74,222,128,0.12)',  bd: 'rgba(74,222,128,0.32)'},
   red:    {fg: '#F58B97', bg: 'rgba(245,72,90,0.12)',   bd: 'rgba(245,72,90,0.32)'},
-  blue:   {fg: '#A9C5FF', bg: 'rgba(91,141,239,0.14)',  bd: 'rgba(91,141,239,0.34)'},
+  blue:   {fg: '#3BA6FF', bg: 'rgba(91,141,239,0.14)',  bd: 'rgba(91,141,239,0.34)'},
 } as const;
 
 const AGENT_MENU: {icon: IconName; label: string; divider?: boolean}[] = [
@@ -876,7 +876,7 @@ export default function AgentDashboardScreen() {
                   style={{flex: 1}}
                   onPress={() => navigateOnce(navigation, 'AgentLiveTracker', {missionId: activeMission.mission_id})}>
                   <LinearGradient
-                    colors={['#6E9BF5', D.accent, D.accentDeep]}
+                    colors={['#3BA6FF', D.accent, D.accentDeep]}
                     locations={[0, 0.55, 1]}
                     start={{x: 0, y: 0}} end={{x: 0, y: 1}}
                     style={s.miniBtnPri}>
@@ -1301,7 +1301,7 @@ const s = StyleSheet.create(scaleTextStyles({
 const sd = StyleSheet.create(scaleTextStyles({
   overlay: {flex: 1, flexDirection: 'row', backgroundColor: 'rgba(2,6,15,0.65)'},
   drawer: {
-    width: '82%', maxWidth: 320, backgroundColor: '#0B0E14',
+    width: '82%', maxWidth: 320, backgroundColor: '#0A1F3F',
     borderRightWidth: 1, borderRightColor: D.hair2, flexDirection: 'column',
     shadowColor: '#000', shadowOffset: {width: 4, height: 0}, shadowOpacity: 0.55, shadowRadius: 24, elevation: 24,
   },
@@ -1319,11 +1319,11 @@ const sd = StyleSheet.create(scaleTextStyles({
   avatarBusy: {...StyleSheet.absoluteFillObject, borderRadius: 28, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.45)'},
   cameraBadge: {
     position: 'absolute', top: -2, right: -2, width: 22, height: 22, borderRadius: 11,
-    backgroundColor: D.accent, borderWidth: 2, borderColor: '#0B0E14', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: D.accent, borderWidth: 2, borderColor: '#0A1F3F', alignItems: 'center', justifyContent: 'center',
   },
   dot: {
     position: 'absolute', bottom: 1, right: 1, width: 13, height: 13,
-    borderRadius: 7, borderWidth: 2, borderColor: '#0B0E14',
+    borderRadius: 7, borderWidth: 2, borderColor: '#0A1F3F',
   },
   nameRow: {flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2},
   name: {color: D.text, fontSize: 14, fontFamily: D.fBold, flex: 1},

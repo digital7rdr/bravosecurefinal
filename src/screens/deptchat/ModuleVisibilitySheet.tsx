@@ -232,7 +232,7 @@ const s = StyleSheet.create({
      * the page (the obsidian surface reads through by design) and wrong for a
      * sheet FLOATING over one: the Home cards behind it stayed legible straight
      * through the copy. Every sibling sheet in this module is already opaque
-     * (`#0C1017` / `#10141C`); this one was the outlier. Elevation so Android
+     * (`#0C1017` / `#162F54`); this one was the outlier. Elevation so Android
      * composites it above the page rather than blending with it.
      */
     backgroundColor: '#0C1017', borderRadius: 16, padding: 20, gap: 10,

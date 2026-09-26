@@ -7,7 +7,7 @@
  * same layering the native dialog had. Hardware back / backdrop tap
  * dismiss only when the request is cancelable (RN Android semantics).
  *
- * Design system: obsidian #07090D family / cobalt #5B8DEF, 8pt grid,
+ * Design system: obsidian #0A1F3F family / cobalt #1E88FF, 8pt grid,
  * Manrope, one primary action (variant mapping in resolveAlertLayout).
  */
 import React from 'react';
@@ -27,16 +27,16 @@ import {
 } from '@utils/alert';
 
 const T = {
-  text:      '#F2F4F8',
+  text:      '#FFFFFF',
   textDim:   'rgba(229,233,242,0.72)',
   hair2:     'rgba(255,255,255,0.09)',
   glassFill: 'rgba(255,255,255,0.04)',
-  accent:    '#5B8DEF',
-  onAccent:  '#A9C5FF',
+  accent:    '#1E88FF',
+  onAccent:  '#3BA6FF',
   danger:    '#F87171',
 } as const;
 const CARD_GRADIENT   = ['#131A28', '#0C111B'] as const;
-const FILL_GRADIENT   = ['#4C86F0', '#2F5BE0'] as const;
+const FILL_GRADIENT   = ['#4C86F0', '#166ED1'] as const;
 
 export function BravoAlertHost() {
   const request = React.useSyncExternalStore(subscribeAlerts, currentAlert);

@@ -24,8 +24,8 @@ import FitLine from '@components/ui/FitLine';
  * a double tap cannot mint two codes or revoke twice.
  */
 const D = {
-  bg: '#07090D', card: '#0D1119', text: '#F2F4F8', dim: 'rgba(229,233,242,0.62)', mute: 'rgba(180,188,204,0.45)',
-  hair: 'rgba(255,255,255,0.08)', accent: '#5B8DEF', accentSoft: '#A9C5FF', signal: '#4ADE80', amber: '#F5C76B', alert: '#FF5D5D',
+  bg: '#0A1F3F', card: '#122747', text: '#FFFFFF', dim: 'rgba(229,233,242,0.62)', mute: 'rgba(180,188,204,0.45)',
+  hair: 'rgba(255,255,255,0.08)', accent: '#1E88FF', accentSoft: '#3BA6FF', signal: '#4ADE80', amber: '#F5C76B', alert: '#FF5D5D',
   fSans: 'Manrope_500Medium', fSemi: 'Manrope_600SemiBold', fBold: 'Manrope_700Bold',
 };
 const TTL_OPTIONS = [1, 7, 30] as const;

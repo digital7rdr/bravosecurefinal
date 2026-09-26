@@ -3132,7 +3132,7 @@ function CallScreenInner({route, navigation}: Props) {
                     <Text style={styles.addPickerName} numberOfLines={1}>{c.displayName}</Text>
                     <Text style={styles.addPickerSub} numberOfLines={1}>{c.userId.slice(0, 12)}</Text>
                   </View>
-                  <Icon name="phone-plus" size={18} color="#5B8DEF" />
+                  <Icon name="phone-plus" size={18} color="#1E88FF" />
                 </TouchableOpacity>
               )}
             />
@@ -3726,9 +3726,9 @@ function CallScreenInner({route, navigation}: Props) {
                     style={[styles.routeRow, active && styles.routeRowActive]}
                     onPress={() => pickAudioRoute(r)}
                     activeOpacity={0.7}>
-                    <Icon name={icon} size={22} color={active ? '#5B8DEF' : '#B8C7E0'} />
-                    <Text style={[styles.routeLabel, active && {color: '#5B8DEF'}]}>{label}</Text>
-                    {active && <Icon name="check" size={20} color="#5B8DEF" />}
+                    <Icon name={icon} size={22} color={active ? '#1E88FF' : '#B8C7E0'} />
+                    <Text style={[styles.routeLabel, active && {color: '#1E88FF'}]}>{label}</Text>
+                    {active && <Icon name="check" size={20} color="#1E88FF" />}
                   </TouchableOpacity>
                 );
               })}
@@ -4268,7 +4268,7 @@ const styles = StyleSheet.create({
 
   // DTMF dialpad modal
   dialpadBackdrop: {flex:1, backgroundColor:'rgba(0,0,0,0.7)', justifyContent:'flex-end'},
-  dialpadSheet:    {backgroundColor:'#0B0E14', paddingTop:20, paddingHorizontal:20, paddingBottom:32, borderTopLeftRadius:20, borderTopRightRadius:20, borderTopWidth:1, borderColor:'rgba(255,255,255,0.08)'},
+  dialpadSheet:    {backgroundColor:'#0A1F3F', paddingTop:20, paddingHorizontal:20, paddingBottom:32, borderTopLeftRadius:20, borderTopRightRadius:20, borderTopWidth:1, borderColor:'rgba(255,255,255,0.08)'},
   dialpadDisplay:  {alignItems:'center', minHeight:44, justifyContent:'center', marginBottom:16, backgroundColor:'rgba(255,255,255,0.07)', borderRadius:10, paddingVertical:10},
   dialpadDigits:   {color:'#FFFFFF', fontSize:24, fontWeight:'700', letterSpacing:4},
   dialpadGrid:     {flexDirection:'row', flexWrap:'wrap', justifyContent:'space-between'},
@@ -4276,10 +4276,10 @@ const styles = StyleSheet.create({
   dialpadKeyText:  {color:'#FFFFFF', fontSize:26, fontWeight:'600'},
   dialpadActions:  {flexDirection:'row', justifyContent:'space-between', marginTop:4},
   dialpadClear:    {color:'#fca5a5', fontSize:14, fontWeight:'700', paddingVertical:10, paddingHorizontal:12},
-  dialpadClose:    {color:'#5B8DEF', fontSize:14, fontWeight:'700', paddingVertical:10, paddingHorizontal:12},
+  dialpadClose:    {color:'#1E88FF', fontSize:14, fontWeight:'700', paddingVertical:10, paddingHorizontal:12},
 
   // ── Add-to-call picker (1:1 → group escalation sheet) ──
-  addPickerSheet:    {backgroundColor:'#0B0E14', paddingTop:20, paddingHorizontal:20, paddingBottom:28, borderTopLeftRadius:20, borderTopRightRadius:20, borderTopWidth:1, borderColor:'rgba(255,255,255,0.08)', maxHeight:'72%'},
+  addPickerSheet:    {backgroundColor:'#0A1F3F', paddingTop:20, paddingHorizontal:20, paddingBottom:28, borderTopLeftRadius:20, borderTopRightRadius:20, borderTopWidth:1, borderColor:'rgba(255,255,255,0.08)', maxHeight:'72%'},
   addPickerTitle:    {color:'#FFFFFF', fontSize:17, fontWeight:'800', letterSpacing:0.4, marginBottom:6},
   addPickerHint:     {color:'#B8C7E0', fontSize:12, lineHeight:17, marginBottom:14},
   addPickerList:     {gap:8, paddingBottom:8},

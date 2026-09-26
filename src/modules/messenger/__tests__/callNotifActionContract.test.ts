@@ -211,11 +211,11 @@ describe('showIncomingCallNotif — card shape', () => {
   it('the colorized ring card paints NOTIF_ACCENT cobalt, not legacy #1E88FF (B-232 fixed)', async () => {
     // B-66 residual closed as B-232 / G8: every display site (showMessageNotif,
     // showMissedCallNotif, markReplyQueued, and now the incoming-call ring)
-    // paints NOTIF_ACCENT #5B8DEF. colorized:true means the WHOLE surface takes
+    // paints NOTIF_ACCENT #1E88FF. colorized:true means the WHOLE surface takes
     // the accent, so a legacy blue here was the most visible deviation.
     await showIncomingCallNotif({callId: 'c1', kind: 'voice', callerName: 'Fahim'});
     const n = lastDisplayed();
-    expect(NOTIF_ACCENT).toBe('#5B8DEF');
+    expect(NOTIF_ACCENT).toBe('#1E88FF');
     expect(n.android.colorized).toBe(true);
     expect(n.android.color).toBe(NOTIF_ACCENT);
   });

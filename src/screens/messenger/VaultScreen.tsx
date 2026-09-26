@@ -10,9 +10,9 @@ import {Alert} from '@utils/alert';
  * knockdown) so the button feels tactile on both Android and iOS.
  */
 const ACTION = {
-  default:  '#5B8DEF',
-  hover:    '#A9C5FF',
-  pressed:  '#2F5BE0',
+  default:  '#1E88FF',
+  hover:    '#3BA6FF',
+  pressed:  '#166ED1',
   disabled: 'rgba(255,255,255,0.09)',
 };
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -685,7 +685,7 @@ export default function VaultScreen() {
             activeOpacity={0.7}
             hitSlop={{top: 8, left: 8, right: 8, bottom: 8}}
             style={{paddingRight: 8}}>
-            <Icon name="arrow-left" size={20} color="#F2F4F8" />
+            <Icon name="arrow-left" size={20} color="#FFFFFF" />
           </TouchableOpacity>
           {/* Names the shelf actually on screen. A hard-coded "Personal
               Vault" over company files is the audit-S1 class this screen
@@ -1104,7 +1104,7 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   header: {flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal:12, paddingTop:6, paddingBottom:8, borderBottomWidth:1, borderBottomColor:'rgba(91,141,239,0.1)'},
   headerLeft: {flexDirection:'row', alignItems:'center', gap:8},
-  headerTitle: {color:'#F2F4F8', fontSize:16, fontWeight:'700'},
+  headerTitle: {color:'#FFFFFF', fontSize:16, fontWeight:'700'},
   uploadBtn: {width:36, height:36, borderRadius:10, backgroundColor:ACTION.default, alignItems:'center', justifyContent:'center', shadowColor: ACTION.default, shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: {width: 0, height: 4}, elevation: 4},
   uploadBtnPressed: {backgroundColor: ACTION.pressed, shadowOpacity: 0.55, transform: [{scale: 0.94}]},
 
@@ -1112,7 +1112,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   encCard: {flexDirection:'row', alignItems:'center', justifyContent:'space-between', borderRadius:12, borderWidth:1, borderColor:'rgba(91,141,239,0.2)', backgroundColor:'rgba(91,141,239,0.07)', paddingHorizontal:12, paddingVertical:10},
   encLeft: {flexDirection:'row', alignItems:'center', gap:10},
   encIcon: {width:32, height:32, borderRadius:16, backgroundColor:'rgba(91,141,239,0.15)', alignItems:'center', justifyContent:'center'},
-  encTitle: {color:'#F2F4F8', fontSize:12, fontWeight:'700'},
+  encTitle: {color:'#FFFFFF', fontSize:12, fontWeight:'700'},
   encSub: {color:'rgba(229,233,242,0.62)', fontSize:10, marginTop:1},
   encBadgeActive: {flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 99, backgroundColor: 'rgba(74,222,128,0.12)', borderWidth: 1, borderColor: 'rgba(74,222,128,0.3)'},
   encBadgeActiveText: {color: '#4ade80', fontSize: 9, fontWeight: '800', letterSpacing: 1.2},
@@ -1121,29 +1121,29 @@ const styles = StyleSheet.create(scaleTextStyles({
   tabs: {flexDirection:'row', paddingHorizontal:12, gap:16},
   tab: {paddingVertical:8, paddingHorizontal:4, position:'relative'},
   tabText: {color:'rgba(180,188,204,0.45)', fontSize:12, fontWeight:'700'},
-  tabTextActive: {color:'#5B8DEF'},
-  tabUnderline: {position:'absolute', bottom:0, left:0, right:0, height:2, backgroundColor:'#5B8DEF', borderRadius:1},
+  tabTextActive: {color:'#1E88FF'},
+  tabUnderline: {position:'absolute', bottom:0, left:0, right:0, height:2, backgroundColor:'#1E88FF', borderRadius:1},
 
   content: {paddingHorizontal:12, paddingTop:12},
   section: {marginBottom:20},
   sectionHeader: {flexDirection:'row', justifyContent:'space-between', alignItems:'center', marginBottom:8},
-  sectionTitle: {color:'#F2F4F8', fontSize:14, fontWeight:'700'},
+  sectionTitle: {color:'#FFFFFF', fontSize:14, fontWeight:'700'},
   // B-458 — a `viewAll` style used to live here for a "View all" link that was
   // never rendered. Every image is on screen now, so there is nothing to link to.
 
   imageRows: {gap:8},
   imageGrid: {flexDirection:'row', gap:8},
   imageCell: {flex:1, gap:4, maxWidth: '33%'},
-  imageBox: {height:110, borderRadius:12, backgroundColor:'#0C1018', alignItems:'center', justifyContent:'center', position:'relative', overflow: 'hidden'},
+  imageBox: {height:110, borderRadius:12, backgroundColor:'#122747', alignItems:'center', justifyContent:'center', position:'relative', overflow: 'hidden'},
   imageThumb: {width: '100%', height: '100%'},
   shieldBadge: {position:'absolute', top:6, right:6, width:24, height:24, borderRadius:12, backgroundColor:'rgba(91,141,239,0.9)', alignItems:'center', justifyContent:'center'},
   imageName: {color:'rgba(229,233,242,0.62)', fontSize:10, fontWeight:'500'},
 
   docList: {gap:8},
-  docRow: {flexDirection:'row', alignItems:'center', gap:12, backgroundColor:'#0C1018', borderRadius:12, borderWidth:1, borderColor:'rgba(255,255,255,0.06)', padding:10},
+  docRow: {flexDirection:'row', alignItems:'center', gap:12, backgroundColor:'#122747', borderRadius:12, borderWidth:1, borderColor:'rgba(255,255,255,0.06)', padding:10},
   docIcon: {width:36, height:36, borderRadius:8, alignItems:'center', justifyContent:'center', flexShrink:0},
   docInfo: {flex:1, minWidth:0},
-  docName: {color:'#F2F4F8', fontSize:12, fontWeight:'700'},
+  docName: {color:'#FFFFFF', fontSize:12, fontWeight:'700'},
   docMeta: {color:'rgba(180,188,204,0.45)', fontSize:10, marginTop:2},
   docRight: {alignItems:'flex-end', gap:2},
   docDate: {color:'rgba(180,188,204,0.45)', fontSize:9, fontWeight:'500', textTransform:'uppercase'},
@@ -1157,12 +1157,12 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   // Upload sheet
   sheetBackdrop: {flex: 1, backgroundColor: 'rgba(6,20,43,0.75)', justifyContent: 'flex-end'},
-  sheet: {backgroundColor: '#07090D', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 8, paddingBottom: 32, paddingHorizontal: 16, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.09)'},
-  sheetTitle: {color: '#F2F4F8', fontSize: 16, fontWeight: '800', textAlign: 'center', marginTop: 12},
+  sheet: {backgroundColor: '#0A1F3F', borderTopLeftRadius: 24, borderTopRightRadius: 24, paddingTop: 8, paddingBottom: 32, paddingHorizontal: 16, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.09)'},
+  sheetTitle: {color: '#FFFFFF', fontSize: 16, fontWeight: '800', textAlign: 'center', marginTop: 12},
   sheetHint: {color: 'rgba(180,188,204,0.45)', fontSize: 11, textAlign: 'center', marginTop: 4, marginBottom: 12},
   sheetRow: {flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14, paddingHorizontal: 12, borderRadius: 12, marginVertical: 2, backgroundColor: 'rgba(91,141,239,0.04)'},
   sheetIcon: {width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center'},
-  sheetRowText: {color: '#F2F4F8', fontSize: 14, fontWeight: '700'},
+  sheetRowText: {color: '#FFFFFF', fontSize: 14, fontWeight: '700'},
   sheetCancel: {marginTop: 10, paddingVertical: 14, alignItems: 'center', borderRadius: 12, backgroundColor: 'rgba(180,199,224,0.06)'},
   sheetCancelText: {color: 'rgba(229,233,242,0.62)', fontSize: 13, fontWeight: '700'},
 }));

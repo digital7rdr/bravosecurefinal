@@ -52,8 +52,8 @@ const FULLSCREEN_ROUTES = new Set(['DepartmentChat', 'Chat', 'CallScreen', 'Voic
 export function ObsidianTabBar({
   state, descriptors, navigation, icons,
   standInTab,
-  bg = '#07090D', accent = '#5B8DEF', mute = 'rgba(180,188,204,0.45)',
-  text = '#F2F4F8', hairColor = 'rgba(255,255,255,0.1)',
+  bg = '#0A1F3F', accent = '#1E88FF', mute = 'rgba(180,188,204,0.45)',
+  text = '#FFFFFF', hairColor = 'rgba(255,255,255,0.1)',
 }: ObsidianTabBarProps) {
   const insets = useSafeAreaInsets();
 

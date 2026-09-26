@@ -36,25 +36,25 @@ const PAGE_SIZE = 50;
 const SEARCH_DEBOUNCE_MS = 300;
 
 const T = {
-  bg:        '#07090D',
-  text:      '#F2F4F8',
+  bg:        '#0A1F3F',
+  text:      '#FFFFFF',
   textDim:   'rgba(229,233,242,0.62)',
   textMute:  'rgba(180,188,204,0.45)',
   textFaint: 'rgba(180,188,204,0.28)',
   hair:      'rgba(255,255,255,0.06)',
   hair2:     'rgba(255,255,255,0.09)',
-  accent:    '#5B8DEF',
-  accentDeep:'#2F5BE0',
+  accent:    '#1E88FF',
+  accentDeep:'#166ED1',
   accentSoft:'#7FA8FF',
   accentGlow:'rgba(91,141,239,0.35)',
-  blue:      '#A9C5FF',
+  blue:      '#3BA6FF',
   signal:    '#4ADE80',
   gold:      '#E2C893',
   alert:     '#FF8585',
   card:      'rgba(18,22,30,0.85)',
 } as const;
 
-const USAGE_COLORS = ['#A9C5FF', '#6EE7B7', '#FCD34D', '#FCA5A5'];
+const USAGE_COLORS = ['#3BA6FF', '#6EE7B7', '#FCD34D', '#FCA5A5'];
 
 function initialsOf(name: string): string {
   return name.split(/[\s@.+]/).filter(Boolean).map(w => w[0] ?? '').join('').slice(0, 2).toUpperCase() || '?';
@@ -399,7 +399,7 @@ export default function IndividualProfileScreen() {
             onPress={handleAddMember}
             accessibilityRole="button"
             accessibilityLabel="Add a member">
-            <LinearGradient colors={['#6E9BF5', T.accent, T.accentDeep]} start={{x: 0, y: 0}} end={{x: 0, y: 1}} style={styles.addBtn}>
+            <LinearGradient colors={['#3BA6FF', T.accent, T.accentDeep]} start={{x: 0, y: 0}} end={{x: 0, y: 1}} style={styles.addBtn}>
               <Icon name="plus" size={18} color="#fff" />
             </LinearGradient>
           </TouchableOpacity>
@@ -560,7 +560,7 @@ export default function IndividualProfileScreen() {
             <Text style={styles.emptyTitle}>No members yet</Text>
             <Text style={styles.emptySub}>Add people who can spend from your Bravo Credits once they accept.</Text>
             <TouchableOpacity activeOpacity={0.85} onPress={handleAddMember} style={{width: '100%', marginTop: 20}}>
-              <LinearGradient colors={['#6E9BF5', T.accent, T.accentDeep]} start={{x: 0, y: 0}} end={{x: 0, y: 1}} style={styles.emptyBtn}>
+              <LinearGradient colors={['#3BA6FF', T.accent, T.accentDeep]} start={{x: 0, y: 0}} end={{x: 0, y: 1}} style={styles.emptyBtn}>
                 <Icon name="account-plus-outline" size={17} color="#fff" />
                 <Text style={styles.emptyBtnText}>Add a member</Text>
               </LinearGradient>

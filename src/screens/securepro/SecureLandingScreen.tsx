@@ -41,8 +41,8 @@ import {secureRootRoute} from './secureRoot';
 
 type Nav = NativeStackNavigationProp<BookingStackParamList, 'SecureLanding'>;
 
-const BG = '#07090D';
-const ACCENT = '#5B8DEF';
+const BG = '#0A1F3F';
+const ACCENT = '#1E88FF';
 
 /**
  * B-649 — how often a still-mounted resolver re-dispatches its reset.

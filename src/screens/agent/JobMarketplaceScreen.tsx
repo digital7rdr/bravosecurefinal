@@ -35,8 +35,8 @@ type IconName = React.ComponentProps<typeof Icon>['name'];
 
 // Design tokens (Bravo "Job Marketplace" handoff — obsidian + violet agent accent).
 const D = {
-  bg:         '#07090D',
-  text:       '#F2F4F8',
+  bg:         '#0A1F3F',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   textFaint:  'rgba(180,188,204,0.28)',
@@ -59,7 +59,7 @@ type JobTint = 'cpo' | 'driver' | 'recon';
 // Hero-band tint per derived job type (CPO violet · Driver cobalt · Recon green).
 const TINT: Record<JobTint, {label: string; ic: string; bg: string; bd: string; ring: string; tileA: string; tileB: string}> = {
   cpo:    {label: 'CPO',    ic: '#C7B6FF', bg: 'rgba(167,139,250,0.14)', bd: 'rgba(167,139,250,0.4)',  ring: 'rgba(167,139,250,0.4)',  tileA: 'rgba(124,90,214,0.22)', tileB: 'rgba(20,18,40,0.4)'},
-  driver: {label: 'DRIVER', ic: '#A9C5FF', bg: 'rgba(91,141,239,0.14)',  bd: 'rgba(91,141,239,0.4)',   ring: 'rgba(91,141,239,0.4)',   tileA: 'rgba(47,91,224,0.22)',  tileB: 'rgba(15,22,40,0.4)'},
+  driver: {label: 'DRIVER', ic: '#3BA6FF', bg: 'rgba(91,141,239,0.14)',  bd: 'rgba(91,141,239,0.4)',   ring: 'rgba(91,141,239,0.4)',   tileA: 'rgba(47,91,224,0.22)',  tileB: 'rgba(15,22,40,0.4)'},
   recon:  {label: 'RECON',  ic: '#8FE6B4', bg: 'rgba(74,222,128,0.13)',  bd: 'rgba(74,222,128,0.36)',  ring: 'rgba(74,222,128,0.36)',  tileA: 'rgba(28,126,140,0.22)', tileB: 'rgba(10,30,30,0.4)'},
 };
 
@@ -273,7 +273,7 @@ export default function JobMarketplaceScreen() {
         return {label: 'Applied', icon: 'check-circle', fg: '#7FE6A8',
                 bg: 'rgba(74,222,128,0.12)', bd: 'rgba(74,222,128,0.34)'};
       case 'ASSIGNED':
-        return {label: 'On Team', icon: 'shield-check', fg: '#A9C5FF',
+        return {label: 'On Team', icon: 'shield-check', fg: '#3BA6FF',
                 bg: 'rgba(91,141,239,0.14)', bd: 'rgba(91,141,239,0.4)', disabled: true};
       case 'REJECTED':
         return {label: 'Not Selected', icon: 'close-circle', fg: '#F58B97',

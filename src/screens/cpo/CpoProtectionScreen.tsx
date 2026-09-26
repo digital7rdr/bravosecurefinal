@@ -17,10 +17,10 @@ import {goBackOnce} from '@navigation/tapGuard';
 import {cpoProtectionApi, type CpoProtectionCustomer, type StalenessState} from '@services/api';
 
 const D = {
-  bg: '#07090D', card: 'rgba(22,27,37,0.72)', text: '#F2F4F8',
+  bg: '#0A1F3F', card: 'rgba(22,27,37,0.72)', text: '#FFFFFF',
   textDim: 'rgba(229,233,242,0.62)', textMute: 'rgba(180,188,204,0.45)',
   hair: 'rgba(255,255,255,0.06)', hair2: 'rgba(255,255,255,0.09)',
-  accent: '#5B8DEF', accentSoft: '#A9C5FF', signal: '#4ADE80', amber: '#F5C76B', danger: '#F87171', grey: '#8A93A6',
+  accent: '#1E88FF', accentSoft: '#3BA6FF', signal: '#4ADE80', amber: '#F5C76B', danger: '#F87171', grey: '#8A93A6',
   fSans: 'Manrope_500Medium', fSemi: 'Manrope_600SemiBold', fBold: 'Manrope_700Bold', fMono: 'monospace',
 };
 

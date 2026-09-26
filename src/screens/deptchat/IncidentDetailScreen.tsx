@@ -324,7 +324,7 @@ const s = StyleSheet.create(scaleTextStyles({
   assignName: {flex: 1, color: OB.text, fontFamily: BravoFont.semiBold, fontSize: 13.5},
   assignAction: {color: OB.accentSoft, fontFamily: BravoFont.semiBold, fontSize: 12},
   modalBackdrop: {flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end'},
-  modalCard: {backgroundColor: '#10141C', padding: 18, paddingBottom: 30, gap: 6, borderTopLeftRadius: 22, borderTopRightRadius: 22, borderTopWidth: 1, borderTopColor: OB.hair2},
+  modalCard: {backgroundColor: '#162F54', padding: 18, paddingBottom: 30, gap: 6, borderTopLeftRadius: 22, borderTopRightRadius: 22, borderTopWidth: 1, borderTopColor: OB.hair2},
   modalTitle: {color: OB.text, fontFamily: BravoFont.extraBold, fontSize: 16, marginBottom: 6, paddingHorizontal: 2},
   pickRow: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 13, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: OB.hair},
   pickName: {flex: 1, color: OB.text, fontFamily: BravoFont.semiBold, fontSize: 14},

@@ -31,18 +31,18 @@ import LoadingView from '@components/LoadingView';
 
 // Obsidian / cobalt palette — imported "Bravo Credits" design family.
 const T = {
-  bg:        '#07090D',
-  text:      '#F2F4F8',
+  bg:        '#0A1F3F',
+  text:      '#FFFFFF',
   textDim:   'rgba(229,233,242,0.62)',
   textMute:  'rgba(180,188,204,0.45)',
   textFaint: 'rgba(180,188,204,0.28)',
   hair:      'rgba(255,255,255,0.06)',
   hair2:     'rgba(255,255,255,0.09)',
-  accent:    '#5B8DEF',
-  accentDeep:'#2F5BE0',
+  accent:    '#1E88FF',
+  accentDeep:'#166ED1',
   accentSoft:'#7FA8FF',
   accentGlow:'rgba(91,141,239,0.35)',
-  blue:      '#A9C5FF',
+  blue:      '#3BA6FF',
   signal:    '#4ADE80',
   gold:      '#E2C893',
   card:      'rgba(18,22,30,0.85)',
@@ -221,7 +221,7 @@ function CreditsScreen() {
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.content, {paddingBottom: insets.bottom + 24}]}>
           <BalanceHero total={totalCredits} earliest={earliest} soon={soonExpiry} />
           <TouchableOpacity activeOpacity={0.85} onPress={() => setActiveTab('topup')}>
-            <LinearGradient colors={['#6E9BF5', T.accent, T.accentDeep]} start={{x: 0, y: 0}} end={{x: 0, y: 1}} style={styles.topUpShortcut}>
+            <LinearGradient colors={['#3BA6FF', T.accent, T.accentDeep]} start={{x: 0, y: 0}} end={{x: 0, y: 1}} style={styles.topUpShortcut}>
               <Icon name="plus-circle" size={18} color="#fff" />
               <Text style={styles.topUpShortcutText}>Top Up Credits</Text>
             </LinearGradient>
@@ -390,7 +390,7 @@ function CreditsScreen() {
       {activeTab === 'topup' && (
         <View style={[styles.footer, {paddingBottom: bottomPad(14)}]}>
           <TouchableOpacity testID="purchase-btn" activeOpacity={0.9} disabled={purchasing} onPress={() => { void handlePurchase(); }}>
-            <LinearGradient colors={['#6E9BF5', T.accent, T.accentDeep]} start={{x: 0, y: 0}} end={{x: 0, y: 1}} style={[styles.purchaseBtn, purchasing && {opacity: 0.8}]}>
+            <LinearGradient colors={['#3BA6FF', T.accent, T.accentDeep]} start={{x: 0, y: 0}} end={{x: 0, y: 1}} style={[styles.purchaseBtn, purchasing && {opacity: 0.8}]}>
               {purchasing ? <ActivityIndicator color="#fff" /> : (
                 <>
                   <Spark size={18} />

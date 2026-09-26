@@ -23,11 +23,11 @@ export function buildLiveRouteHtml(mapboxToken: string): string {
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover"/>
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.css" rel="stylesheet"/>
 <style>
-  html, body { margin: 0; padding: 0; background: #05070B; overflow: hidden; height: 100%;
+  html, body { margin: 0; padding: 0; background: #06142B; overflow: hidden; height: 100%;
     font-family: "Manrope", -apple-system, "Segoe UI", Roboto, sans-serif; color: #FFF; }
   *, *::before, *::after { box-sizing: border-box; }
 
-  #map { position: absolute; inset: 0; background: #05070B; }
+  #map { position: absolute; inset: 0; background: #06142B; }
   .grid { position: absolute; inset: 0; pointer-events: none; z-index: 2;
     background-image:
       linear-gradient(rgba(76,194,255,0.08) 1px, transparent 1px),
@@ -684,7 +684,7 @@ export function buildLiveRouteHtml(mapboxToken: string): string {
     if (!map.getLayer('veh-accuracy-fill')) {
       map.addLayer({
         id: 'veh-accuracy-fill', type: 'fill', source: 'veh-accuracy',
-        paint: {'fill-color': '#5B8DEF', 'fill-opacity': 0.14},
+        paint: {'fill-color': '#1E88FF', 'fill-opacity': 0.14},
       }, map.getLayer('route-line') ? 'route-line' : undefined);
     }
   }

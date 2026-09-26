@@ -19,7 +19,7 @@ export function AmbientBg({variant = 'default', bg}: {variant?: 'default' | 'ale
   const topGlow = variant === 'alert'
     ? ['rgba(255,93,93,0.08)', 'rgba(255,93,93,0)']
     : ['rgba(91,141,239,0.09)', 'rgba(91,141,239,0)'];
-  // `bg` overrides the base fill — Command Home passes obsidian (#07090D)
+  // `bg` overrides the base fill — Command Home passes obsidian (#0A1F3F)
   // to match its design tokens; other screens default to the app-wide
   // Command Navy. The cobalt glow layers stay identical either way.
   return (

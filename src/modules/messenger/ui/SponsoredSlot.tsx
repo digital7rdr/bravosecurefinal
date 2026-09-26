@@ -52,7 +52,7 @@ export function SponsoredSlot() {
           <Image source={{uri: campaign.icon_url}} style={s.icon} />
         ) : (
           <View style={[s.icon, s.iconFallback]}>
-            <Icon name="shield-star" size={20} color="#5B8DEF" />
+            <Icon name="shield-star" size={20} color="#1E88FF" />
           </View>
         )}
         <View style={{flex: 1, minWidth: 0}}>
@@ -79,14 +79,14 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(91,141,239,0.25)',
   },
   topRow: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8},
-  eyebrow: {fontFamily: 'monospace', fontSize: 9, fontWeight: '800', letterSpacing: 2, color: '#5B8DEF'},
+  eyebrow: {fontFamily: 'monospace', fontSize: 9, fontWeight: '800', letterSpacing: 2, color: '#1E88FF'},
   bodyRow: {flexDirection: 'row', gap: 12},
   icon: {width: 42, height: 42, borderRadius: 12},
   iconFallback: {
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)',
   },
-  headline: {color: '#F2F4F8', fontSize: 13.5, fontWeight: '700'},
+  headline: {color: '#FFFFFF', fontSize: 13.5, fontWeight: '700'},
   body: {color: 'rgba(229,233,242,0.62)', fontSize: 11.5, marginTop: 2, lineHeight: 15},
-  cta: {color: '#5B8DEF', fontSize: 12, fontWeight: '700', marginTop: 6},
+  cta: {color: '#1E88FF', fontSize: 12, fontWeight: '700', marginTop: 6},
 });

@@ -31,15 +31,15 @@ const INTEREST_KEY = 'securelux:launch-interest';
 
 // Design tokens — obsidian/cobalt premium (mirrors the Secure Plans family).
 const D = {
-  bg:         '#07090D',
-  text:       '#F2F4F8',
+  bg:         '#0A1F3F',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   hair:       'rgba(255,255,255,0.06)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentDeep: '#2F5BE0',
-  accentSoft: '#A9C5FF',
+  accent:     '#1E88FF',
+  accentDeep: '#166ED1',
+  accentSoft: '#3BA6FF',
   amber:      '#F5C76B',
   signal:     '#4ADE80',
   fSans:    'Manrope_500Medium',
@@ -201,7 +201,7 @@ export default function SecureLuxScreen() {
             accessibilityRole="button"
             accessibilityLabel="Get notified when Bravo Secure Lux launches">
             <LinearGradient
-              colors={['#6E9BF5', D.accent, D.accentDeep]}
+              colors={['#3BA6FF', D.accent, D.accentDeep]}
               locations={[0, 0.55, 1]}
               start={{x: 0, y: 0}}
               end={{x: 0, y: 1}}

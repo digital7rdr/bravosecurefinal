@@ -333,19 +333,19 @@ export default function VBGHomeScreen() {
         <View style={styles.actionGrid}>
           <ActionTile
             title="Contact Emergency Services" tint="blue" img={Imagery.vbgEmergencyCall}
-            icon={<Path d="M5 4h3l1.5 4-2 1.5a11 11 0 0 0 5 5l1.5-2 4 1.5V18a2 2 0 0 1-2 2A14 14 0 0 1 5 6a2 2 0 0 1 0-2Z" stroke="#A9C5FF" strokeWidth={1.6} fill="none" strokeLinejoin="round" />}
+            icon={<Path d="M5 4h3l1.5 4-2 1.5a11 11 0 0 0 5 5l1.5-2 4 1.5V18a2 2 0 0 1-2 2A14 14 0 0 1 5 6a2 2 0 0 1 0-2Z" stroke="#3BA6FF" strokeWidth={1.6} fill="none" strokeLinejoin="round" />}
             onPress={() => navigation.navigate('VBGEmergency', (countryName ?? countryIso)
               ? {countryName: countryName ?? undefined, countryIso: countryIso ?? undefined}
               : undefined)}
           />
           <ActionTile
             title="Phone Next of Kin" tint="blue" img={Imagery.vbgNextOfKin}
-            icon={<><Path d="M16 11a4 4 0 1 0-4-4" stroke="#A9C5FF" strokeWidth={1.6} fill="none" strokeLinecap="round" /><Path d="M3 20a6 6 0 0 1 12 0" stroke="#A9C5FF" strokeWidth={1.6} fill="none" strokeLinecap="round" /><Path d="M18 9v6M15 12h6" stroke="#A9C5FF" strokeWidth={1.6} strokeLinecap="round" /></>}
+            icon={<><Path d="M16 11a4 4 0 1 0-4-4" stroke="#3BA6FF" strokeWidth={1.6} fill="none" strokeLinecap="round" /><Path d="M3 20a6 6 0 0 1 12 0" stroke="#3BA6FF" strokeWidth={1.6} fill="none" strokeLinecap="round" /><Path d="M18 9v6M15 12h6" stroke="#3BA6FF" strokeWidth={1.6} strokeLinecap="round" /></>}
             onPress={handleNextOfKin}
           />
           <ActionTile
             title="Request Support" tint="blue" img={Imagery.vbgRequestSupport}
-            icon={<Path d="M12 3l8 3v6c0 4.5-3.2 8.3-8 9-4.8-.7-8-4.5-8-9V6l8-3Z" stroke="#A9C5FF" strokeWidth={1.6} fill="none" strokeLinejoin="round" />}
+            icon={<Path d="M12 3l8 3v6c0 4.5-3.2 8.3-8 9-4.8-.7-8-4.5-8-9V6l8-3Z" stroke="#3BA6FF" strokeWidth={1.6} fill="none" strokeLinejoin="round" />}
             // Founder 2026-08-01 — inactive until the dedicated
             // support-request flow ships (INDEX Q9); the old messenger hop
             // read as broken.
@@ -353,7 +353,7 @@ export default function VBGHomeScreen() {
           />
           <ActionTile
             title="Secure Services" tint="indigo" highlight
-            icon={<Path d="M5 16l1.5-5h11L19 16M6 16h12v3H6zM8 19v1M16 19v1" stroke="#A9C5FF" strokeWidth={1.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />}
+            icon={<Path d="M5 16l1.5-5h11L19 16M6 16h12v3H6zM8 19v1M16 19v1" stroke="#3BA6FF" strokeWidth={1.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />}
             // Spec p.17 — opens the Secure Services product/booking flow.
             // B-352 — record the origin so back at the Secure root returns to
             // this dashboard instead of ejecting to the product gate.
@@ -424,7 +424,7 @@ function MiniCard({label, children, linkText, onLink, img}: {
       <View style={styles.miniContent}>{children}</View>
       <TouchableOpacity activeOpacity={0.7} onPress={onLink} style={styles.miniLink}>
         <Text style={styles.miniLinkText}>{linkText}</Text>
-        <Svg width={6} height={10} viewBox="0 0 8 14"><Path d="M1 1l6 6-6 6" stroke="#A9C5FF" strokeWidth={1.7} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
+        <Svg width={6} height={10} viewBox="0 0 8 14"><Path d="M1 1l6 6-6 6" stroke="#3BA6FF" strokeWidth={1.7} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
       </TouchableOpacity>
     </VbgCard>
   );
@@ -478,7 +478,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)',
   },
   topbarAvatarImg: {width: 34, height: 34, borderRadius: 17},
-  topbarAvatarText: {color: '#A9C5FF', fontSize: 11, fontWeight: '800'},
+  topbarAvatarText: {color: '#3BA6FF', fontSize: 11, fontWeight: '800'},
   statusBadge: {flexDirection: 'row', alignItems: 'center', gap: 7, paddingHorizontal: 11, paddingVertical: 6, borderRadius: 999, borderWidth: 1},
   statusOk: {backgroundColor: VBG.signalDim, borderColor: 'rgba(74,222,128,0.34)'},
   statusAlert: {backgroundColor: VBG.alertDim, borderColor: 'rgba(255,93,93,0.34)'},
@@ -500,7 +500,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   cardHead: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 11},
   miniMap: {height: 132, borderRadius: 13},
   enRoute: {position: 'absolute', left: '50%', bottom: 10, transform: [{translateX: -64}], backgroundColor: 'rgba(7,12,22,0.8)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999},
-  enRouteText: {fontSize: 9, letterSpacing: 1.4, color: '#A9C5FF', fontWeight: '600'},
+  enRouteText: {fontSize: 9, letterSpacing: 1.4, color: '#3BA6FF', fontWeight: '600'},
 
   statRow: {flexDirection: 'row', gap: 10, marginVertical: 12},
   retryStrip: {marginBottom: 10, paddingVertical: 8, borderRadius: 9, alignItems: 'center', backgroundColor: 'rgba(255,93,93,0.08)', borderWidth: 1, borderColor: 'rgba(255,93,93,0.28)'},
@@ -519,7 +519,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   miniLabel: {fontSize: 8, color: VBG.textMute, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8},
   miniContent: {flex: 1, alignItems: 'flex-start', gap: 3.5, minHeight: 56},
   miniLink: {flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 8},
-  miniLinkText: {fontSize: 8.5, fontWeight: '600', color: '#A9C5FF', letterSpacing: 0.6, textTransform: 'uppercase'},
+  miniLinkText: {fontSize: 8.5, fontWeight: '600', color: '#3BA6FF', letterSpacing: 0.6, textTransform: 'uppercase'},
   bigNum: {fontSize: 19, fontWeight: '700', color: VBG.text},
   bigNumUnit: {fontSize: 10, color: VBG.textMute, fontWeight: '600'},
   miniDesc: {fontSize: 9.5, color: VBG.textMute, marginTop: 3},

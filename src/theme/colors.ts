@@ -12,12 +12,16 @@ export const Colors = {
   success:      '#00C853',   // color-success
 
   // ─── Backgrounds ────────────────────────────────────
-  // B-90 T-13 — page backgrounds retargeted to the OBSIDIAN system
-  // (#07090D bg / #5B8DEF accent). Every legacy screen still importing
-  // Colors.background migrates in one move; card surfaces/borders below
-  // keep their identity. Do NOT point these back at Command Navy.
-  background:       '#07090D',   // Obsidian — main app bg (was Command Navy #0A1F3F)
-  backgroundDepth:  '#05070B',   // Obsidian depth layers (was Tactical Midnight #06142B)
+  // 2026-09-21 — RESTORED to the live bravo-secure.com identity (founder
+  // instruction). B-90 T-13 had retargeted these to the Obsidian system
+  // (#07090D / #05070B) and left a "do NOT point these back at Command
+  // Navy" note; that note is now superseded — the site's own canvas IS
+  // Command Navy, so these two values are the brand, not a legacy relic.
+  // Measured from the live site 2026-09-21: deep navy rgb(6,20,43) and
+  // navy rgb(10,31,63). The surfaces below were already on this palette
+  // and are unchanged.
+  background:       '#0A1F3F',   // Command Navy — main app bg
+  backgroundDepth:  '#06142B',   // Tactical Midnight — depth layers
   surface:          '#1B3A66',   // surface-1: cards, tiles, panels
   surfaceElevated:  '#162F54',   // surface-2: nested cards, modals
   surfaceOverlay:   '#122747',   // surface-3: drawers, overlays

@@ -374,7 +374,7 @@ export default function VaultLockScreen() {
       {/* Lock icon + title */}
       <View style={styles.lockSection}>
         <View style={styles.lockIcon}>
-          <Icon name="lock" size={24} color="#5B8DEF" />
+          <Icon name="lock" size={24} color="#1E88FF" />
         </View>
         <Text style={styles.lockTitle}>Enter Vault PIN</Text>
         <Text style={styles.lockSub}>
@@ -434,7 +434,7 @@ export default function VaultLockScreen() {
               accessibilityRole="button"
               accessibilityLabel="Unlock with biometrics"
               onPress={() => { void tryBiometric(); }}>
-              <Icon name="fingerprint" size={24} color="#5B8DEF" />
+              <Icon name="fingerprint" size={24} color="#1E88FF" />
             </TouchableOpacity>
           ) : (
             <View style={styles.keyBtnSpacer} />
@@ -476,7 +476,7 @@ const styles = StyleSheet.create({
 
   dotsRow: {flexDirection: 'row', justifyContent: 'center', gap: 16, marginBottom: 8},
   dot: {width: 12, height: 12, borderRadius: 6, borderWidth: 2, borderColor: 'rgba(255,255,255,0.06)', backgroundColor: 'transparent'},
-  dotFilled: {backgroundColor: '#5B8DEF', borderColor: '#5B8DEF'},
+  dotFilled: {backgroundColor: '#1E88FF', borderColor: '#1E88FF'},
   dotError: {backgroundColor: '#D50000', borderColor: '#D50000'},
 
   errorText: {fontSize: 11, color: '#f87171', fontWeight: '600', textAlign: 'center', minHeight: 16, marginBottom: 8},
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   keyBtn: {width: 58, height: 58, borderRadius: 29, backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', alignItems: 'center', justifyContent: 'center'},
   // Holds the biometric key's place so hiding it does not shift 0 off centre.
   keyBtnSpacer: {width: 58, height: 58},
-  keyNum: {fontSize: 19, fontWeight: '700', color: '#F2F4F8', lineHeight: 22},
+  keyNum: {fontSize: 19, fontWeight: '700', color: '#FFFFFF', lineHeight: 22},
   keyAlpha: {fontSize: 7, fontWeight: '600', color: 'rgba(180,188,204,0.45)', letterSpacing: 1.5, marginTop: 1},
 
   forgotBtn: {alignItems: 'center', marginTop: 12},

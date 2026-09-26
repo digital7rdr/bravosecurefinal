@@ -159,7 +159,7 @@ export default function ProAssignedTeamScreen() {
           <View key={v.id} style={[styles.vehCard, v.live_today && styles.vehCardLive]}>
             <View style={styles.vehTopRow}>
               <View style={styles.vehCallSignWrap}>
-                <Icon name="car" size={16} color="#5B8DEF" />
+                <Icon name="car" size={16} color="#1E88FF" />
                 <Text style={styles.vehCallSignText}>{v.call_sign ?? 'Protection Vehicle'}</Text>
               </View>
               <View style={styles.availRow}>
@@ -242,7 +242,7 @@ export default function ProAssignedTeamScreen() {
               <View key={sec.id} style={[styles.cpoCard, sec.liveToday && styles.cpoCardAssigned]}>
                 <View style={styles.missionHead}>
                   <View style={styles.missionDatesWrap}>
-                    <Icon name="calendar-check" size={15} color="#5B8DEF" />
+                    <Icon name="calendar-check" size={15} color="#1E88FF" />
                     <Text style={styles.missionDates} numberOfLines={2}>{sec.datesLabel}</Text>
                   </View>
                   <View style={styles.availRow}>
@@ -359,12 +359,12 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   // Vehicles — registration plate is the Issue-30 hero field (cobalt accent).
   vehCard: {backgroundColor: '#0D1929', borderRadius: 16, borderWidth: 1, borderColor: '#1E2D45', padding: 14, gap: 12},
-  vehCardLive: {borderColor: '#5B8DEF', backgroundColor: 'rgba(91,141,239,0.06)'},
+  vehCardLive: {borderColor: '#1E88FF', backgroundColor: 'rgba(91,141,239,0.06)'},
   vehTopRow: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'},
   vehCallSignWrap: {flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1},
   vehCallSignText: {fontSize: 12, fontWeight: '700', color: '#94A3B8', letterSpacing: 0.5},
   plateHero: {backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, alignItems: 'center'},
-  plateLabel: {fontSize: 9, fontWeight: '700', color: '#5B8DEF', letterSpacing: 2, marginBottom: 4},
+  plateLabel: {fontSize: 9, fontWeight: '700', color: '#1E88FF', letterSpacing: 2, marginBottom: 4},
   plateValue: {fontSize: 26, fontWeight: '800', color: '#E8EEFB', letterSpacing: 3, fontFamily: Platform.select({ios: 'Courier', default: 'monospace'})},
   vehMakeModel: {fontSize: 14, fontWeight: '700', color: '#F1F5F9'},
   vehBadges: {flexDirection: 'row', flexWrap: 'wrap', gap: 6},
@@ -379,12 +379,12 @@ const styles = StyleSheet.create(scaleTextStyles({
   missionRole: {flex: 1, minWidth: 0, fontSize: 12, color: '#CBD5E1', lineHeight: 17},
   missionNames: {color: '#94A3B8'},
   resGroup: {gap: 8},
-  resGroupHeader: {fontSize: 10, fontWeight: '800', color: '#5B8DEF', letterSpacing: 1.5, textTransform: 'uppercase', marginTop: 4},
+  resGroupHeader: {fontSize: 10, fontWeight: '800', color: '#1E88FF', letterSpacing: 1.5, textTransform: 'uppercase', marginTop: 4},
   resRow: {flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#0D1929', borderRadius: 12, borderWidth: 1, borderColor: '#1E2D45', paddingVertical: 12, paddingHorizontal: 14},
-  resRowLive: {borderColor: '#5B8DEF', backgroundColor: 'rgba(91,141,239,0.06)'},
-  resKindDot: {width: 8, height: 8, borderRadius: 4, backgroundColor: '#5B8DEF'},
+  resRowLive: {borderColor: '#1E88FF', backgroundColor: 'rgba(91,141,239,0.06)'},
+  resKindDot: {width: 8, height: 8, borderRadius: 4, backgroundColor: '#1E88FF'},
   resLabel: {flex: 1, minWidth: 0, fontSize: 13, fontWeight: '600', color: '#F1F5F9'},
-  resQty: {fontSize: 13, fontWeight: '800', color: '#5B8DEF'},
+  resQty: {fontSize: 13, fontWeight: '800', color: '#1E88FF'},
 
   footer: {paddingHorizontal: 16, paddingTop: 8, backgroundColor: Colors.background},
   ctaBtn: {backgroundColor: '#6366F1', borderRadius: 12, paddingVertical: 14, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8},

@@ -131,7 +131,7 @@ export default function VBGMapScreen() {
 }
 
 const styles = StyleSheet.create(scaleTextStyles({
-  root: {flex: 1, backgroundColor: '#05070B'},
+  root: {flex: 1, backgroundColor: '#06142B'},
   header: {
     position: 'absolute', top: 0, left: 0, right: 0,
     flexDirection: 'row', alignItems: 'center', gap: 12,
@@ -151,7 +151,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   navBtn: {
     marginTop: 12, height: 44, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#2F5BE0',
+    backgroundColor: '#166ED1',
   },
   navBtnText: {color: '#FFF', fontSize: 12.5, fontWeight: '800', letterSpacing: 1.5},
 }));

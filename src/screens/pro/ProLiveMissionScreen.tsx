@@ -44,10 +44,10 @@ import {useProtectionReadiness} from '@hooks/useProtectionReadiness';
 import ReadinessGate from '@components/protection/ReadinessGate';
 
 const D = {
-  bg: '#07090D', card: 'rgba(22,27,37,0.72)', text: '#F2F4F8',
+  bg: '#0A1F3F', card: 'rgba(22,27,37,0.72)', text: '#FFFFFF',
   textDim: 'rgba(229,233,242,0.62)', textMute: 'rgba(180,188,204,0.45)',
   hair: 'rgba(255,255,255,0.06)', hair2: 'rgba(255,255,255,0.09)',
-  accent: '#5B8DEF', accentSoft: '#A9C5FF', signal: '#4ADE80', amber: '#F5C76B', danger: '#F87171',
+  accent: '#1E88FF', accentSoft: '#3BA6FF', signal: '#4ADE80', amber: '#F5C76B', danger: '#F87171',
   fSans: 'Manrope_500Medium', fSemi: 'Manrope_600SemiBold', fBold: 'Manrope_700Bold', fMono: 'monospace',
 };
 
@@ -55,11 +55,11 @@ function selfMarkerHtml(lat: number, lng: number): string {
   return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.css" rel="stylesheet"/>
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.js"></script>
-<style>body,html,#m{margin:0;height:100%;background:#07090D}</style></head>
+<style>body,html,#m{margin:0;height:100%;background:#0A1F3F}</style></head>
 <body><div id="m"></div><script>
 mapboxgl.accessToken=${JSON.stringify(MAPBOX_TOKEN)};
 var map=new mapboxgl.Map({container:'m',style:'mapbox://styles/mapbox/satellite-streets-v12',center:[${lng},${lat}],zoom:14,attributionControl:false});
-var el=document.createElement('div');el.style.cssText='width:18px;height:18px;border-radius:50%;background:#5B8DEF;border:3px solid #fff;box-shadow:0 0 0 6px rgba(91,141,239,0.28)';
+var el=document.createElement('div');el.style.cssText='width:18px;height:18px;border-radius:50%;background:#1E88FF;border:3px solid #fff;box-shadow:0 0 0 6px rgba(91,141,239,0.28)';
 var m=new mapboxgl.Marker(el).setLngLat([${lng},${lat}]).addTo(map);
 window.setCenter=function(la,ln){map.setCenter([ln,la]);m.setLngLat([ln,la]);};
 </script></body></html>`;

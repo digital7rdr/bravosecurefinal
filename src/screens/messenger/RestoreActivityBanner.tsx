@@ -26,7 +26,7 @@ import {
 const C = {
   surf:   'rgba(91, 141, 239, 0.10)',
   bd:     'rgba(91, 141, 239, 0.35)',
-  accent: '#5B8DEF',
+  accent: '#1E88FF',
   tx:     '#E6EDF7',
   tx2:    '#8FA3C0',
   okSurf: 'rgba(0, 200, 83, 0.10)',

@@ -29,10 +29,10 @@ const CPO_OPTIONS = [
 ] as const;
 
 const D = {
-  bg: '#07090D', card: 'rgba(22,27,37,0.72)', text: '#F2F4F8',
+  bg: '#0A1F3F', card: 'rgba(22,27,37,0.72)', text: '#FFFFFF',
   textDim: 'rgba(229,233,242,0.62)', textMute: 'rgba(180,188,204,0.45)',
   hair: 'rgba(255,255,255,0.06)', hair2: 'rgba(255,255,255,0.09)',
-  accent: '#5B8DEF', accentSoft: '#A9C5FF', signal: '#4ADE80', amber: '#F5C76B', danger: '#F87171', grey: '#8A93A6',
+  accent: '#1E88FF', accentSoft: '#3BA6FF', signal: '#4ADE80', amber: '#F5C76B', danger: '#F87171', grey: '#8A93A6',
   fSans: 'Manrope_500Medium', fSemi: 'Manrope_600SemiBold', fBold: 'Manrope_700Bold', fMono: 'monospace',
 };
 
@@ -49,7 +49,7 @@ function fmtAge(sec: number | null): string {
   return `${Math.floor(sec / 60)}m ago`;
 }
 
-const CPO_COLOR = '#5B8DEF';
+const CPO_COLOR = '#1E88FF';
 
 // Combined SATELLITE map: customer marker (staleness colour) + officer marker
 // (cobalt) + a dashed link between them, fit to show both.
@@ -62,7 +62,7 @@ function combinedMapHtml(custFixes: ProtectionTrailFix[], cpoFixes: ProtectionTr
   return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.css" rel="stylesheet"/>
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.js"></script>
-<style>body,html,#m{margin:0;height:100%;background:#07090D}</style></head>
+<style>body,html,#m{margin:0;height:100%;background:#0A1F3F}</style></head>
 <body><div id="m"></div><script>
 mapboxgl.accessToken=${JSON.stringify(MAPBOX_TOKEN)};
 var map=new mapboxgl.Map({container:'m',style:'mapbox://styles/mapbox/satellite-streets-v12',center:[${custNew[0]},${custNew[1]}],zoom:14,attributionControl:false});

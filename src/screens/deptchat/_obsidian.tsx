@@ -2,7 +2,7 @@
  * Department Chat v2 — shared obsidian UI kit.
  *
  * Matches the Bravo Secure Home / Booking Home design language (obsidian
- * #07090D base + platinum-cobalt #5B8DEF accent, edge-lit cards, BravoFont,
+ * #0A1F3F base + platinum-cobalt #1E88FF accent, edge-lit cards, BravoFont,
  * AmbientBg), NOT the legacy Command-Navy agent `_shared.tsx`. New attendance +
  * incident screens compose these primitives so the whole module reads as one
  * premium near-black surface.
@@ -44,17 +44,17 @@ export function useInDepartmentalShell(): boolean {
 
 // Obsidian palette (Bravo Secure Home handoff). Single source for the module.
 export const OB = {
-  bg:         '#07090D',
+  bg:         '#0A1F3F',
   card:       'rgba(22,27,37,0.72)',
-  text:       '#F2F4F8',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   hair:       'rgba(255,255,255,0.06)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentDeep: '#2F5BE0',
-  accentSoft: '#A9C5FF',
-  glow:       '#A9C5FF',
+  accent:     '#1E88FF',
+  accentDeep: '#166ED1',
+  accentSoft: '#3BA6FF',
+  glow:       '#3BA6FF',
   amber:      '#E2C893',
   signal:     '#4ADE80',
   alert:      '#F58B97',
@@ -69,9 +69,9 @@ export const OB = {
    * minimum possible extension of a locked palette, which DESIGN_REVIEW_LOOP G8
    * otherwise makes an automatic Major.
    *
-   * MEASURED contrast against the obsidian surface `#07090D`:
+   * MEASURED contrast against the obsidian surface `#0A1F3F`:
    *   L1 #E2C893  12.26:1     L2 #7FD8CB  11.94:1
-   *   L3 #A9C5FF  11.50:1     L4 #CB9BF5   9.06:1
+   *   L3 #3BA6FF  11.50:1     L4 #CB9BF5   9.06:1
    * All four clear 4.5:1 body and 3:1 UI. Hue separations are 131° / 49° / 52°.
    *
    * ⚠️ COLOUR IS NEVER THE ONLY SIGNAL. Each level row also carries an "Ln" pill,
@@ -81,7 +81,7 @@ export const OB = {
    * ⚠️ KEEP THESE HEX. `ManageChannelsScreen`'s badge does raw hex-alpha concat
    * (`color + '4D'`), which produces garbage for an `rgba()` string.
    */
-  level: ['#E2C893', '#7FD8CB', '#A9C5FF', '#CB9BF5'] as const,
+  level: ['#E2C893', '#7FD8CB', '#3BA6FF', '#CB9BF5'] as const,
 } as const;
 
 /** Tier 1..4 → its colour. Out-of-range clamps rather than returning undefined,
@@ -213,7 +213,7 @@ export function PrimaryButton({
   return (
     <TouchableOpacity activeOpacity={0.85} disabled={off} onPress={onPress}>
       <LinearGradient
-        colors={off ? ['#2A3342', '#222936'] : ['#6E9BF5', OB.accent, OB.accentDeep]}
+        colors={off ? ['#2A3342', '#222936'] : ['#3BA6FF', OB.accent, OB.accentDeep]}
         locations={[0, 0.55, 1]}
         start={{x: 0.1, y: 0}}
         end={{x: 0.9, y: 1}}

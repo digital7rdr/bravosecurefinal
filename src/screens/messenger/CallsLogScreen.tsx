@@ -396,7 +396,7 @@ const CallLogRow = React.memo(function CallLogRow({
                   !c.rounded && styles.avatarSquare,
                 ]}>
                   {c.isGroup
-                    ? <Icon name="earth" size={20} color="#A9C5FF" />
+                    ? <Icon name="earth" size={20} color="#3BA6FF" />
                     : <Text style={styles.avatarText}>{c.initials}</Text>
                   }
                 </View>
@@ -446,7 +446,7 @@ const CallLogRow = React.memo(function CallLogRow({
                   });
                 }}
                 activeOpacity={0.7}>
-                <Icon name="phone" size={18} color="#5B8DEF" />
+                <Icon name="phone" size={18} color="#1E88FF" />
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
@@ -710,9 +710,9 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   tabRow: {flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.09)'},
   tab: {flex: 1, alignItems: 'center', paddingVertical: 8, borderBottomWidth: 2, borderBottomColor: 'transparent'},
-  tabActive: {borderBottomColor: '#5B8DEF'},
+  tabActive: {borderBottomColor: '#1E88FF'},
   tabText: {textAlign: 'center', fontSize: 10, fontWeight: '800', letterSpacing: 1.5, textTransform: 'uppercase', color: 'rgba(180,188,204,0.45)'},
-  tabTextActive: {color: '#5B8DEF'},
+  tabTextActive: {color: '#1E88FF'},
 
   sectionLabel: {fontSize: 9, fontWeight: '800', letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(180,188,204,0.45)', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8},
 
@@ -767,6 +767,6 @@ const styles = StyleSheet.create(scaleTextStyles({
   callBtn: {width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center'},
 
   emptyWrap: {alignItems: 'center', paddingVertical: 64, paddingHorizontal: 32, gap: 12},
-  emptyTitle: {color: '#F2F4F8', fontSize: 14, fontWeight: '700', marginTop: 8},
+  emptyTitle: {color: '#FFFFFF', fontSize: 14, fontWeight: '700', marginTop: 8},
   emptyHint: {color: 'rgba(229,233,242,0.62)', fontSize: 11, textAlign: 'center', lineHeight: 16, maxWidth: 300},
 }));

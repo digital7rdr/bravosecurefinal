@@ -41,8 +41,8 @@ export const AVATAR_PALETTE: ReadonlyArray<{
   {solid: '#7B5EA7', gradient: ['#9A7BE6', '#5B43C9']},
   {solid: '#0E7490', gradient: ['#22A5C0', '#0B5C73']},
   {solid: '#065F46', gradient: ['#10A377', '#044633']},
-  {solid: '#2F5BE0', gradient: ['#5B84F5', '#2445B0']},
-  {solid: '#5B8DEF', gradient: ['#7FA8FF', '#3F6ED0']},
+  {solid: '#166ED1', gradient: ['#5B84F5', '#2445B0']},
+  {solid: '#1E88FF', gradient: ['#7FA8FF', '#3F6ED0']},
   {solid: '#3D5A8A', gradient: ['#5B7FB8', '#2C4269']},
 ];
 

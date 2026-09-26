@@ -59,9 +59,9 @@ type Nav = NativeStackNavigationProp<AgentStackParamList>;
 const RECENT_PAGE_SIZE = 5;
 
 const D = {
-  bg: '#07090D', text: '#F2F4F8', textDim: 'rgba(229,233,242,0.62)',
+  bg: '#0A1F3F', text: '#FFFFFF', textDim: 'rgba(229,233,242,0.62)',
   textMute: 'rgba(180,188,204,0.45)', hair: 'rgba(255,255,255,0.06)', hair2: 'rgba(255,255,255,0.09)',
-  accent: '#5B8DEF', accentSoft: '#A9C5FF', accentDeep: '#2F5BE0',
+  accent: '#1E88FF', accentSoft: '#3BA6FF', accentDeep: '#166ED1',
   amber: '#F5C76B', signal: '#4ADE80', alert: '#FF5D5D',
   fSans: 'Manrope_500Medium', fSemi: 'Manrope_600SemiBold', fBold: 'Manrope_700Bold',
 };
@@ -478,7 +478,7 @@ export default function OrgMissionsScreen() {
               })}
             </ScrollView>
             <TouchableOpacity activeOpacity={0.85} disabled={submitting} onPress={() => void confirm()} style={{marginTop: 14}}>
-              <LinearGradient colors={['#6E9BF5', D.accent, D.accentDeep]} style={[s.cta, submitting && {opacity: 0.6}]}>
+              <LinearGradient colors={['#3BA6FF', D.accent, D.accentDeep]} style={[s.cta, submitting && {opacity: 0.6}]}>
                 {submitting ? <ActivityIndicator color="#fff" /> : (
                   <><Icon name="send" size={18} color="#fff" /><Text style={s.ctaText}>Dispatch team</Text></>
                 )}
@@ -525,7 +525,7 @@ const s = StyleSheet.create(scaleTextStyles({
   // sheet
   sheetWrap: {flex: 1, justifyContent: 'flex-end'},
   sheetScrim: {...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)'},
-  sheet: {backgroundColor: '#0C1018', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 20, paddingTop: 12, borderWidth: 1, borderColor: D.hair2},
+  sheet: {backgroundColor: '#122747', borderTopLeftRadius: 26, borderTopRightRadius: 26, paddingHorizontal: 20, paddingTop: 12, borderWidth: 1, borderColor: D.hair2},
   sheetHandle: {alignSelf: 'center', width: 40, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.14)', marginBottom: 14},
   sheetTitle: {fontFamily: D.fBold, fontSize: 18, color: D.text, letterSpacing: -0.3},
   sheetSub: {fontFamily: D.fSans, fontSize: 12, color: D.textDim, marginTop: 4, marginBottom: 14},

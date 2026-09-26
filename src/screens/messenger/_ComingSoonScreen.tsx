@@ -45,7 +45,7 @@ export default function ComingSoonScreen({title, detail, iconName = 'rocket-laun
 
       <View style={styles.body}>
         <View style={styles.iconWrap}>
-          <Icon name={iconName} size={36} color="#5B8DEF" />
+          <Icon name={iconName} size={36} color="#1E88FF" />
         </View>
         <Text style={styles.title}>Coming soon</Text>
         <Text style={styles.detail}>{detail}</Text>
@@ -63,6 +63,6 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   body: {flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32},
   iconWrap: {width: 76, height: 76, borderRadius: 24, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 16},
-  title: {fontSize: 20, fontWeight: '800', color: '#F2F4F8', marginBottom: 8, textAlign: 'center'},
+  title: {fontSize: 20, fontWeight: '800', color: '#FFFFFF', marginBottom: 8, textAlign: 'center'},
   detail: {fontSize: 13, color: 'rgba(229,233,242,0.62)', lineHeight: 20, textAlign: 'center'},
 }));

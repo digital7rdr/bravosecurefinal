@@ -14,15 +14,15 @@ import LoadingView from '@components/LoadingView';
 import {goBackOnce} from '@navigation/tapGuard';
 
 const T = {
-  bg:       '#07090D',
-  text:     '#F2F4F8',
+  bg:       '#0A1F3F',
+  text:     '#FFFFFF',
   textDim:  'rgba(229,233,242,0.62)',
   textMute: 'rgba(180,188,204,0.45)',
   hair:     'rgba(255,255,255,0.06)',
   hair2:    'rgba(255,255,255,0.09)',
-  accent:   '#5B8DEF',
-  accentDeep:'#2F5BE0',
-  blue:     '#A9C5FF',
+  accent:   '#1E88FF',
+  accentDeep:'#166ED1',
+  blue:     '#3BA6FF',
   signal:   '#4ADE80',
   alert:    '#FF8585',
   card:     'rgba(18,22,30,0.85)',

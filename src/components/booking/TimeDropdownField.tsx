@@ -33,12 +33,12 @@ import {formatTime12h} from './time12h';
 
 // Obsidian/cobalt palette — mirrors the dashboards' pick rows + iOS sheets.
 const D = {
-  text:       '#F2F4F8',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentDeep: '#2F5BE0',
+  accent:     '#1E88FF',
+  accentDeep: '#166ED1',
   fSemi:    'Manrope_600SemiBold',
   fBold:    'Manrope_700Bold',
   fMono:    'monospace',
@@ -156,7 +156,7 @@ export default function TimeDropdownField({
                 accessibilityRole="button"
                 testID={testID ? `${testID}-done` : undefined}>
                 <LinearGradient
-                  colors={['#6E9BF5', D.accent, D.accentDeep]}
+                  colors={['#3BA6FF', D.accent, D.accentDeep]}
                   locations={[0, 0.55, 1]}
                   start={{x: 0, y: 0}}
                   end={{x: 0, y: 1}}

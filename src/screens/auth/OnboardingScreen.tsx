@@ -26,14 +26,14 @@ type Props = AuthScreenProps<'Onboarding'>;
 // older Command-Navy palette. Mirrors the sibling RoleSelectionScreen, which
 // is the next step in the same onboarding flow.
 const T = {
-  bg:         '#07090D',
-  text:       '#F2F4F8',
+  bg:         '#0A1F3F',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   hair:       'rgba(255,255,255,0.06)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentDeep: '#2F5BE0',
+  accent:     '#1E88FF',
+  accentDeep: '#166ED1',
   accentGlow: 'rgba(91,141,239,0.35)',
   signal:     '#4ADE80',
 } as const;
@@ -52,7 +52,7 @@ function GradientWord({text, fontSize = 38}: {text: string; fontSize?: number}) 
       <Defs>
         <SvgGradient id="bravoWord" x1="0" y1="0" x2={w} y2="0" gradientUnits="userSpaceOnUse">
           <Stop offset="0" stopColor="#7FA8FF" />
-          <Stop offset="0.55" stopColor="#5B8DEF" />
+          <Stop offset="0.55" stopColor="#1E88FF" />
           <Stop offset="1" stopColor="#A78BFA" />
         </SvgGradient>
       </Defs>
@@ -121,7 +121,7 @@ type Tint = {
   glow: string;
 };
 const TINTS: Record<'blue' | 'signal' | 'indigo', Tint> = {
-  blue:   {ic: '#A9C5FF', tile: ['rgba(91,141,239,0.26)', 'rgba(47,91,224,0.07)'], bd: 'rgba(91,141,239,0.4)', glow: 'rgba(91,141,239,0.3)'},
+  blue:   {ic: '#3BA6FF', tile: ['rgba(91,141,239,0.26)', 'rgba(47,91,224,0.07)'], bd: 'rgba(91,141,239,0.4)', glow: 'rgba(91,141,239,0.3)'},
   signal: {ic: '#8FE9B4', tile: ['rgba(74,222,128,0.2)', 'rgba(74,222,128,0.05)'], bd: 'rgba(74,222,128,0.34)', glow: 'rgba(74,222,128,0.24)'},
   indigo: {ic: '#B7BEFF', tile: ['rgba(129,140,248,0.24)', 'rgba(79,70,229,0.06)'], bd: 'rgba(129,140,248,0.38)', glow: 'rgba(129,140,248,0.26)'},
 };
@@ -257,7 +257,7 @@ export default function OnboardingScreen({navigation}: Props) {
             end={{x: 0.9, y: 1}}
             style={StyleSheet.absoluteFill}
           />
-          <BravoMark size={32} primary="#FFFFFF" accent="#5B8DEF" />
+          <BravoMark size={32} primary="#FFFFFF" accent="#1E88FF" />
         </View>
         <View>
           <Text style={styles.brandName}>BRAVO</Text>
@@ -331,7 +331,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
   brandName: {fontFamily: 'monospace', color: T.text, fontSize: 14, fontWeight: '700', letterSpacing: 5},
-  brandSub: {fontFamily: 'monospace', color: '#A9C5FF', fontSize: 9, fontWeight: '600', letterSpacing: 4.5, marginTop: 2},
+  brandSub: {fontFamily: 'monospace', color: '#3BA6FF', fontSize: 9, fontWeight: '600', letterSpacing: 4.5, marginTop: 2},
 
   scroll: {flex: 1},
   scrollContent: {paddingHorizontal: 22, paddingBottom: 24},

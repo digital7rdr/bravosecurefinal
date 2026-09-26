@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    backgroundColor: '#07090D',
+    backgroundColor: '#0A1F3F',
     padding: 20,
   },
   text: {
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(91,141,239,0.12)',
   },
   retryText: {
-    color: '#A9C5FF',
+    color: '#3BA6FF',
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.5,

@@ -29,8 +29,8 @@ import {scaleTextStyles} from '@utils/scaling';
 import LoadingView from '@components/LoadingView';
 
 const D = {
-  bg: '#07090D', text: '#F2F4F8', textDim: 'rgba(229,233,242,0.62)', textMute: 'rgba(180,188,204,0.45)',
-  hair: 'rgba(255,255,255,0.09)', accent: '#5B8DEF', accentSoft: '#A9C5FF', signal: '#4ADE80', amber: '#F5C76B', alert: '#FF5D5D',
+  bg: '#0A1F3F', text: '#FFFFFF', textDim: 'rgba(229,233,242,0.62)', textMute: 'rgba(180,188,204,0.45)',
+  hair: 'rgba(255,255,255,0.09)', accent: '#1E88FF', accentSoft: '#3BA6FF', signal: '#4ADE80', amber: '#F5C76B', alert: '#FF5D5D',
   fSans: 'Manrope_500Medium', fSemi: 'Manrope_600SemiBold', fBold: 'Manrope_700Bold',
 };
 
@@ -447,7 +447,7 @@ export default function AssignedMissionDetailScreen() {
             accessibilityRole="button"
             accessibilityLabel="Enter a Pro mission code"
             onPress={() => navigation.navigate('CpoProMission' as never)}>
-            <Icon name="shield-key-outline" size={16} color={D.accentSoft ?? '#A9C5FF'} />
+            <Icon name="shield-key-outline" size={16} color={D.accentSoft ?? '#3BA6FF'} />
             <Text style={s.proCodeBtnText}>Have a Mission Code?</Text>
           </TouchableOpacity>
         </View>
@@ -895,7 +895,7 @@ const s = StyleSheet.create(scaleTextStyles({
     paddingVertical: 11, paddingHorizontal: 18, borderRadius: 13,
     backgroundColor: 'rgba(91,141,239,0.1)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)',
   },
-  proCodeBtnText: {fontFamily: D.fBold, fontSize: 13, color: '#A9C5FF'},
+  proCodeBtnText: {fontFamily: D.fBold, fontSize: 13, color: '#3BA6FF'},
   emptyTitle: {fontFamily: D.fBold, fontSize: 18, color: D.text, marginTop: 6},
   emptySub: {fontFamily: D.fSans, fontSize: 13, color: D.textDim, textAlign: 'center', lineHeight: 19, maxWidth: 250},
   card: {borderRadius: 16, padding: 15, gap: 9, backgroundColor: 'rgba(255,255,255,0.025)', borderWidth: 1, borderColor: D.hair},

@@ -339,7 +339,7 @@ export function SwitchDashboardSection({guard, onSwitched, extraRow, extraRowDat
           accessibilityLabel={`Switch to ${PRODUCT_LABELS[p]}`}
           onPress={() => attempt(p)}>
           <View style={s.rowLeft}>
-            <Icon name={PRODUCT_ICONS[p]} size={19} color="#5B8DEF" />
+            <Icon name={PRODUCT_ICONS[p]} size={19} color="#1E88FF" />
             <Text style={s.rowLabel}>{PRODUCT_LABELS[p]}</Text>
             {p === current && <Text style={s.currentTag}>CURRENT</Text>}
           </View>
@@ -368,7 +368,7 @@ export function SwitchDashboardSection({guard, onSwitched, extraRow, extraRowDat
           // first, the same as the drawer's hand-wired copy.
           onPress={() => confirmSwitchDashboard(extraRowData.label, extraRowData.go)}>
           <View style={s.rowLeft}>
-            <Icon name={extraRowData.icon} size={19} color="#5B8DEF" />
+            <Icon name={extraRowData.icon} size={19} color="#1E88FF" />
             <Text style={s.rowLabel}>{extraRowData.label}</Text>
           </View>
           <View style={s.rowRight}>
@@ -396,9 +396,9 @@ const s = StyleSheet.create({
   },
   rowLeft: {flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 12},
   rowRight: {flexDirection: 'row', alignItems: 'center', gap: 8},
-  rowPill: {backgroundColor: '#2F5BE0', borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2},
+  rowPill: {backgroundColor: '#166ED1', borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2},
   rowPillText: {color: '#FFFFFF', fontSize: 9, fontWeight: '800', letterSpacing: 0.8},
-  rowLabel: {flexShrink: 1, minWidth: 0, color: '#F2F4F8', fontSize: 14, fontWeight: '600'},
+  rowLabel: {flexShrink: 1, minWidth: 0, color: '#FFFFFF', fontSize: 14, fontWeight: '600'},
   currentTag: {
     flexShrink: 0,
     color: 'rgba(180,188,204,0.45)', fontFamily: 'monospace', fontSize: 9,

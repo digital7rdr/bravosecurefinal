@@ -7,7 +7,7 @@
  *
  *   1. The photo is DECORATIVE. It is hidden from screen readers and never
  *      receives touches — the card underneath keeps its own role/label.
- *   2. The scrim is NOT cosmetic. Card copy is white/dim-white on `#07090D`;
+ *   2. The scrim is NOT cosmetic. Card copy is white/dim-white on `#0A1F3F`;
  *      dropping a photo behind it without a floor would sink contrast under the
  *      4.5:1 WCAG AA body-text bar that DESIGN_REVIEW_LOOP §3.4 treats as an
  *      automatic Major. Every variant therefore pins a MINIMUM obsidian alpha
@@ -70,7 +70,7 @@ const SCRIM: Record<ImageryVariant, {
   //
   // The ramp is steep on purpose. The hero sub-line is `textMute`
   // (rgba(180,188,204,0.45)), which is already a low-contrast token on flat
-  // #07090D — so the bar here is "the photo must not make it materially
+  // #0A1F3F — so the bar here is "the photo must not make it materially
   // WORSE", not merely "looks fine on a dark photo". Against a worst-case
   // bright source pixel (headlights, city lights) a 0.66 floor put that
   // sub-line near 4.0:1; 0.78+ keeps it at the flat-card baseline.

@@ -304,9 +304,9 @@ export default function TripSummaryScreen() {
                   accessibilityRole="button"
                   accessibilityLabel="Confirm and release payment"
                   onPress={confirmRelease}>
-                  {escrowBusy && !disputeOpen ? <ActivityIndicator color="#0B0E14" /> : (
+                  {escrowBusy && !disputeOpen ? <ActivityIndicator color="#0A1F3F" /> : (
                     <>
-                      <Icon name="check-circle-outline" size={16} color="#0B0E14" />
+                      <Icon name="check-circle-outline" size={16} color="#0A1F3F" />
                       <Text style={s.escrowBtnText}>CONFIRM & RELEASE</Text>
                     </>
                   )}
@@ -339,7 +339,7 @@ export default function TripSummaryScreen() {
                         accessibilityRole="button"
                         accessibilityState={{selected: disputeCategory === key}}
                         onPress={() => setDisputeCategory(key)}>
-                        <Text style={[s.catChipText, disputeCategory === key && {color: '#F2F4F8'}]}>{label}</Text>
+                        <Text style={[s.catChipText, disputeCategory === key && {color: '#FFFFFF'}]}>{label}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -407,7 +407,7 @@ export default function TripSummaryScreen() {
               activeOpacity={0.85}
               onPress={() => navigation.navigate('RateAgency', {bookingId: booking.id})}
               style={s.rateBtn}>
-              <Icon name="star-outline" size={18} color="#0B0E14" />
+              <Icon name="star-outline" size={18} color="#0A1F3F" />
               <Text style={s.rateBtnText} numberOfLines={1}>Rate the agency</Text>
             </TouchableOpacity>
           )}
@@ -417,8 +417,8 @@ export default function TripSummaryScreen() {
               activeOpacity={0.85}
               onPress={() => navigation.navigate('Invoice', {bookingId: booking.id})}
               style={[s.rateBtn, {backgroundColor: 'rgba(91,141,239,0.12)'}]}>
-              <Icon name="file-document-outline" size={18} color="#A9C5FF" />
-              <Text style={[s.rateBtnText, {color: '#A9C5FF'}]} numberOfLines={1}>
+              <Icon name="file-document-outline" size={18} color="#3BA6FF" />
+              <Text style={[s.rateBtnText, {color: '#3BA6FF'}]} numberOfLines={1}>
                 {isCompleted ? 'View invoice' : 'View credit note'}
               </Text>
             </TouchableOpacity>
@@ -568,7 +568,7 @@ const s = StyleSheet.create(scaleTextStyles({
     flexDirection: 'row', gap: 8, minHeight: 46, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center', backgroundColor: '#4ADE80',
   },
-  escrowBtnText: {fontSize: 13, fontWeight: '800', letterSpacing: 0.5, color: '#0B0E14'},
+  escrowBtnText: {fontSize: 13, fontWeight: '800', letterSpacing: 0.5, color: '#0A1F3F'},
   escrowLink: {flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center', paddingVertical: 4},
   escrowLinkText: {fontSize: 12.5, fontWeight: '700', color: '#F87171'},
   catChip: {
@@ -604,5 +604,5 @@ const s = StyleSheet.create(scaleTextStyles({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     minHeight: 50, borderRadius: 14, backgroundColor: '#F5C76B', marginTop: 4,
   },
-  rateBtnText: {fontSize: 14.5, fontWeight: '700', color: '#0B0E14'},
+  rateBtnText: {fontSize: 14.5, fontWeight: '700', color: '#0A1F3F'},
 }));

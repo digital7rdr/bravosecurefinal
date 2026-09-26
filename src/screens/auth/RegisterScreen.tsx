@@ -38,15 +38,15 @@ type Props = AuthScreenProps<'Register'>;
 // sibling Onboarding / RoleSelection / Login screens rather than the older
 // Command-Navy palette.
 const T = {
-  bg:         '#07090D',
-  text:       '#F2F4F8',
+  bg:         '#0A1F3F',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   textFaint:  'rgba(180,188,204,0.28)',
   hair:       'rgba(255,255,255,0.06)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentDeep: '#2F5BE0',
+  accent:     '#1E88FF',
+  accentDeep: '#166ED1',
   accentGlow: 'rgba(91,141,239,0.35)',
   signal:     '#4ADE80',
   amber:      '#F5B544',
@@ -66,7 +66,7 @@ function GradientWord({text, fontSize = 38}: {text: string; fontSize?: number}) 
       <Defs>
         <SvgGradient id="caWord" x1="0" y1="0" x2={w} y2="0" gradientUnits="userSpaceOnUse">
           <Stop offset="0" stopColor="#7FA8FF" />
-          <Stop offset="0.55" stopColor="#5B8DEF" />
+          <Stop offset="0.55" stopColor="#1E88FF" />
           <Stop offset="1" stopColor="#A78BFA" />
         </SvgGradient>
       </Defs>
@@ -249,7 +249,7 @@ function CAField({
   }, [active, anim]);
 
   const showValid = !!valid && !!ValidIcon;
-  const iconColor = showValid ? T.signal : focused ? '#A9C5FF' : T.textMute;
+  const iconColor = showValid ? T.signal : focused ? '#3BA6FF' : T.textMute;
   const borderColor = valid
     ? 'rgba(74,222,128,0.34)'
     : focused
@@ -290,7 +290,7 @@ function CAField({
           style={[
             styles.fieldFloatLabel,
             {
-              color: focused ? '#A9C5FF' : T.textMute,
+              color: focused ? '#3BA6FF' : T.textMute,
               transform: [
                 {translateY: anim.interpolate({inputRange: [0, 1], outputRange: [0, -13]})},
               ],
@@ -524,7 +524,7 @@ export default function RegisterScreen({navigation, route}: Props) {
                   return (
                     <LinearGradient
                       key={i}
-                      colors={['#6E9BF5', T.accent, T.accentDeep]}
+                      colors={['#3BA6FF', T.accent, T.accentDeep]}
                       start={{x: 0, y: 0}}
                       end={{x: 1, y: 0}}
                       style={styles.stepPill}
@@ -535,7 +535,7 @@ export default function RegisterScreen({navigation, route}: Props) {
                   return (
                     <LinearGradient
                       key={i}
-                      colors={['#6E9BF5', T.accentDeep]}
+                      colors={['#3BA6FF', T.accentDeep]}
                       start={{x: 0, y: 0}}
                       end={{x: 1, y: 0}}
                       style={styles.stepDot}
@@ -673,7 +673,7 @@ export default function RegisterScreen({navigation, route}: Props) {
                   style={styles.eyeBtn}
                   accessibilityRole="button"
                   accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}>
-                  <IcEye3 c={showPassword ? '#A9C5FF' : T.textMute} off={showPassword} />
+                  <IcEye3 c={showPassword ? '#3BA6FF' : T.textMute} off={showPassword} />
                 </TouchableOpacity>
               }
             />
@@ -706,7 +706,7 @@ export default function RegisterScreen({navigation, route}: Props) {
                   style={styles.eyeBtn}
                   accessibilityRole="button"
                   accessibilityLabel={showConfirm ? 'Hide password' : 'Show password'}>
-                  <IcEye3 c={showConfirm ? '#A9C5FF' : T.textMute} off={showConfirm} />
+                  <IcEye3 c={showConfirm ? '#3BA6FF' : T.textMute} off={showConfirm} />
                 </TouchableOpacity>
               }
             />
@@ -722,7 +722,7 @@ export default function RegisterScreen({navigation, route}: Props) {
             disabled={isLoading || !canSubmit}
             style={[styles.ctaWrap, (isLoading || !canSubmit) && styles.ctaDisabled]}>
             <LinearGradient
-              colors={['#6E9BF5', T.accent, T.accentDeep]}
+              colors={['#3BA6FF', T.accent, T.accentDeep]}
               start={{x: 0.5, y: 0}}
               end={{x: 0.5, y: 1}}
               style={styles.cta}>
@@ -779,7 +779,7 @@ export default function RegisterScreen({navigation, route}: Props) {
                 end={{x: 0.9, y: 1}}
                 style={StyleSheet.absoluteFill}
               />
-              <IcShieldAccount c="#A9C5FF" />
+              <IcShieldAccount c="#3BA6FF" />
             </View>
             <Text style={styles.mTitle}>Account already exists</Text>
             <Text style={styles.mBody}>
@@ -793,7 +793,7 @@ export default function RegisterScreen({navigation, route}: Props) {
                 navigation.navigate('Login');
               }}>
               <LinearGradient
-                colors={['#6E9BF5', T.accent, T.accentDeep]}
+                colors={['#3BA6FF', T.accent, T.accentDeep]}
                 start={{x: 0.5, y: 0}}
                 end={{x: 0.5, y: 1}}
                 style={styles.mPrimaryBtn}>
@@ -838,7 +838,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     shadowOpacity: 0.8, shadowRadius: 6, elevation: 4,
   },
   stepCount: {fontFamily: 'monospace', fontSize: 11, letterSpacing: 0.5},
-  stepCountCur: {color: '#A9C5FF', fontWeight: '700'},
+  stepCountCur: {color: '#3BA6FF', fontWeight: '700'},
   stepCountTotal: {color: T.textFaint},
 
   // Header
@@ -849,7 +849,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     backgroundColor: 'rgba(91,141,239,0.12)',
     borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)',
   },
-  badgeCobaltText: {fontFamily: 'monospace', color: '#A9C5FF', fontSize: 9.5, letterSpacing: 1.8, fontWeight: '700'},
+  badgeCobaltText: {fontFamily: 'monospace', color: '#3BA6FF', fontSize: 9.5, letterSpacing: 1.8, fontWeight: '700'},
   badgeMuted: {
     paddingVertical: 3, paddingHorizontal: 8, borderRadius: 6,
     backgroundColor: 'rgba(255,255,255,0.04)',

@@ -11,19 +11,19 @@ import {BravoFont} from '@/theme/bravo';
 import {Imagery} from '@theme/imagery';
 import ImageryBackdrop from '@components/ui/ImageryBackdrop';
 
-// Obsidian design palette (Bravo Secure Home handoff) — deep #07090D base +
+// Obsidian design palette (Bravo Secure Home handoff) — deep #0A1F3F base +
 // platinum-cobalt accent, replacing the app-wide Command Navy on this screen.
 const B = {
-  bg:         '#07090D',
-  text:       '#F2F4F8',
+  bg:         '#0A1F3F',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   hair:       'rgba(255,255,255,0.06)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentDeep: '#2F5BE0',
-  accentSoft: '#A9C5FF',
-  glow:       '#A9C5FF',
+  accent:     '#1E88FF',
+  accentDeep: '#166ED1',
+  accentSoft: '#3BA6FF',
+  glow:       '#3BA6FF',
   amber:      '#E2C893',
 } as const;
 import {AmbientBg} from '@/modules/messenger/ui/AmbientBg';
@@ -478,7 +478,7 @@ export default function BookingHomeScreen() {
                 else {navigateOnce(navigation, 'ServiceType');}
               }}>
               <LinearGradient
-                colors={['#6E9BF5', B.accent, B.accentDeep]}
+                colors={['#3BA6FF', B.accent, B.accentDeep]}
                 locations={[0, 0.55, 1]}
                 start={{x: 0.1, y: 0}}
                 end={{x: 0.9, y: 1}}
@@ -758,7 +758,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
   },
   headerAvatarImg: {width: 32, height: 32, borderRadius: 16},
-  headerAvatarText: {color: '#A9C5FF', fontSize: 12, fontWeight: '800'},
+  headerAvatarText: {color: '#3BA6FF', fontSize: 12, fontWeight: '800'},
   // B-657 - 16/1.5 rendered ~171dp for 15 uppercase chars and overflowed the
   // row. 13.5/0.6 is ~135dp and still reads as the product title.
   headerTitle: {color: B.text, fontFamily: BravoFont.extraBold, fontSize: 13.5, letterSpacing: 0.6, flexShrink: 1},

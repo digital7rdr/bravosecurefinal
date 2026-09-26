@@ -45,15 +45,15 @@ import {useBookingStore} from '@store/bookingStore';
 type Nav = NativeStackNavigationProp<BookingStackParamList, 'ProDashboard'>;
 
 const D = {
-  bg:         '#07090D',
-  text:       '#F2F4F8',
+  bg:         '#0A1F3F',
+  text:       '#FFFFFF',
   textDim:    'rgba(229,233,242,0.62)',
   textMute:   'rgba(180,188,204,0.45)',
   hair:       'rgba(255,255,255,0.06)',
   hair2:      'rgba(255,255,255,0.09)',
-  accent:     '#5B8DEF',
-  accentDeep: '#2F5BE0',
-  accentSoft: '#A9C5FF',
+  accent:     '#1E88FF',
+  accentDeep: '#166ED1',
+  accentSoft: '#3BA6FF',
   signal:     '#4ADE80',
   amber:      '#F5C76B',
   fSans:    'Manrope_500Medium',

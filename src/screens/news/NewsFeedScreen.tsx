@@ -331,7 +331,7 @@ export default function NewsFeedScreen() {
                     hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
                     accessibilityRole="button"
                     accessibilityLabel={`Share: ${featured.title}`}>
-                    <Icon name="share-variant" size={14} color="#5B8DEF" />
+                    <Icon name="share-variant" size={14} color="#1E88FF" />
                     <Text style={styles.heroShareText}>SHARE</Text>
                   </TouchableOpacity>
                 ) : null}
@@ -426,7 +426,7 @@ const ArticleRow = React.memo(function ArticleRow({article, onShare}: {article: 
             hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
             accessibilityRole="button"
             accessibilityLabel={`Share: ${article.title}`}>
-            <Icon name="share-variant" size={16} color="#5B8DEF" />
+            <Icon name="share-variant" size={16} color="#1E88FF" />
           </TouchableOpacity>
         ) : null}
         <Icon name="chevron-right" size={16} color="#475569" />
@@ -489,7 +489,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   readBtn: {alignSelf:'flex-start', paddingHorizontal:12, paddingVertical:6, borderRadius:8, backgroundColor:'rgba(37,99,235,0.15)', borderWidth:1, borderColor:'rgba(37,99,235,0.3)'},
   heroActions: {flexDirection:'row', alignItems:'center', gap:10},
   heroShareBtn: {flexDirection:'row', alignItems:'center', gap:6, paddingHorizontal:12, paddingVertical:6, borderRadius:8, borderWidth:1, borderColor:'rgba(91,141,239,0.35)'},
-  heroShareText: {color:'#5B8DEF', fontSize:11, fontWeight:'800', letterSpacing:0.8},
+  heroShareText: {color:'#1E88FF', fontSize:11, fontWeight:'800', letterSpacing:0.8},
   readBtnText: {color:'#60A5FA', fontSize:10, fontWeight:'800', letterSpacing:0.5},
 
   regionSection: {gap:10},

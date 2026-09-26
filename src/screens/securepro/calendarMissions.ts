@@ -35,7 +35,7 @@ export const MISSION_STATUS_TONE: Record<
 > = {
   REQUESTED: {color: '#F5C76B', bg: 'rgba(245,199,107,0.08)', border: 'rgba(245,199,107,0.3)'},
   SCHEDULED: {color: '#4ADE80', bg: 'rgba(74,222,128,0.08)', border: 'rgba(74,222,128,0.3)'},
-  COMPLETED: {color: '#A9C5FF', bg: 'rgba(91,141,239,0.12)', border: 'rgba(91,141,239,0.4)'},
+  COMPLETED: {color: '#3BA6FF', bg: 'rgba(91,141,239,0.12)', border: 'rgba(91,141,239,0.4)'},
   DECLINED: {color: '#FF5D5D', bg: 'rgba(255,93,93,0.08)', border: 'rgba(255,93,93,0.3)'},
   CANCELLED: {color: 'rgba(180,188,204,0.45)', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.09)'},
 };

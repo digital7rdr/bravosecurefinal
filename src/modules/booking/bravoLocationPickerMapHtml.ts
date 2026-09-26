@@ -43,11 +43,11 @@ export function buildLocationPickerHtml(opts: {
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover"/>
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.css" rel="stylesheet"/>
 <style>
-  html, body { margin: 0; padding: 0; background: #05070B; color: #FFFFFF;
+  html, body { margin: 0; padding: 0; background: #06142B; color: #FFFFFF;
     font-family: -apple-system, "Segoe UI", Roboto, sans-serif; overflow: hidden; height: 100%; }
   *, *::before, *::after { box-sizing: border-box; }
 
-  #map { position: absolute; inset: 0; background: #05070B; }
+  #map { position: absolute; inset: 0; background: #06142B; }
 
   .grid { position: absolute; inset: 0; pointer-events: none; z-index: 2;
     background-image:

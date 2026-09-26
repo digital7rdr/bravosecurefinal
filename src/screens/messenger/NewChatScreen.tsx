@@ -538,7 +538,7 @@ export default function NewChatScreen() {
           <TouchableOpacity style={styles.newGroupRow} activeOpacity={0.8}
             onPress={() => setGroupMode(true)}>
             <View style={styles.newGroupIcon}>
-              <Icon name="account-group" size={20} color="#5B8DEF" />
+              <Icon name="account-group" size={20} color="#1E88FF" />
             </View>
             <View style={styles.newGroupInfo}>
               <Text style={styles.newGroupTitle}>New Group</Text>
@@ -554,7 +554,7 @@ export default function NewChatScreen() {
           <TouchableOpacity style={styles.newGroupRow} activeOpacity={0.8}
             onPress={() => { setLookupError(null); setByNumberOpen(true); }}>
             <View style={styles.newGroupIcon}>
-              <Icon name="dialpad" size={20} color="#5B8DEF" />
+              <Icon name="dialpad" size={20} color="#1E88FF" />
             </View>
             <View style={styles.newGroupInfo}>
               <Text style={styles.newGroupTitle}>{addToGroupId ? 'Add by Number' : 'Message by Number'}</Text>
@@ -607,7 +607,7 @@ export default function NewChatScreen() {
         {!groupMode && !addToGroupId && (
           <TouchableOpacity style={styles.inviteRow} onPress={() => void inviteToBravo()} activeOpacity={0.8}>
             <View style={styles.inviteIcon}>
-              <Icon name="account-plus-outline" size={20} color={'#5B8DEF'} />
+              <Icon name="account-plus-outline" size={20} color={'#1E88FF'} />
             </View>
             <View style={{flex: 1, minWidth: 0}}>
               <Text style={styles.inviteTitle}>Invite a friend to Bravo</Text>
@@ -893,7 +893,7 @@ function RealContactsSection(props: {
   if (permission === 'denied') {
     return (
       <View style={styles.blockWrap}>
-        <Icon name="book-lock-outline" size={32} color="#A9C5FF" />
+        <Icon name="book-lock-outline" size={32} color="#3BA6FF" />
         <Text style={styles.blockTitle}>Contacts access needed</Text>
         <Text style={styles.blockHint}>
           Grant contacts permission to see which of your saved numbers are on Bravo. We only
@@ -910,7 +910,7 @@ function RealContactsSection(props: {
   if (permission === 'unavailable') {
     return (
       <View style={styles.blockWrap}>
-        <Icon name="cellphone-off" size={32} color="#A9C5FF" />
+        <Icon name="cellphone-off" size={32} color="#3BA6FF" />
         <Text style={styles.blockTitle}>Not supported here</Text>
         <Text style={styles.blockHint}>
           Contact discovery isn't available in this build. Sign in on a physical device.
@@ -940,7 +940,7 @@ function RealContactsSection(props: {
     if (searching) {
       return (
         <View style={styles.blockWrap}>
-          <Icon name="magnify-close" size={32} color="#A9C5FF" />
+          <Icon name="magnify-close" size={32} color="#3BA6FF" />
           <Text style={styles.blockTitle}>No contacts match</Text>
           <Text style={styles.blockHint}>
             Try a different name or number. To reach someone who isn&apos;t in your
@@ -953,7 +953,7 @@ function RealContactsSection(props: {
       <>
         <Text style={styles.sectionLabel}>Contacts on Bravo</Text>
         <View style={styles.blockWrap}>
-          <Icon name="account-search-outline" size={32} color="#A9C5FF" />
+          <Icon name="account-search-outline" size={32} color="#3BA6FF" />
           <Text style={styles.blockTitle}>No matches yet</Text>
           <Text style={styles.blockHint}>
             None of your saved contacts are on Bravo. Invite them to join — anyone with
@@ -979,7 +979,7 @@ function RealContactsSection(props: {
 function SeederNeeded() {
   return (
     <View style={styles.blockWrap}>
-      <Icon name="account-cog-outline" size={32} color="#A9C5FF" />
+      <Icon name="account-cog-outline" size={32} color="#3BA6FF" />
       <Text style={styles.blockTitle}>Run the dev seeder</Text>
       <Text style={styles.blockHint}>
         No dev users yet. Start auth-service with OTP_DEV_BYPASS=true and run:{'\n'}
@@ -999,7 +999,7 @@ function SeederNeeded() {
 function EmptyDevContacts() {
   return (
     <View style={styles.blockWrap}>
-      <Icon name="account-question-outline" size={32} color="#A9C5FF" />
+      <Icon name="account-question-outline" size={32} color="#3BA6FF" />
       <Text style={styles.blockTitle}>No peers to message</Text>
       <Text style={styles.blockHint}>
         You're signed in as the only seeded user. Sign in as a different dev user on another device to start chatting.
@@ -1029,19 +1029,19 @@ const styles = StyleSheet.create(scaleTextStyles({
   // B-657 - letterSpacing 3 added ~3dp PER CHARACTER; a 33-char group name
   // ('Add to Global Security Operations') spent 99dp on tracking alone and
   // ellipsised. 1.5 still reads as a tracked uppercase title.
-  headerTitle: {flex:1, minWidth:0, color:'#F2F4F8', fontSize:13, fontWeight:'800', letterSpacing:1.5, textTransform:'uppercase'},
+  headerTitle: {flex:1, minWidth:0, color:'#FFFFFF', fontSize:13, fontWeight:'800', letterSpacing:1.5, textTransform:'uppercase'},
 
   searchWrap: {paddingHorizontal:16, paddingVertical:12, borderBottomWidth:1, borderBottomColor:'rgba(255,255,255,0.06)'},
   searchBar: {flexDirection:'row', alignItems:'center', gap:8, height:40, backgroundColor:'rgba(255,255,255,0.04)', borderRadius:12, paddingHorizontal:12, borderWidth:1, borderColor:'rgba(255,255,255,0.09)'},
   // Why: the input must fill the bar so the whole pill is tappable, and
   // padding is zeroed because Android TextInput ships its own and would
   // push the text off-centre inside the fixed-height bar.
-  searchInput: {flex:1, color:'#F2F4F8', fontSize:13, fontWeight:'600', padding:0, margin:0},
+  searchInput: {flex:1, color:'#FFFFFF', fontSize:13, fontWeight:'600', padding:0, margin:0},
 
   newGroupRow: {flexDirection:'row', alignItems:'center', gap:12, paddingHorizontal:16, paddingVertical:12, borderBottomWidth:1, borderBottomColor:'rgba(255,255,255,0.06)'},
   newGroupIcon: {width:44, height:44, borderRadius:22, backgroundColor:'rgba(91,141,239,0.15)', borderWidth:1, borderColor:'rgba(91,141,239,0.25)', alignItems:'center', justifyContent:'center'},
   newGroupInfo: {flex:1},
-  newGroupTitle: {color:'#5B8DEF', fontSize:13, fontWeight:'700'},
+  newGroupTitle: {color:'#1E88FF', fontSize:13, fontWeight:'700'},
   newGroupSub: {color:'rgba(180,188,204,0.45)', fontSize:11, marginTop:2},
 
   devBanner: {flexDirection:'row', alignItems:'center', gap:6, paddingHorizontal:16, paddingVertical:8, backgroundColor:'rgba(251,191,36,0.08)', borderBottomWidth:1, borderBottomColor:'rgba(251,191,36,0.2)'},
@@ -1055,43 +1055,43 @@ const styles = StyleSheet.create(scaleTextStyles({
   avText: {color:'#FFF', fontSize:11, fontWeight:'800'},
   rowInfo: {flex:1, minWidth:0},
   nameRow: {flexDirection:'row', alignItems:'center', gap:5},
-  name: {color:'#F2F4F8', fontSize:13, fontWeight:'700', flexShrink:1},
+  name: {color:'#FFFFFF', fontSize:13, fontWeight:'700', flexShrink:1},
   phone: {color:'rgba(180,188,204,0.45)', fontSize:10, marginTop:2},
 
   // BS-INVITE — invite-a-friend row.
   inviteRow: {flexDirection:'row', alignItems:'center', gap:12, marginHorizontal:16, marginTop:16, paddingHorizontal:16, paddingVertical:12, borderRadius:14, borderWidth:1, borderColor:'rgba(255,255,255,0.09)', backgroundColor:'rgba(22,27,37,0.72)'},
   inviteIcon: {width:40, height:40, borderRadius:20, alignItems:'center', justifyContent:'center', backgroundColor:'rgba(91,141,239,0.12)', flexShrink:0},
-  inviteTitle: {color:'#F2F4F8', fontSize:13, fontWeight:'700'},
+  inviteTitle: {color:'#FFFFFF', fontSize:13, fontWeight:'700'},
   inviteSub: {color:'rgba(180,188,204,0.45)', fontSize:11, marginTop:2},
 
   blockWrap: {paddingHorizontal:32, paddingVertical:40, alignItems:'center', gap:10},
-  blockTitle: {color:'#F2F4F8', fontSize:13, fontWeight:'700', marginTop:4},
+  blockTitle: {color:'#FFFFFF', fontSize:13, fontWeight:'700', marginTop:4},
   blockHint: {color:'rgba(180,188,204,0.45)', fontSize:11, textAlign:'center', lineHeight:16, maxWidth:300},
-  codeBlock: {backgroundColor:'#0C1018', borderRadius:8, paddingHorizontal:12, paddingVertical:8, borderWidth:1, borderColor:'rgba(255,255,255,0.09)'},
+  codeBlock: {backgroundColor:'#122747', borderRadius:8, paddingHorizontal:12, paddingVertical:8, borderWidth:1, borderColor:'rgba(255,255,255,0.09)'},
   codeText: {color:'rgba(229,233,242,0.62)', fontSize:11, fontFamily:'monospace'},
   codeInline: {color:'rgba(229,233,242,0.62)', fontFamily:'monospace', fontSize:11},
 
   actionBtn: {marginTop:12, paddingHorizontal:18, paddingVertical:10, borderRadius:10, backgroundColor:'rgba(91,141,239,0.15)', borderWidth:1, borderColor:'rgba(91,141,239,0.35)'},
-  actionBtnText: {color:'#5B8DEF', fontSize:12, fontWeight:'700'},
+  actionBtnText: {color:'#1E88FF', fontSize:12, fontWeight:'700'},
 
   // ─── Group-selection UI ─────────────────────────────────────────
   headerSubtitle: {color:'rgba(180,188,204,0.45)', fontSize:10, marginTop:2, letterSpacing:0.5},
   rowSelected: {backgroundColor:'rgba(91,141,239,0.08)'},
-  selectTick: {position:'absolute', right:-2, bottom:-2, width:18, height:18, borderRadius:9, backgroundColor:'#5B8DEF', alignItems:'center', justifyContent:'center', borderWidth:2, borderColor:Colors.background},
+  selectTick: {position:'absolute', right:-2, bottom:-2, width:18, height:18, borderRadius:9, backgroundColor:'#1E88FF', alignItems:'center', justifyContent:'center', borderWidth:2, borderColor:Colors.background},
   checkbox: {width:22, height:22, borderRadius:11, borderWidth:1.5, borderColor:'rgba(255,255,255,0.09)', alignItems:'center', justifyContent:'center'},
-  checkboxOn: {backgroundColor:'#5B8DEF', borderColor:'#5B8DEF'},
-  nextFab: {position:'absolute', right:20, width:56, height:56, borderRadius:28, backgroundColor:'#5B8DEF', alignItems:'center', justifyContent:'center', shadowColor:'#5B8DEF', shadowOffset:{width:0,height:4}, shadowOpacity:0.5, shadowRadius:10, elevation:6},
+  checkboxOn: {backgroundColor:'#1E88FF', borderColor:'#1E88FF'},
+  nextFab: {position:'absolute', right:20, width:56, height:56, borderRadius:28, backgroundColor:'#1E88FF', alignItems:'center', justifyContent:'center', shadowColor:'#1E88FF', shadowOffset:{width:0,height:4}, shadowOpacity:0.5, shadowRadius:10, elevation:6},
 
   // ─── Group-name modal ────────────────────────────────────────────
   modalOverlay: {flex:1, backgroundColor:'rgba(7,9,13,0.85)', alignItems:'center', justifyContent:'center', paddingHorizontal:24},
-  modalCard: {width:'100%', maxWidth:380, backgroundColor:'#0C1018', borderRadius:16, padding:20, borderWidth:1, borderColor:'rgba(255,255,255,0.09)'},
-  modalTitle: {color:'#F2F4F8', fontSize:16, fontWeight:'800', letterSpacing:0.3},
+  modalCard: {width:'100%', maxWidth:380, backgroundColor:'#122747', borderRadius:16, padding:20, borderWidth:1, borderColor:'rgba(255,255,255,0.09)'},
+  modalTitle: {color:'#FFFFFF', fontSize:16, fontWeight:'800', letterSpacing:0.3},
   modalSub: {color:'rgba(180,188,204,0.45)', fontSize:11, marginTop:4, fontWeight:'600'},
-  modalInput: {marginTop:18, backgroundColor:'rgba(255,255,255,0.04)', borderWidth:1, borderColor:'rgba(255,255,255,0.09)', borderRadius:10, paddingHorizontal:14, paddingVertical:12, color:'#F2F4F8', fontSize:14},
+  modalInput: {marginTop:18, backgroundColor:'rgba(255,255,255,0.04)', borderWidth:1, borderColor:'rgba(255,255,255,0.09)', borderRadius:10, paddingHorizontal:14, paddingVertical:12, color:'#FFFFFF', fontSize:14},
   lookupError: {color:'#FF6B6B', fontSize:11, marginTop:8, fontWeight:'600'},
   modalRow: {flexDirection:'row', justifyContent:'flex-end', gap:8, marginTop:18},
   modalCancel: {paddingHorizontal:18, paddingVertical:10, borderRadius:8},
   modalCancelText: {color:'rgba(229,233,242,0.62)', fontSize:13, fontWeight:'700'},
-  modalCreate: {paddingHorizontal:22, paddingVertical:10, borderRadius:8, backgroundColor:'#5B8DEF'},
+  modalCreate: {paddingHorizontal:22, paddingVertical:10, borderRadius:8, backgroundColor:'#1E88FF'},
   modalCreateText: {color:'#FFF', fontSize:13, fontWeight:'800'},
 }));

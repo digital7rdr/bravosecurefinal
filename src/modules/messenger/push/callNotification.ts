@@ -59,7 +59,7 @@ const CHANNEL_NAME      = 'Incoming calls';
 
 // B-66 — obsidian design-system cobalt; tints the monochrome ic_stat_bravo
 // small icon (matches @color/notificationAccent + the FCM manifest default).
-export const NOTIF_ACCENT = '#5B8DEF';
+export const NOTIF_ACCENT = '#1E88FF';
 
 export type CallNotifKind = 'voice' | 'video' | 'group-voice' | 'group-video';
 
@@ -377,7 +377,8 @@ export function clearMessageNotifState(): void {
   activeMsgNotifIds.clear();
   genericWakeIdBySender.clear();
   namedDrawGenBySender.clear();
-  msgDrawChains.clear();  lastAlertAtById.clear();
+  msgDrawChains.clear();
+  lastAlertAtById.clear();
   alertedMessageIds.clear();
   lastWakeAlertBySender.clear();
   lastWakeAlertAt = 0;
@@ -450,7 +451,8 @@ export function noteMessageNotifDismissed(notifId: string | undefined): void {
     msgThreads.clear();
     msgThreadTitles.clear();
     activeMsgNotifIds.clear();
-    genericWakeIdBySender.clear();    return;
+    genericWakeIdBySender.clear();
+    return;
   }
   msgThreads.delete(notifId);
   msgThreadTitles.delete(notifId);
@@ -470,7 +472,8 @@ export function noteMessageNotifDismissed(notifId: string | undefined): void {
  */
 async function syncMsgSummary(): Promise<void> {
   try {
-    if (activeMsgNotifIds.size >= 2) {      await notifee.displayNotification({
+    if (activeMsgNotifIds.size >= 2) {
+      await notifee.displayNotification({
         id: MSG_SUMMARY_ID,
         title: 'Bravo Secure',
         body: `${activeMsgNotifIds.size} conversations`,
@@ -492,7 +495,8 @@ async function syncMsgSummary(): Promise<void> {
       // left in the shade by the previous process ("3 conversations") read as
       // not-visible here and survived until two fresh banners re-posted it.
       // The cancel is idempotent chrome; issuing it for a summary that is not
-      // there costs nothing.      await notifee.cancelNotification(MSG_SUMMARY_ID);
+      // there costs nothing.
+      await notifee.cancelNotification(MSG_SUMMARY_ID);
     }
   } catch { /* summary is chrome, never load-bearing */ }
 }

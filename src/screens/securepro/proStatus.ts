@@ -17,7 +17,7 @@ export const PRO_STATUS_META: Record<ProApplicationStatus, ProStatusMeta> = {
     copy: 'The Bravo Control System is reviewing your requirements and preparing a custom proposal. You can keep using Bravo Secure in the meantime.',
   },
   PROPOSAL_CREATED: {
-    label: 'Proposal Ready', color: '#A9C5FF', icon: 'file-document-outline',
+    label: 'Proposal Ready', color: '#3BA6FF', icon: 'file-document-outline',
     copy: 'Your custom proposal is ready — review the plan, team and the total Bravo Credits for your coverage period.',
   },
   REVISION_REQUESTED: {

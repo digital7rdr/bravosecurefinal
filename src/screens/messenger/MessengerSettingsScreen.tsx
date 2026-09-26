@@ -486,7 +486,7 @@ export default function MessengerSettingsScreen() {
 
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => goBackOnce(navigation)} activeOpacity={0.7} hitSlop={{top: 6, bottom: 6, left: 6, right: 6}}>
-          <Icon name="arrow-left" size={20} color="#F2F4F8" />
+          <Icon name="arrow-left" size={20} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Settings</Text>
       </View>
@@ -545,7 +545,7 @@ export default function MessengerSettingsScreen() {
           <Switch
             value={me?.lastSeenVisible ?? true}
             onValueChange={v => togglePrivacy({lastSeenVisible: v})}
-            trackColor={{false: 'rgba(255,255,255,0.09)', true: '#5B8DEF'}}
+            trackColor={{false: 'rgba(255,255,255,0.09)', true: '#1E88FF'}}
           />
         </View>
         <View style={styles.row}>
@@ -556,7 +556,7 @@ export default function MessengerSettingsScreen() {
           <Switch
             value={me?.readReceiptsEnabled ?? true}
             onValueChange={v => togglePrivacy({readReceiptsEnabled: v})}
-            trackColor={{false: 'rgba(255,255,255,0.09)', true: '#5B8DEF'}}
+            trackColor={{false: 'rgba(255,255,255,0.09)', true: '#1E88FF'}}
           />
         </View>
 
@@ -569,7 +569,7 @@ export default function MessengerSettingsScreen() {
           <Switch
             value={notifPreview}
             onValueChange={toggleNotifPreview}
-            trackColor={{false: 'rgba(255,255,255,0.09)', true: '#5B8DEF'}}
+            trackColor={{false: 'rgba(255,255,255,0.09)', true: '#1E88FF'}}
           />
         </View>
 
@@ -579,7 +579,7 @@ export default function MessengerSettingsScreen() {
           activeOpacity={0.75}
           onPress={() => navigation.navigate('BackupSetup')}>
           <View style={styles.backupIconWrap}>
-            <Icon name="shield-key-outline" size={20} color="#5B8DEF" />
+            <Icon name="shield-key-outline" size={20} color="#1E88FF" />
           </View>
           <View style={{flex:1}}>
             <Text style={styles.rowTitle}>End-to-end encrypted backup</Text>
@@ -606,7 +606,7 @@ export default function MessengerSettingsScreen() {
                 value={vaultBiometricOn}
                 onValueChange={toggleVaultBiometric}
                 disabled={vaultBioRowDisabled}
-                trackColor={{false: 'rgba(255,255,255,0.09)', true: '#5B8DEF'}}
+                trackColor={{false: 'rgba(255,255,255,0.09)', true: '#1E88FF'}}
               />
             </View>
           </>
@@ -646,19 +646,19 @@ const styles = StyleSheet.create(scaleTextStyles({
   root: {flex:1, backgroundColor:Colors.background},
   header: {flexDirection:'row', alignItems:'center', gap:12, paddingHorizontal:16, paddingTop:8, paddingBottom:12, borderBottomWidth:1, borderBottomColor:'rgba(255,255,255,0.06)'},
   backBtn: {width:32, height:32, borderRadius:16, alignItems:'center', justifyContent:'center'},
-  headerTitle: {flex:1, color:'#F2F4F8', fontSize:13, fontWeight:'800', letterSpacing:3, textTransform:'uppercase'},
+  headerTitle: {flex:1, color:'#FFFFFF', fontSize:13, fontWeight:'800', letterSpacing:3, textTransform:'uppercase'},
 
   sectionLabel: {color:'rgba(180,188,204,0.45)', fontSize:9, fontWeight:'800', letterSpacing:3, textTransform:'uppercase', paddingHorizontal:16, paddingTop:16, paddingBottom:8},
 
   field: {paddingHorizontal:16, paddingVertical:8},
   fieldLabel: {color:'rgba(229,233,242,0.62)', fontSize:10, fontWeight:'700', letterSpacing:1, marginBottom:4},
-  input: {color:'#FFFFFF', fontSize:13, backgroundColor:'#0C1018', borderRadius:10, paddingHorizontal:12, paddingVertical:10, borderWidth:1, borderColor:'rgba(255,255,255,0.09)'},
+  input: {color:'#FFFFFF', fontSize:13, backgroundColor:'#122747', borderRadius:10, paddingHorizontal:12, paddingVertical:10, borderWidth:1, borderColor:'rgba(255,255,255,0.09)'},
 
-  saveBtn: {marginHorizontal:16, marginTop:16, height:44, borderRadius:10, backgroundColor:'#5B8DEF', alignItems:'center', justifyContent:'center'},
+  saveBtn: {marginHorizontal:16, marginTop:16, height:44, borderRadius:10, backgroundColor:'#1E88FF', alignItems:'center', justifyContent:'center'},
   saveBtnText: {color:'#FFF', fontSize:12, fontWeight:'800', letterSpacing:2},
 
   row: {flexDirection:'row', alignItems:'center', gap:12, paddingHorizontal:16, paddingVertical:12, borderTopWidth:1, borderTopColor:'rgba(255,255,255,0.06)'},
-  rowTitle: {color:'#F2F4F8', fontSize:13, fontWeight:'700'},
+  rowTitle: {color:'#FFFFFF', fontSize:13, fontWeight:'700'},
   rowHint:  {color:'rgba(229,233,242,0.62)', fontSize:10.5, marginTop:2},
 
   emptyBlock: {alignItems:'center', paddingVertical:28, gap:8},
@@ -666,7 +666,7 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   backupIconWrap: {width:36, height:36, borderRadius:10, backgroundColor:'rgba(91,141,239,0.12)', borderWidth:1, borderColor:'rgba(91,141,239,0.3)', alignItems:'center', justifyContent:'center'},
   blockAv: {width:36, height:36, borderRadius:18, backgroundColor:'#18202F', alignItems:'center', justifyContent:'center'},
-  blockAvText: {color:'#F2F4F8', fontSize:11, fontWeight:'800'},
+  blockAvText: {color:'#FFFFFF', fontSize:11, fontWeight:'800'},
   unblockBtn: {paddingHorizontal:12, paddingVertical:8, borderRadius:14, backgroundColor:'rgba(91,141,239,0.12)', borderWidth:1, borderColor:'rgba(91,141,239,0.3)'},
-  unblockBtnText: {color:'#5B8DEF', fontSize:10, fontWeight:'800', letterSpacing:1.5},
+  unblockBtnText: {color:'#1E88FF', fontSize:10, fontWeight:'800', letterSpacing:1.5},
 }));

@@ -384,6 +384,6 @@ describe('MISSION_STATUS_TONE — every pill colour is a colour RN can parse', (
     expect(offenders).toEqual([]);
     // The pre-fix shape this replaced: `color + '14'` / `color + '4D'`.
     expect(COLOUR.test('rgba(180,188,204,0.45)14')).toBe(false);
-    expect(COLOUR.test('#A9C5FF4D')).toBe(false);
+    expect(COLOUR.test('#3BA6FF4D')).toBe(false);
   });
 });

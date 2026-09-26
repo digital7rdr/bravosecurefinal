@@ -119,13 +119,13 @@ const AVATAR_DISC_SMALL = 64;
 
 const C = {
   bg:    '#05070C',   // outermost obsidian (gradient end)
-  bgDeep:'#0B0E14',   // sheet / modal surface
+  bgDeep:'#0A1F3F',   // sheet / modal surface
   surf1: 'rgba(255,255,255,0.07)', // ghost control fill
   surf2: '#13182A',   // hero tile base
   surf3: '#0F1422',   // small tile base
   bd:    'rgba(255,255,255,0.12)', // edge-light border
   bd2:   'rgba(255,255,255,0.08)', // hairline border
-  tx1:   '#F2F4F8',   // primary text
+  tx1:   '#FFFFFF',   // primary text
   tx2:   'rgba(229,233,242,0.62)', // dim text
   tx3:   'rgba(180,188,204,0.45)', // mute text
   txFaint:'rgba(180,188,204,0.28)',
@@ -133,9 +133,9 @@ const C = {
   warn:  '#F5B544',   // amber
   err:   '#F5485A',   // alert red
   errSoft:'#F5677A',  // softer red (muted mic glyph / leave hi)
-  act:   '#5B8DEF',   // platinum-cobalt accent
-  actSoft:'#A9C5FF',  // light cobalt (badges / icons on tint)
-  glow:  '#A9C5FF',   // "YOU" + active-dot glow
+  act:   '#1E88FF',   // platinum-cobalt accent
+  actSoft:'#3BA6FF',  // light cobalt (badges / icons on tint)
+  glow:  '#3BA6FF',   // "YOU" + active-dot glow
   white: '#FFFFFF',
   inkOnWhite: '#0E1424', // icon colour on active (white) controls
   avA:   '#7264E0',   // hero avatar ring gradient (hi)

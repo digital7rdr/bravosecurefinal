@@ -19,7 +19,7 @@ import type {AuthScreenProps} from '@navigation/types';
 type Props = AuthScreenProps<'SignupSuccess'>;
 
 const PRIMARY     = '#1E88FF';
-const BG          = '#07090D';
+const BG          = '#0A1F3F';
 const SURFACE     = '#1B3A66';
 const BORDER      = '#1C3B66';
 const GREEN       = '#00C853';

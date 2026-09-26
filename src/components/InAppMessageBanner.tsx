@@ -139,7 +139,7 @@ export function InAppMessageBanner(): React.JSX.Element | null {
   );
 }
 
-const ACCENT = '#5B8DEF';
+const ACCENT = '#1E88FF';
 
 const styles = StyleSheet.create({
   host: {

@@ -187,7 +187,7 @@ function CtrlBtn({icon, label, active, onPress}: {icon: string; label: string; a
   return (
     <TouchableOpacity style={styles.ctrlBtn} onPress={onPress} activeOpacity={0.8}>
       <View style={[styles.ctrlCircle, active && styles.ctrlCircleActive]}>
-        <Icon name={icon} size={20} color={active ? '#5B8DEF' : 'rgba(229,233,242,0.62)'} />
+        <Icon name={icon} size={20} color={active ? '#1E88FF' : 'rgba(229,233,242,0.62)'} />
       </View>
       <Text style={styles.ctrlLabel}>{label.toUpperCase()}</Text>
     </TouchableOpacity>
@@ -197,7 +197,7 @@ function CtrlBtn({icon, label, active, onPress}: {icon: string; label: string; a
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#07090D',
+    backgroundColor: '#0A1F3F',
     // radial gradient approximation
   },
 

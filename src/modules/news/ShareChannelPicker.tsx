@@ -91,7 +91,7 @@ export function ShareWorkspaceList({
           accessibilityRole="button"
           accessibilityLabel={`${g.name}, ${g.channels.length} channels`}
           onPress={() => onOpenGroup(g.id)}>
-          <Icon name="domain" size={18} color="#5B8DEF" />
+          <Icon name="domain" size={18} color="#1E88FF" />
           <Text style={s.rowName} numberOfLines={1}>{g.name}</Text>
           <Text style={s.rowCount}>{g.channels.length}</Text>
           <Icon name="chevron-right" size={18} color="rgba(180,188,204,0.45)" />
@@ -99,7 +99,7 @@ export function ShareWorkspaceList({
       ))}
       {loading && (
         <View style={s.loadingRow}>
-          <ActivityIndicator color="#5B8DEF" size="small" />
+          <ActivityIndicator color="#1E88FF" size="small" />
           <Text style={s.loadingText}>Loading workspaces…</Text>
         </View>
       )}
@@ -130,7 +130,7 @@ export function ShareChannelList({
           }
           onPress={() => onPickChannel(c)}>
           <Guides cells={guides[i] ?? []} />
-          <Icon name="pound-box-outline" size={18} color={c.postable ? '#5B8DEF' : 'rgba(180,188,204,0.35)'} />
+          <Icon name="pound-box-outline" size={18} color={c.postable ? '#1E88FF' : 'rgba(180,188,204,0.35)'} />
           <Text style={[s.rowName, !c.postable && s.rowNameOff]} numberOfLines={1}>{c.name}</Text>
           {!c.postable && <Text style={s.rowTag}>{BLOCKED_LABEL[c.blockedReason ?? 'read_only']}</Text>}
         </TouchableOpacity>

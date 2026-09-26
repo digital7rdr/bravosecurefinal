@@ -7,7 +7,7 @@ import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import Svg, {Circle} from 'react-native-svg';
 
-const ACCENT = '#5B8DEF';
+const ACCENT = '#1E88FF';
 
 export function UploadProgressRing({fraction, size = 44}: {
   /** 0..1 */

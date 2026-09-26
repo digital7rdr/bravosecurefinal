@@ -879,7 +879,7 @@ export default function ChatInfoScreen({navigation, route}: Props) {
               activeOpacity={0.75}
               accessibilityRole="button"
               accessibilityLabel={`Save ${title} to your phone contacts`}>
-              <Icon name="account-plus-outline" size={12} color="#5B8DEF" />
+              <Icon name="account-plus-outline" size={12} color="#1E88FF" />
               <Text style={styles.saveChipText}>Not in contacts · Save</Text>
             </TouchableOpacity>
           )}
@@ -895,7 +895,7 @@ export default function ChatInfoScreen({navigation, route}: Props) {
             icon="phone" color="#4ade80" bg="rgba(34,197,94,0.12)" border="rgba(34,197,94,0.25)" label="Call"
             onPress={() => launchCall(navigation, {conversationId, callType: 'voice'})} />
           <QuickAction
-            icon="video" color="#5B8DEF" bg="rgba(91,141,239,0.12)" border="rgba(91,141,239,0.25)" label="Video"
+            icon="video" color="#1E88FF" bg="rgba(91,141,239,0.12)" border="rgba(91,141,239,0.25)" label="Video"
             onPress={() => launchCall(navigation, {conversationId, callType: 'video'})} />
           <QuickAction
             icon={isMuted ? 'bell' : 'bell-off'}
@@ -979,7 +979,7 @@ export default function ChatInfoScreen({navigation, route}: Props) {
                     )}
                     {m.overridden && (
                       <View style={styles.aliasTag}>
-                        <Icon name="pencil" size={9} color="#5B8DEF" />
+                        <Icon name="pencil" size={9} color="#1E88FF" />
                         <Text style={styles.aliasTagText}>ALIAS</Text>
                       </View>
                     )}
@@ -1004,10 +1004,10 @@ export default function ChatInfoScreen({navigation, route}: Props) {
 
         <TouchableOpacity style={styles.settingRow} activeOpacity={0.8} onPress={() => setTtlPickerOpen(true)}>
           <View style={[styles.settingIcon, {backgroundColor: 'rgba(91,141,239,0.12)', borderColor: 'rgba(91,141,239,0.2)'}]}>
-            <Icon name="send-clock" size={18} color="#5B8DEF" />
+            <Icon name="send-clock" size={18} color="#1E88FF" />
           </View>
           <Text style={styles.settingTitle}>Disappearing Messages</Text>
-          <Text style={[styles.settingRight, {color: '#5B8DEF'}]}>{prettyTtl(ttlSec)}</Text>
+          <Text style={[styles.settingRight, {color: '#1E88FF'}]}>{prettyTtl(ttlSec)}</Text>
         </TouchableOpacity>
 
         {!isGroup && (
@@ -1016,7 +1016,7 @@ export default function ChatInfoScreen({navigation, route}: Props) {
               <Icon name="key-variant" size={18} color="#FBBF24" />
             </View>
             <Text style={styles.settingTitle}>Encryption Key</Text>
-            <Text style={[styles.settingRight, {color: '#5B8DEF'}]}>View Safety Number</Text>
+            <Text style={[styles.settingRight, {color: '#1E88FF'}]}>View Safety Number</Text>
           </TouchableOpacity>
         )}
 
@@ -1088,8 +1088,8 @@ export default function ChatInfoScreen({navigation, route}: Props) {
                     style={[styles.ttlOption, active && styles.ttlOptionActive]}
                     onPress={() => { setConversationTtl(conversationId, opt.sec); setTtlPickerOpen(false); }}
                     activeOpacity={0.8}>
-                    <Text style={[styles.ttlOptionText, active && {color: '#5B8DEF'}]}>{opt.label}</Text>
-                    {active && <Icon name="check" size={18} color="#5B8DEF" />}
+                    <Text style={[styles.ttlOptionText, active && {color: '#1E88FF'}]}>{opt.label}</Text>
+                    {active && <Icon name="check" size={18} color="#1E88FF" />}
                   </TouchableOpacity>
                 );
               })}
@@ -1156,7 +1156,7 @@ export default function ChatInfoScreen({navigation, route}: Props) {
                 }}
                 disabled={!safetyNumber}
                 activeOpacity={0.85}>
-                <Icon name={safetyCopied ? 'check' : 'content-copy'} size={14} color="#5B8DEF" />
+                <Icon name={safetyCopied ? 'check' : 'content-copy'} size={14} color="#1E88FF" />
                 <Text style={styles.fingerprintActionText}>{safetyCopied ? 'Copied' : 'Copy'}</Text>
               </TouchableOpacity>
               {/* Audit P0-I3 — mark / clear verification CTA. */}
@@ -1168,7 +1168,7 @@ export default function ChatInfoScreen({navigation, route}: Props) {
                 <Icon
                   name={verifiedAtMs !== null ? 'shield-off-outline' : 'shield-check'}
                   size={14}
-                  color="#5B8DEF"
+                  color="#1E88FF"
                 />
                 <Text style={styles.fingerprintActionText}>
                   {verifiedAtMs !== null ? 'Clear' : 'Mark verified'}
@@ -1327,7 +1327,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     paddingHorizontal: 12, height: 32, borderRadius: 16,
     backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
   },
-  saveChipText: {color: '#5B8DEF', fontSize: 11.5, fontWeight: '700', letterSpacing: 0.2},
+  saveChipText: {color: '#1E88FF', fontSize: 11.5, fontWeight: '700', letterSpacing: 0.2},
   profileAvatar: {width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 16, shadowColor: '#000', shadowOffset: {width: 0, height: 8}, shadowOpacity: 0.3, shadowRadius: 16, elevation: 8},
   profileInitials: {color: '#FFF', fontSize: 24, fontWeight: '800', letterSpacing: 1},
   profileName: {fontSize: 18, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 2, color: '#FFFFFF', marginBottom: 4, textAlign: 'center'},
@@ -1340,7 +1340,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     position: 'absolute', right: -2, bottom: -2,
     width: 28, height: 28, borderRadius: 14,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#5B8DEF',
+    backgroundColor: '#1E88FF',
     borderWidth: 2, borderColor: Colors.background,
   },
   profilePhone: {fontSize: 12, color: 'rgba(180,188,204,0.45)', marginBottom: 12},
@@ -1356,7 +1356,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   sectionHeader: {fontSize: 9, fontWeight: '800', letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(180,188,204,0.45)', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8},
 
   sectionHeaderRow: {flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', paddingRight: 16},
-  sectionHint: {color: '#5B8DEF', fontSize: 9, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase'},
+  sectionHint: {color: '#1E88FF', fontSize: 9, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase'},
 
   memberRow: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10},
   memberAvatar: {width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', flexShrink: 0},
@@ -1369,13 +1369,13 @@ const styles = StyleSheet.create(scaleTextStyles({
   memberName: {color: '#FFFFFF', fontSize: 13, fontWeight: '700', flexShrink: 1},
   memberPhone: {color: 'rgba(180,188,204,0.45)', fontSize: 11, marginTop: 2},
   aliasTag: {flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)'},
-  aliasTagText: {color: '#5B8DEF', fontSize: 8, fontWeight: '800', letterSpacing: 1.2},
+  aliasTagText: {color: '#1E88FF', fontSize: 8, fontWeight: '800', letterSpacing: 1.2},
   // B-268 — mirrors aliasTag's geometry so the two can sit side by side on one
   // name row without the line jumping. Signal-green, not the cobalt used for
   // ALIAS/YOU: admin is an authority state, not an annotation about naming.
   adminTag: {flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, backgroundColor: 'rgba(74,222,128,0.12)', borderWidth: 1, borderColor: 'rgba(74,222,128,0.28)'},
   adminTagText: {color: '#4ADE80', fontSize: 8, fontWeight: '800', letterSpacing: 1.2},
-  selfBadge: {color: '#5B8DEF', fontSize: 9, fontWeight: '800', letterSpacing: 1.5, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.30)'},
+  selfBadge: {color: '#1E88FF', fontSize: 9, fontWeight: '800', letterSpacing: 1.5, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.30)'},
 
   settingRow: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.07)'},
   settingIcon: {width: 36, height: 36, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center', flexShrink: 0},
@@ -1384,25 +1384,25 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   // Admin rename modal
   modalOverlay: {flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24},
-  modalCard: {width: '100%', maxWidth: 380, backgroundColor: '#0C1018', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)'},
+  modalCard: {width: '100%', maxWidth: 380, backgroundColor: '#122747', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)'},
   modalTitle: {color: '#FFF', fontSize: 16, fontWeight: '800', letterSpacing: 0.3},
   modalSub: {color: 'rgba(180,188,204,0.45)', fontSize: 11, marginTop: 6, lineHeight: 16},
-  modalInput: {marginTop: 16, backgroundColor: '#07090D', borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, color: '#FFF', fontSize: 14},
+  modalInput: {marginTop: 16, backgroundColor: '#0A1F3F', borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, color: '#FFF', fontSize: 14},
   modalRemoveRow: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 14, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', backgroundColor: 'rgba(239,68,68,0.08)'},
   modalRemoveText: {color: '#F87171', fontSize: 13, fontWeight: '700'},
   modalRow: {flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16},
   modalCancel: {paddingHorizontal: 14, paddingVertical: 12, borderRadius: 8},
   modalCancelText: {color: 'rgba(229,233,242,0.62)', fontSize: 13, fontWeight: '700'},
-  modalResetText: {color: '#5B8DEF', fontSize: 13, fontWeight: '700'},
-  modalSave: {paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8, backgroundColor: '#5B8DEF'},
+  modalResetText: {color: '#1E88FF', fontSize: 13, fontWeight: '700'},
+  modalSave: {paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8, backgroundColor: '#1E88FF'},
   modalSaveText: {color: '#FFF', fontSize: 13, fontWeight: '800'},
 
   ttlOption: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 10, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)'},
-  ttlOptionActive: {borderColor: '#5B8DEF', backgroundColor: 'rgba(91,141,239,0.10)'},
+  ttlOptionActive: {borderColor: '#1E88FF', backgroundColor: 'rgba(91,141,239,0.10)'},
   ttlOptionText: {color: '#FFF', fontSize: 13, fontWeight: '600'},
 
-  fingerprintBox: {marginTop: 16, padding: 14, borderRadius: 10, backgroundColor: '#07090D', borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)'},
+  fingerprintBox: {marginTop: 16, padding: 14, borderRadius: 10, backgroundColor: '#0A1F3F', borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)'},
   fingerprintText: {color: '#4ade80', fontSize: 14, fontWeight: '700', letterSpacing: 2, textAlign: 'center', fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace'},
   fingerprintAction: {flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 8, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.25)'},
-  fingerprintActionText: {color: '#5B8DEF', fontSize: 13, fontWeight: '700'},
+  fingerprintActionText: {color: '#1E88FF', fontSize: 13, fontWeight: '700'},
 }));

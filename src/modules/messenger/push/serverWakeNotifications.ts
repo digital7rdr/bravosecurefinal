@@ -40,7 +40,7 @@ let legacySosChannelRetired = false;
 // B-66 — small-icon tint (obsidian cobalt). Local constant, NOT imported from
 // callNotification: this module runs in the headless-wake path and must keep
 // its module graph minimal.
-const NOTIF_ACCENT = '#5B8DEF';
+const NOTIF_ACCENT = '#1E88FF';
 
 /**
  * Hydrate an opaque server push wake. Returns the parsed detail

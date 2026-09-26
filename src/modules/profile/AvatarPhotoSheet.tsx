@@ -9,12 +9,12 @@ import {Modal, View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 
 const T = {
-  text: '#F2F4F8',
+  text: '#FFFFFF',
   textDim: 'rgba(229,233,242,0.62)',
   textMute: 'rgba(180,188,204,0.45)',
   hair: 'rgba(255,255,255,0.06)',
   hair2: 'rgba(255,255,255,0.09)',
-  blue: '#A9C5FF',
+  blue: '#3BA6FF',
   alert: '#FF8585',
 } as const;
 

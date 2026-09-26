@@ -77,9 +77,9 @@ export function WorkspaceChoiceGate() {
 const T = {
   card:     'rgba(22,27,37,0.72)',
   hair:     'rgba(255,255,255,0.09)',
-  text:     '#F2F4F8',
+  text:     '#FFFFFF',
   textDim:  'rgba(229,233,242,0.62)',
-  accent:   '#5B8DEF',
+  accent:   '#1E88FF',
 };
 
 const g = StyleSheet.create(scaleTextStyles({

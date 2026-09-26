@@ -25,7 +25,7 @@ import {to12h, to24h} from './time12h';
 // Obsidian/cobalt palette (Bravo "Schedule" design handoff) — mirrors
 // BookingDateTimeScreen so the wheel reads as part of the same card.
 const D = {
-  text:      '#F2F4F8',
+  text:      '#FFFFFF',
   textMute:  'rgba(180,188,204,0.45)',
   textFaint: 'rgba(180,188,204,0.28)',
   hair2:     'rgba(255,255,255,0.09)',

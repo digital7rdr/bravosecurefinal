@@ -981,7 +981,7 @@ export default function LiveTrackingScreen() {
         {activeBooking?.service === 'executive_protection' && (activeBooking?.duration_hours ?? 0) > 0 && (
           <View style={s.execHoursCard}>
             <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
-              <Icon name="shield-crown" size={15} color="#A9C5FF" />
+              <Icon name="shield-crown" size={15} color="#3BA6FF" />
               <Text style={s.execHoursTitle}>
                 Hourly check-ins · {(activeBooking?.hourly_checkins ?? []).length}/{activeBooking?.duration_hours}
               </Text>
@@ -1249,7 +1249,7 @@ export default function LiveTrackingScreen() {
                     })}
                     accessibilityRole="button"
                     accessibilityLabel="Open mission chat">
-                    <Icon name="message-text-outline" size={14} color="#A9C5FF" />
+                    <Icon name="message-text-outline" size={14} color="#3BA6FF" />
                     <Text style={s.verifyRetryText}>Open mission chat</Text>
                   </TouchableOpacity>
                   {/* Deck page 19 — the client had NO way to call their detail
@@ -1261,7 +1261,7 @@ export default function LiveTrackingScreen() {
                     onPress={() => callMissionGroup(convId, 'voice')}
                     accessibilityRole="button"
                     accessibilityLabel="Call all — ops and your officer">
-                    <Icon name="phone" size={14} color="#A9C5FF" />
+                    <Icon name="phone" size={14} color="#3BA6FF" />
                     <Text style={s.verifyRetryText}>Call all · ops and your officer</Text>
                   </TouchableOpacity>
                 </View>
@@ -1298,7 +1298,7 @@ export default function LiveTrackingScreen() {
               card, so there is no second fetch and no second rotation). */}
           {showVerify && (
             <View style={[s.fsVerify, {top: insets.top + 12}]} pointerEvents="none">
-              <Icon name="shield-account" size={13} color="#A9C5FF" />
+              <Icon name="shield-account" size={13} color="#3BA6FF" />
               <Text style={s.fsVerifyLabel}>VERIFY</Text>
               <Text style={s.fsVerifyCode}>{verifyCode ?? '· · · · · ·'}</Text>
             </View>
@@ -1390,7 +1390,7 @@ function VerifyGuardCard(
   return (
     <View style={s.verifyCard}>
       <View style={{flexDirection: 'row', alignItems: 'center', gap: 8}}>
-        <Icon name="shield-account" size={16} color="#A9C5FF" />
+        <Icon name="shield-account" size={16} color="#3BA6FF" />
         <Text style={s.verifyTitle}>Verify your detail{lead ? ` · ${lead}` : ''}</Text>
       </View>
       {phase === 'error' ? (
@@ -1399,7 +1399,7 @@ function VerifyGuardCard(
           <TouchableOpacity style={s.verifyRetry} activeOpacity={0.85}
             accessibilityRole="button" accessibilityLabel="Retry loading your verify code"
             onPress={() => { setPhase('loading'); setRetryNonce(n => n + 1); }}>
-            <Icon name="refresh" size={14} color="#A9C5FF" />
+            <Icon name="refresh" size={14} color="#3BA6FF" />
             <Text style={s.verifyRetryText}>Retry</Text>
           </TouchableOpacity>
         </>
@@ -1433,7 +1433,7 @@ function VerifyGuardCard(
           Rendered only once a vehicle is actually assigned. */}
       {vehicle && (
         <View style={s.verifyVehicle}>
-          <Icon name="car-estate" size={15} color="#A9C5FF" />
+          <Icon name="car-estate" size={15} color="#3BA6FF" />
           <View style={{flex: 1, minWidth: 0}}>
             <Text style={s.verifyVehicleTitle} numberOfLines={1}>
               {[vehicle.colour, vehicle.make_model].filter(Boolean).join(' ')}
@@ -1569,7 +1569,7 @@ const s = StyleSheet.create(scaleTextStyles({
   verifyVehicleSub: {fontFamily: BravoFont.regular, fontSize: 11, color: 'rgba(180,188,204,0.62)', marginTop: 1},
   verifyPlate: {
     fontFamily: BravoFont.mono, fontSize: 13, fontWeight: '800', letterSpacing: 1.5,
-    color: '#A9C5FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6,
+    color: '#3BA6FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6,
     borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)', backgroundColor: 'rgba(91,141,239,0.10)',
   },
   verifyCard: {
@@ -1579,7 +1579,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   verifyTitle: {fontFamily: BravoFont.bold, fontSize: 13, fontWeight: '700', color: Colors.textPrimary},
   verifySub: {fontFamily: BravoFont.regular, fontSize: 11, color: Colors.textSecondary, lineHeight: 15},
-  verifyCode: {fontFamily: BravoFont.mono, fontSize: 26, fontWeight: '800', letterSpacing: 6, color: '#A9C5FF', textAlign: 'center', paddingVertical: 4},
+  verifyCode: {fontFamily: BravoFont.mono, fontSize: 26, fontWeight: '800', letterSpacing: 6, color: '#3BA6FF', textAlign: 'center', paddingVertical: 4},
   verifyArrivalWrap: {marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(91,141,239,0.20)', gap: 4},
   verifyArrivalCode: {fontFamily: BravoFont.mono, fontSize: 26, fontWeight: '800', letterSpacing: 6, color: '#7FD1A6', textAlign: 'center', paddingVertical: 4},
   verifyPanic: {
@@ -1593,7 +1593,7 @@ const s = StyleSheet.create(scaleTextStyles({
     paddingVertical: 9, borderRadius: 10,
     backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.30)',
   },
-  verifyRetryText: {fontFamily: BravoFont.bold, fontSize: 12, fontWeight: '700', color: '#A9C5FF'},
+  verifyRetryText: {fontFamily: BravoFont.bold, fontSize: 12, fontWeight: '700', color: '#3BA6FF'},
 
   mapWrap: {
     width: '100%', aspectRatio: 1.3 / 1,
@@ -1642,7 +1642,7 @@ const s = StyleSheet.create(scaleTextStyles({
   fsVerifyCode: {
     flex: 1, textAlign: 'right',
     fontFamily: BravoFont.mono, fontSize: 17, fontWeight: '800',
-    letterSpacing: 3.5, color: '#A9C5FF',
+    letterSpacing: 3.5, color: '#3BA6FF',
   },
 
   tabs: {
@@ -1767,7 +1767,7 @@ const s = StyleSheet.create(scaleTextStyles({
     marginHorizontal: 12, padding: 14, borderRadius: 14, gap: 9,
     backgroundColor: 'rgba(91,141,239,0.07)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.24)',
   },
-  execHoursTitle: {fontFamily: BravoFont.semiBold, fontSize: 12.5, color: '#F2F4F8'},
+  execHoursTitle: {fontFamily: BravoFont.semiBold, fontSize: 12.5, color: '#FFFFFF'},
   execHoursEmpty: {fontFamily: BravoFont.medium, fontSize: 11.5, lineHeight: 16, color: 'rgba(180,188,204,0.6)'},
   execHourRow: {flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap'},
   execHourText: {fontFamily: BravoFont.semiBold, fontSize: 12, color: '#E5E9F2'},

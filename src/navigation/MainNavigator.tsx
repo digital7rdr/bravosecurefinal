@@ -81,14 +81,14 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 // T.bg / the Bravo Command Home design tokens). Kept here so the tab
 // bar + scene container can match the Home screen without pulling in
 // DashboardScreen's local token block.
-const HOME_BG = '#07090D';
+const HOME_BG = '#0A1F3F';
 // Universal footer palette — obsidian + platinum-cobalt, matching the Bravo
 // Secure design handoff (no navy shade). The root tab bar is the app-wide
 // footer, so these apply on every tab.
-const FOOTER_ACCENT = '#5B8DEF';
-const FOOTER_ACCENT_DEEP = '#2F5BE0';
+const FOOTER_ACCENT = '#1E88FF';
+const FOOTER_ACCENT_DEEP = '#166ED1';
 const FOOTER_MUTE = 'rgba(180,188,204,0.45)';
-const FOOTER_TEXT = '#F2F4F8';
+const FOOTER_TEXT = '#FFFFFF';
 
 type IconName = React.ComponentProps<typeof Icon>['name'];
 
@@ -320,7 +320,7 @@ function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
           };
         });
 
-  // The footer is universally obsidian (#07090D) to match the Bravo Secure
+  // The footer is universally obsidian (#0A1F3F) to match the Bravo Secure
   // design — same bar on every tab, no navy shade.
   //
   // Bottom pad: in flow mode use the SAME formula as the shell's ObsidianTabBar
@@ -1579,7 +1579,7 @@ export default function MainNavigator() {
       // Scene background = obsidian so the Command Home status-bar / safe-
       // area zone reads near-black instead of the default navy stage. Other
       // tabs paint their own background on top, so this only shows through
-      // on Home (which is intentionally #07090D).
+      // on Home (which is intentionally #0A1F3F).
       sceneContainerStyle={{backgroundColor: HOME_BG}}
       // BS-TABBACK — back from a non-Home tab (e.g. Messenger) returns to the
       // product's root tab instead of EXITING the app. Default bottom-tab back

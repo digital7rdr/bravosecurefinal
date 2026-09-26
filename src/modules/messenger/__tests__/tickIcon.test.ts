@@ -37,8 +37,8 @@ describe('tickIcon — status → icon/colour, parameterised over caller tokens'
 
   it('two callers with different token sets never see the other’s colours', () => {
     const chatTokens = {mute: '#111', read: '#7ED6FF', alert: '#FF5D5D'};
-    const deptTokens  = {mute: '#222', read: '#5B8DEF', alert: '#F58B97'};
+    const deptTokens  = {mute: '#222', read: '#1E88FF', alert: '#F58B97'};
     expect(tickIcon({sender_id: 'self', status: 'read'}, chatTokens)?.color).toBe('#7ED6FF');
-    expect(tickIcon({sender_id: 'self', status: 'read'}, deptTokens)?.color).toBe('#5B8DEF');
+    expect(tickIcon({sender_id: 'self', status: 'read'}, deptTokens)?.color).toBe('#1E88FF');
   });
 });

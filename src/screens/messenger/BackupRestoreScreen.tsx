@@ -723,7 +723,7 @@ const s = StyleSheet.create({
   title: {color: C.tx1, fontSize: 13, fontWeight: '700', letterSpacing: 1.4},
   bullet: {
     flexDirection: 'row', gap: 10, alignItems: 'flex-start',
-    backgroundColor: '#0C1018', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: '#122747', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
     borderRadius: 10, padding: 12,
   },
   bulletTxt: {color: C.tx2, fontSize: 12, lineHeight: 17, flex: 1},

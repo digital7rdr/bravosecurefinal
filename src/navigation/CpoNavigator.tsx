@@ -54,12 +54,12 @@ const DeptTabPlaceholder = () => <View style={styles.root} />;
 function renderCpoTabBar(props: BottomTabBarProps) {
   return <ObsidianTabBar {...props} icons={TAB_ICONS} bg={D.bg} accent={D.accent} mute={D.textMute} />;
 }
-const styles = StyleSheet.create({root: {flex: 1, backgroundColor: '#07090D'}});
+const styles = StyleSheet.create({root: {flex: 1, backgroundColor: '#0A1F3F'}});
 
 const D = {
-  bg: '#07090D', text: '#F2F4F8', textDim: 'rgba(229,233,242,0.62)',
+  bg: '#0A1F3F', text: '#FFFFFF', textDim: 'rgba(229,233,242,0.62)',
   textMute: 'rgba(180,188,204,0.45)', hair2: 'rgba(255,255,255,0.09)',
-  accent: '#5B8DEF', accentSoft: '#A9C5FF', signal: '#4ADE80',
+  accent: '#1E88FF', accentSoft: '#3BA6FF', signal: '#4ADE80',
   fSans: 'Manrope_500Medium', fSemi: 'Manrope_600SemiBold', fBold: 'Manrope_700Bold',
 };
 

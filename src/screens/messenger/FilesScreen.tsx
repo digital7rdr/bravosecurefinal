@@ -106,7 +106,7 @@ const ICON_TINT: Record<MediaKindIconName, {color: string; bg: string; border: s
   'video-outline':         {color: '#60A5FA', bg: 'rgba(96,165,250,0.12)',  border: 'rgba(96,165,250,0.28)'},
   'microphone-outline':    {color: '#F472B6', bg: 'rgba(244,114,182,0.12)', border: 'rgba(244,114,182,0.28)'},
   'file-pdf-box':          {color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.28)'},
-  'file-document-outline': {color: '#A9C5FF', bg: 'rgba(91,141,239,0.1)',   border: 'rgba(91,141,239,0.25)'},
+  'file-document-outline': {color: '#3BA6FF', bg: 'rgba(91,141,239,0.1)',   border: 'rgba(91,141,239,0.25)'},
 };
 
 function iconFor(row: FileRow): {name: IconName; color: string; bg: string; border: string} {
@@ -1015,11 +1015,11 @@ export default function FilesScreen() {
                 />
               </Svg>
               {uploadBusy
-                ? <ActivityIndicator size="small" color="#A9C5FF" />
-                : <Icon name="folder-outline" size={46} color="#A9C5FF" />}
+                ? <ActivityIndicator size="small" color="#3BA6FF" />
+                : <Icon name="folder-outline" size={46} color="#3BA6FF" />}
               {!scopeToCompany && !uploadBusy && (
                 <View style={styles.dropTilePlus}>
-                  <Icon name="plus" size={14} color="#07090D" />
+                  <Icon name="plus" size={14} color="#0A1F3F" />
                 </View>
               )}
             </TouchableOpacity>
@@ -1123,7 +1123,7 @@ export default function FilesScreen() {
                   <View style={styles.fileRight}>
                     {selectionMode ? (
                       <View style={[styles.selRing, isSel && styles.selRingOn]}>
-                        {isSel ? <Icon name="check-bold" size={13} color="#0B0E14" /> : null}
+                        {isSel ? <Icon name="check-bold" size={13} color="#0A1F3F" /> : null}
                       </View>
                     ) : (
                       <>
@@ -1449,7 +1449,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   },
   dropTilePlus: {
     position: 'absolute', right: 26, bottom: 24, width: 22, height: 22, borderRadius: 11,
-    alignItems: 'center', justifyContent: 'center', backgroundColor: '#A9C5FF',
+    alignItems: 'center', justifyContent: 'center', backgroundColor: '#3BA6FF',
   },
   wordmark: {flex: 1, color: OB.text, fontFamily: BravoFont.extraBold, fontSize: 24, letterSpacing: 3},
 

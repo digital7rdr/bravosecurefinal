@@ -119,30 +119,30 @@ type Props = MessengerScreenProps<'Chat'>;
  * feel of WhatsApp's 2-minute window.
  */
 // Obsidian base from the Bravo Chat Thread design tokens (tokens.jsx
-// `bg: #07090D`). Matches Command Home + the Messenger list — the thread
+// `bg: #0A1F3F`). Matches Command Home + the Messenger list — the thread
 // is part of the same re-skin. Local constant so the app-wide Bravo.bg
 // (used by other navy screens) is untouched. VISUAL ONLY — no messaging,
 // crypto, or data wiring changes on this screen.
-const CHAT_BG = '#07090D';
+const CHAT_BG = '#0A1F3F';
 
 // ── Bravo DM Attach design tokens (obsidian + cobalt + signal-green) ──
 // Imported from the Claude Design "Bravo — DM & Attach" screen (tokens.jsx).
 // Kept LOCAL to this screen so the app-wide Command-Navy `Bravo` theme that
 // every other surface depends on is untouched. VISUAL ONLY.
 const DM = {
-  accent:      '#5B8DEF',
-  accentDeep:  '#2F5BE0',
+  accent:      '#1E88FF',
+  accentDeep:  '#166ED1',
   accentGlow:  'rgba(91,141,239,0.35)',
   accentTint:  'rgba(91,141,239,0.12)',
   accentEdge:  'rgba(91,141,239,0.30)',
   quoteBar:    '#7FA8FF',
-  onAccent:    '#A9C5FF',
+  onAccent:    '#3BA6FF',
   signal:      '#4ADE80',
   signalTint:  'rgba(74,222,128,0.08)',
   signalEdge:  'rgba(74,222,128,0.26)',
   hair:        'rgba(255,255,255,0.06)',
   hair2:       'rgba(255,255,255,0.09)',
-  text:        '#F2F4F8',
+  text:        '#FFFFFF',
   textDim:     'rgba(229,233,242,0.62)',
   textMute:    'rgba(180,188,204,0.45)',
   textFaint:   'rgba(180,188,204,0.28)',
@@ -152,10 +152,10 @@ const DM = {
 // Outgoing bubble + mic gradients (top→bottom). Cobalt hero surfaces.
 const SENT_GRADIENT  = ['#4C86F0', DM.accentDeep] as const;
 // Obsidian receive-bubble gradient (design: rgba(30,40,58,.9)→rgba(22,29,43,.85)
-// composited over the #07090D bg), straddling DM.recvBubble so both sides of
+// composited over the #0A1F3F bg), straddling DM.recvBubble so both sides of
 // the thread share the same lit-from-above material.
 const RECV_GRADIENT  = ['#1E2A3C', '#151C29'] as const;
-const MIC_GRADIENT   = ['#6E9BF5', DM.accent, DM.accentDeep] as const;
+const MIC_GRADIENT   = ['#3BA6FF', DM.accent, DM.accentDeep] as const;
 const SHEET_GRADIENT = ['#131A28', '#0C111B'] as const;
 // B-286 — the header avatar used to be a FIXED purple for every conversation,
 // so it could never agree with the list (which hashes the conversation id).
@@ -3661,7 +3661,7 @@ function MessageBubbleImpl({
                 below cannot diverge. */}
             <LinkifiedText
               style={styles.msgText}
-              linkColor={sent ? '#FFFFFF' : '#A9C5FF'}
+              linkColor={sent ? '#FFFFFF' : '#3BA6FF'}
               // On the cobalt OUTGOING bubble the tint must stay near-white to
               // stay legible, so the chip fill is what distinguishes it from
               // the body text; on the obsidian INCOMING bubble cobalt already
@@ -3686,7 +3686,7 @@ function MessageBubbleImpl({
         {hasAttachment && !!msg.content && (
           <LinkifiedText
             style={[styles.msgText, {marginTop: 6}]}
-            linkColor={sent ? '#FFFFFF' : '#A9C5FF'}
+            linkColor={sent ? '#FFFFFF' : '#3BA6FF'}
             mentionColor={sent ? '#FFFFFF' : DM.accent}
             mentionChipColor={sent ? 'rgba(255,255,255,0.22)' : 'rgba(91,141,239,0.20)'}
             mentions={msg.mentions}
@@ -4446,11 +4446,11 @@ const ChatComposer = React.memo(React.forwardRef<ChatComposerHandle, ChatCompose
             enableRecentlyUsed
             theme={{
               knob: DM.accent,
-              container: '#0C1018',
-              header: '#F2F4F8',
+              container: '#122747',
+              header: '#FFFFFF',
               skinTonesContainer: '#161B25',
-              category: {icon: '#7E8AA6', iconActive: '#F2F4F8', container: '#0C1018', containerActive: DM.accent},
-              search: {background: 'rgba(255,255,255,0.05)', text: '#F2F4F8', placeholder: '#7E8AA6', icon: '#7E8AA6'},
+              category: {icon: '#7E8AA6', iconActive: '#FFFFFF', container: '#122747', containerActive: DM.accent},
+              search: {background: 'rgba(255,255,255,0.05)', text: '#FFFFFF', placeholder: '#7E8AA6', icon: '#7E8AA6'},
             }}
           />
         </View>
@@ -4757,7 +4757,7 @@ export function ForwardList({currentConvId, onPick, header = null, listMaxHeight
           placeholderTextColor="rgba(180,188,204,0.45)"
           accessibilityLabel="Search contacts and groups"
           style={{
-            color: '#F2F4F8', fontSize: 13,
+            color: '#FFFFFF', fontSize: 13,
             paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10,
             backgroundColor: 'rgba(255,255,255,0.05)',
             borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
@@ -5191,7 +5191,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   // from the input bar; the fill matches the composer surface so the panel reads
   // as part of the composer rather than a floating sheet.
   emojiPanel: {
-    backgroundColor: '#0C1018',
+    backgroundColor: '#122747',
     borderTopWidth: 1, borderTopColor: DM.hair,
     overflow: 'hidden',
   },
@@ -5311,7 +5311,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   mentionSheet: {
     marginHorizontal: 8, marginBottom: 6,
     borderRadius: 14, overflow: 'hidden',
-    backgroundColor: '#0C1018',
+    backgroundColor: '#122747',
     borderWidth: 1, borderColor: DM.hair2,
   },
   mentionScroll:     {maxHeight: 208},
@@ -5322,7 +5322,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   mentionName:       {flex: 1, minWidth: 0, fontFamily: BravoFont.sans, color: DM.onAccent, fontSize: 14},
 
   // Scroll-to-bottom FAB
-  scrollFab: {position:'absolute', right:12, width:44, height:44, borderRadius:22, backgroundColor:'#0C1018', borderWidth:1, borderColor: DM.hair2, alignItems:'center', justifyContent:'center', shadowColor:'#000', shadowOffset:{width:0,height:4}, shadowOpacity:0.4, shadowRadius:8, elevation:6},
+  scrollFab: {position:'absolute', right:12, width:44, height:44, borderRadius:22, backgroundColor:'#122747', borderWidth:1, borderColor: DM.hair2, alignItems:'center', justifyContent:'center', shadowColor:'#000', shadowOffset:{width:0,height:4}, shadowOpacity:0.4, shadowRadius:8, elevation:6},
   scrollFabBadge: {position:'absolute', top:-4, right:-4, minWidth:18, minHeight:18, borderRadius:9, paddingHorizontal:4, paddingVertical:1, backgroundColor:DM.accent, alignItems:'center', justifyContent:'center'},
   scrollFabBadgeText: {color:'#FFF', fontSize:9, fontWeight:'800'},
 
@@ -5335,9 +5335,9 @@ const styles = StyleSheet.create(scaleTextStyles({
   actionDivider: {height:1, backgroundColor: DM.hair, marginHorizontal:16},
 
   sheetBackdrop: {flex:1, backgroundColor:'rgba(0,0,0,0.6)', justifyContent:'flex-end'},
-  // Obsidian bottom sheet (synced with DepartmentChatScreen #0C1018) — the
+  // Obsidian bottom sheet (synced with DepartmentChatScreen #122747) — the
   // long-press action menu + "Read by" info + forward picker all share this.
-  sheet: {backgroundColor:'#0C1018', borderTopLeftRadius:20, borderTopRightRadius:20, padding:20, borderTopWidth:1, borderColor: DM.hair2, gap:2},
+  sheet: {backgroundColor:'#122747', borderTopLeftRadius:20, borderTopRightRadius:20, padding:20, borderTopWidth:1, borderColor: DM.hair2, gap:2},
   sheetTitle: {color: DM.text, fontSize:16, fontWeight:'700', marginBottom:4},
   sheetSub: {color: DM.textMute, fontSize:12, marginBottom:12},
   sheetRow: {flexDirection:'row', alignItems:'center', gap:14, paddingVertical:14, borderBottomWidth:1, borderBottomColor: DM.hair},

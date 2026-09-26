@@ -136,7 +136,7 @@ export default function VBGSRAScreen() {
                 <View key={rec} style={styles.recRow}>
                   <Svg width={16} height={16} viewBox="0 0 20 20" style={{marginTop: 1}}>
                     <Circle cx={10} cy={10} r={8.5} stroke="rgba(91,141,239,0.4)" strokeWidth={1.3} fill="rgba(91,141,239,0.1)" />
-                    <Path d="M6.5 10.2l2.3 2.3 4.5-4.8" stroke="#A9C5FF" strokeWidth={1.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    <Path d="M6.5 10.2l2.3 2.3 4.5-4.8" stroke="#3BA6FF" strokeWidth={1.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
                   </Svg>
                   <Text style={styles.recText}>{rec}</Text>
                 </View>

@@ -23,7 +23,7 @@ import {fundMembersRefusalMessage} from '@screens/booking/creditErrors';
 const T = {
   textDim:   'rgba(229,233,242,0.62)',
   hair2:     'rgba(255,255,255,0.09)',
-  accentDeep:'#2F5BE0',
+  accentDeep:'#166ED1',
 } as const;
 
 /**
