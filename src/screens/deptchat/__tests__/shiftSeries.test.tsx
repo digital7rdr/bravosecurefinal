@@ -53,8 +53,23 @@ jest.mock('@services/api', () => ({
     {user_id: 'c1', display_name: 'Dana Rivers', status: 'active', member_role: 'employee'},
   ]})},
 }));
-const mockAlert = jest.fn();
-jest.mock('@utils/alert', () => ({Alert: {alert: (...a: unknown[]) => mockAlert(...a)}}));
+type AlertButton = {text?: string; style?: string; onPress?: () => void};
+/**
+ * Behaves like a user who presses the affirmative button on a confirm.
+ *
+ * Why: the create path awaits `new Promise(resolve => Alert.alert(…buttons…))`
+ * when the series overlaps itself or crosses into the next month
+ * (`spansTwoMonths`). A bare `jest.fn()` never presses anything, so that
+ * promise never settles and `createShift` is never reached. The editor
+ * anchors on the REAL clock (`nextTopOfHour()`), so weekly × 3 — a 15-day
+ * span — crossed a month on every run after about the 16th, and this suite
+ * was green early in the month and red at the end. It blocked a push on
+ * the 27th. Plain `Alert.alert(title, message)` with no buttons is unchanged.
+ */
+const mockAlert = jest.fn((_title: string, _message?: string, buttons?: AlertButton[]) => {
+  buttons?.find(b => b.style !== 'cancel' && typeof b.onPress === 'function')?.onPress?.();
+});
+jest.mock('@utils/alert', () => ({Alert: {alert: (...a: unknown[]) => (mockAlert as (...x: unknown[]) => void)(...a)}}));
 
 import {
   DAILY_COUNTS, MAX_OCCURRENCES, WEEKLY_COUNTS, keptDates, localDateKey, seriesBlocker,
