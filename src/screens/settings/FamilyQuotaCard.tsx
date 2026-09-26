@@ -509,7 +509,7 @@ const s = StyleSheet.create({
   },
   // A11 — the card a money refusal named, so a stack of look-alikes still
   // points at the one the member has to act on.
-  cardFocused: {borderColor: T.accent, backgroundColor: 'rgba(91,141,239,0.10)'},
+  cardFocused: {borderColor: T.accent, backgroundColor: 'rgba(30,136,255,0.10)'},
   headRow: {flexDirection: 'row', alignItems: 'center', gap: 7},
   head:    {color: T.textMute, fontSize: 10.5, fontWeight: '800', letterSpacing: 1.2},
   holder:  {color: T.textDim, fontSize: 12.5, fontWeight: '600'},

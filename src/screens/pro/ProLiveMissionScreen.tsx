@@ -59,7 +59,7 @@ function selfMarkerHtml(lat: number, lng: number): string {
 <body><div id="m"></div><script>
 mapboxgl.accessToken=${JSON.stringify(MAPBOX_TOKEN)};
 var map=new mapboxgl.Map({container:'m',style:'mapbox://styles/mapbox/satellite-streets-v12',center:[${lng},${lat}],zoom:14,attributionControl:false});
-var el=document.createElement('div');el.style.cssText='width:18px;height:18px;border-radius:50%;background:#1E88FF;border:3px solid #fff;box-shadow:0 0 0 6px rgba(91,141,239,0.28)';
+var el=document.createElement('div');el.style.cssText='width:18px;height:18px;border-radius:50%;background:#1E88FF;border:3px solid #fff;box-shadow:0 0 0 6px rgba(30,136,255,0.28)';
 var m=new mapboxgl.Marker(el).setLngLat([${lng},${lat}]).addTo(map);
 window.setCenter=function(la,ln){map.setCenter([ln,la]);m.setLngLat([ln,la]);};
 </script></body></html>`;
@@ -553,7 +553,7 @@ const s = StyleSheet.create(scaleTextStyles({
   loadingWrap: {paddingTop: 80, alignItems: 'center'},
 
   startWrap: {alignItems: 'center', paddingTop: 48, gap: 12, paddingHorizontal: 8},
-  startIcon: {width: 88, height: 88, borderRadius: 28, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)', alignItems: 'center', justifyContent: 'center'},
+  startIcon: {width: 88, height: 88, borderRadius: 28, backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)', alignItems: 'center', justifyContent: 'center'},
   startTitle: {fontFamily: D.fBold, fontSize: 21, color: D.text, marginTop: 4},
   startSub: {fontFamily: D.fSans, fontSize: 13, color: D.textDim, textAlign: 'center', lineHeight: 20},
   primaryBtn: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 18, alignSelf: 'stretch', paddingVertical: 16, borderRadius: 16, backgroundColor: D.accentSoft},
@@ -572,7 +572,7 @@ const s = StyleSheet.create(scaleTextStyles({
   sosPillText: {fontFamily: D.fBold, fontSize: 9, letterSpacing: 1, color: D.danger},
 
   cpoCard: {flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, backgroundColor: D.card, borderWidth: 1, borderColor: D.hair, marginTop: 12},
-  cpoAvatar: {width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(91,141,239,0.16)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)', alignItems: 'center', justifyContent: 'center'},
+  cpoAvatar: {width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.35)', alignItems: 'center', justifyContent: 'center'},
   cpoAvatarText: {fontFamily: D.fBold, fontSize: 18, color: D.accentSoft},
   cpoCap: {fontFamily: D.fMono, fontSize: 8.5, fontWeight: '700', letterSpacing: 1.2, color: D.textMute},
   cpoName: {fontFamily: D.fBold, fontSize: 15, color: D.text, marginTop: 3},
@@ -597,14 +597,14 @@ const s = StyleSheet.create(scaleTextStyles({
   msgLabel: {fontFamily: D.fMono, fontSize: 10, fontWeight: '600', letterSpacing: 2, color: D.textDim, marginTop: 18, marginBottom: 10},
   chips: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
   chip: {paddingVertical: 8, paddingHorizontal: 12, borderRadius: 99, backgroundColor: D.card, borderWidth: 1, borderColor: D.hair2},
-  chipOn: {backgroundColor: 'rgba(91,141,239,0.16)', borderColor: 'rgba(91,141,239,0.45)'},
+  chipOn: {backgroundColor: 'rgba(30,136,255,0.16)', borderColor: 'rgba(30,136,255,0.45)'},
   chipText: {fontFamily: D.fSemi, fontSize: 12, color: D.textDim},
   chipTextOn: {color: D.accentSoft},
   msgRow: {flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginTop: 12},
   comment: {flex: 1, minHeight: 46, maxHeight: 110, borderRadius: 12, backgroundColor: D.card, borderWidth: 1, borderColor: D.hair2, paddingHorizontal: 14, paddingVertical: 10, color: D.text, fontFamily: D.fSans, fontSize: 13.5},
   sendBtn: {width: 46, height: 46, borderRadius: 12, backgroundColor: D.accentSoft, alignItems: 'center', justifyContent: 'center'},
   noteBubble: {maxWidth: '82%', borderRadius: 13, paddingHorizontal: 12, paddingVertical: 8},
-  noteMine: {backgroundColor: 'rgba(91,141,239,0.18)', borderTopRightRadius: 4},
+  noteMine: {backgroundColor: 'rgba(30,136,255,0.18)', borderTopRightRadius: 4},
   noteOfficer: {backgroundColor: D.card, borderWidth: 1, borderColor: D.hair, borderTopLeftRadius: 4},
   noteText: {fontFamily: D.fSans, fontSize: 13, color: D.text, lineHeight: 18},
   noteWho: {fontFamily: D.fMono, fontSize: 9, color: D.textMute, marginTop: 3},

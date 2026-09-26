@@ -49,7 +49,7 @@ export default function ActivityRow({icon, tint = UI.accentSoft, title, subtitle
 const s = StyleSheet.create(scaleTextStyles({
   row: {flexDirection: 'row', gap: 12, alignItems: 'flex-start', padding: 13, borderRadius: 14,
     backgroundColor: UI.surface, borderWidth: 1, borderColor: UI.hair},
-  rowUnread: {borderColor: 'rgba(91,141,239,0.30)', backgroundColor: 'rgba(91,141,239,0.05)'},
+  rowUnread: {borderColor: 'rgba(30,136,255,0.30)', backgroundColor: 'rgba(30,136,255,0.05)'},
   iconWrap: {width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center'},
   titleRow: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8},
   title: {flex: 1, fontFamily: UI.fBold, fontSize: 14, color: UI.text},

@@ -21,6 +21,6 @@ export default function EncryptionPill({label = 'End-to-end encrypted'}: {label?
 const s = StyleSheet.create(scaleTextStyles({
   pill: {flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start',
     paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.26)'},
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.26)'},
   text: {fontFamily: UI.fSemi, fontSize: 10.5, letterSpacing: 0.2, color: UI.accentSoft},
 }));

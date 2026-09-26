@@ -721,8 +721,8 @@ export default function ProApplicationDetailPage() {
                     <div key={m.id} style={{
                       justifySelf: m.sender === 'ops' ? 'end' : 'start',
                       maxWidth: '85%',
-                      background: m.sender === 'ops' ? 'rgba(91,141,239,0.12)' : 'var(--surf-3)',
-                      border: `1px solid ${m.sender === 'ops' ? 'rgba(91,141,239,0.35)' : 'var(--bd-2)'}`,
+                      background: m.sender === 'ops' ? 'rgba(30,136,255,0.12)' : 'var(--surf-3)',
+                      border: `1px solid ${m.sender === 'ops' ? 'rgba(30,136,255,0.35)' : 'var(--bd-2)'}`,
                       borderRadius: 10, padding: '8px 12px', fontSize: 12.5, color: 'var(--tx-1)',
                     }}>
                       {m.body}
@@ -1156,7 +1156,7 @@ export default function ProApplicationDetailPage() {
                           })}
                           style={{
                             display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                            background: on ? 'rgba(91,141,239,0.12)' : 'none',
+                            background: on ? 'rgba(30,136,255,0.12)' : 'none',
                             border: `1px solid ${on ? 'var(--act)' : 'var(--bd-2)'}`,
                             borderRadius: 10, padding: '9px 12px', cursor: blocked ? 'not-allowed' : 'pointer',
                             textAlign: 'left', font: 'inherit', opacity: blocked ? 0.5 : 1,

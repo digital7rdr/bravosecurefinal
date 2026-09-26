@@ -164,7 +164,7 @@ const s = StyleSheet.create(scaleTextStyles({
   headerTitle: {fontFamily: D.fMono, fontSize: 11, fontWeight: '700', letterSpacing: 2, color: D.accentSoft},
   center: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, paddingTop: 80},
   dim: {fontFamily: D.fSans, fontSize: 13, color: D.textDim},
-  retryBtn: {marginTop: 6, paddingVertical: 9, paddingHorizontal: 20, borderRadius: 10, backgroundColor: 'rgba(91,141,239,0.16)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)'},
+  retryBtn: {marginTop: 6, paddingVertical: 9, paddingHorizontal: 20, borderRadius: 10, backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)'},
   retryText: {fontFamily: D.fBold, fontSize: 13, color: D.accentSoft},
   card: {padding: 14, borderRadius: 16, backgroundColor: D.card, borderWidth: 1, borderColor: D.hair, marginBottom: 10},
   cardTop: {flexDirection: 'row', alignItems: 'center', gap: 8},

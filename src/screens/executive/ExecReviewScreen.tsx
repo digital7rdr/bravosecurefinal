@@ -1387,7 +1387,7 @@ export default function ExecReviewScreen() {
 
       {/* ── Footer CTA ── */}
       <LinearGradient
-        colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+        colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
         locations={[0, 0.5]}
         style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
         {/* B-790 — always mounted: a Text appearing at index 0 of this gradient
@@ -1490,7 +1490,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 260, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -1523,7 +1523,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   cellIdle: {backgroundColor: 'rgba(255,255,255,0.022)', borderWidth: 1, borderColor: D.hair2},
   cellSelected: {
-    backgroundColor: 'rgba(16,26,46,0.92)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.55)',
+    backgroundColor: 'rgba(16,26,46,0.92)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.55)',
     shadowColor: '#14285A', shadowOpacity: 0.4, shadowRadius: 14, shadowOffset: {width: 0, height: 10}, elevation: 7,
   },
   cellTopLight: {position: 'absolute', top: 0, left: 14, right: 14, height: 1, backgroundColor: 'rgba(120,160,255,0.4)'},
@@ -1540,7 +1540,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   proIcon: {
     width: 34, height: 34, borderRadius: 11, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
     alignItems: 'center', justifyContent: 'center',
   },
   proTitle: {fontFamily: D.fBold, fontSize: 13.5, letterSpacing: -0.2, color: D.text},
@@ -1563,8 +1563,8 @@ const s = StyleSheet.create(scaleTextStyles({
   blockCard: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 10,
     padding: 13, borderRadius: 14,
-    backgroundColor: 'rgba(91,141,239,0.07)',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)',
   },
   blockText: {flex: 1, minWidth: 0, color: D.textDim, fontFamily: D.fSans, fontSize: 12.5, lineHeight: 19},
   blockStrong: {color: D.text, fontFamily: D.fSemi},
@@ -1588,7 +1588,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   pickIcon: {
     width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
     alignItems: 'center', justifyContent: 'center',
   },
   pickText: {flex: 1, fontFamily: D.fSemi, fontSize: 14.5, letterSpacing: -0.1, color: D.text},
@@ -1609,7 +1609,7 @@ const s = StyleSheet.create(scaleTextStyles({
   locRowFilled: {backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: D.hair2},
   locRowIdle: {backgroundColor: 'rgba(255,255,255,0.022)', borderWidth: 1, borderColor: D.hair},
   locPin: {width: 30, height: 30, borderRadius: 9, flexShrink: 0, alignItems: 'center', justifyContent: 'center'},
-  locPinFilled: {backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)'},
+  locPinFilled: {backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)'},
   locPinIdle: {backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: D.hair2},
   locText: {flex: 1, minWidth: 0, fontSize: 13.5, letterSpacing: -0.1, lineHeight: 18},
   locTextFilled: {fontFamily: D.fSemi, color: D.text},
@@ -1623,13 +1623,13 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   typeIcon: {
     width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
     alignItems: 'center', justifyContent: 'center',
   },
   typeText: {flex: 1, minWidth: 0, fontFamily: D.fSemi, fontSize: 14.5, letterSpacing: -0.1, color: D.text},
   typeList: {
     marginTop: 8, borderRadius: 16, overflow: 'hidden',
-    backgroundColor: 'rgba(16,26,46,0.6)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)',
+    backgroundColor: 'rgba(16,26,46,0.6)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)',
   },
   typeOption: {minHeight: 50, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14},
   typeOptionDivider: {borderTopWidth: 1, borderTopColor: D.hair},
@@ -1646,11 +1646,11 @@ const s = StyleSheet.create(scaleTextStyles({
   // Transport toggle + optional card
   toggleCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16,
-    backgroundColor: 'rgba(16,26,46,0.6)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)',
+    backgroundColor: 'rgba(16,26,46,0.6)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)',
   },
   toggleIcon: {
     width: 38, height: 38, borderRadius: 12, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
     alignItems: 'center', justifyContent: 'center',
   },
   toggleTitle: {fontFamily: D.fBold, fontSize: 14.5, letterSpacing: -0.2, color: D.text},
@@ -1661,7 +1661,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   optionalIcon: {
     width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
     alignItems: 'center', justifyContent: 'center',
   },
   optionalTitle: {fontFamily: D.fSemi, fontSize: 13.5, color: D.text},
@@ -1670,7 +1670,7 @@ const s = StyleSheet.create(scaleTextStyles({
   modeRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 10},
   modeChip: {flexGrow: 1, flexBasis: '28%', minHeight: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10},
   modeChipIdle: {backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: D.hair2},
-  modeChipOn: {backgroundColor: 'rgba(91,141,239,0.16)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.5)'},
+  modeChipOn: {backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.5)'},
   modeChipText: {fontFamily: D.fSemi, fontSize: 12.5, color: D.textDim},
   modeChipTextOn: {color: D.text},
 
@@ -1689,7 +1689,7 @@ const s = StyleSheet.create(scaleTextStyles({
   counterLeft: {flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, paddingRight: 8},
   counterIcon: {
     width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
     alignItems: 'center', justifyContent: 'center',
   },
   counterLabel: {fontFamily: D.fSemi, fontSize: 14, color: D.text, letterSpacing: -0.1},
@@ -1736,7 +1736,7 @@ const s = StyleSheet.create(scaleTextStyles({
   cardDisabled: {opacity: 0.55},
   driverIcon: {
     width: 34, height: 34, borderRadius: 11, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
     alignItems: 'center', justifyContent: 'center',
   },
 
@@ -1747,10 +1747,10 @@ const s = StyleSheet.create(scaleTextStyles({
     backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: D.hair2,
     alignItems: 'center', justifyContent: 'center',
   },
-  addonIconOn: {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: 'rgba(91,141,239,0.4)'},
+  addonIconOn: {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: 'rgba(30,136,255,0.4)'},
   addonPriceChip: {
     alignSelf: 'flex-start', marginTop: 4, paddingVertical: 2, paddingHorizontal: 7, borderRadius: 6,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.26)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.26)',
   },
   addonPriceText: {fontFamily: D.fMono, fontSize: 9.5, fontWeight: '600', letterSpacing: 0.3, color: D.accentSoft},
   ratesNote: {fontFamily: D.fSans, fontSize: 10.5, color: D.textMute, marginTop: 9, paddingLeft: 2},
@@ -1767,7 +1767,7 @@ const s = StyleSheet.create(scaleTextStyles({
   calcPerHour: {fontFamily: D.fMono, fontSize: 9, color: D.textMute, marginTop: 2},
   calcSubtotalRow: {borderTopWidth: 1, borderTopColor: D.hair2, marginTop: 2},
   calcSubtotalLabel: {flex: 1, minWidth: 0, fontFamily: D.fSemi, fontSize: 12.5, color: D.text},
-  calcTotalRow: {borderTopWidth: 1, borderTopColor: 'rgba(91,141,239,0.3)', marginTop: 2, paddingTop: 13},
+  calcTotalRow: {borderTopWidth: 1, borderTopColor: 'rgba(30,136,255,0.3)', marginTop: 2, paddingTop: 13},
   calcTotalLabel: {fontFamily: D.fMono, fontSize: 10, fontWeight: '700', letterSpacing: 1.4, color: D.textDim, flexShrink: 1},
   calcTotalValue: {fontFamily: D.fBold, fontSize: 20, letterSpacing: -0.4, color: D.accentSoft},
   // Referral campaign (2026-09-05) — the code box and its feedback.
@@ -1790,7 +1790,7 @@ const s = StyleSheet.create(scaleTextStyles({
   sectionFlash: {backgroundColor: 'rgba(245,181,68,0.10)', borderRadius: 14},
   consentRow: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14, borderRadius: 16,
-    backgroundColor: 'rgba(16,26,46,0.6)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)',
+    backgroundColor: 'rgba(16,26,46,0.6)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)',
   },
   checkbox: {
     width: 22, height: 22, borderRadius: 7, marginTop: 1, flexShrink: 0,

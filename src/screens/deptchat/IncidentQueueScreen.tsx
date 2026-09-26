@@ -126,7 +126,7 @@ export default function IncidentQueueScreen() {
           return (
             <TouchableOpacity
               key={st}
-              style={[s.chip, s.statusChip, on && {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: 'rgba(91,141,239,0.55)'}]}
+              style={[s.chip, s.statusChip, on && {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: 'rgba(30,136,255,0.55)'}]}
               activeOpacity={0.8}
               onPress={() => { setStatusFilter(st); setLoading(true); }}>
               <Text style={[s.chipText, on && {color: OB.accentSoft}]} numberOfLines={1}>{label}</Text>
@@ -144,7 +144,7 @@ export default function IncidentQueueScreen() {
           return (
             <TouchableOpacity
               key={c}
-              style={[s.chip, s.statusChip, on && {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: 'rgba(91,141,239,0.55)'}]}
+              style={[s.chip, s.statusChip, on && {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: 'rgba(30,136,255,0.55)'}]}
               activeOpacity={0.8}
               onPress={() => { setCatFilter(c); setLoading(true); }}>
               <Text style={[s.chipText, on && {color: OB.accentSoft}]} numberOfLines={1}>{label}</Text>
@@ -161,7 +161,7 @@ export default function IncidentQueueScreen() {
           return (
             <TouchableOpacity
               key={p.key}
-              style={[s.chip, s.statusChip, on && {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: 'rgba(91,141,239,0.55)'}]}
+              style={[s.chip, s.statusChip, on && {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: 'rgba(30,136,255,0.55)'}]}
               activeOpacity={0.8}
               onPress={() => { setDatePreset(p.key); setLoading(true); }}>
               <Text style={[s.chipText, on && {color: OB.accentSoft}]} numberOfLines={1}>{p.label}</Text>
@@ -176,7 +176,7 @@ export default function IncidentQueueScreen() {
               return (
                 <TouchableOpacity
                   key={d}
-                  style={[s.chip, s.statusChip, on && {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: 'rgba(91,141,239,0.55)'}]}
+                  style={[s.chip, s.statusChip, on && {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: 'rgba(30,136,255,0.55)'}]}
                   activeOpacity={0.8}
                   onPress={() => { setDeptFilter(d); setLoading(true); }}>
                   <Text style={[s.chipText, on && {color: OB.accentSoft}]} numberOfLines={1}>{d === 'all' ? 'All branches' : d}</Text>
@@ -269,7 +269,7 @@ const s = StyleSheet.create(scaleTextStyles({
   // fit and never revealed the bug.
   statusChip: {flexShrink: 0, paddingHorizontal: 12, alignSelf: 'center'},
   chipText: {color: OB.textDim, fontFamily: BravoFont.semiBold, fontSize: 11.5},
-  reportBtn: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)'},
+  reportBtn: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12, backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)'},
   reportText: {color: OB.accentSoft, fontFamily: BravoFont.bold, fontSize: 13},
   empty: {color: OB.textMute, fontFamily: BravoFont.regular, fontSize: 12, textAlign: 'center'},
   rowTop: {flexDirection: 'row', alignItems: 'center', gap: 10},

@@ -434,12 +434,12 @@ export default function VaultNewPinScreen() {
 const styles = StyleSheet.create({
   root: {flex: 1, backgroundColor: Colors.background},
 
-  header: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(91,141,239,0.1)'},
+  header: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(30,136,255,0.1)'},
   backBtn: {width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center'},
   headerTitle: {fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2, color: 'rgba(229,233,242,0.62)'},
 
   iconSection: {alignItems: 'center', paddingTop: 16, paddingBottom: 8},
-  iconWrap: {width: 48, height: 48, borderRadius: 16, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 8},
+  iconWrap: {width: 48, height: 48, borderRadius: 16, backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 8},
   title: {fontSize: 16, fontWeight: '800', color: '#FFFFFF', marginBottom: 2},
   sub: {fontSize: 11, color: 'rgba(180,188,204,0.45)'},
 
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
     width: 58,
     height: 58,
     borderRadius: 29,
-    backgroundColor: 'rgba(91,141,239,0.08)',
+    backgroundColor: 'rgba(30,136,255,0.08)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.06)',
     alignItems: 'center',

@@ -349,6 +349,6 @@ const s = StyleSheet.create(scaleTextStyles({
   modalActions: {flexDirection: 'row', gap: 10},
   actBtn: {flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, height: 42, borderRadius: 12, borderWidth: 1},
   cancel: {backgroundColor: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.12)'},
-  send: {backgroundColor: 'rgba(91,141,239,0.10)', borderColor: 'rgba(91,141,239,0.4)'},
+  send: {backgroundColor: 'rgba(30,136,255,0.10)', borderColor: 'rgba(30,136,255,0.4)'},
   actText: {fontFamily: BravoFont.bold, fontSize: 12.5},
 }));

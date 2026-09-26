@@ -88,8 +88,8 @@ export function BravoShieldBadge({size = 96, accent = T.accent}: {size?: number;
     <View
       style={{
         width: size, height: size, borderRadius: size / 2,
-        backgroundColor: 'rgba(91,141,239,0.12)',
-        borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)',
+        backgroundColor: 'rgba(30,136,255,0.12)',
+        borderWidth: 1, borderColor: 'rgba(30,136,255,0.35)',
         alignItems: 'center', justifyContent: 'center',
       }}>
       {/* 0.62, not the glyph's old 0.54: the mark's artboard carries its own
@@ -138,7 +138,7 @@ function StepRow({step, state, acc, spin}: {step: LoadingStep; state: 'done' | '
     <View
       style={[
         styles.stepRow,
-        active && {backgroundColor: 'rgba(20,28,46,0.7)', borderColor: 'rgba(91,141,239,0.28)'},
+        active && {backgroundColor: 'rgba(20,28,46,0.7)', borderColor: 'rgba(30,136,255,0.28)'},
         state === 'pending' && {opacity: 0.42},
       ]}>
       <StepPip state={state} acc={acc} spin={spin} />

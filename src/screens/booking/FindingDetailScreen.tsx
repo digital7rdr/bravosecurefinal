@@ -166,7 +166,7 @@ const s = StyleSheet.create(scaleTextStyles({
   radarWrap: {width: 120, height: 120, alignItems: 'center', justifyContent: 'center', marginBottom: 8},
   ring: {position: 'absolute', width: 96, height: 96, borderRadius: 48, borderWidth: 2, borderColor: UI.accent},
   radarCore: {width: 84, height: 84, borderRadius: 42, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.30)'},
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.30)'},
   title: {fontFamily: UI.fBold, fontSize: 22, color: UI.text, letterSpacing: -0.3, textAlign: 'center'},
   sub: {fontFamily: UI.fSans, fontSize: 14, lineHeight: 21, color: UI.textDim, textAlign: 'center'},
   trust: {flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 4, paddingHorizontal: 13, paddingVertical: 8,

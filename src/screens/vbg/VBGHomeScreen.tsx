@@ -449,13 +449,13 @@ function ActionTile({tint, title, icon, highlight, onPress, disabled, img}: {
 }) {
   const map = {
     blue:   {bg: 'rgba(255,255,255,0.03)', bd: VBG.hair2},
-    indigo: {bg: 'rgba(91,141,239,0.12)', bd: 'rgba(91,141,239,0.42)'},
+    indigo: {bg: 'rgba(30,136,255,0.12)', bd: 'rgba(30,136,255,0.42)'},
   }[tint];
   return (
     <TouchableOpacity activeOpacity={disabled ? 1 : 0.85} onPress={disabled ? undefined : onPress}
       disabled={disabled}
       accessibilityState={{disabled: !!disabled}}
-      style={[styles.actionTile, {backgroundColor: map.bg, borderColor: highlight ? 'rgba(91,141,239,0.55)' : map.bd}, disabled && styles.actionTileDisabled]}>
+      style={[styles.actionTile, {backgroundColor: map.bg, borderColor: highlight ? 'rgba(30,136,255,0.55)' : map.bd}, disabled && styles.actionTileDisabled]}>
       {/* `card`, not `art` — see the DepartmentalHomeScreen note. A tile title
           like "Contact Emergency Services" wraps across ~90% of the tile, so a
           horizontal scrim leaves its tail on bare photo. */}
@@ -475,7 +475,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   topbarAvatar: {
     width: 34, height: 34, borderRadius: 17, overflow: 'hidden',
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.35)',
   },
   topbarAvatarImg: {width: 34, height: 34, borderRadius: 17},
   topbarAvatarText: {color: '#3BA6FF', fontSize: 11, fontWeight: '800'},
@@ -488,7 +488,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   body: {paddingHorizontal: 18, gap: 11},
 
   principalRow: {flexDirection: 'row', alignItems: 'center', gap: 12},
-  portrait: {width: 48, height: 48, borderRadius: 13, borderWidth: 1, borderColor: VBG.hair2, backgroundColor: 'rgba(91,141,239,0.08)', alignItems: 'center', justifyContent: 'center'},
+  portrait: {width: 48, height: 48, borderRadius: 13, borderWidth: 1, borderColor: VBG.hair2, backgroundColor: 'rgba(30,136,255,0.08)', alignItems: 'center', justifyContent: 'center'},
   portraitText: {fontSize: 8, color: VBG.textMute, letterSpacing: 0.5, fontWeight: '700'},
   principalNameRow: {flexDirection: 'row', alignItems: 'center', gap: 7},
   principalName: {flexShrink: 1, minWidth: 0, fontSize: 16.5, fontWeight: '700', color: VBG.text, letterSpacing: -0.3},
@@ -499,7 +499,7 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   cardHead: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 11},
   miniMap: {height: 132, borderRadius: 13},
-  enRoute: {position: 'absolute', left: '50%', bottom: 10, transform: [{translateX: -64}], backgroundColor: 'rgba(7,12,22,0.8)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999},
+  enRoute: {position: 'absolute', left: '50%', bottom: 10, transform: [{translateX: -64}], backgroundColor: 'rgba(7,12,22,0.8)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999},
   enRouteText: {fontSize: 9, letterSpacing: 1.4, color: '#3BA6FF', fontWeight: '600'},
 
   statRow: {flexDirection: 'row', gap: 10, marginVertical: 12},

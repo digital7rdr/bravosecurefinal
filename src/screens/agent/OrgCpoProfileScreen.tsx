@@ -379,10 +379,10 @@ const s = StyleSheet.create(scaleTextStyles({
 
   hero: {alignItems: 'center', gap: 6, paddingTop: 4},
   avatarWrap: {width: 92, height: 92, marginBottom: 6},
-  avatarImg: {width: 92, height: 92, borderRadius: 46, borderWidth: 2, borderColor: 'rgba(91,141,239,0.35)'},
+  avatarImg: {width: 92, height: 92, borderRadius: 46, borderWidth: 2, borderColor: 'rgba(30,136,255,0.35)'},
   avatarFallback: {
     width: 92, height: 92, borderRadius: 46, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 2, borderColor: 'rgba(91,141,239,0.35)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 2, borderColor: 'rgba(30,136,255,0.35)',
   },
   avatarInitials: {fontFamily: D.fBold, fontSize: 30, color: D.accentSoft},
   dutyDot: {
@@ -395,7 +395,7 @@ const s = StyleSheet.create(scaleTextStyles({
   badge: {paddingHorizontal: 11, paddingVertical: 5, borderRadius: 999, borderWidth: 1},
   badgeGreen: {backgroundColor: 'rgba(74,222,128,0.10)', borderColor: 'rgba(74,222,128,0.32)'},
   badgeAmber: {backgroundColor: 'rgba(245,199,107,0.10)', borderColor: 'rgba(245,199,107,0.34)'},
-  badgeBlue: {backgroundColor: 'rgba(91,141,239,0.12)', borderColor: 'rgba(91,141,239,0.34)'},
+  badgeBlue: {backgroundColor: 'rgba(30,136,255,0.12)', borderColor: 'rgba(30,136,255,0.34)'},
   badgeText: {fontFamily: D.fBold, fontSize: 9, letterSpacing: 1},
 
   suspendCard: {
@@ -409,7 +409,7 @@ const s = StyleSheet.create(scaleTextStyles({
   liftBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     marginTop: 4, paddingVertical: 11, borderRadius: 12,
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.30)', backgroundColor: 'rgba(91,141,239,0.10)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.30)', backgroundColor: 'rgba(30,136,255,0.10)',
   },
   liftText: {fontFamily: D.fBold, fontSize: 12.5, color: D.accentSoft, letterSpacing: 0.3},
 

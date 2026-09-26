@@ -234,14 +234,14 @@ const styles = StyleSheet.create(scaleTextStyles({
   usageWarning: {backgroundColor:'rgba(245,158,11,0.08)', borderRadius:8, padding:10, marginTop:10, borderWidth:1, borderColor:'#F59E0B'},
   usageWarningText: {fontSize:12, color:'#F59E0B', fontWeight:'600'},
 
-  mfaNotice: {flexDirection:'row', alignItems:'flex-start', backgroundColor:'rgba(91,141,239,0.05)', borderRadius:10, padding:12, marginBottom:4, borderWidth:1, borderColor:'rgba(255,255,255,0.06)', gap:10},
+  mfaNotice: {flexDirection:'row', alignItems:'flex-start', backgroundColor:'rgba(30,136,255,0.05)', borderRadius:10, padding:12, marginBottom:4, borderWidth:1, borderColor:'rgba(255,255,255,0.06)', gap:10},
   mfaIcon: {fontSize:16, marginTop:1},
   mfaText: {fontSize:12, color:'rgba(229,233,242,0.62)', flex:1, lineHeight:18},
 
   sectionLabel: {fontSize:11, fontWeight:'700', color:'rgba(180,188,204,0.45)', letterSpacing:2, textTransform:'uppercase', marginBottom:10},
 
   planCard: {flexDirection:'row', justifyContent:'space-between', alignItems:'center', backgroundColor:'#122747', borderRadius:14, padding:16, marginBottom:10, borderWidth:1.5, borderColor:'rgba(255,255,255,0.06)'},
-  planSelected: {borderColor:'#1E88FF', backgroundColor:'rgba(91,141,239,0.07)'},
+  planSelected: {borderColor:'#1E88FF', backgroundColor:'rgba(30,136,255,0.07)'},
   planLeft: {flex:1},
   planLabelRow: {flexDirection:'row', alignItems:'center', gap:8},
   planLabel: {fontSize:16, fontWeight:'700', color:'#FFFFFF'},

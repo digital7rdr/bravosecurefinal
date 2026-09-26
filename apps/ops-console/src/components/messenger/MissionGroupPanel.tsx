@@ -706,7 +706,7 @@ function openBtn(disabled: boolean): React.CSSProperties {
     letterSpacing: 0.8,
     cursor:     disabled ? 'not-allowed' : 'pointer',
     opacity:    disabled ? 0.55 : 1,
-    boxShadow:  disabled ? 'none' : '0 0 0 2px rgba(91,141,239,0.25), 0 4px 14px rgba(91,141,239,0.35)',
+    boxShadow:  disabled ? 'none' : '0 0 0 2px rgba(30,136,255,0.25), 0 4px 14px rgba(30,136,255,0.35)',
     textTransform: 'uppercase',
   };
 }
@@ -716,7 +716,7 @@ const dockStyle: React.CSSProperties = {
   display:'flex', flexDirection:'column',
   background:'var(--surf-1)', border:'1px solid var(--bd-1)',
   borderRadius:12, overflow:'hidden',
-  boxShadow:'0 18px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(91,141,239,0.18)',
+  boxShadow:'0 18px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(30,136,255,0.18)',
   zIndex:900,
 };
 const dockHeader: React.CSSProperties = {

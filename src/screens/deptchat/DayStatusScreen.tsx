@@ -467,14 +467,14 @@ const s = StyleSheet.create(scaleTextStyles({
     flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 10,
     backgroundColor: OB.card, borderWidth: 1, borderColor: OB.hair,
   },
-  segCellOn: {borderColor: OB.accentSoft, backgroundColor: 'rgba(91,141,239,0.12)'},
+  segCellOn: {borderColor: OB.accentSoft, backgroundColor: 'rgba(30,136,255,0.12)'},
   segText: {color: OB.textDim, fontFamily: BravoFont.semiBold, fontSize: 12.5},
   segTextOn: {color: OB.accentSoft},
   chipWrap: {flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10},
   dayChip: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
     paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999,
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: OB.hair2,
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: OB.hair2,
   },
   dayChipText: {color: OB.text, fontFamily: BravoFont.semiBold, fontSize: 12},
   pickerHead: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'},
@@ -500,7 +500,7 @@ const s = StyleSheet.create(scaleTextStyles({
 
   footer: {
     position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12,
-    backgroundColor: 'rgba(7,9,13,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
+    backgroundColor: 'rgba(10,31,63,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
   },
   iosBackdrop: {flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end'},
   iosCard: {backgroundColor: '#162F54', padding: 16, paddingBottom: 28, gap: 12, borderTopLeftRadius: 20, borderTopRightRadius: 20},

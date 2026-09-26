@@ -861,7 +861,7 @@ export function ProManagement({section}: {section: Section}) {
                           })}
                           style={{
                             display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                            background: on ? 'rgba(91,141,239,0.12)' : 'none',
+                            background: on ? 'rgba(30,136,255,0.12)' : 'none',
                             border: `1px solid ${on ? 'var(--act)' : 'var(--bd-2)'}`,
                             borderRadius: 10, padding: '9px 12px', cursor: blocked ? 'not-allowed' : 'pointer',
                             textAlign: 'left', font: 'inherit', opacity: blocked ? 0.5 : 1,

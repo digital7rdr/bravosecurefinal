@@ -132,9 +132,9 @@ const CHAT_BG = '#0A1F3F';
 const DM = {
   accent:      '#1E88FF',
   accentDeep:  '#166ED1',
-  accentGlow:  'rgba(91,141,239,0.35)',
-  accentTint:  'rgba(91,141,239,0.12)',
-  accentEdge:  'rgba(91,141,239,0.30)',
+  accentGlow:  'rgba(30,136,255,0.35)',
+  accentTint:  'rgba(30,136,255,0.12)',
+  accentEdge:  'rgba(30,136,255,0.30)',
   quoteBar:    '#7FA8FF',
   onAccent:    '#3BA6FF',
   signal:      '#4ADE80',
@@ -3346,7 +3346,7 @@ function MessageBubbleImpl({
   const pulseBg = pulse.interpolate({
     inputRange:  [0, 1],
     // Cobalt "you jumped here" flash — matches the Bravo DM accent.
-    outputRange: ['rgba(91,141,239,0)', 'rgba(91,141,239,0.32)'],
+    outputRange: ['rgba(30,136,255,0)', 'rgba(30,136,255,0.32)'],
   });
   // Fix #28: ref-mirror onSwipeReply so the handler (created ONCE with
   // useRef + .current) reads the latest callback at fire time. Without
@@ -3667,7 +3667,7 @@ function MessageBubbleImpl({
               // the body text; on the obsidian INCOMING bubble cobalt already
               // reads, and the chip reinforces it.
               mentionColor={sent ? '#FFFFFF' : DM.accent}
-              mentionChipColor={sent ? 'rgba(255,255,255,0.22)' : 'rgba(91,141,239,0.20)'}
+              mentionChipColor={sent ? 'rgba(255,255,255,0.22)' : 'rgba(30,136,255,0.20)'}
               mentions={msg.mentions}
               selfUserId={selfUserId}
               // B-450 — a tappable URL span and the preview card below are both
@@ -3688,7 +3688,7 @@ function MessageBubbleImpl({
             style={[styles.msgText, {marginTop: 6}]}
             linkColor={sent ? '#FFFFFF' : '#3BA6FF'}
             mentionColor={sent ? '#FFFFFF' : DM.accent}
-            mentionChipColor={sent ? 'rgba(255,255,255,0.22)' : 'rgba(91,141,239,0.20)'}
+            mentionChipColor={sent ? 'rgba(255,255,255,0.22)' : 'rgba(30,136,255,0.20)'}
             mentions={msg.mentions}
             selfUserId={selfUserId}
             // B-450 — the caption under an attachment can hold a link too.
@@ -4991,11 +4991,11 @@ const styles = StyleSheet.create(scaleTextStyles({
   // the user's eye lands where they left off. Anchored once, never
   // re-positions while the chat is open.
   unreadSep: {flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 18, marginBottom: 10, marginTop: 4},
-  unreadLine: {flex: 1, height: 1, backgroundColor: 'rgba(91,141,239,0.35)'},
+  unreadLine: {flex: 1, height: 1, backgroundColor: 'rgba(30,136,255,0.35)'},
   unreadPill: {
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99,
-    backgroundColor: 'rgba(91,141,239,0.12)',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)',
+    backgroundColor: 'rgba(30,136,255,0.12)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.35)',
   },
   unreadPillText: {
     fontFamily: BravoFont.mono, color: DM.accent,
@@ -5120,7 +5120,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     paddingVertical: 14, paddingHorizontal: 15,
     borderRadius: 18,
     backgroundColor: DM.recvBubble,
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.14)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.14)',
     shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 8, shadowOffset: {width: 0, height: 4},
     elevation: 2,
   },
@@ -5255,7 +5255,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   // meta row on sent messages). Obsidian chip to match DepartmentChatScreen.
   reactionsRow: {flexDirection:'row', gap:4, marginTop:3, marginHorizontal:6, flexWrap:'wrap'},
   reactionChip: {flexDirection:'row', alignItems:'center', gap:3, paddingHorizontal:7, paddingVertical:3, borderRadius:10, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth:1, borderColor: DM.hair2},
-  reactionChipMine: {backgroundColor: 'rgba(91,141,239,0.12)', borderColor: 'rgba(91,141,239,0.4)'},
+  reactionChipMine: {backgroundColor: 'rgba(30,136,255,0.12)', borderColor: 'rgba(30,136,255,0.4)'},
   reactionEmoji: {fontSize:13},
   reactionCount: {color: DM.textDim, fontSize:10, fontWeight:'700'},
 
@@ -5317,7 +5317,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   mentionScroll:     {maxHeight: 208},
   // 52 tall — comfortably over the 48dp Android minimum touch target.
   mentionRow:        {flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, minHeight: 52, paddingVertical: 8},
-  mentionAvatar:     {width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(91,141,239,0.16)', alignItems: 'center', justifyContent: 'center'},
+  mentionAvatar:     {width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(30,136,255,0.16)', alignItems: 'center', justifyContent: 'center'},
   mentionAvatarText: {fontFamily: BravoFont.semiBold, color: DM.accent, fontSize: 11, fontWeight: '700'},
   mentionName:       {flex: 1, minWidth: 0, fontFamily: BravoFont.sans, color: DM.onAccent, fontSize: 14},
 
@@ -5330,7 +5330,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   actionSheet: {paddingBottom: 12},
   actionReactRow: {flexDirection:'row', gap:10, paddingHorizontal:20, paddingVertical:14, justifyContent:'center'},
   actionReactBtn: {width:44, height:44, borderRadius:22, backgroundColor:'rgba(255,255,255,0.04)', alignItems:'center', justifyContent:'center', borderWidth:1, borderColor: DM.hair2},
-  actionReactBtnMine: {borderColor:'rgba(91,141,239,0.5)', backgroundColor:'rgba(91,141,239,0.22)'},
+  actionReactBtnMine: {borderColor:'rgba(30,136,255,0.5)', backgroundColor:'rgba(30,136,255,0.22)'},
   actionReactEmoji: {fontSize:20},
   actionDivider: {height:1, backgroundColor: DM.hair, marginHorizontal:16},
 
@@ -5353,7 +5353,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   },
   // B-825 — the news share sheet's "Share outside Bravo" row, same look.
   outsideRow: {flexDirection:'row', alignItems:'center', gap:12, marginHorizontal:14, marginBottom:4, paddingVertical:10, paddingHorizontal:12, borderRadius:12, backgroundColor: DM.accentTint, borderWidth:1, borderColor: DM.accentEdge},
-  outsideIcon: {width:34, height:34, borderRadius:10, alignItems:'center', justifyContent:'center', backgroundColor:'rgba(91,141,239,0.16)'},
+  outsideIcon: {width:34, height:34, borderRadius:10, alignItems:'center', justifyContent:'center', backgroundColor:'rgba(30,136,255,0.16)'},
   outsideTitle: {color: DM.text, fontSize:14, fontWeight:'700'},
   outsideSub: {color: DM.textDim, fontSize:11.5, marginTop:1},
   // Cancel / Close is NEUTRAL, not destructive — no red tint (matches the
@@ -5404,7 +5404,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   albumOverflow: {
     ...StyleSheet.absoluteFillObject,
     alignItems:'center', justifyContent:'center',
-    backgroundColor:'rgba(7,9,13,0.62)',
+    backgroundColor:'rgba(10,31,63,0.62)',
   },
   albumOverflowText: {color:'#FFF', fontSize:22, fontWeight:'800'},
   imageBrokenWrap: {alignItems:'center', justifyContent:'center', gap:6},

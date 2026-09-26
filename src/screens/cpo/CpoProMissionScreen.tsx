@@ -221,7 +221,7 @@ export default function CpoProMissionScreen() {
             accessibilityState={{disabled: busy || code.trim().length < 4}}>
             <LinearGradient
               colors={code.trim().length < 4
-                ? ['rgba(91,141,239,0.35)', 'rgba(91,141,239,0.35)', 'rgba(47,91,224,0.35)']
+                ? ['rgba(30,136,255,0.35)', 'rgba(30,136,255,0.35)', 'rgba(22,110,209,0.35)']
                 : ['#3BA6FF', D.accent, D.accentDeep]}
               locations={[0, 0.55, 1]}
               start={{x: 0, y: 0}}
@@ -331,7 +331,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 280, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -360,7 +360,7 @@ const s = StyleSheet.create(scaleTextStyles({
   retryText: {color: D.accentSoft, fontFamily: D.fSemi, fontSize: 13},
   gateIcon: {
     width: 66, height: 66, borderRadius: 19, alignSelf: 'center',
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
     alignItems: 'center', justifyContent: 'center',
   },
   gateTitle: {color: D.text, fontFamily: D.fBold, fontSize: 22, textAlign: 'center', marginTop: 16},
@@ -382,7 +382,7 @@ const s = StyleSheet.create(scaleTextStyles({
   memberRow: {flexDirection: 'row', alignItems: 'center', gap: 13},
   avatar: {
     width: 50, height: 50, borderRadius: 25, flexShrink: 0, overflow: 'hidden',
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
     alignItems: 'center', justifyContent: 'center',
   },
   avatarImg: {width: 50, height: 50, borderRadius: 25},
@@ -408,7 +408,7 @@ const s = StyleSheet.create(scaleTextStyles({
   dateWrap: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
   dateChip: {
     paddingVertical: 7, paddingHorizontal: 12, borderRadius: 10,
-    backgroundColor: 'rgba(91,141,239,0.1)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.1)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
   },
   dateChipText: {color: D.accentSoft, fontFamily: D.fMono, fontSize: 11, fontWeight: '700', letterSpacing: 0.3},
 

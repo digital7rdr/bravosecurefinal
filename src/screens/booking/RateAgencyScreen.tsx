@@ -135,7 +135,7 @@ const s = StyleSheet.create(scaleTextStyles({
   starsWrap: {marginTop: 32, marginBottom: 28},
   tagWrap: {flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center'},
   tag: {paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999, borderWidth: 1, borderColor: UI.hair, backgroundColor: UI.surface},
-  tagOn: {borderColor: 'rgba(91,141,239,0.5)', backgroundColor: 'rgba(91,141,239,0.12)'},
+  tagOn: {borderColor: 'rgba(30,136,255,0.5)', backgroundColor: 'rgba(30,136,255,0.12)'},
   tagText: {fontFamily: UI.fSans, fontSize: 13, color: UI.textDim},
   tagTextOn: {color: UI.accentSoft, fontFamily: UI.fSemi},
   remarksWrap: {marginTop: 26, gap: 6},

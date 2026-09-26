@@ -405,7 +405,7 @@ const r = StyleSheet.create(scaleTextStyles({
   avatar: {
     width: 44, height: 44, borderRadius: 22, overflow: 'hidden',
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
   },
   avatarImg: {width: '100%', height: '100%'},
   initials: {color: OB.accentSoft, fontFamily: BravoFont.bold, fontSize: 14, letterSpacing: 0.3},
@@ -424,7 +424,7 @@ const r = StyleSheet.create(scaleTextStyles({
   pingBtn: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingVertical: 5, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1,
-    borderColor: 'rgba(91,141,239,0.32)', backgroundColor: 'rgba(91,141,239,0.10)',
+    borderColor: 'rgba(30,136,255,0.32)', backgroundColor: 'rgba(30,136,255,0.10)',
   },
   pingBtnText: {color: OB.accentSoft, fontFamily: BravoFont.semiBold, fontSize: 11.5},
   pingWaiting: {flexDirection: 'row', alignItems: 'center', gap: 7},

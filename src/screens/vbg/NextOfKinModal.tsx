@@ -287,12 +287,12 @@ const styles = StyleSheet.create(scaleTextStyles({
   head: {flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 14},
   title: {fontSize: 18, fontWeight: '700', color: VBG.text, letterSpacing: -0.3},
   sub: {fontSize: 11.5, lineHeight: 16, color: VBG.textDim, marginTop: 4},
-  addBtn: {flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, height: 34, borderRadius: 10, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: VBG.accentGlow},
+  addBtn: {flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, height: 34, borderRadius: 10, backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: VBG.accentGlow},
   addBtnText: {fontSize: 12, fontWeight: '700', color: VBG.accentSoft, letterSpacing: 0.3},
 
   row: {flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10, padding: 12, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: VBG.hair},
   rowEditing: {flexDirection: 'column', alignItems: 'stretch', gap: 0, borderColor: VBG.accentGlow},
-  avatar: {width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: VBG.accentGlow, alignItems: 'center', justifyContent: 'center'},
+  avatar: {width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: VBG.accentGlow, alignItems: 'center', justifyContent: 'center'},
   avatarText: {color: VBG.accentSoft, fontSize: 16, fontWeight: '700'},
   name: {fontSize: 14, fontWeight: '600', color: VBG.text, letterSpacing: -0.2},
   phone: {fontSize: 11.5, color: VBG.textMute, marginTop: 2},
@@ -307,7 +307,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   pickBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     marginTop: 8, height: 42, borderRadius: 10,
-    backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.08)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
   },
   pickText: {fontSize: 12.5, fontWeight: '700', color: VBG.accentSoft},
   editActions: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 12, gap: 10},

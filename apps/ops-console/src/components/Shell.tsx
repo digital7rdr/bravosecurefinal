@@ -327,7 +327,12 @@ export function Shell({ children }: { children: ReactNode }) {
       {/* Left rail */}
       <nav className="rail">
         <div className="rail-head">
-          <div className="rail-logo">BR</div>
+          {/* The real brand mark (white + #0084FE wings), not a text tile.
+              bravo-mark-light.svg is on the PUBLIC_ASSETS allowlist so it
+              survives the auth gate; the tile keeps its size + accent glow. */}
+          <div className="rail-logo">
+            <img src="/bravo-mark-light.svg" alt="" width={22} height={17} aria-hidden="true" />
+          </div>
           <span className="rail-brand">BRAVO OPS</span>
           <button
             className="rail-toggle"

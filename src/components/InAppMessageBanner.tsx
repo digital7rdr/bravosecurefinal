@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0B1017',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(91,141,239,0.35)',
+    borderColor: 'rgba(30,136,255,0.35)',
     shadowColor: '#000', shadowOpacity: 0.45, shadowRadius: 16, shadowOffset: {width: 0, height: 6},
     elevation: 12,
   },
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   iconWrap: {
     width: 34, height: 34, borderRadius: 17,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.14)',
+    backgroundColor: 'rgba(30,136,255,0.14)',
   },
   textCol: {flex: 1},
   title: {color: '#F3F6FB', fontSize: 13.5, fontWeight: '700', letterSpacing: 0.2},

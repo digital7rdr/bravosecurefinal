@@ -98,7 +98,7 @@ export default function SecureProIntroScreen() {
             style={s.heroCard}>
             <ImageryBackdrop source={Imagery.proHero} variant="hero" radius={22} />
             <LinearGradient
-              colors={['rgba(91,141,239,0.25)', 'rgba(47,91,224,0.08)']}
+              colors={['rgba(30,136,255,0.25)', 'rgba(22,110,209,0.08)']}
               start={{x: 0.2, y: 0}}
               end={{x: 0.9, y: 1}}
               style={s.heroIcon}>
@@ -165,7 +165,7 @@ export default function SecureProIntroScreen() {
 
       {/* Footer CTA */}
       <LinearGradient
-        colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+        colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
         locations={[0, 0.5]}
         style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
         <TouchableOpacity
@@ -202,7 +202,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 280, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -222,7 +222,7 @@ const s = StyleSheet.create(scaleTextStyles({
   heroIcon: {
     width: 60, height: 60, borderRadius: 17, alignSelf: 'center',
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
   },
   heroTitle: {color: D.text, fontFamily: D.fBold, fontSize: 23, letterSpacing: -0.5, textAlign: 'center', marginTop: 14},
   heroSub: {color: D.textDim, fontFamily: D.fSans, fontSize: 13, lineHeight: 20, textAlign: 'center', marginTop: 10},
@@ -230,7 +230,7 @@ const s = StyleSheet.create(scaleTextStyles({
   benefitPill: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
     paddingVertical: 5, paddingHorizontal: 10, borderRadius: 99,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
   },
   benefitText: {color: D.accentSoft, fontFamily: D.fSemi, fontSize: 11},
 
@@ -248,7 +248,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   featIcon: {
     width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
     alignItems: 'center', justifyContent: 'center',
   },
   featTitle: {color: D.text, fontFamily: D.fBold, fontSize: 13.5},
@@ -258,7 +258,7 @@ const s = StyleSheet.create(scaleTextStyles({
   stepRow: {flexDirection: 'row', alignItems: 'flex-start', gap: 14},
   stepNum: {
     width: 32, height: 32, borderRadius: 9, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.16)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)',
+    backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)',
     alignItems: 'center', justifyContent: 'center',
   },
   stepNumText: {color: D.accentSoft, fontFamily: D.fMono, fontSize: 11, fontWeight: '800'},

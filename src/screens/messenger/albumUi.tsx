@@ -259,12 +259,12 @@ const s = StyleSheet.create(scaleTextStyles({
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
     maxWidth: '60%',
   },
-  chipOn:      {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: 'rgba(91,141,239,0.4)'},
+  chipOn:      {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: 'rgba(30,136,255,0.4)'},
   chipText:    {flexShrink: 1, color: OB.textDim, fontSize: 12.5, fontWeight: '600'},
   chipTextOn:  {color: OB.text},
   chipCount:   {color: OB.textDim, fontSize: 10.5, fontWeight: '700'},
   chipCountOn: {color: OB.accentSoft},
-  chipNew:     {borderStyle: 'dashed', borderColor: 'rgba(91,141,239,0.45)'},
+  chipNew:     {borderStyle: 'dashed', borderColor: 'rgba(30,136,255,0.45)'},
   chipNewText: {color: OB.accentSoft, fontSize: 12.5, fontWeight: '700'},
 
   backdrop: {

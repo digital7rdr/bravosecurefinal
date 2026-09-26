@@ -158,12 +158,12 @@ const styles = StyleSheet.create(scaleTextStyles({
   head: {flexDirection: 'row', alignItems: 'flex-start', gap: 12, marginBottom: 14},
   title: {fontSize: 18, fontWeight: '700', color: VBG.text, letterSpacing: -0.3},
   sub: {fontSize: 11.5, lineHeight: 16, color: VBG.textDim, marginTop: 4},
-  refreshBtn: {width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,141,239,0.1)', borderWidth: 1, borderColor: VBG.accentGlow},
+  refreshBtn: {width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30,136,255,0.1)', borderWidth: 1, borderColor: VBG.accentGlow},
 
   center: {alignItems: 'center', paddingVertical: 34, gap: 8},
   errTitle: {color: VBG.text, fontSize: 13, fontWeight: '700'},
   errHint: {color: VBG.textMute, fontSize: 10.5, textAlign: 'center', paddingHorizontal: 24, lineHeight: 15},
-  retry: {marginTop: 10, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: VBG.accent, backgroundColor: 'rgba(91,141,239,0.1)'},
+  retry: {marginTop: 10, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: VBG.accent, backgroundColor: 'rgba(30,136,255,0.1)'},
   retryText: {color: VBG.accentSoft, fontSize: 9, fontWeight: '800', letterSpacing: 2},
 
   row: {flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 2},

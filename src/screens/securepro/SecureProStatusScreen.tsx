@@ -351,7 +351,7 @@ export default function SecureProStatusScreen() {
           {/* Expired — one-tap renew with old details, or a customised re-application. */}
           {application.status === 'EXPIRED' && !application.via_owner && (
             <LinearGradient
-              colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+              colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
               locations={[0, 0.5]}
               style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
               <TouchableOpacity
@@ -392,7 +392,7 @@ export default function SecureProStatusScreen() {
           {(application.status === 'PENDING_PROPOSAL' || application.status === 'REVISION_REQUESTED') &&
             cancellable && (
             <LinearGradient
-              colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+              colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
               locations={[0, 0.5]}
               style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
               <TouchableOpacity
@@ -412,7 +412,7 @@ export default function SecureProStatusScreen() {
             application.status === 'ACTIVE' || application.status === 'REJECTED' ||
             application.status === 'CANCELLED') && (
             <LinearGradient
-              colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+              colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
               locations={[0, 0.5]}
               style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
               <TouchableOpacity
@@ -491,7 +491,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 280, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -568,7 +568,7 @@ const s = StyleSheet.create(scaleTextStyles({
   sumRowBorder: {borderTopWidth: 1, borderTopColor: D.hair},
   sumIcon: {
     width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.25)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.25)',
     alignItems: 'center', justifyContent: 'center',
   },
   sumLabel: {minWidth: 92, maxWidth: 130, flexShrink: 0, color: D.textMute, fontFamily: D.fSans, fontSize: 11.5},

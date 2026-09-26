@@ -311,7 +311,7 @@ const s = StyleSheet.create(scaleTextStyles({
   locRow: {flexDirection: 'row', alignItems: 'center', gap: 7},
   locText: {color: OB.textMute, fontFamily: BravoFont.mono, fontSize: 11},
   nextRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 9},
-  nextBtn: {flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, height: 44, borderRadius: 12, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)'},
+  nextBtn: {flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, height: 44, borderRadius: 12, backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)'},
   nextText: {color: OB.accentSoft, fontFamily: BravoFont.bold, fontSize: 13},
   evt: {gap: 6, paddingVertical: 12},
   evtTop: {flexDirection: 'row', alignItems: 'center', gap: 8},

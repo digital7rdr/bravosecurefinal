@@ -175,14 +175,14 @@ export default function VaultForgotScreen() {
 const styles = StyleSheet.create(scaleTextStyles({
   root: {flex: 1, backgroundColor: Colors.background},
 
-  header: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(91,141,239,0.1)'},
+  header: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(30,136,255,0.1)'},
   backBtn: {width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center'},
   headerTitle: {fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2, color: 'rgba(229,233,242,0.62)'},
 
   scroll: {paddingHorizontal: 20, paddingTop: 24},
 
   iconSection: {alignItems: 'center', marginBottom: 24},
-  iconWrap: {width: 56, height: 56, borderRadius: 16, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 12},
+  iconWrap: {width: 56, height: 56, borderRadius: 16, backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 12},
   title: {fontSize: 18, fontWeight: '800', color: '#FFFFFF', marginBottom: 4},
   sub: {fontSize: 11, color: 'rgba(180,188,204,0.45)', textAlign: 'center', lineHeight: 18},
 
@@ -193,7 +193,7 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   errorText: {fontSize: 11, fontWeight: '600', color: '#D50000', marginBottom: 12, textAlign: 'center'},
 
-  infoNote: {flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: 'rgba(91,141,239,0.07)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.15)', borderRadius: 12, padding: 12, marginBottom: 24},
+  infoNote: {flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: 'rgba(30,136,255,0.07)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.15)', borderRadius: 12, padding: 12, marginBottom: 24},
   infoText: {flex: 1, fontSize: 11, color: 'rgba(229,233,242,0.62)', lineHeight: 17},
 
   sendBtn: {backgroundColor: '#1E88FF', borderRadius: 12, height: 44, alignItems: 'center', justifyContent: 'center', marginBottom: 16},

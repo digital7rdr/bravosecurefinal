@@ -65,7 +65,8 @@ export default function ReportIncidentDetailsScreen() {
   const userId = useAuthStore(st => st.user?.id);
   // vs2 item 4 — drafts are per (user, ORG). Read at use time, not at
   // mount: the user can switch workspaces without this screen unmounting.
-  const activeOrgId = activeWorkspaceOrgParam()?.orgId ?? null;
+  const activeOrgId = activeWorkspaceOrgParam()?.orgId ?? null;
+
   const [description, setDescription] = useState(params.draft?.description ?? '');
   const [coords, setCoords] = useState<{lat: number; lng: number; label: string} | null>(null);
   // PDF p.12 — manual site entry when location permission is denied/unavailable.
@@ -500,6 +501,6 @@ const s = StyleSheet.create(scaleTextStyles({
   manualInput: {flex: 1, color: OB.text, fontFamily: BravoFont.regular, fontSize: 13, paddingVertical: 12},
   footer: {
     position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12,
-    backgroundColor: 'rgba(7,9,13,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
+    backgroundColor: 'rgba(10,31,63,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
   },
 }));

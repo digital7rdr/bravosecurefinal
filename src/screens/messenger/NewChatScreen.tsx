@@ -1039,7 +1039,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   searchInput: {flex:1, color:'#FFFFFF', fontSize:13, fontWeight:'600', padding:0, margin:0},
 
   newGroupRow: {flexDirection:'row', alignItems:'center', gap:12, paddingHorizontal:16, paddingVertical:12, borderBottomWidth:1, borderBottomColor:'rgba(255,255,255,0.06)'},
-  newGroupIcon: {width:44, height:44, borderRadius:22, backgroundColor:'rgba(91,141,239,0.15)', borderWidth:1, borderColor:'rgba(91,141,239,0.25)', alignItems:'center', justifyContent:'center'},
+  newGroupIcon: {width:44, height:44, borderRadius:22, backgroundColor:'rgba(30,136,255,0.15)', borderWidth:1, borderColor:'rgba(30,136,255,0.25)', alignItems:'center', justifyContent:'center'},
   newGroupInfo: {flex:1},
   newGroupTitle: {color:'#1E88FF', fontSize:13, fontWeight:'700'},
   newGroupSub: {color:'rgba(180,188,204,0.45)', fontSize:11, marginTop:2},
@@ -1060,7 +1060,7 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   // BS-INVITE — invite-a-friend row.
   inviteRow: {flexDirection:'row', alignItems:'center', gap:12, marginHorizontal:16, marginTop:16, paddingHorizontal:16, paddingVertical:12, borderRadius:14, borderWidth:1, borderColor:'rgba(255,255,255,0.09)', backgroundColor:'rgba(22,27,37,0.72)'},
-  inviteIcon: {width:40, height:40, borderRadius:20, alignItems:'center', justifyContent:'center', backgroundColor:'rgba(91,141,239,0.12)', flexShrink:0},
+  inviteIcon: {width:40, height:40, borderRadius:20, alignItems:'center', justifyContent:'center', backgroundColor:'rgba(30,136,255,0.12)', flexShrink:0},
   inviteTitle: {color:'#FFFFFF', fontSize:13, fontWeight:'700'},
   inviteSub: {color:'rgba(180,188,204,0.45)', fontSize:11, marginTop:2},
 
@@ -1071,19 +1071,19 @@ const styles = StyleSheet.create(scaleTextStyles({
   codeText: {color:'rgba(229,233,242,0.62)', fontSize:11, fontFamily:'monospace'},
   codeInline: {color:'rgba(229,233,242,0.62)', fontFamily:'monospace', fontSize:11},
 
-  actionBtn: {marginTop:12, paddingHorizontal:18, paddingVertical:10, borderRadius:10, backgroundColor:'rgba(91,141,239,0.15)', borderWidth:1, borderColor:'rgba(91,141,239,0.35)'},
+  actionBtn: {marginTop:12, paddingHorizontal:18, paddingVertical:10, borderRadius:10, backgroundColor:'rgba(30,136,255,0.15)', borderWidth:1, borderColor:'rgba(30,136,255,0.35)'},
   actionBtnText: {color:'#1E88FF', fontSize:12, fontWeight:'700'},
 
   // ─── Group-selection UI ─────────────────────────────────────────
   headerSubtitle: {color:'rgba(180,188,204,0.45)', fontSize:10, marginTop:2, letterSpacing:0.5},
-  rowSelected: {backgroundColor:'rgba(91,141,239,0.08)'},
+  rowSelected: {backgroundColor:'rgba(30,136,255,0.08)'},
   selectTick: {position:'absolute', right:-2, bottom:-2, width:18, height:18, borderRadius:9, backgroundColor:'#1E88FF', alignItems:'center', justifyContent:'center', borderWidth:2, borderColor:Colors.background},
   checkbox: {width:22, height:22, borderRadius:11, borderWidth:1.5, borderColor:'rgba(255,255,255,0.09)', alignItems:'center', justifyContent:'center'},
   checkboxOn: {backgroundColor:'#1E88FF', borderColor:'#1E88FF'},
   nextFab: {position:'absolute', right:20, width:56, height:56, borderRadius:28, backgroundColor:'#1E88FF', alignItems:'center', justifyContent:'center', shadowColor:'#1E88FF', shadowOffset:{width:0,height:4}, shadowOpacity:0.5, shadowRadius:10, elevation:6},
 
   // ─── Group-name modal ────────────────────────────────────────────
-  modalOverlay: {flex:1, backgroundColor:'rgba(7,9,13,0.85)', alignItems:'center', justifyContent:'center', paddingHorizontal:24},
+  modalOverlay: {flex:1, backgroundColor:'rgba(10,31,63,0.85)', alignItems:'center', justifyContent:'center', paddingHorizontal:24},
   modalCard: {width:'100%', maxWidth:380, backgroundColor:'#122747', borderRadius:16, padding:20, borderWidth:1, borderColor:'rgba(255,255,255,0.09)'},
   modalTitle: {color:'#FFFFFF', fontSize:16, fontWeight:'800', letterSpacing:0.3},
   modalSub: {color:'rgba(180,188,204,0.45)', fontSize:11, marginTop:4, fontWeight:'600'},

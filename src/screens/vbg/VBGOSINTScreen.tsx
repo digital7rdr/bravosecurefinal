@@ -163,14 +163,14 @@ const styles = StyleSheet.create(scaleTextStyles({
   body: {paddingHorizontal: 18, gap: 13},
   intro: {fontSize: 12.5, lineHeight: 18, color: VBG.textDim, letterSpacing: -0.05},
   badgeRow: {flexDirection: 'row', gap: 8, flexWrap: 'wrap', alignItems: 'center'},
-  windowChip: {paddingHorizontal: 9, paddingVertical: 4, borderRadius: 99, borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)', backgroundColor: 'rgba(91,141,239,0.1)'},
+  windowChip: {paddingHorizontal: 9, paddingVertical: 4, borderRadius: 99, borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)', backgroundColor: 'rgba(30,136,255,0.1)'},
   windowChipText: {color: VBG.accentSoft, fontSize: 8.5, fontWeight: '800', letterSpacing: 1.5},
   chips: {flexDirection: 'row', gap: 7, flexWrap: 'wrap'},
 
   center: {alignItems: 'center', paddingVertical: 36, gap: 8},
   errTitle: {color: VBG.text, fontSize: 13, fontWeight: '700'},
   errHint: {color: VBG.textMute, fontSize: 10, textAlign: 'center', paddingHorizontal: 24, lineHeight: 15},
-  retry: {marginTop: 8, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: VBG.accent, backgroundColor: 'rgba(91,141,239,0.1)'},
+  retry: {marginTop: 8, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: VBG.accent, backgroundColor: 'rgba(30,136,255,0.1)'},
   retryText: {color: VBG.accentSoft, fontSize: 9, fontWeight: '800', letterSpacing: 2},
 
   threatTop: {flexDirection: 'row', alignItems: 'center', gap: 9, marginBottom: 9},

@@ -219,7 +219,7 @@ export default function AttendanceScreen() {
         <Card style={{marginTop: 8}}>
           <View style={s.heroRow}>
             <LinearGradient
-              colors={['rgba(91,141,239,0.2)', 'rgba(47,91,224,0.08)']}
+              colors={['rgba(30,136,255,0.2)', 'rgba(22,110,209,0.08)']}
               start={{x: 0.2, y: 0}}
               end={{x: 0.9, y: 1}}
               style={s.heroIcon}>
@@ -388,7 +388,7 @@ const s = StyleSheet.create(scaleTextStyles({
   heroRow: {flexDirection: 'row', alignItems: 'center', gap: 14},
   heroIcon: {
     width: 52, height: 52, borderRadius: 15, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
   },
   heroTitle: {color: OB.text, fontFamily: BravoFont.extraBold, fontSize: 18, letterSpacing: -0.3},
   heroSub: {color: OB.textDim, fontFamily: BravoFont.regular, fontSize: 12.5, marginTop: 3, lineHeight: 17},
@@ -420,6 +420,6 @@ const s = StyleSheet.create(scaleTextStyles({
   footer: {
     position: 'absolute', left: 0, right: 0, bottom: 0,
     paddingHorizontal: 20, paddingTop: 12,
-    backgroundColor: 'rgba(7,9,13,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
+    backgroundColor: 'rgba(10,31,63,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
   },
 }));

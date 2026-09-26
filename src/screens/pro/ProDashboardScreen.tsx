@@ -474,7 +474,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 280, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -484,7 +484,7 @@ const s = StyleSheet.create(scaleTextStyles({
   headerAvatar: {
     width: 40, height: 40, borderRadius: 12, flexShrink: 0, overflow: 'hidden',
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
   },
   headerAvatarImg: {width: 40, height: 40, borderRadius: 12},
   headerAvatarText: {color: D.accentSoft, fontFamily: D.fBold, fontSize: 13},
@@ -526,7 +526,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   addonsIcon: {
     width: 46, height: 46, borderRadius: 14, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)',
     alignItems: 'center', justifyContent: 'center',
   },
   addonsTitle: {fontFamily: D.fBold, fontSize: 15.5, color: D.text},
@@ -550,7 +550,7 @@ const s = StyleSheet.create(scaleTextStyles({
     backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: D.hair2,
     alignItems: 'center', justifyContent: 'center',
   },
-  tileIconLive: {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: 'rgba(91,141,239,0.35)'},
+  tileIconLive: {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: 'rgba(30,136,255,0.35)'},
   soonPill: {
     flexShrink: 1,
     paddingVertical: 3, paddingHorizontal: 7, borderRadius: 6,
@@ -563,7 +563,7 @@ const s = StyleSheet.create(scaleTextStyles({
   noteCard: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 10,
     marginTop: 18, padding: 14, borderRadius: 14,
-    backgroundColor: 'rgba(91,141,239,0.07)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)',
+    backgroundColor: 'rgba(30,136,255,0.07)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)',
   },
   noteText: {flex: 1, minWidth: 0, fontFamily: D.fSans, fontSize: 11.5, lineHeight: 17, color: D.textDim},
 }));

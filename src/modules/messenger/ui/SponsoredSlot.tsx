@@ -75,8 +75,8 @@ const s = StyleSheet.create({
   card: {
     marginHorizontal: 14, marginTop: 8, marginBottom: 4,
     padding: 12, borderRadius: 14,
-    backgroundColor: 'rgba(91,141,239,0.06)',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.25)',
+    backgroundColor: 'rgba(30,136,255,0.06)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.25)',
   },
   topRow: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8},
   eyebrow: {fontFamily: 'monospace', fontSize: 9, fontWeight: '800', letterSpacing: 2, color: '#1E88FF'},
@@ -84,7 +84,7 @@ const s = StyleSheet.create({
   icon: {width: 42, height: 42, borderRadius: 12},
   iconFallback: {
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)',
   },
   headline: {color: '#FFFFFF', fontSize: 13.5, fontWeight: '700'},
   body: {color: 'rgba(229,233,242,0.62)', fontSize: 11.5, marginTop: 2, lineHeight: 15},

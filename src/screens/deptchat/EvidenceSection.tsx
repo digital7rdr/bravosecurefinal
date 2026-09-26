@@ -111,7 +111,7 @@ const k = StyleSheet.create(scaleTextStyles({
   row: {flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 14, backgroundColor: OB.card, borderWidth: 1, borderColor: OB.hair},
   icon: {
     width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
   },
   title: {color: OB.text, fontFamily: BravoFont.bold, fontSize: 13.5},
   sub: {color: OB.textMute, fontFamily: BravoFont.regular, fontSize: 11, marginTop: 2},

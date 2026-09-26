@@ -154,7 +154,7 @@ export default function VerifyAttendanceScreen() {
         {/* Live face frame (PDF p.6 "Look at the camera") */}
         <View style={s.frameWrap}>
           <LinearGradient
-            colors={denied ? ['rgba(245,139,151,0.18)', 'rgba(245,139,151,0.04)'] : ['rgba(91,141,239,0.22)', 'rgba(47,91,224,0.06)']}
+            colors={denied ? ['rgba(245,139,151,0.18)', 'rgba(245,139,151,0.04)'] : ['rgba(30,136,255,0.22)', 'rgba(22,110,209,0.06)']}
             start={{x: 0.2, y: 0}}
             end={{x: 0.9, y: 1}}
             style={[s.frame, denied && {borderColor: 'rgba(245,139,151,0.5)'}]}>
@@ -229,7 +229,7 @@ const s = StyleSheet.create(scaleTextStyles({
   frameWrap: {alignItems: 'center', justifyContent: 'center'},
   frame: {
     width: 200, height: 200, borderRadius: 100, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderColor: 'rgba(91,141,239,0.5)', overflow: 'hidden',
+    borderWidth: 1.5, borderColor: 'rgba(30,136,255,0.5)', overflow: 'hidden',
   },
   cameraFill: {width: '100%', height: '100%'},
   scanDot: {position: 'absolute', bottom: 6, width: 8, height: 8, borderRadius: 4},

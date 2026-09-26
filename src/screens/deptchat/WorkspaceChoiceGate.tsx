@@ -90,7 +90,7 @@ const g = StyleSheet.create(scaleTextStyles({
   },
   icon: {
     width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.25)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.25)',
     marginBottom: 12,
   },
   title: {color: T.text, fontFamily: BravoFont.bold, fontSize: 16, textAlign: 'center'},

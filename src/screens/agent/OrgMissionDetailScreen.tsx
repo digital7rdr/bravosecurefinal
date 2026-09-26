@@ -323,6 +323,6 @@ const s = StyleSheet.create(scaleTextStyles({
   cta: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: D.accent, borderRadius: 14, paddingVertical: 14, marginTop: 4},
   ctaText: {fontFamily: D.fBold, fontSize: 14.5, color: '#fff', letterSpacing: 0.2},
   confirmBtn: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 14, paddingVertical: 13,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)'},
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)'},
   confirmText: {fontFamily: D.fBold, fontSize: 13.5, color: D.accentSoft, letterSpacing: 0.2},
 }));

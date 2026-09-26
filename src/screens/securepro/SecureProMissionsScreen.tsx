@@ -200,7 +200,7 @@ export default function SecureProMissionsScreen() {
 
       {application?.status === 'ACTIVE' && (
         <LinearGradient
-          colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+          colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
           locations={[0, 0.5]}
           style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
           <TouchableOpacity
@@ -230,7 +230,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 280, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -271,7 +271,7 @@ const s = StyleSheet.create(scaleTextStyles({
   dateWrap: {flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 11},
   dateChip: {
     paddingVertical: 5, paddingHorizontal: 10, borderRadius: 8,
-    backgroundColor: 'rgba(91,141,239,0.1)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.1)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
   },
   dateChipText: {color: D.accentSoft, fontFamily: D.fMono, fontSize: 10, fontWeight: '700', letterSpacing: 0.3},
 

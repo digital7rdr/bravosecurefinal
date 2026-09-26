@@ -664,9 +664,9 @@ const styles = StyleSheet.create(scaleTextStyles({
   emptyBlock: {alignItems:'center', paddingVertical:28, gap:8},
   emptyBlockText: {color:'rgba(180,188,204,0.45)', fontSize:12},
 
-  backupIconWrap: {width:36, height:36, borderRadius:10, backgroundColor:'rgba(91,141,239,0.12)', borderWidth:1, borderColor:'rgba(91,141,239,0.3)', alignItems:'center', justifyContent:'center'},
+  backupIconWrap: {width:36, height:36, borderRadius:10, backgroundColor:'rgba(30,136,255,0.12)', borderWidth:1, borderColor:'rgba(30,136,255,0.3)', alignItems:'center', justifyContent:'center'},
   blockAv: {width:36, height:36, borderRadius:18, backgroundColor:'#18202F', alignItems:'center', justifyContent:'center'},
   blockAvText: {color:'#FFFFFF', fontSize:11, fontWeight:'800'},
-  unblockBtn: {paddingHorizontal:12, paddingVertical:8, borderRadius:14, backgroundColor:'rgba(91,141,239,0.12)', borderWidth:1, borderColor:'rgba(91,141,239,0.3)'},
+  unblockBtn: {paddingHorizontal:12, paddingVertical:8, borderRadius:14, backgroundColor:'rgba(30,136,255,0.12)', borderWidth:1, borderColor:'rgba(30,136,255,0.3)'},
   unblockBtnText: {color:'#1E88FF', fontSize:10, fontWeight:'800', letterSpacing:1.5},
 }));

@@ -57,12 +57,12 @@ export default function ComingSoonScreen({title, detail, iconName = 'rocket-laun
 const styles = StyleSheet.create(scaleTextStyles({
   root: {flex: 1, backgroundColor: Colors.background},
 
-  header: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(91,141,239,0.1)'},
+  header: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(30,136,255,0.1)'},
   backBtn: {width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center'},
   headerTitle: {fontSize: 12, fontWeight: '700', letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(229,233,242,0.62)'},
 
   body: {flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32},
-  iconWrap: {width: 76, height: 76, borderRadius: 24, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 16},
+  iconWrap: {width: 76, height: 76, borderRadius: 24, backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 16},
   title: {fontSize: 20, fontWeight: '800', color: '#FFFFFF', marginBottom: 8, textAlign: 'center'},
   detail: {fontSize: 13, color: 'rgba(229,233,242,0.62)', lineHeight: 20, textAlign: 'center'},
 }));

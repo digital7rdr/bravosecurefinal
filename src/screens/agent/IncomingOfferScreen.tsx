@@ -324,7 +324,7 @@ const s = StyleSheet.create(scaleTextStyles({
   statValue: {fontFamily: D.fBold, fontSize: 13, color: D.text, paddingHorizontal: 4},
   chips: {flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 7, marginTop: 14},
   chip: {paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.30)'},
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.30)'},
   chipText: {fontFamily: D.fSemi, fontSize: 11, color: D.accentSoft, textTransform: 'capitalize'},
   title: {fontFamily: D.fBold, fontSize: 21, color: D.text, textAlign: 'center'},
   sub: {fontFamily: D.fSans, fontSize: 13.5, lineHeight: 20, color: D.textDim, textAlign: 'center'},

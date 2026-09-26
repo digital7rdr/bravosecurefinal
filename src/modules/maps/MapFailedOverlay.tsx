@@ -67,8 +67,8 @@ const styles = StyleSheet.create({
     paddingVertical: 9,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(91,141,239,0.5)',
-    backgroundColor: 'rgba(91,141,239,0.12)',
+    borderColor: 'rgba(30,136,255,0.5)',
+    backgroundColor: 'rgba(30,136,255,0.12)',
   },
   retryText: {
     color: '#3BA6FF',

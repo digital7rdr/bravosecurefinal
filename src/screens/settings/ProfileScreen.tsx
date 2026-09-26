@@ -35,7 +35,7 @@ const T = {
   accent:     '#1E88FF',
   accentDeep: '#166ED1',
   accentSoft: '#7FA8FF',
-  accentGlow: 'rgba(91,141,239,0.35)',
+  accentGlow: 'rgba(30,136,255,0.35)',
   blue:       '#3BA6FF',
   signal:     '#4ADE80',
   gold:       '#E2C893',
@@ -579,8 +579,8 @@ const styles = StyleSheet.create(scaleTextStyles({
   content: {paddingHorizontal: 20, paddingTop: 8, gap: 22},
 
   // ── identity + credits card ──
-  idCard: {position: 'relative', overflow: 'hidden', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)'},
-  idGlow: {position: 'absolute', top: -50, right: -40, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(91,141,239,0.10)'},
+  idCard: {position: 'relative', overflow: 'hidden', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)'},
+  idGlow: {position: 'absolute', top: -50, right: -40, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(30,136,255,0.10)'},
   idTop: {flexDirection: 'row', alignItems: 'center', gap: 16},
   avatarWrap: {position: 'relative'},
   avatarRing: {width: 66, height: 66, borderRadius: 33, padding: 2.5, alignItems: 'center', justifyContent: 'center'},
@@ -591,7 +591,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   cameraBadge: {position: 'absolute', bottom: -1, right: -1, width: 24, height: 24, borderRadius: 12, backgroundColor: T.accent, borderWidth: 2.5, borderColor: '#0E1320', alignItems: 'center', justifyContent: 'center'},
   nameRow: {flexDirection: 'row', alignItems: 'center', gap: 9},
   name: {flexShrink: 1, fontFamily: BravoFont.extraBold, fontSize: 22, letterSpacing: -0.4, color: T.text},
-  tierBadge: {paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)'},
+  tierBadge: {paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)'},
   tierBadgeText: {fontFamily: BravoFont.mono, fontSize: 8.5, fontWeight: '800', letterSpacing: 1, color: T.blue, textTransform: 'uppercase'},
   editRow: {flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 7},
   editText: {fontFamily: BravoFont.semiBold, fontSize: 13, color: T.blue, letterSpacing: -0.1},
@@ -605,7 +605,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   topUpText: {fontFamily: BravoFont.bold, fontSize: 14, color: '#fff'},
 
   // ── invite ──
-  inviteCard: {flexDirection: 'row', alignItems: 'center', gap: 11, paddingHorizontal: 14, paddingVertical: 13, backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)', borderRadius: 16},
+  inviteCard: {flexDirection: 'row', alignItems: 'center', gap: 11, paddingHorizontal: 14, paddingVertical: 13, backgroundColor: 'rgba(30,136,255,0.08)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)', borderRadius: 16},
   inviteTitle: {fontFamily: BravoFont.bold, fontSize: 12.5, color: T.text},
   inviteSub: {fontFamily: BravoFont.regular, fontSize: 10.5, color: T.textMute, marginTop: 2},
   inviteAccept: {paddingHorizontal: 13, paddingVertical: 8, borderRadius: 11, backgroundColor: T.accent},
@@ -619,7 +619,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   cardTopHL: {position: 'absolute', top: 0, left: 16, right: 16, height: 1, backgroundColor: 'rgba(255,255,255,0.08)'},
   row: {flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14},
   rowBorder: {borderBottomWidth: 1, borderBottomColor: T.hair},
-  rowIcon: {width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.26)'},
+  rowIcon: {width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.26)'},
   rowLabel: {flex: 1, fontFamily: BravoFont.semiBold, fontSize: 15, letterSpacing: -0.2, color: T.text},
   rowTrailing: {flexShrink: 0, maxWidth: '50%', flexDirection: 'row', alignItems: 'center', gap: 10},
   rowValue: {fontFamily: BravoFont.mono, fontSize: 10, letterSpacing: 0.5, color: T.textMute},

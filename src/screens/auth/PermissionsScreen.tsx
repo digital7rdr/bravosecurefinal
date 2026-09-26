@@ -418,7 +418,7 @@ const WARN   = '#F5B544';
 
 const s = StyleSheet.create(scaleTextStyles({
   safe:    {flex:1, backgroundColor:BG},
-  glow:    {position:'absolute', top:-190, alignSelf:'center', width:600, height:470, borderRadius:300, backgroundColor:'rgba(91,141,239,0.07)'},
+  glow:    {position:'absolute', top:-190, alignSelf:'center', width:600, height:470, borderRadius:300, backgroundColor:'rgba(30,136,255,0.07)'},
   scroll:  {flex:1},
   content: {paddingHorizontal:20},
 
@@ -426,10 +426,10 @@ const s = StyleSheet.create(scaleTextStyles({
 
   hero:     {paddingTop:18, paddingBottom:24},
   markWrap: {width:60, height:60, marginBottom:20},
-  halo:     {position:'absolute', top:-14, left:-14, right:-14, bottom:-14, borderRadius:26, borderWidth:1, borderColor:'rgba(91,141,239,0.13)'},
-  halo2:    {position:'absolute', top:-27, left:-27, right:-27, bottom:-27, borderRadius:34, borderWidth:1, borderColor:'rgba(91,141,239,0.06)'},
+  halo:     {position:'absolute', top:-14, left:-14, right:-14, bottom:-14, borderRadius:26, borderWidth:1, borderColor:'rgba(30,136,255,0.13)'},
+  halo2:    {position:'absolute', top:-27, left:-27, right:-27, bottom:-27, borderRadius:34, borderWidth:1, borderColor:'rgba(30,136,255,0.06)'},
   markTile: {width:60, height:60, borderRadius:19, alignItems:'center', justifyContent:'center',
-    backgroundColor:'rgba(91,141,239,0.14)', borderWidth:1, borderColor:'rgba(91,141,239,0.4)',
+    backgroundColor:'rgba(30,136,255,0.14)', borderWidth:1, borderColor:'rgba(30,136,255,0.4)',
     shadowColor:ACCENT, shadowOpacity:0.45, shadowRadius:15, shadowOffset:{width:0, height:6}, elevation:8},
   title:       {fontSize:29, fontWeight:'400', lineHeight:34, letterSpacing:-0.9, color:'#FFFFFF'},
   titleAccent: {fontWeight:'700', color:ACCENT},
@@ -439,7 +439,7 @@ const s = StyleSheet.create(scaleTextStyles({
   cntWrap: {flexDirection:'row', alignItems:'center', gap:8, flexShrink:1, minWidth:0},
   cntDot:  {width:5, height:5, borderRadius:3, backgroundColor:OK},
   cntText: {fontSize:11.5, fontWeight:'500', letterSpacing:1.4, textTransform:'uppercase', color:'rgba(180,188,204,0.45)', flexShrink:1},
-  allowAllBtn:  {flexShrink:0, paddingHorizontal:16, paddingVertical:8, borderRadius:100, backgroundColor:'rgba(91,141,239,0.08)', borderWidth:1, borderColor:'rgba(91,141,239,0.34)'},
+  allowAllBtn:  {flexShrink:0, paddingHorizontal:16, paddingVertical:8, borderRadius:100, backgroundColor:'rgba(30,136,255,0.08)', borderWidth:1, borderColor:'rgba(30,136,255,0.34)'},
   allowAllText: {fontSize:12.5, fontWeight:'500', color:'#8CB3FF'},
 
   list: {gap:9},
@@ -455,7 +455,7 @@ const s = StyleSheet.create(scaleTextStyles({
   rowError:    {borderColor:'rgba(255,93,93,0.5)'},
 
   iconBox:         {width:44, height:44, borderRadius:14, alignItems:'center', justifyContent:'center', flexShrink:0,
-    backgroundColor:'rgba(91,141,239,0.14)', borderWidth:1, borderColor:'rgba(120,168,255,0.26)'},
+    backgroundColor:'rgba(30,136,255,0.14)', borderWidth:1, borderColor:'rgba(120,168,255,0.26)'},
   iconBoxRequired: {backgroundColor:'rgba(255,93,93,0.14)', borderColor:'rgba(255,140,140,0.3)'},
   iconBoxGranted:  {backgroundColor:'rgba(74,222,128,0.14)', borderColor:'rgba(127,227,165,0.3)'},
 

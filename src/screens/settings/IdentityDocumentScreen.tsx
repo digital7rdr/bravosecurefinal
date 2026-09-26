@@ -334,7 +334,7 @@ export default function IdentityDocumentScreen({onDone}: Props) {
       </ScrollView>
 
       <LinearGradient
-        colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+        colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
         locations={[0, 0.5]}
         style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
         {showForm ? (
@@ -386,11 +386,11 @@ const s = StyleSheet.create(scaleTextStyles({
   root: {flex: 1, backgroundColor: UI.bg, overflow: 'hidden'},
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
-    width: 460, height: 280, borderRadius: 230, backgroundColor: 'rgba(91,141,239,0.07)',
+    width: 460, height: 280, borderRadius: 230, backgroundColor: 'rgba(30,136,255,0.07)',
   },
   header: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12},
   back: {width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: UI.surface, borderWidth: 1, borderColor: UI.hair},
-  headerMark: {width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)'},
+  headerMark: {width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)'},
   headerTitle: {fontFamily: UI.fSemi, fontSize: 17, color: UI.text, letterSpacing: -0.2},
   headerSub: {fontFamily: UI.fSans, fontSize: 10.5, letterSpacing: 1.2, color: UI.textMute, marginTop: 2},
 
@@ -406,7 +406,7 @@ const s = StyleSheet.create(scaleTextStyles({
   doneTitle: {fontFamily: UI.fSemi, fontSize: 14.5, color: UI.text},
   doneSub: {fontFamily: UI.fSans, fontSize: 12, color: UI.textDim, marginTop: 2},
   doneNote: {fontFamily: UI.fSans, fontSize: 11.5, color: UI.signal, marginTop: 4},
-  replaceBtn: {paddingHorizontal: 12, paddingVertical: 8, borderRadius: 100, backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)'},
+  replaceBtn: {paddingHorizontal: 12, paddingVertical: 8, borderRadius: 100, backgroundColor: 'rgba(30,136,255,0.08)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)'},
   replaceText: {fontFamily: UI.fSemi, fontSize: 12, color: UI.accentSoft},
 
   sectionLabel: {fontFamily: UI.fBold, fontSize: 10.5, letterSpacing: 1.2, color: UI.textMute, marginLeft: 4, marginTop: 4},
@@ -415,7 +415,7 @@ const s = StyleSheet.create(scaleTextStyles({
     flexDirection: 'row', alignItems: 'center', gap: 12,
     borderRadius: 16, borderWidth: 1, borderColor: UI.hair, backgroundColor: UI.surface, padding: 14,
   },
-  chipOn: {borderColor: 'rgba(91,141,239,0.55)', backgroundColor: 'rgba(91,141,239,0.08)'},
+  chipOn: {borderColor: 'rgba(30,136,255,0.55)', backgroundColor: 'rgba(30,136,255,0.08)'},
   chipLabel: {fontFamily: UI.fSemi, fontSize: 14, color: UI.textDim},
   chipLabelOn: {color: UI.text},
   chipHint: {fontFamily: UI.fSans, fontSize: 11.5, color: UI.textMute, marginTop: 2},
@@ -428,7 +428,7 @@ const s = StyleSheet.create(scaleTextStyles({
     // aspectRatio for the usual case; the minHeight floor keeps icon + label +
     // hint inside the tile at 320 dp and fontScale 1.3 (two tiles ≈ 134 dp wide).
     flex: 1, minWidth: 0, aspectRatio: 1.35, minHeight: 132, borderRadius: 16, overflow: 'hidden',
-    borderWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(91,141,239,0.4)', backgroundColor: 'rgba(91,141,239,0.05)',
+    borderWidth: 1, borderStyle: 'dashed', borderColor: 'rgba(30,136,255,0.4)', backgroundColor: 'rgba(30,136,255,0.05)',
   },
   tileFilled: {borderStyle: 'solid', borderColor: 'rgba(74,222,128,0.4)'},
   tileImg: {width: '100%', height: '100%'},
@@ -437,7 +437,7 @@ const s = StyleSheet.create(scaleTextStyles({
   tileHint: {fontFamily: UI.fSans, fontSize: 11, color: UI.textMute, textAlign: 'center'},
   tileRetake: {
     position: 'absolute', right: 8, bottom: 8, flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 9, paddingVertical: 5, borderRadius: 100, backgroundColor: 'rgba(7,9,13,0.78)', borderWidth: 1, borderColor: UI.hair,
+    paddingHorizontal: 9, paddingVertical: 5, borderRadius: 100, backgroundColor: 'rgba(10,31,63,0.78)', borderWidth: 1, borderColor: UI.hair,
   },
   tileRetakeText: {fontFamily: UI.fSemi, fontSize: 11, color: UI.text},
 

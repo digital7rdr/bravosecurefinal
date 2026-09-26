@@ -237,8 +237,8 @@ const s = StyleSheet.create({
   rail: {
     position: 'absolute', left: 16, right: 16,
     top: 16 + PAD_ROWS * ITEM_HEIGHT, height: ITEM_HEIGHT,
-    borderRadius: 13, borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
-    backgroundColor: 'rgba(91,141,239,0.10)',
+    borderRadius: 13, borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
+    backgroundColor: 'rgba(30,136,255,0.10)',
     // B-646 r2 — NO zIndex. On Android a z-indexed sibling is lifted above the
     // columns for HIT-TESTING as well as painting, and `pointerEvents="none"` did
     // not save it: the band sits exactly over the centre row, which is precisely

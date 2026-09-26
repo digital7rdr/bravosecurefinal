@@ -26,7 +26,7 @@ const T = {
   accent:    '#1E88FF',
   accentSoft:'#3BA6FF',
   card:      'rgba(18,22,30,0.85)',
-  rowOn:     'rgba(91,141,239,0.12)',
+  rowOn:     'rgba(30,136,255,0.12)',
 } as const;
 
 export interface PayerSelectorProps {
@@ -104,7 +104,7 @@ const s = StyleSheet.create({
     minHeight: 48, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 12,
     borderWidth: 1, borderColor: 'transparent',
   },
-  rowOn:  {backgroundColor: T.rowOn, borderColor: 'rgba(91,141,239,0.35)'},
+  rowOn:  {backgroundColor: T.rowOn, borderColor: 'rgba(30,136,255,0.35)'},
   rowOff: {opacity: 0.55},
   rowText:  {flex: 1, minWidth: 0},
   rowLabel: {color: T.text, fontSize: 14, fontWeight: '700'},

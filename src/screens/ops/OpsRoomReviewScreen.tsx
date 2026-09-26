@@ -793,7 +793,7 @@ export default function OpsRoomReviewScreen() {
 
             {payState === 'needs_payer' && (
               <>
-                <View style={[s.sheetIconWrap, {backgroundColor: 'rgba(91,141,239,0.14)'}]}>
+                <View style={[s.sheetIconWrap, {backgroundColor: 'rgba(30,136,255,0.14)'}]}>
                   <Icon name="account-switch-outline" size={36} color={Colors.accent} />
                 </View>
                 <Text style={s.sheetTitle}>CHOOSE AN ACCOUNT</Text>

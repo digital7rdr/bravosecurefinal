@@ -49,7 +49,7 @@ const D = {
   hair2:      'rgba(255,255,255,0.09)',
   accent:     '#1E88FF',
   accentDeep: '#166ED1',
-  accentGlow: 'rgba(91,141,239,0.35)',
+  accentGlow: 'rgba(30,136,255,0.35)',
   accentSoft: '#3BA6FF',
   signal:     '#4ADE80',
   amber:      '#F5C76B',
@@ -63,12 +63,12 @@ const D = {
 // Service → type-pill tint (real `service` string drives this, not a constant).
 function servicePill(service: string, driverOnly: boolean): {label: string; c: string; bg: string; bd: string} {
   const svc = (service || '').toLowerCase();
-  if (driverOnly)                  {return {label: 'DRIVER ONLY',         c: D.accentSoft, bg: 'rgba(91,141,239,0.12)', bd: 'rgba(91,141,239,0.34)'};}
+  if (driverOnly)                  {return {label: 'DRIVER ONLY',         c: D.accentSoft, bg: 'rgba(30,136,255,0.12)', bd: 'rgba(30,136,255,0.34)'};}
   if (svc.includes('executive') || svc.includes('protection'))
                                    {return {label: 'CLOSE PROTECTION',    c: D.alert,      bg: 'rgba(245,72,90,0.1)',  bd: 'rgba(245,72,90,0.34)'};}
   if (svc.includes('recon') || svc.includes('surveillance') || svc.includes('extraction'))
                                    {return {label: 'RECON',               c: '#8FE6B4',    bg: 'rgba(74,222,128,0.12)', bd: 'rgba(74,222,128,0.32)'};}
-  return {label: 'SECURE TRANSFER', c: D.accentSoft, bg: 'rgba(91,141,239,0.12)', bd: 'rgba(91,141,239,0.34)'};
+  return {label: 'SECURE TRANSFER', c: D.accentSoft, bg: 'rgba(30,136,255,0.12)', bd: 'rgba(30,136,255,0.34)'};
 }
 
 function titleCase(s: string): string {
@@ -361,7 +361,7 @@ export default function JobDetailScreen({route, navigation}: Props) {
                 onError={() => setMapFailed(true)}
               />
               <LinearGradient
-                colors={['rgba(7,9,13,0.1)', 'rgba(7,9,13,0.6)']}
+                colors={['rgba(10,31,63,0.1)', 'rgba(10,31,63,0.6)']}
                 style={StyleSheet.absoluteFill}
               />
             </>
@@ -515,7 +515,7 @@ export default function JobDetailScreen({route, navigation}: Props) {
 
       {/* ── Footer ── */}
       <LinearGradient
-        colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+        colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
         locations={[0, 0.4]}
         style={[s.footer, {paddingBottom: bottomPad(16)}]}>
         {!alreadyApplied && (
@@ -701,7 +701,7 @@ const s = StyleSheet.create(scaleTextStyles({
   distBadge: {
     position: 'absolute', top: 14, alignSelf: 'center',
     paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999,
-    backgroundColor: 'rgba(10,16,28,0.85)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    backgroundColor: 'rgba(10,16,28,0.85)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
   },
   distText: {fontFamily: D.fMono, fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: D.accentSoft},
   mapLabels: {position: 'absolute', bottom: 12, left: 12, right: 12, flexDirection: 'row', justifyContent: 'space-between', gap: 8},
@@ -730,7 +730,7 @@ const s = StyleSheet.create(scaleTextStyles({
   // Mission card
   missionCard: {
     position: 'relative', overflow: 'hidden', borderRadius: 22, padding: 18,
-    backgroundColor: 'rgba(20,28,46,0.85)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.26)',
+    backgroundColor: 'rgba(20,28,46,0.85)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.26)',
     shadowColor: '#14285A', shadowOpacity: 0.3, shadowRadius: 18, shadowOffset: {width: 0, height: 14}, elevation: 8,
   },
   missionRail: {position: 'absolute', top: 0, bottom: 0, left: 0, width: 3},
@@ -748,7 +748,7 @@ const s = StyleSheet.create(scaleTextStyles({
   detailCell: {flexDirection: 'row', alignItems: 'center', gap: 11, flex: 1},
   detailIcon: {
     width: 38, height: 38, borderRadius: 11, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)',
     alignItems: 'center', justifyContent: 'center',
   },
   detailLabel: {fontFamily: D.fMono, fontSize: 8.5, fontWeight: '600', letterSpacing: 1.2, color: D.textMute},
@@ -786,14 +786,14 @@ const s = StyleSheet.create(scaleTextStyles({
   // Earnings
   payCard: {
     borderRadius: 16, padding: 14, gap: 9,
-    backgroundColor: 'rgba(91,141,239,0.05)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.2)',
+    backgroundColor: 'rgba(30,136,255,0.05)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.2)',
   },
   payHeader: {flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2},
   payHeaderText: {fontFamily: D.fBold, fontSize: 9, letterSpacing: 1.8, color: D.accentSoft},
   payRow: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'},
   payRowLabel: {fontFamily: D.fSans, fontSize: 12, color: D.textMute},
   payRowVal: {fontFamily: D.fBold, fontSize: 12},
-  payTotal: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(91,141,239,0.2)', marginTop: 2},
+  payTotal: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(30,136,255,0.2)', marginTop: 2},
   payTotalLabel: {fontFamily: D.fBold, fontSize: 12, color: D.textDim},
   payTotalVal: {fontFamily: D.fBold, fontSize: 15, color: D.accentSoft},
   payNote: {fontFamily: D.fSans, fontSize: 10, color: D.textMute, lineHeight: 14},
@@ -825,7 +825,7 @@ const s = StyleSheet.create(scaleTextStyles({
   pledgeTitle: {fontFamily: D.fBold, fontSize: 16, color: D.text, marginBottom: 8},
   pledgeOpsBox: {
     flexDirection: 'row', gap: 10, padding: 12, borderRadius: 12, marginBottom: 16,
-    backgroundColor: 'rgba(91,141,239,0.06)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.25)',
+    backgroundColor: 'rgba(30,136,255,0.06)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.25)',
   },
   pledgeOpsText: {flex: 1, fontFamily: D.fSans, fontSize: 12, color: D.textDim, lineHeight: 17},
   pledgeSectionLabel: {fontFamily: D.fMono, fontSize: 10, fontWeight: '700', letterSpacing: 1.5, color: D.textMute, marginBottom: 10},
@@ -835,7 +835,7 @@ const s = StyleSheet.create(scaleTextStyles({
     flexDirection: 'row', alignItems: 'flex-start', gap: 12, padding: 14, borderRadius: 14, marginBottom: 10,
     backgroundColor: 'rgba(255,255,255,0.022)', borderWidth: 1, borderColor: D.hair2,
   },
-  pledgeOptionOn: {backgroundColor: 'rgba(91,141,239,0.1)', borderColor: 'rgba(91,141,239,0.45)'},
+  pledgeOptionOn: {backgroundColor: 'rgba(30,136,255,0.1)', borderColor: 'rgba(30,136,255,0.45)'},
   pledgeOptionDisabled: {opacity: 0.5},
   pledgeOptionTitle: {fontFamily: D.fBold, fontSize: 13.5, letterSpacing: -0.1, color: D.text},
   pledgeOptionSub: {fontFamily: D.fSans, fontSize: 11.5, lineHeight: 16, color: D.textMute, marginTop: 3},
@@ -852,7 +852,7 @@ const s = StyleSheet.create(scaleTextStyles({
   pledgeRadioDot: {width: 10, height: 10, borderRadius: 5, backgroundColor: D.accent},
   pledgeChipRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10},
   pledgeChip: {paddingHorizontal: 11, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: D.hair2, backgroundColor: 'rgba(255,255,255,0.04)'},
-  pledgeChipActive: {borderColor: 'rgba(91,141,239,0.5)', backgroundColor: 'rgba(91,141,239,0.14)'},
+  pledgeChipActive: {borderColor: 'rgba(30,136,255,0.5)', backgroundColor: 'rgba(30,136,255,0.14)'},
   pledgeChipText: {fontFamily: D.fSemi, fontSize: 11, color: D.textDim},
   pledgeChipTextActive: {color: D.accentSoft, fontFamily: D.fBold},
   pledgeInput: {

@@ -278,7 +278,7 @@ export default function OrgCreateCpoScreen() {
       </ScrollView>
 
       {/* ── Sticky CTA — B-184: bottom-most node owns the keyboard inset ── */}
-      <LinearGradient colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']} locations={[0, 0.28]}
+      <LinearGradient colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']} locations={[0, 0.28]}
         style={{paddingHorizontal: 20, paddingTop: 14, paddingBottom: bottomPad(14)}}>
         <TouchableOpacity activeOpacity={0.85} disabled={!valid || submitting}
           onPress={() => { void submit(); }}>
@@ -338,7 +338,7 @@ const s = StyleSheet.create(scaleTextStyles({
   secRow: {flexDirection: 'row', alignItems: 'center', gap: 10, marginHorizontal: 2},
   secChip: {
     paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5,
-    backgroundColor: 'rgba(91,141,239,0.1)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.1)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
   },
   secChipText: {fontFamily: D.fBold, fontSize: 9, letterSpacing: 1, color: D.accentSoft},
   secText: {fontFamily: D.fSemi, fontSize: 10.5, letterSpacing: 2, color: D.textDim},
@@ -357,7 +357,7 @@ const s = StyleSheet.create(scaleTextStyles({
     paddingHorizontal: 14, borderRadius: 14,
     backgroundColor: 'rgba(255,255,255,0.028)', borderWidth: 1, borderColor: D.hair2,
   },
-  fieldBoxLit: {backgroundColor: 'rgba(91,141,239,0.06)', borderColor: 'rgba(91,141,239,0.4)'},
+  fieldBoxLit: {backgroundColor: 'rgba(30,136,255,0.06)', borderColor: 'rgba(30,136,255,0.4)'},
   fieldInput: {flex: 1, fontFamily: D.fSans, fontSize: 15, color: D.text, letterSpacing: -0.1, paddingVertical: 0},
   fieldInputMono: {fontFamily: D.fMono, fontSize: 14, letterSpacing: 0.4},
 

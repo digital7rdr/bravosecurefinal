@@ -335,7 +335,7 @@ export default function WorkspaceHubScreen() {
                   return (
                     <Card key={w.org_id} style={s.wsCard} onPress={() => enterWorkspace(w)}>
                       <View style={[s.wsIcon, isOwner
-                        ? {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: OB.accent + '40'}
+                        ? {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: OB.accent + '40'}
                         : {backgroundColor: 'rgba(74,222,128,0.10)', borderColor: OB.signal + '40'}]}>
                         <Icon name={isOwner ? 'office-building-outline' : 'account-group-outline'}
                           size={22} color={isOwner ? OB.accent : OB.signal} />
@@ -447,7 +447,7 @@ export default function WorkspaceHubScreen() {
                   <>
                     <SectionLabel>YOUR WORKSPACE</SectionLabel>
                     <Card style={s.wsCard} onPress={enterPrimaryOrg}>
-                      <View style={[s.wsIcon, {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: OB.accent + '40'}]}>
+                      <View style={[s.wsIcon, {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: OB.accent + '40'}]}>
                         <Icon name="office-building-outline" size={22} color={OB.accent} />
                       </View>
                       <View style={{flex: 1, minWidth: 0}}>
@@ -551,7 +551,7 @@ export default function WorkspaceHubScreen() {
               <>
                 <SectionLabel>GET STARTED</SectionLabel>
                 <Card style={s.emptyCard} img={Imagery.deptWorkspaces} imgVariant="hero">
-                  <View style={[s.wsIcon, {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: OB.accent + '40', alignSelf: 'center'}]}>
+                  <View style={[s.wsIcon, {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: OB.accent + '40', alignSelf: 'center'}]}>
                     <Icon name="office-building-outline" size={22} color={OB.accent} />
                   </View>
                   <Text style={s.emptyTitle}>No workspaces yet</Text>
@@ -578,7 +578,7 @@ export default function WorkspaceHubScreen() {
             <View style={{height: 4}} />
             <SectionLabel>JOIN A WORKSPACE</SectionLabel>
             <Card style={s.wsCard} onPress={() => navigation.navigate('JoinWorkspace')}>
-              <View style={[s.wsIcon, {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: OB.accent + '40'}]}>
+              <View style={[s.wsIcon, {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: OB.accent + '40'}]}>
                 <Icon name="ticket-confirmation-outline" size={22} color={OB.accent} />
               </View>
               <View style={{flex: 1, minWidth: 0}}>
@@ -600,7 +600,7 @@ const s = StyleSheet.create(scaleTextStyles({
   identity:   {flexDirection: 'row', alignItems: 'center', gap: 14, paddingTop: 4, paddingBottom: 20},
   identityAvatar: {
     width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.35)',
     overflow: 'hidden',
   },
   identityAvatarImg: {width: 52, height: 52, borderRadius: 26},

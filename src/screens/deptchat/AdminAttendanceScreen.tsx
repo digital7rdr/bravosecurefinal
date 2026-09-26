@@ -418,7 +418,7 @@ const s = StyleSheet.create(scaleTextStyles({
     paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.10)', backgroundColor: 'rgba(255,255,255,0.03)',
   },
-  filterChipOn: {borderColor: 'rgba(91,141,239,0.55)', backgroundColor: 'rgba(91,141,239,0.14)'},
+  filterChipOn: {borderColor: 'rgba(30,136,255,0.55)', backgroundColor: 'rgba(30,136,255,0.14)'},
   filterText: {color: OB.textDim, fontFamily: BravoFont.semiBold, fontSize: 11.5},
   filterTextOn: {color: OB.accentSoft},
   statsRow: {flexDirection: 'row', gap: 10, marginTop: 8},

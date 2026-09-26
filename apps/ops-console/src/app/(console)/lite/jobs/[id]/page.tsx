@@ -137,7 +137,7 @@ export default function JobApplications({ params }: { params: Promise<{ id: stri
                 </div>
                 <div>
                   <div style={{height:10,borderRadius:6,background:'var(--surf-3)',border:'1px solid var(--bd-2)',overflow:'hidden',marginTop:10}}>
-                    <div style={{height:'100%',width:`${job.cpo_slots ? Math.min(100, (job.slots_filled/job.cpo_slots)*100) : 0}%`,background:'linear-gradient(90deg,var(--act),var(--acc))',boxShadow:'0 0 10px rgba(91,141,239,0.4)'}}/>
+                    <div style={{height:'100%',width:`${job.cpo_slots ? Math.min(100, (job.slots_filled/job.cpo_slots)*100) : 0}%`,background:'linear-gradient(90deg,var(--act),var(--acc))',boxShadow:'0 0 10px rgba(30,136,255,0.4)'}}/>
                   </div>
                   <div style={{display:'flex',justifyContent:'space-between',fontFamily:'var(--font-mono)',fontSize:10,color:'var(--tx-3)',letterSpacing:0.6,marginTop:6}}>
                     <span>{apps.filter(a => a.status === 'ASSIGNED').length} assigned</span>

@@ -704,7 +704,7 @@ const s = StyleSheet.create(scaleTextStyles({
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     height: 46, borderRadius: 12, borderWidth: 1, borderColor: OB.hair2, backgroundColor: 'rgba(255,255,255,0.03)',
   },
-  segOn: {borderColor: OB.accent + '80', backgroundColor: 'rgba(91,141,239,0.12)'},
+  segOn: {borderColor: OB.accent + '80', backgroundColor: 'rgba(30,136,255,0.12)'},
   segText: {color: OB.textMute, fontFamily: BravoFont.semiBold, fontSize: 12},
   accRow: {flexDirection: 'row', alignItems: 'center', gap: 12},
   accOn: {borderColor: OB.accent + '66'},

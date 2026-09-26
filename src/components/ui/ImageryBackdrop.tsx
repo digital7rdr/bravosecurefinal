@@ -75,7 +75,7 @@ const SCRIM: Record<ImageryVariant, {
   // bright source pixel (headlights, city lights) a 0.66 floor put that
   // sub-line near 4.0:1; 0.78+ keeps it at the flat-card baseline.
   hero: {
-    colors: ['rgba(7,9,13,0.22)', 'rgba(7,9,13,0.78)', 'rgba(7,9,13,0.95)'],
+    colors: ['rgba(10,31,63,0.22)', 'rgba(10,31,63,0.78)', 'rgba(10,31,63,0.95)'],
     locations: [0, 0.42, 0.72],
     start: {x: 0.5, y: 0},
     end: {x: 0.5, y: 1},
@@ -89,7 +89,7 @@ const SCRIM: Record<ImageryVariant, {
   // to top-right (open, where the photo is free to show) — the diagonal has to
   // point AWAY from the text, not along it.
   card: {
-    colors: ['rgba(7,9,13,0.96)', 'rgba(7,9,13,0.82)', 'rgba(7,9,13,0.40)'],
+    colors: ['rgba(10,31,63,0.96)', 'rgba(10,31,63,0.82)', 'rgba(10,31,63,0.40)'],
     locations: [0, 0.52, 1],
     start: {x: 0, y: 1},
     end: {x: 1, y: 0},
@@ -105,7 +105,7 @@ const SCRIM: Record<ImageryVariant, {
   // applied", founder screenshot). Full opacity; the left gradient is only
   // INSURANCE over the copy zone, fading to clear where the artwork lives.
   art: {
-    colors: ['rgba(7,9,13,0.85)', 'rgba(7,9,13,0.30)', 'rgba(7,9,13,0)'],
+    colors: ['rgba(10,31,63,0.85)', 'rgba(10,31,63,0.30)', 'rgba(10,31,63,0)'],
     locations: [0, 0.45, 1],
     start: {x: 0, y: 0.5},
     end: {x: 1, y: 0.5},
@@ -135,7 +135,7 @@ const SCRIM: Record<ImageryVariant, {
   // pins the CALL SITES of this variant precisely so that putting text over a
   // band goes red instead of shipping unreadable.
   band: {
-    colors: ['rgba(7,9,13,0)', 'rgba(7,9,13,0)', 'rgba(7,9,13,0.92)'],
+    colors: ['rgba(10,31,63,0)', 'rgba(10,31,63,0)', 'rgba(10,31,63,0.92)'],
     locations: [0, 0.62, 1],
     start: {x: 0.5, y: 0},
     end: {x: 0.5, y: 1},
@@ -146,7 +146,7 @@ const SCRIM: Record<ImageryVariant, {
   },
   // Small trust tile: the photo is texture only — the label is the content.
   tile: {
-    colors: ['rgba(7,9,13,0.62)', 'rgba(7,9,13,0.82)', 'rgba(7,9,13,0.95)'],
+    colors: ['rgba(10,31,63,0.62)', 'rgba(10,31,63,0.82)', 'rgba(10,31,63,0.95)'],
     locations: [0, 0.5, 1],
     start: {x: 0.5, y: 0},
     end: {x: 0.5, y: 1},

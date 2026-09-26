@@ -1947,7 +1947,7 @@ const s = StyleSheet.create(scaleTextStyles({
   speedLimitTxt: {color: '#0A1F3F', fontSize: 18, fontWeight: '800', fontVariant: ['tabular-nums']},
   speedCur: {
     minWidth: 62, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14,
-    backgroundColor: 'rgba(11,14,20,0.88)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)',
+    backgroundColor: 'rgba(10,31,63,0.88)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)',
     alignItems: 'center', justifyContent: 'center',
     elevation: 4, shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 6, shadowOffset: {width: 0, height: 2},
   },

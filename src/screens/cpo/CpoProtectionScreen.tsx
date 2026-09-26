@@ -145,7 +145,7 @@ const s = StyleSheet.create(scaleTextStyles({
   emptyText: {fontFamily: D.fSans, fontSize: 13, color: D.textDim},
   sectionLabel: {color: D.textDim, fontFamily: D.fMono, fontSize: 10, fontWeight: '600', letterSpacing: 2, textTransform: 'uppercase', marginTop: 20, marginBottom: 10},
   card: {padding: 14, borderRadius: 16, backgroundColor: D.card, borderWidth: 1, borderColor: D.hair, marginBottom: 10},
-  cardLive: {borderColor: 'rgba(91,141,239,0.34)', backgroundColor: 'rgba(91,141,239,0.08)'},
+  cardLive: {borderColor: 'rgba(30,136,255,0.34)', backgroundColor: 'rgba(30,136,255,0.08)'},
   cardTop: {flexDirection: 'row', alignItems: 'center', gap: 8},
   cardName: {flex: 1, minWidth: 0, fontFamily: D.fBold, fontSize: 15, color: D.text},
   cardMetaRow: {flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 10},

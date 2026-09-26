@@ -49,8 +49,8 @@ function initials(name: string | null): string {
 // Ring colour encodes position; suspended members dim + go amber.
 function ring(n: OrgHierarchyNode): string {
   if (n.status === 'suspended') {return 'rgba(245,199,107,0.55)';}
-  if (n.position === 'Owner') {return 'rgba(91,141,239,0.75)';}
-  if (n.position === 'Manager') {return 'rgba(169,197,255,0.55)';}
+  if (n.position === 'Owner') {return 'rgba(30,136,255,0.75)';}
+  if (n.position === 'Manager') {return 'rgba(59,166,255,0.55)';}
   return 'rgba(255,255,255,0.18)';
 }
 
@@ -275,7 +275,7 @@ const st = StyleSheet.create(scaleTextStyles({
   node: {alignItems: 'center', width: 84, gap: 5},
   fallback: {
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 2,
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 2,
   },
   initials: {fontFamily: D.fBold, color: D.accentSoft},
   presenceDot: {position: 'absolute', right: -1, bottom: -1, borderWidth: 2, borderColor: D.bg},

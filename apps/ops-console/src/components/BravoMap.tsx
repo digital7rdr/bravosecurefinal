@@ -43,10 +43,10 @@ function applyMarkerStyle(el: HTMLDivElement, type: BravoMarker['type']): void {
     '#1E88FF';
   el.style.boxShadow =
     type === 'sos'        ? '0 0 0 3px rgba(220,38,38,0.22), 0 0 16px #D50000' :
-    type === 'lead'       ? '0 0 0 3px rgba(91,141,239,0.35), 0 0 18px #1E88FF, inset 0 0 0 2px #fff' :
+    type === 'lead'       ? '0 0 0 3px rgba(30,136,255,0.35), 0 0 18px #1E88FF, inset 0 0 0 2px #fff' :
     type === 'principal'  ? '0 0 0 3px rgba(126,214,255,0.30), 0 0 14px #4CC2FF, inset 0 0 0 2px #06142B' :
     type === 'next'       ? '0 0 0 2px rgba(255,193,7,0.28), 0 0 10px #FFC107' :
-    '0 0 0 2px rgba(91,141,239,0.25), 0 0 12px #1E88FF';
+    '0 0 0 2px rgba(30,136,255,0.25), 0 0 12px #1E88FF';
 }
 
 /**
@@ -513,7 +513,7 @@ export function BravoMap({
             background: m.type === 'sos' ? '#D50000' : '#1E88FF',
             boxShadow: m.type === 'sos'
               ? '0 0 0 3px rgba(220,38,38,0.22), 0 0 16px #D50000'
-              : '0 0 0 2px rgba(91,141,239,0.25), 0 0 12px #1E88FF',
+              : '0 0 0 2px rgba(30,136,255,0.25), 0 0 12px #1E88FF',
           }} title={m.label ?? m.id}/>
         ))}
       </div>

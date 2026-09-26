@@ -434,7 +434,7 @@ const s = StyleSheet.create(scaleTextStyles({
   memberRow: {flexDirection: 'row', alignItems: 'center', gap: 12},
   avatar: {
     width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)',
   },
   name: {color: OB.text, fontSize: 14.5, fontWeight: '700'},
   sub: {color: OB.textMute, fontSize: 11.5, marginTop: 2},
@@ -447,7 +447,7 @@ const s = StyleSheet.create(scaleTextStyles({
   pickRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44, marginTop: 12,
     paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: OB.hair2,
-    backgroundColor: 'rgba(91,141,239,0.06)',
+    backgroundColor: 'rgba(30,136,255,0.06)',
   },
   pickText: {flex: 1, minWidth: 0, color: OB.accentSoft, fontSize: 13, fontWeight: '600'},
 }));

@@ -137,7 +137,7 @@ export function RegionsCard() {
         <button
           onClick={() => { setAdding(true); setErr(null); }}
           style={{
-            marginTop:16, border:'1px solid rgba(91,141,239,0.4)', color:'#00A3FF',
+            marginTop:16, border:'1px solid rgba(30,136,255,0.4)', color:'#00A3FF',
             background:'transparent', borderRadius:6, padding:'8px 16px',
             fontSize:11, fontWeight:700, cursor:'pointer', letterSpacing:0.5,
           }}>
@@ -177,7 +177,7 @@ export function RegionsCard() {
               onClick={() => { void create(); }}
               disabled={busy === '__new__'}
               style={{
-                border:'1px solid rgba(91,141,239,0.4)', color:'#00A3FF', background:'transparent',
+                border:'1px solid rgba(30,136,255,0.4)', color:'#00A3FF', background:'transparent',
                 borderRadius:6, padding:'7px 16px', fontSize:11, fontWeight:700, cursor:'pointer',
               }}>
               {busy === '__new__' ? 'ADDING...' : 'ADD'}

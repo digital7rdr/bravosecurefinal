@@ -326,7 +326,7 @@ export default function ExecTeamScreen() {
 
       {/* ── Rate card + CTA ── */}
       <LinearGradient
-        colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+        colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
         locations={[0, 0.35]}
         style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
         <View style={s.rateCard}>
@@ -367,7 +367,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 260, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -422,7 +422,7 @@ const s = StyleSheet.create(scaleTextStyles({
   cardDisabled: {opacity: 0.55},
   driverIcon: {
     width: 34, height: 34, borderRadius: 11, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
     alignItems: 'center', justifyContent: 'center',
   },
 
@@ -436,11 +436,11 @@ const s = StyleSheet.create(scaleTextStyles({
     backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: D.hair2,
     alignItems: 'center', justifyContent: 'center',
   },
-  addonIconOn: {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: 'rgba(91,141,239,0.4)'},
+  addonIconOn: {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: 'rgba(30,136,255,0.4)'},
   addonPriceChip: {
     alignSelf: 'flex-start', marginTop: 4,
     paddingVertical: 2, paddingHorizontal: 7, borderRadius: 6,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.26)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.26)',
   },
   addonPriceText: {fontFamily: D.fMono, fontSize: 9.5, fontWeight: '600', letterSpacing: 0.3, color: D.accentSoft},
   ratesNote: {fontFamily: D.fSans, fontSize: 10.5, color: D.textMute, marginTop: 9, paddingLeft: 2},
@@ -449,7 +449,7 @@ const s = StyleSheet.create(scaleTextStyles({
   rateCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     padding: 14, borderRadius: 16,
-    backgroundColor: 'rgba(16,26,46,0.92)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)',
+    backgroundColor: 'rgba(16,26,46,0.92)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.35)',
   },
   rateLabel: {fontFamily: D.fMono, fontSize: 8.5, fontWeight: '700', letterSpacing: 1.2, color: D.textMute},
   rateRow: {flexDirection: 'row', alignItems: 'baseline', gap: 5, marginTop: 4},

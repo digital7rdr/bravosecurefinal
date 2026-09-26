@@ -50,7 +50,7 @@ export function buildVbgKeyPointsMapHtml(mapboxToken: string): string {
   .me .core { position:absolute; left:-8px; top:-8px; width:16px; height:16px; border-radius:50%;
     background:#1E88FF; border:2px solid #fff; box-shadow:0 0 10px #1E88FF; }
   .me .ring { position:absolute; left:-18px; top:-18px; width:36px; height:36px; border-radius:50%;
-    border:1px solid rgba(91,141,239,0.5); animation:pulse 2s infinite; }
+    border:1px solid rgba(30,136,255,0.5); animation:pulse 2s infinite; }
   @keyframes pulse { 0%{transform:scale(0.6);opacity:0.9} 100%{transform:scale(1.4);opacity:0} }
 
   /* key-point marker */

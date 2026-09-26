@@ -2756,7 +2756,7 @@ function GroupCallScreenInner({route, navigation}: Props) {
               .map(r => (
                 <TouchableOpacity
                   key={r}
-                  style={[s.sheetRow, audioRoute === r && {backgroundColor: 'rgba(91,141,239,0.12)'}]}
+                  style={[s.sheetRow, audioRoute === r && {backgroundColor: 'rgba(30,136,255,0.12)'}]}
                   activeOpacity={0.75}
                   onPress={() => pickAudioRoute(r)}>
                   <Icon
@@ -3072,8 +3072,8 @@ const s = StyleSheet.create({
   // the minimize affordance.
   headerChip: {
     width: 40, height: 40, borderRadius: 12,
-    backgroundColor: 'rgba(91,141,239,0.16)',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    backgroundColor: 'rgba(30,136,255,0.16)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
     alignItems: 'center', justifyContent: 'center',
   },
   headerMeta:  {flex: 1, minWidth: 0},
@@ -3130,8 +3130,8 @@ const s = StyleSheet.create({
   },
   incomingBannerInner: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: 'rgba(11,14,20,0.96)',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)',
+    backgroundColor: 'rgba(10,31,63,0.96)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.35)',
     borderRadius: 14, paddingHorizontal: 12, paddingVertical: 10,
     shadowColor: '#000', shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.35, shadowRadius: 10, elevation: 8,
@@ -3312,7 +3312,7 @@ const s = StyleSheet.create({
   youBadge: {
     position: 'absolute', top: 10, left: 10, zIndex: 5,
     paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,
-    backgroundColor: 'rgba(91,141,239,0.18)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    backgroundColor: 'rgba(30,136,255,0.18)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
   },
   youBadgeTxt: {color: C.actSoft, fontSize: 9, fontWeight: '800', letterSpacing: 0.8, fontFamily: MONO},
 
@@ -3320,7 +3320,7 @@ const s = StyleSheet.create({
   bar:  {width: 3, backgroundColor: C.ok, borderRadius: 2},
 
   dots: {flexDirection: 'row', justifyContent: 'center', gap: 5, paddingVertical: 8},
-  dot:  {width: 16, height: 3, borderRadius: 2, backgroundColor: 'rgba(169,197,255,0.2)'},
+  dot:  {width: 16, height: 3, borderRadius: 2, backgroundColor: 'rgba(59,166,255,0.2)'},
   dotActive: {backgroundColor: C.glow, width: 22},
 
   pip: {
@@ -3393,7 +3393,7 @@ const s = StyleSheet.create({
     backgroundColor: C.surf2, borderWidth: 1, borderColor: C.bd2,
     borderRadius: 12, padding: 10, marginBottom: 6, alignSelf: 'flex-start', maxWidth: '80%',
   },
-  chatBubbleSelf: {backgroundColor: 'rgba(91,141,239,0.16)', borderColor: 'rgba(91,141,239,0.4)', alignSelf: 'flex-end'},
+  chatBubbleSelf: {backgroundColor: 'rgba(30,136,255,0.16)', borderColor: 'rgba(30,136,255,0.4)', alignSelf: 'flex-end'},
   chatBubbleTxt: {color: C.tx1, fontSize: 13, lineHeight: 18},
   chatComposer: {flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: C.bd2},
   chatInput: {

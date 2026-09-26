@@ -38,7 +38,7 @@ const T = {
   hair2:      'rgba(255,255,255,0.09)',
   accent:     '#1E88FF',
   accentDeep: '#166ED1',
-  accentGlow: 'rgba(91,141,239,0.35)',
+  accentGlow: 'rgba(30,136,255,0.35)',
   danger:     '#F58B97',
 } as const;
 
@@ -262,7 +262,7 @@ export default function OTPVerificationScreen({navigation, route}: Props) {
       {/* Ambient obsidian + cobalt hero glow */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <LinearGradient
-          colors={['rgba(91,141,239,0.16)', 'rgba(91,141,239,0)']}
+          colors={['rgba(30,136,255,0.16)', 'rgba(30,136,255,0)']}
           start={{x: 0.5, y: 0}}
           end={{x: 0.5, y: 1}}
           style={s.heroGlow}
@@ -326,7 +326,7 @@ export default function OTPVerificationScreen({navigation, route}: Props) {
         {/* ── Title block ── */}
         <View style={s.lockTile}>
           <LinearGradient
-            colors={['rgba(91,141,239,0.22)', 'rgba(47,91,224,0.05)']}
+            colors={['rgba(30,136,255,0.22)', 'rgba(22,110,209,0.05)']}
             start={{x: 0.2, y: 0}}
             end={{x: 0.8, y: 1}}
             style={StyleSheet.absoluteFill}
@@ -395,7 +395,7 @@ export default function OTPVerificationScreen({navigation, route}: Props) {
       {/* ── Custom in-app numeric keypad ── */}
       <View style={[s.keypad, {paddingBottom: insets.bottom + 22}]}>
         <LinearGradient
-          colors={['rgba(11,14,20,0)', 'rgba(11,14,20,0.6)', 'rgba(9,11,16,0.92)']}
+          colors={['rgba(10,31,63,0)', 'rgba(10,31,63,0.6)', 'rgba(9,11,16,0.92)']}
           locations={[0, 0.3, 1]}
           start={{x: 0.5, y: 0}}
           end={{x: 0.5, y: 1}}
@@ -449,7 +449,7 @@ const s = StyleSheet.create(scaleTextStyles({
   // Title block
   lockTile: {
     width: 56, height: 56, borderRadius: 17, marginTop: 26, marginBottom: 20, marginLeft: 4,
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)',
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
     shadowColor: T.accent, shadowOffset: {width: 0, height: 10},
     shadowOpacity: 0.22, shadowRadius: 15, elevation: 8,
@@ -466,7 +466,7 @@ const s = StyleSheet.create(scaleTextStyles({
     backgroundColor: 'rgba(255,255,255,0.022)',
     borderWidth: 1.5, borderColor: T.hair2,
   },
-  cellFilled: {borderColor: 'rgba(91,141,239,0.32)'},
+  cellFilled: {borderColor: 'rgba(30,136,255,0.32)'},
   cellActive: {
     borderColor: T.accent,
     shadowColor: T.accent, shadowOffset: {width: 0, height: 4},
@@ -511,6 +511,6 @@ const s = StyleSheet.create(scaleTextStyles({
     backgroundColor: 'rgba(255,255,255,0.035)',
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
   },
-  keyDown: {backgroundColor: 'rgba(91,141,239,0.16)', borderWidth: 1.5, borderColor: T.accentGlow},
+  keyDown: {backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1.5, borderColor: T.accentGlow},
   keyText: {fontSize: 24, fontWeight: '600', color: T.text},
 }));

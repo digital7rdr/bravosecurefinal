@@ -230,7 +230,7 @@ const s = StyleSheet.create(scaleTextStyles({
   row: {flexDirection: 'row', alignItems: 'center', gap: 13},
   rowIcon: {
     width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
   },
   rowTitle: {color: OB.text, fontFamily: BravoFont.bold, fontSize: 14},
   rowWindow: {color: OB.textDim, fontFamily: BravoFont.regular, fontSize: 12, marginTop: 2},
@@ -242,6 +242,6 @@ const s = StyleSheet.create(scaleTextStyles({
   rowActions: {alignItems: 'center', gap: 14, paddingLeft: 4},
   footer: {
     position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12,
-    backgroundColor: 'rgba(7,9,13,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
+    backgroundColor: 'rgba(10,31,63,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
   },
 }));

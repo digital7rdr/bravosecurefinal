@@ -97,7 +97,7 @@ export default function EnterpriseSetupScreen() {
 
         <Card style={s.choice} onPress={checking ? undefined : goCreate}>
           <View style={s.row}>
-            <View style={[s.badge, {backgroundColor: 'rgba(91,141,239,0.14)'}]}>
+            <View style={[s.badge, {backgroundColor: 'rgba(30,136,255,0.14)'}]}>
               <Icon name="office-building-outline" size={22} color={OB.accent} />
             </View>
             <View style={s.copy}>

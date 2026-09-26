@@ -451,7 +451,7 @@ export default function ExecTransportScreen() {
 
       {/* ── Footer CTA ── */}
       <LinearGradient
-        colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+        colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
         locations={[0, 0.5]}
         style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
         <TouchableOpacity
@@ -481,7 +481,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 260, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -501,11 +501,11 @@ const s = StyleSheet.create(scaleTextStyles({
   toggleCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     padding: 14, borderRadius: 16,
-    backgroundColor: 'rgba(16,26,46,0.6)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)',
+    backgroundColor: 'rgba(16,26,46,0.6)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)',
   },
   toggleIcon: {
     width: 38, height: 38, borderRadius: 12, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
     alignItems: 'center', justifyContent: 'center',
   },
   toggleTitle: {fontFamily: D.fBold, fontSize: 14.5, letterSpacing: -0.2, color: D.text},
@@ -519,7 +519,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   optionalIcon: {
     width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
     alignItems: 'center', justifyContent: 'center',
   },
   optionalTitle: {fontFamily: D.fSemi, fontSize: 13.5, color: D.text},
@@ -537,7 +537,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   modeChipIdle: {backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: D.hair2},
   modeChipOn: {
-    backgroundColor: 'rgba(91,141,239,0.16)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.5)',
+    backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.5)',
   },
   modeChipText: {fontFamily: D.fSemi, fontSize: 12.5, color: D.textDim},
   modeChipTextOn: {color: D.text},
@@ -552,7 +552,7 @@ const s = StyleSheet.create(scaleTextStyles({
     width: 30, height: 30, borderRadius: 9, flexShrink: 0,
     alignItems: 'center', justifyContent: 'center',
   },
-  locPinFilled: {backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)'},
+  locPinFilled: {backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)'},
   locPinIdle: {backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: D.hair2},
   locText: {flex: 1, minWidth: 0, fontSize: 13.5, letterSpacing: -0.1, lineHeight: 18},
   locTextFilled: {fontFamily: D.fSemi, color: D.text},
@@ -579,7 +579,7 @@ const s = StyleSheet.create(scaleTextStyles({
   counterLeft: {flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, paddingRight: 8},
   counterIcon: {
     width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
     alignItems: 'center', justifyContent: 'center',
   },
   counterLabel: {fontFamily: D.fSemi, fontSize: 14, color: D.text, letterSpacing: -0.1},
@@ -600,7 +600,7 @@ const s = StyleSheet.create(scaleTextStyles({
 
   hint: {
     flexDirection: 'row', gap: 10, padding: 13, borderRadius: 13,
-    backgroundColor: 'rgba(91,141,239,0.07)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.2)',
+    backgroundColor: 'rgba(30,136,255,0.07)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.2)',
   },
   hintText: {flex: 1, fontFamily: D.fSans, fontSize: 11, color: D.textDim, lineHeight: 16},
   hintStrong: {fontFamily: D.fSemi, color: D.accentSoft},

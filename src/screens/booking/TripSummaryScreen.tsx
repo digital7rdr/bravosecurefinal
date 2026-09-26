@@ -256,7 +256,7 @@ export default function TripSummaryScreen() {
               ))}
               {team.vehicle && (
                 <View style={s.crewRow}>
-                  <View style={[s.crewAv, {backgroundColor: 'rgba(91,141,239,0.18)'}]}>
+                  <View style={[s.crewAv, {backgroundColor: 'rgba(30,136,255,0.18)'}]}>
                     <Icon name="car" size={14} color={UI.accent} />
                   </View>
                   <View style={{flex: 1, minWidth: 0}}>
@@ -416,7 +416,7 @@ export default function TripSummaryScreen() {
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => navigation.navigate('Invoice', {bookingId: booking.id})}
-              style={[s.rateBtn, {backgroundColor: 'rgba(91,141,239,0.12)'}]}>
+              style={[s.rateBtn, {backgroundColor: 'rgba(30,136,255,0.12)'}]}>
               <Icon name="file-document-outline" size={18} color="#3BA6FF" />
               <Text style={[s.rateBtnText, {color: '#3BA6FF'}]} numberOfLines={1}>
                 {isCompleted ? 'View invoice' : 'View credit note'}
@@ -467,7 +467,7 @@ const s = StyleSheet.create(scaleTextStyles({
   back: {
     width: 32, height: 32, borderRadius: 8,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.10)',
+    backgroundColor: 'rgba(30,136,255,0.10)',
   },
   headerTitle: {
     fontSize: 14, fontWeight: '700', letterSpacing: 1.2,
@@ -478,7 +478,7 @@ const s = StyleSheet.create(scaleTextStyles({
   errText: {color: '#F87171', fontSize: 12, textAlign: 'center'},
   retryBtn: {
     paddingHorizontal: 18, paddingVertical: 9, borderRadius: 999, marginTop: 4,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)',
   },
   retryText: {fontSize: 12.5, fontWeight: '700', color: UI.accentSoft},
 
@@ -486,13 +486,13 @@ const s = StyleSheet.create(scaleTextStyles({
 
   hero: {
     alignItems: 'center', padding: 20, borderRadius: 14,
-    backgroundColor: 'rgba(91,141,239,0.06)',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.18)',
+    backgroundColor: 'rgba(30,136,255,0.06)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.18)',
   },
   heroBadge: {
     width: 56, height: 56, borderRadius: 14,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.10)',
+    backgroundColor: 'rgba(30,136,255,0.10)',
     marginBottom: 12,
   },
   heroRef: {
@@ -547,7 +547,7 @@ const s = StyleSheet.create(scaleTextStyles({
   crewAv: {
     width: 32, height: 32, borderRadius: 8,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.18)',
+    backgroundColor: 'rgba(30,136,255,0.18)',
   },
   crewAvText: {
     color: UI.text, fontWeight: '800', fontSize: 11, letterSpacing: 0.5,

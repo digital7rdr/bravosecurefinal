@@ -177,8 +177,8 @@ const s = StyleSheet.create({
   wrap: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingVertical: 10, paddingHorizontal: 14,
-    backgroundColor: 'rgba(91,141,239,0.10)',
-    borderBottomWidth: 1, borderBottomColor: 'rgba(91,141,239,0.25)',
+    backgroundColor: 'rgba(30,136,255,0.10)',
+    borderBottomWidth: 1, borderBottomColor: 'rgba(30,136,255,0.25)',
   },
   text: {flex: 1, color: '#C9D7F2', fontSize: 12.5},
   action: {color: '#1E88FF', fontSize: 12.5, fontWeight: '700'},

@@ -307,7 +307,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 280, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -361,7 +361,7 @@ const s = StyleSheet.create(scaleTextStyles({
     alignItems: 'center', justifyContent: 'center',
   },
   icTileIdle: {backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: D.hair2},
-  icTileLive: {backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)'},
+  icTileLive: {backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)'},
 
   body: {flex: 1, minWidth: 0},
   titleRow: {flexDirection: 'row', alignItems: 'center', gap: 9, flexWrap: 'wrap'},
@@ -371,7 +371,7 @@ const s = StyleSheet.create(scaleTextStyles({
 
   currentPill: {
     paddingVertical: 3, paddingHorizontal: 8, borderRadius: 6,
-    backgroundColor: 'rgba(91,141,239,0.13)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)',
+    backgroundColor: 'rgba(30,136,255,0.13)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.35)',
     overflow: 'hidden',
   },
   currentPillText: {fontFamily: D.fBold, fontSize: 8.5, letterSpacing: 1.2, color: D.accentSoft},
@@ -389,7 +389,7 @@ const s = StyleSheet.create(scaleTextStyles({
   priceChip: {
     alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'baseline', gap: 5,
     marginTop: 12, paddingVertical: 5, paddingHorizontal: 11, borderRadius: 9,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
     overflow: 'hidden',
   },
   priceFrom: {fontFamily: D.fMono, fontSize: 8.5, fontWeight: '600', letterSpacing: 1, color: D.textMute},

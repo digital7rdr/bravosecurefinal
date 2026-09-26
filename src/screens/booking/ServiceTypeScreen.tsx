@@ -52,7 +52,7 @@ const D = {
   hair2:      'rgba(255,255,255,0.09)',
   accent:     '#1E88FF',
   accentDeep: '#166ED1',
-  accentGlow: 'rgba(91,141,239,0.35)',
+  accentGlow: 'rgba(30,136,255,0.35)',
   accentSoft: '#3BA6FF',
   amber:      '#F5C76B',
   fSans:    'Manrope_500Medium',
@@ -131,7 +131,7 @@ function ServiceCard({svc, selected, onPress}: {svc: ServiceDef; selected: boole
       {/* icon tile */}
       {selected ? (
         <LinearGradient
-          colors={['rgba(91,141,239,0.3)', 'rgba(47,91,224,0.08)']}
+          colors={['rgba(30,136,255,0.3)', 'rgba(22,110,209,0.08)']}
           start={{x: 0.2, y: 0}}
           end={{x: 0.85, y: 1}}
           style={[s.icTile, s.icTileSelected]}>
@@ -329,7 +329,7 @@ export default function ServiceTypeScreen() {
 
       {/* ── Footer CTA ── */}
       <LinearGradient
-        colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+        colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
         locations={[0, 0.5]}
         style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
         <TouchableOpacity
@@ -377,7 +377,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 280, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   // Header
@@ -402,7 +402,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   cardIdle: {backgroundColor: 'rgba(255,255,255,0.022)', borderWidth: 1, borderColor: D.hair},
   cardSelected: {
-    backgroundColor: 'rgba(16,26,46,0.92)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.55)',
+    backgroundColor: 'rgba(16,26,46,0.92)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.55)',
     shadowColor: '#14285A', shadowOpacity: 0.4, shadowRadius: 18, shadowOffset: {width: 0, height: 14}, elevation: 9,
   },
   cardLocked: {opacity: 0.55},
@@ -414,7 +414,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   icTileIdle: {backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: D.hair2},
   icTileSelected: {
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.45)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.45)',
     shadowColor: D.accent, shadowOpacity: 0.3, shadowRadius: 20, shadowOffset: {width: 0, height: 0}, elevation: 6,
   },
 
@@ -434,7 +434,7 @@ const s = StyleSheet.create(scaleTextStyles({
   priceChip: {
     alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'baseline', gap: 5,
     marginTop: 12, paddingVertical: 5, paddingHorizontal: 11, borderRadius: 9,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
     overflow: 'hidden',
   },
   priceFrom: {fontFamily: D.fMono, fontSize: 8.5, fontWeight: '600', letterSpacing: 1, color: D.textMute},

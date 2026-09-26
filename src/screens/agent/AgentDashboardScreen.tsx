@@ -58,7 +58,7 @@ const D = {
   hair2:      'rgba(255,255,255,0.09)',
   accent:     '#1E88FF',
   accentDeep: '#166ED1',
-  accentGlow: 'rgba(91,141,239,0.35)',
+  accentGlow: 'rgba(30,136,255,0.35)',
   accentSoft: '#3BA6FF',
   signal:     '#4ADE80',
   amber:      '#F5C76B',
@@ -74,7 +74,7 @@ const NAV_TINT = {
   amber:  {fg: '#F5C76B', bg: 'rgba(245,181,68,0.12)',  bd: 'rgba(245,181,68,0.34)'},
   signal: {fg: '#7FE6A8', bg: 'rgba(74,222,128,0.12)',  bd: 'rgba(74,222,128,0.32)'},
   red:    {fg: '#F58B97', bg: 'rgba(245,72,90,0.12)',   bd: 'rgba(245,72,90,0.32)'},
-  blue:   {fg: '#3BA6FF', bg: 'rgba(91,141,239,0.14)',  bd: 'rgba(91,141,239,0.34)'},
+  blue:   {fg: '#3BA6FF', bg: 'rgba(30,136,255,0.14)',  bd: 'rgba(30,136,255,0.34)'},
 } as const;
 
 const AGENT_MENU: {icon: IconName; label: string; divider?: boolean}[] = [
@@ -1129,7 +1129,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 270, borderRadius: 235,
-    backgroundColor: 'rgba(91,141,239,0.08)',
+    backgroundColor: 'rgba(30,136,255,0.08)',
   },
   scroll: {paddingHorizontal: 20, paddingTop: 16, paddingBottom: 32, gap: 16},
 
@@ -1168,7 +1168,7 @@ const s = StyleSheet.create(scaleTextStyles({
   // Duty card
   dutyCard: {
     position: 'relative', overflow: 'hidden', borderRadius: 22, padding: 18,
-    backgroundColor: 'rgba(20,32,56,0.9)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)',
+    backgroundColor: 'rgba(20,32,56,0.9)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)',
     shadowColor: '#14285A', shadowOpacity: 0.32, shadowRadius: 18, shadowOffset: {width: 0, height: 14}, elevation: 9,
   },
   dutyRow: {flexDirection: 'row', alignItems: 'center', gap: 14},
@@ -1183,7 +1183,7 @@ const s = StyleSheet.create(scaleTextStyles({
   tierRow: {flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 7},
   tierBadge: {
     paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6,
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
   },
   tierText: {fontFamily: D.fMono, fontSize: 9, fontWeight: '700', letterSpacing: 1, color: D.accentSoft},
   tierMeta: {fontFamily: D.fMono, fontSize: 9.5, fontWeight: '600', letterSpacing: 1, color: D.textMute},
@@ -1224,11 +1224,11 @@ const s = StyleSheet.create(scaleTextStyles({
   featured: {
     position: 'relative', overflow: 'hidden',
     flexDirection: 'row', alignItems: 'center', gap: 13, padding: 15, borderRadius: 18,
-    backgroundColor: 'rgba(20,32,56,0.9)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.45)',
+    backgroundColor: 'rgba(20,32,56,0.9)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.45)',
   },
   featuredIcon: {
     width: 44, height: 44, borderRadius: 13, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.16)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
     alignItems: 'center', justifyContent: 'center',
   },
   featuredTitle: {fontFamily: D.fBold, fontSize: 14, color: D.text, letterSpacing: -0.2},
@@ -1254,7 +1254,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   emptyOpsIcon: {
     width: 52, height: 52, borderRadius: 26,
-    backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.24)',
+    backgroundColor: 'rgba(30,136,255,0.08)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.24)',
     alignItems: 'center', justifyContent: 'center',
   },
   emptyOpsText: {fontFamily: D.fBold, fontSize: 17, letterSpacing: -0.2, color: D.text, marginTop: 14},
@@ -1267,7 +1267,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   opsRowIcon: {
     width: 32, height: 32, borderRadius: 10, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
     alignItems: 'center', justifyContent: 'center',
   },
   opsRowText: {fontFamily: D.fSemi, fontSize: 12.5, color: D.text, letterSpacing: -0.1},
@@ -1328,7 +1328,7 @@ const sd = StyleSheet.create(scaleTextStyles({
   nameRow: {flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2},
   name: {color: D.text, fontSize: 14, fontFamily: D.fBold, flex: 1},
   callSign: {color: D.accentSoft, fontSize: 10, fontFamily: D.fMono, letterSpacing: 0.8, marginBottom: 4},
-  tierBadge: {backgroundColor: 'rgba(91,141,239,0.18)', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1, borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)'},
+  tierBadge: {backgroundColor: 'rgba(30,136,255,0.18)', borderRadius: 4, paddingHorizontal: 5, paddingVertical: 1, borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)'},
   tierText: {color: D.accentSoft, fontSize: 9, fontFamily: D.fBold, letterSpacing: 0.5},
   statusRow: {flexDirection: 'row', alignItems: 'center', gap: 5},
   statusDot: {width: 7, height: 7, borderRadius: 4},

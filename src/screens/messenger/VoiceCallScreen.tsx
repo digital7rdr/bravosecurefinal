@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   controlRow: {flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 8, marginBottom: 28},
   ctrlBtn: {alignItems: 'center', gap: 7},
   ctrlCircle: {width: 50, height: 50, borderRadius: 25, backgroundColor: '#171c2e', borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)', alignItems: 'center', justifyContent: 'center'},
-  ctrlCircleActive: {backgroundColor: 'rgba(91,141,239,0.25)', borderColor: 'rgba(91,141,239,0.5)'},
+  ctrlCircleActive: {backgroundColor: 'rgba(30,136,255,0.25)', borderColor: 'rgba(30,136,255,0.5)'},
   ctrlLabel: {fontSize: 10, fontWeight: '800', letterSpacing: 1.4, color: 'rgba(180,188,204,0.45)'},
   endCallBtn: {width: 60, height: 60, borderRadius: 30, backgroundColor: '#EF4444', alignItems: 'center', justifyContent: 'center', alignSelf: 'center', shadowColor: '#EF4444', shadowOffset: {width: 0, height: 6}, shadowOpacity: 0.5, shadowRadius: 14},
 

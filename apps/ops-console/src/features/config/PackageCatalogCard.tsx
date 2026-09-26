@@ -106,7 +106,7 @@ export function PackageCatalogCard() {
                 onClick={() => { void save(p.key); }}
                 disabled={busyKey === p.key || !dirty}
                 style={{
-                  border:'1px solid rgba(91,141,239,0.4)', color:'#00A3FF', background:'transparent',
+                  border:'1px solid rgba(30,136,255,0.4)', color:'#00A3FF', background:'transparent',
                   borderRadius:6, padding:'6px 14px', fontSize:11, fontWeight:700, cursor:'pointer',
                   opacity: busyKey === p.key || !dirty ? 0.4 : 1,
                 }}>

@@ -196,7 +196,7 @@ export function InviteOfficerModal({
 
           {/* ── The code just minted ── */}
           {minted && (
-            <View style={[s.card, {borderColor: 'rgba(91,141,239,0.45)'}]}>
+            <View style={[s.card, {borderColor: 'rgba(30,136,255,0.45)'}]}>
               <Text style={s.label}>NEW INVITATION · {minted.member_role === 'manager' ? 'MANAGER' : 'CPO'}</Text>
               {/* B-657 — FitLine, never the native shrink pair: a 12-char code at
                   30 px / 4 px tracking overflows a 320-dp card. */}
@@ -275,7 +275,7 @@ const s = StyleSheet.create({
   label: {fontFamily: D.fSemi, fontSize: 10.5, letterSpacing: 1.4, color: D.mute, marginBottom: 8},
   row: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
   chip: {paddingHorizontal: 14, paddingVertical: 9, borderRadius: 10, borderWidth: 1, borderColor: D.hair, backgroundColor: 'rgba(255,255,255,0.03)', minHeight: 40, justifyContent: 'center'},
-  chipOn: {borderColor: D.accent, backgroundColor: 'rgba(91,141,239,0.16)'},
+  chipOn: {borderColor: D.accent, backgroundColor: 'rgba(30,136,255,0.16)'},
   chipText: {fontFamily: D.fSemi, fontSize: 12, letterSpacing: 1, color: D.dim},
   chipTextOn: {color: D.text},
   hint: {fontFamily: D.fSans, fontSize: 12, color: D.mute, marginTop: 6},
@@ -283,7 +283,7 @@ const s = StyleSheet.create({
   cta: {marginTop: 18, minHeight: 50, borderRadius: 12, backgroundColor: D.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8},
   ctaText: {fontFamily: D.fBold, fontSize: 13, letterSpacing: 1.6, color: '#fff'},
   code: {fontFamily: D.fBold, fontSize: 30, letterSpacing: 4, color: D.text, marginTop: 4},
-  secondary: {flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, minHeight: 44, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)'},
+  secondary: {flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, minHeight: 44, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)'},
   secondaryText: {fontFamily: D.fSemi, fontSize: 12, letterSpacing: 1.2, color: D.accentSoft},
   inviteRow: {flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10, borderTopWidth: 1, borderTopColor: D.hair},
   inviteCode: {fontFamily: D.fBold, fontSize: 15, letterSpacing: 2, color: D.text},

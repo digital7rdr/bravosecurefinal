@@ -180,7 +180,7 @@ export default function ExecTaskScreen() {
         footerGap={12}
         footer={
           <LinearGradient
-            colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+            colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
             locations={[0, 0.5]}
             style={s.ctaWrap}>
             {!canContinue && (
@@ -307,7 +307,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 260, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -343,7 +343,7 @@ const s = StyleSheet.create(scaleTextStyles({
     width: 30, height: 30, borderRadius: 9, flexShrink: 0,
     alignItems: 'center', justifyContent: 'center',
   },
-  locPinFilled: {backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)'},
+  locPinFilled: {backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)'},
   locPinIdle: {backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: D.hair2},
   locText: {flex: 1, minWidth: 0, fontSize: 13.5, letterSpacing: -0.1, lineHeight: 18},
   locTextFilled: {fontFamily: D.fSemi, color: D.text},
@@ -357,14 +357,14 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   typeIcon: {
     width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
     alignItems: 'center', justifyContent: 'center',
   },
   typeText: {flex: 1, minWidth: 0, fontFamily: D.fSemi, fontSize: 14.5, letterSpacing: -0.1, color: D.text},
 
   typeList: {
     marginTop: 8, borderRadius: 16, overflow: 'hidden',
-    backgroundColor: 'rgba(16,26,46,0.6)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)',
+    backgroundColor: 'rgba(16,26,46,0.6)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)',
   },
   typeOption: {
     minHeight: 50, flexDirection: 'row', alignItems: 'center', gap: 12,

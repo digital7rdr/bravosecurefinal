@@ -811,7 +811,7 @@ export default function SecureProMembersScreen() {
       {/* Bottom CTA — Add Member, always. B-832 removed the cap, so there is no
           "Family Full" dead end and no seat-request escape hatch behind it. */}
       <LinearGradient
-        colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+        colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
         locations={[0, 0.5]}
         style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
         <TouchableOpacity
@@ -1209,7 +1209,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 280, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -1239,7 +1239,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   // B-854/P1-2 — the row a funding wake named, marked the same way the quota
   // card marks the root a money refusal named.
-  memberCardFocused: {borderColor: D.accent, backgroundColor: 'rgba(91,141,239,0.10)'},
+  memberCardFocused: {borderColor: D.accent, backgroundColor: 'rgba(30,136,255,0.10)'},
   // §43 — the pending-request card. An amber edge, not the member card's neutral
   // hairline: this row is the only thing on the screen waiting on the holder,
   // and it reads as a task rather than a roster entry.
@@ -1271,7 +1271,7 @@ const s = StyleSheet.create(scaleTextStyles({
   requestBtnPrimaryText:{color: '#FFFFFF', fontSize: 12.5, fontFamily: D.fSemi},
   avatar: {
     width: 44, height: 44, borderRadius: 22, flexShrink: 0, overflow: 'hidden',
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
     alignItems: 'center', justifyContent: 'center',
   },
   avatarImg: {width: 44, height: 44, borderRadius: 22},
@@ -1289,7 +1289,7 @@ const s = StyleSheet.create(scaleTextStyles({
     backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: D.hair2,
   },
   chainPillText:   {color: D.textDim, fontFamily: D.fSemi, fontSize: 10},
-  chainPillOn:     {backgroundColor: 'rgba(91,141,239,0.12)', borderColor: 'rgba(91,141,239,0.36)'},
+  chainPillOn:     {backgroundColor: 'rgba(30,136,255,0.12)', borderColor: 'rgba(30,136,255,0.36)'},
   chainPillOnText: {color: D.accentSoft},
 
   // The pending funding ask carries its own look (FundingRequestCard, shared
@@ -1298,7 +1298,7 @@ const s = StyleSheet.create(scaleTextStyles({
 
   moreRow: {
     minHeight: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.24)',
+    backgroundColor: 'rgba(30,136,255,0.08)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.24)',
   },
   moreText: {color: D.accentSoft, fontFamily: D.fSemi, fontSize: 12.5},
   statePill: {flexShrink: 0, paddingVertical: 4, paddingHorizontal: 8, borderRadius: 7, borderWidth: 1},
@@ -1307,7 +1307,7 @@ const s = StyleSheet.create(scaleTextStyles({
   noteCard: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 10,
     marginTop: 18, padding: 14, borderRadius: 14,
-    backgroundColor: 'rgba(91,141,239,0.07)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)',
+    backgroundColor: 'rgba(30,136,255,0.07)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)',
   },
   noteText: {flex: 1, minWidth: 0, fontFamily: D.fSans, fontSize: 11.5, lineHeight: 17, color: D.textDim},
 
@@ -1364,7 +1364,7 @@ const s = StyleSheet.create(scaleTextStyles({
     borderRadius: 14, overflow: 'hidden',
     backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: D.hair2,
   },
-  locMap: {width: '100%', height: 140, backgroundColor: 'rgba(91,141,239,0.08)'},
+  locMap: {width: '100%', height: 140, backgroundColor: 'rgba(30,136,255,0.08)'},
   locMetaRow: {flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12},
   locPlace: {color: D.text, fontFamily: D.fSemi, fontSize: 13},
   locTime: {color: D.textMute, fontFamily: D.fSans, fontSize: 10.5, marginTop: 2},
@@ -1388,7 +1388,7 @@ const s = StyleSheet.create(scaleTextStyles({
   sheetTitle: {color: D.text, fontFamily: D.fBold, fontSize: 17},
   sheetBtn: {
     paddingHorizontal: 18, borderRadius: 13, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.45)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.45)',
   },
   sheetBtnText: {color: D.accentSoft, fontFamily: D.fBold, fontSize: 13},
   sheetRow: {

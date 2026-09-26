@@ -34,7 +34,7 @@ const T = {
   hair2:      'rgba(255,255,255,0.09)',
   accent:     '#1E88FF',
   accentDeep: '#166ED1',
-  accentGlow: 'rgba(91,141,239,0.35)',
+  accentGlow: 'rgba(30,136,255,0.35)',
   signal:     '#4ADE80',
 } as const;
 
@@ -121,7 +121,7 @@ type Tint = {
   glow: string;
 };
 const TINTS: Record<'blue' | 'signal' | 'indigo', Tint> = {
-  blue:   {ic: '#3BA6FF', tile: ['rgba(91,141,239,0.26)', 'rgba(47,91,224,0.07)'], bd: 'rgba(91,141,239,0.4)', glow: 'rgba(91,141,239,0.3)'},
+  blue:   {ic: '#3BA6FF', tile: ['rgba(30,136,255,0.26)', 'rgba(22,110,209,0.07)'], bd: 'rgba(30,136,255,0.4)', glow: 'rgba(30,136,255,0.3)'},
   signal: {ic: '#8FE9B4', tile: ['rgba(74,222,128,0.2)', 'rgba(74,222,128,0.05)'], bd: 'rgba(74,222,128,0.34)', glow: 'rgba(74,222,128,0.24)'},
   indigo: {ic: '#B7BEFF', tile: ['rgba(129,140,248,0.24)', 'rgba(79,70,229,0.06)'], bd: 'rgba(129,140,248,0.38)', glow: 'rgba(129,140,248,0.26)'},
 };
@@ -235,13 +235,13 @@ export default function OnboardingScreen({navigation}: Props) {
       {/* Ambient obsidian + cobalt hero glow */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <LinearGradient
-          colors={['rgba(91,141,239,0.16)', 'rgba(91,141,239,0)']}
+          colors={['rgba(30,136,255,0.16)', 'rgba(30,136,255,0)']}
           start={{x: 0.5, y: 0}}
           end={{x: 0.5, y: 1}}
           style={styles.heroGlow}
         />
         <LinearGradient
-          colors={['rgba(47,91,224,0.06)', 'rgba(47,91,224,0)']}
+          colors={['rgba(22,110,209,0.06)', 'rgba(22,110,209,0)']}
           start={{x: 0.5, y: 1}}
           end={{x: 0.5, y: 0}}
           style={styles.bottomGlow}
@@ -252,7 +252,7 @@ export default function OnboardingScreen({navigation}: Props) {
       <View style={[styles.brand, {paddingTop: insets.top + 22}]}>
         <View style={styles.brandTile}>
           <LinearGradient
-            colors={['rgba(91,141,239,0.22)', 'rgba(20,28,46,0.6)']}
+            colors={['rgba(30,136,255,0.22)', 'rgba(20,28,46,0.6)']}
             start={{x: 0.1, y: 0}}
             end={{x: 0.9, y: 1}}
             style={StyleSheet.absoluteFill}
@@ -300,7 +300,7 @@ export default function OnboardingScreen({navigation}: Props) {
 
       {/* Footer — Sign In */}
       <LinearGradient
-        colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+        colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
         start={{x: 0.5, y: 0}}
         end={{x: 0.5, y: 0.55}}
         style={[styles.footer, {paddingBottom: insets.bottom + 24}]}>
@@ -327,7 +327,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   brand: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 26},
   brandTile: {
     width: 50, height: 50, borderRadius: 15,
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
   brandName: {fontFamily: 'monospace', color: T.text, fontSize: 14, fontWeight: '700', letterSpacing: 5},

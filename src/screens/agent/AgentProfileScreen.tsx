@@ -256,7 +256,7 @@ const s = StyleSheet.create(scaleTextStyles({
   avatar: {width: 76, height: 76, borderRadius: 38},
   avatarFallback: {
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 2, borderColor: 'rgba(91,141,239,0.35)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 2, borderColor: 'rgba(30,136,255,0.35)',
   },
   avatarText: {color: D.accentSoft, fontSize: 24, fontFamily: D.fBold},
   avatarBusy: {...StyleSheet.absoluteFillObject, borderRadius: 38, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.45)'},
@@ -269,7 +269,7 @@ const s = StyleSheet.create(scaleTextStyles({
   editText: {fontFamily: D.fSemi, fontSize: 12, color: D.accentSoft},
   roleChip: {
     marginTop: 8, paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)',
   },
   roleChipText: {fontFamily: D.fBold, fontSize: 10.5, letterSpacing: 1, color: D.accentSoft},
   orgLine: {fontFamily: D.fSans, fontSize: 12, color: D.textMute, marginTop: 6},

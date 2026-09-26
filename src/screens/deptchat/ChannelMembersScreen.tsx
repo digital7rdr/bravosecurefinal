@@ -379,7 +379,7 @@ const s = StyleSheet.create(scaleTextStyles({
   row: {flexDirection: 'row', alignItems: 'center', gap: 12},
   avatar: {
     width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: OB.hair2,
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: OB.hair2,
   },
   avatarText: {color: OB.accentSoft, fontFamily: BravoFont.bold, fontSize: 15},
   name: {color: OB.text, fontFamily: BravoFont.bold, fontSize: 14},
@@ -391,14 +391,14 @@ const s = StyleSheet.create(scaleTextStyles({
   rowActions: {flexDirection: 'row', alignItems: 'center', gap: 8},
   accessBtn: {
     paddingHorizontal: 10, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: OB.hair2,
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: OB.hair2,
   },
   accessBtnText: {color: OB.accentSoft, fontFamily: BravoFont.semiBold, fontSize: 11},
   deleteBtn: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 46, marginTop: 10},
   deleteText: {color: OB.alert, fontFamily: BravoFont.semiBold, fontSize: 13},
   footer: {
     position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12,
-    backgroundColor: 'rgba(7,9,13,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
+    backgroundColor: 'rgba(10,31,63,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
   },
   modalWrap: {flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.55)'},
   sheet: {

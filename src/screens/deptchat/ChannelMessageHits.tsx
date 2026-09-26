@@ -149,8 +149,8 @@ const s = StyleSheet.create({
   kind: {
     width: 32, height: 32, borderRadius: 9,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.10)',
-    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(91,141,239,0.25)',
+    backgroundColor: 'rgba(30,136,255,0.10)',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(30,136,255,0.25)',
   },
   // A text hit keeps the bare hash it always had — a tinted tile would read as
   // an attachment on a row that has none.

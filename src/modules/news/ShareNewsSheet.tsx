@@ -342,8 +342,8 @@ const s = StyleSheet.create({
   backText: {color: '#FFFFFF', fontSize: 15, fontWeight: '700', flex: 1},
   section: {color: 'rgba(180,188,204,0.45)', fontSize: 10, fontWeight: '800', letterSpacing: 1.4, paddingHorizontal: 18, paddingTop: 12, paddingBottom: 6},
   sending: {paddingVertical: 34, alignItems: 'center'},
-  outsideRow: {flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 14, marginBottom: 4, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)'},
-  outsideIcon: {width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,141,239,0.16)'},
+  outsideRow: {flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 14, marginBottom: 4, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)'},
+  outsideIcon: {width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30,136,255,0.16)'},
   outsideTitle: {color: '#FFFFFF', fontSize: 14, fontWeight: '700'},
   outsideSub: {color: 'rgba(229,233,242,0.62)', fontSize: 11.5, marginTop: 1},
 });

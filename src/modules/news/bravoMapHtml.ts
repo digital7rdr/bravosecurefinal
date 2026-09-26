@@ -30,9 +30,9 @@ export function buildBravoMapHtml(mapboxToken: string): string {
   .map-wrap { position: absolute; inset: 0; overflow: hidden; background: #06080C; }
   #map { position:absolute; inset:0; background: #06080C; }
   .map-wrap::before { content:''; position:absolute; top:0; left:0; right:0; height:40px; z-index:5;
-    background: linear-gradient(to bottom, rgba(7,9,13,0.9), transparent); pointer-events:none; }
+    background: linear-gradient(to bottom, rgba(10,31,63,0.9), transparent); pointer-events:none; }
   .map-wrap::after  { content:''; position:absolute; bottom:0; left:0; right:0; height:60px; z-index:5;
-    background: linear-gradient(to top, rgba(7,9,13,1), transparent); pointer-events:none; }
+    background: linear-gradient(to top, rgba(10,31,63,1), transparent); pointer-events:none; }
 
   .mapboxgl-ctrl-attrib { background: rgba(7,12,22,0.6) !important; }
   .mapboxgl-ctrl-attrib a { color: rgba(180,188,204,0.6) !important; }
@@ -47,8 +47,8 @@ export function buildBravoMapHtml(mapboxToken: string): string {
      brightening; over a near-black basemap the two are visually equivalent. */
   .crosshair { position:absolute; inset:0; pointer-events:none; z-index:4;
     background-image:
-      linear-gradient(rgba(91,141,239,0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(91,141,239,0.05) 1px, transparent 1px);
+      linear-gradient(rgba(30,136,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(30,136,255,0.05) 1px, transparent 1px);
     background-size: 40px 40px; }
 
   /* HUD corner — live grid readout of the map centre */
@@ -74,7 +74,7 @@ export function buildBravoMapHtml(mapboxToken: string): string {
     box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.06);
     transition: transform 0.15s ease, background 0.15s ease; user-select:none;
     -webkit-tap-highlight-color: transparent; }
-  .zoom-btn:active { transform: scale(0.93); background: rgba(91,141,239,0.15); }
+  .zoom-btn:active { transform: scale(0.93); background: rgba(30,136,255,0.15); }
   .zoom-btn svg { width:16px; height:16px; }
 
   /* Threat marker — radar pulse + dot + badge + label + sub */

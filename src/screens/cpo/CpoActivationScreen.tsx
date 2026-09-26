@@ -250,11 +250,11 @@ const s = StyleSheet.create(scaleTextStyles({
   body: {paddingHorizontal: 22, paddingTop: 4, gap: 12},
   idCard: {
     borderRadius: 20, padding: 22, alignItems: 'center', gap: 5, marginBottom: 6,
-    backgroundColor: 'rgba(91,141,239,0.07)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.07)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
   },
   idIcon: {
     width: 56, height: 56, borderRadius: 18, marginBottom: 6,
-    backgroundColor: 'rgba(91,141,239,0.14)', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(30,136,255,0.14)', alignItems: 'center', justifyContent: 'center',
   },
   idLabel: {fontFamily: D.fSemi, fontSize: 10, letterSpacing: 1.6, color: D.textMute},
   idOrg: {fontFamily: D.fBold, fontSize: 22, color: D.text, letterSpacing: -0.3, textAlign: 'center'},
@@ -264,7 +264,7 @@ const s = StyleSheet.create(scaleTextStyles({
   exRow: {flexDirection: 'row', gap: 12, alignItems: 'flex-start', marginTop: 6},
   exIcon: {
     width: 38, height: 38, borderRadius: 12,
-    backgroundColor: 'rgba(91,141,239,0.10)', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(30,136,255,0.10)', alignItems: 'center', justifyContent: 'center',
   },
   exTitle: {fontFamily: D.fBold, fontSize: 14.5, color: D.text},
   exBody: {fontFamily: D.fSans, fontSize: 12.5, lineHeight: 18, color: D.textMute, marginTop: 2},

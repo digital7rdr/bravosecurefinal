@@ -895,7 +895,7 @@ export default function ChatInfoScreen({navigation, route}: Props) {
             icon="phone" color="#4ade80" bg="rgba(34,197,94,0.12)" border="rgba(34,197,94,0.25)" label="Call"
             onPress={() => launchCall(navigation, {conversationId, callType: 'voice'})} />
           <QuickAction
-            icon="video" color="#1E88FF" bg="rgba(91,141,239,0.12)" border="rgba(91,141,239,0.25)" label="Video"
+            icon="video" color="#1E88FF" bg="rgba(30,136,255,0.12)" border="rgba(30,136,255,0.25)" label="Video"
             onPress={() => launchCall(navigation, {conversationId, callType: 'video'})} />
           <QuickAction
             icon={isMuted ? 'bell' : 'bell-off'}
@@ -1003,7 +1003,7 @@ export default function ChatInfoScreen({navigation, route}: Props) {
         <Text style={styles.sectionHeader}>Settings</Text>
 
         <TouchableOpacity style={styles.settingRow} activeOpacity={0.8} onPress={() => setTtlPickerOpen(true)}>
-          <View style={[styles.settingIcon, {backgroundColor: 'rgba(91,141,239,0.12)', borderColor: 'rgba(91,141,239,0.2)'}]}>
+          <View style={[styles.settingIcon, {backgroundColor: 'rgba(30,136,255,0.12)', borderColor: 'rgba(30,136,255,0.2)'}]}>
             <Icon name="send-clock" size={18} color="#1E88FF" />
           </View>
           <Text style={styles.settingTitle}>Disappearing Messages</Text>
@@ -1325,7 +1325,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   saveChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10,
     paddingHorizontal: 12, height: 32, borderRadius: 16,
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
   },
   saveChipText: {color: '#1E88FF', fontSize: 11.5, fontWeight: '700', letterSpacing: 0.2},
   profileAvatar: {width: 80, height: 80, borderRadius: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 16, shadowColor: '#000', shadowOffset: {width: 0, height: 8}, shadowOpacity: 0.3, shadowRadius: 16, elevation: 8},
@@ -1363,19 +1363,19 @@ const styles = StyleSheet.create(scaleTextStyles({
   memberInitials: {color: '#FFF', fontSize: 12, fontWeight: '800'},
   // BS-GROUP-ADD — "Add member" row.
   addMemberRow: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10},
-  addMemberIcon: {width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,141,239,0.12)', flexShrink: 0},
+  addMemberIcon: {width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30,136,255,0.12)', flexShrink: 0},
   addMemberText: {color: Colors.primary, fontSize: 14, fontWeight: '700'},
   memberNameRow: {flexDirection: 'row', alignItems: 'center', gap: 6},
   memberName: {color: '#FFFFFF', fontSize: 13, fontWeight: '700', flexShrink: 1},
   memberPhone: {color: 'rgba(180,188,204,0.45)', fontSize: 11, marginTop: 2},
-  aliasTag: {flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)'},
+  aliasTag: {flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)'},
   aliasTagText: {color: '#1E88FF', fontSize: 8, fontWeight: '800', letterSpacing: 1.2},
   // B-268 — mirrors aliasTag's geometry so the two can sit side by side on one
   // name row without the line jumping. Signal-green, not the cobalt used for
   // ALIAS/YOU: admin is an authority state, not an annotation about naming.
   adminTag: {flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 5, backgroundColor: 'rgba(74,222,128,0.12)', borderWidth: 1, borderColor: 'rgba(74,222,128,0.28)'},
   adminTagText: {color: '#4ADE80', fontSize: 8, fontWeight: '800', letterSpacing: 1.2},
-  selfBadge: {color: '#1E88FF', fontSize: 9, fontWeight: '800', letterSpacing: 1.5, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.30)'},
+  selfBadge: {color: '#1E88FF', fontSize: 9, fontWeight: '800', letterSpacing: 1.5, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.30)'},
 
   settingRow: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.07)'},
   settingIcon: {width: 36, height: 36, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center', flexShrink: 0},
@@ -1398,11 +1398,11 @@ const styles = StyleSheet.create(scaleTextStyles({
   modalSaveText: {color: '#FFF', fontSize: 13, fontWeight: '800'},
 
   ttlOption: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 10, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)'},
-  ttlOptionActive: {borderColor: '#1E88FF', backgroundColor: 'rgba(91,141,239,0.10)'},
+  ttlOptionActive: {borderColor: '#1E88FF', backgroundColor: 'rgba(30,136,255,0.10)'},
   ttlOptionText: {color: '#FFF', fontSize: 13, fontWeight: '600'},
 
   fingerprintBox: {marginTop: 16, padding: 14, borderRadius: 10, backgroundColor: '#0A1F3F', borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)'},
   fingerprintText: {color: '#4ade80', fontSize: 14, fontWeight: '700', letterSpacing: 2, textAlign: 'center', fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace'},
-  fingerprintAction: {flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 8, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.25)'},
+  fingerprintAction: {flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 8, backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.25)'},
   fingerprintActionText: {color: '#1E88FF', fontSize: 13, fontWeight: '700'},
 }));

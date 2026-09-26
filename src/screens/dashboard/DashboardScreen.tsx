@@ -55,14 +55,14 @@ const T = {
   accent:       '#1E88FF',
   accentDeep:   '#166ED1',
   accentSoft:   '#7FA8FF',
-  accentGlow:   'rgba(91,141,239,0.35)',
+  accentGlow:   'rgba(30,136,255,0.35)',
   signal:       '#4ADE80',
   signalDim:    'rgba(74,222,128,0.14)',
   alert:        '#F5485A',
   amber:        '#F5B544',
   // module tints (vbg-command-home.jsx SVC):
   tintIndigo:   '#818CF8', tintIndigoIc: '#B7BEFF', tintIndigoBd: 'rgba(129,140,248,0.38)', tintIndigoGlow: 'rgba(129,140,248,0.26)',
-  tintBlue:     '#1E88FF', tintBlueIc:   '#3BA6FF', tintBlueBd:   'rgba(91,141,239,0.4)',   tintBlueGlow:   'rgba(91,141,239,0.3)',
+  tintBlue:     '#1E88FF', tintBlueIc:   '#3BA6FF', tintBlueBd:   'rgba(30,136,255,0.4)',   tintBlueGlow:   'rgba(30,136,255,0.3)',
   tintViolet:   '#A78BFA', tintVioletIc: '#C7B6FF', tintVioletBd: 'rgba(167,139,250,0.38)', tintVioletGlow: 'rgba(167,139,250,0.26)',
 } as const;
 
@@ -490,7 +490,7 @@ export default function DashboardScreen() {
         {user?.auto_dispatch_enabled && (
           <TouchableOpacity activeOpacity={0.9} onPress={goToSecure} accessibilityRole="button"
             accessibilityLabel="Protect me now — auto-dispatch"
-            style={{borderRadius: 20, overflow: 'hidden', marginBottom: 16, borderWidth: 1, borderColor: 'rgba(91,141,239,0.30)'}}>
+            style={{borderRadius: 20, overflow: 'hidden', marginBottom: 16, borderWidth: 1, borderColor: 'rgba(30,136,255,0.30)'}}>
             <LinearGradient colors={['#166ED1', '#16307E']} start={{x: 0, y: 0}} end={{x: 1, y: 1}}
               style={{flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18, paddingVertical: 17}}>
               <View style={{width: 48, height: 48, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center'}}>
@@ -846,7 +846,7 @@ const TILE_TINT: Record<PremiumTileTint, {
   },
   blue: {
     rail: [T.tintBlue, T.accentDeep], railGlow: T.tintBlueGlow,
-    iconFill: ['rgba(91,141,239,0.22)', 'rgba(91,141,239,0.06)'], iconBd: T.tintBlueBd, iconGlow: T.tintBlueGlow, iconColor: T.tintBlueIc,
+    iconFill: ['rgba(30,136,255,0.22)', 'rgba(30,136,255,0.06)'], iconBd: T.tintBlueBd, iconGlow: T.tintBlueGlow, iconColor: T.tintBlueIc,
   },
   violet: {
     rail: [T.tintViolet, '#6366F1'], railGlow: T.tintVioletGlow,
@@ -1115,14 +1115,14 @@ const styles = StyleSheet.create(scaleTextStyles({
   },
   profileUser: {paddingHorizontal: 20, paddingBottom: 20, borderBottomWidth: 1, borderBottomColor: T.hair, flexDirection: 'row', alignItems: 'center', gap: 14},
   profileAvatarWrap: {position: 'relative'},
-  profileAvatar: {width: 56, height: 56, borderRadius: 28, overflow: 'hidden', backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 2, borderColor: T.accent, alignItems: 'center', justifyContent: 'center'},
+  profileAvatar: {width: 56, height: 56, borderRadius: 28, overflow: 'hidden', backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 2, borderColor: T.accent, alignItems: 'center', justifyContent: 'center'},
   profileAvatarImg: {width: '100%', height: '100%'},
   profileAvatarText: {color: T.accentSoft, fontSize: 18, fontWeight: '700'},
   onlineDot: {position: 'absolute', bottom: 1, right: 1, width: 12, height: 12, borderRadius: 6, backgroundColor: T.signal, borderWidth: 2, borderColor: T.bgSoft},
   profileUserInfo: {flex: 1},
   profileNameRow: {flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4},
   profileName: {color: T.text, fontSize: 15, fontWeight: '700'},
-  roleBadge: {backgroundColor: 'rgba(91,141,239,0.15)', borderRadius: 99, paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1, borderColor: T.tintBlueBd},
+  roleBadge: {backgroundColor: 'rgba(30,136,255,0.15)', borderRadius: 99, paddingHorizontal: 8, paddingVertical: 2, borderWidth: 1, borderColor: T.tintBlueBd},
   roleBadgeText: {color: T.accentSoft, fontSize: 10, fontWeight: '700', letterSpacing: 0.5},
   editProfile: {color: T.accent, fontSize: 12, fontWeight: '600'},
   profileMenu: {flex: 1, paddingHorizontal: 16, paddingTop: 8},
@@ -1159,7 +1159,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   sosInfoCards: {width: '100%', gap: 8},
   sosInfoCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    padding: 12, backgroundColor: 'rgba(91,141,239,0.06)',
+    padding: 12, backgroundColor: 'rgba(30,136,255,0.06)',
     borderWidth: 1, borderColor: T.hair2, borderRadius: 12,
   },
   sosInfoTitle: {color: T.text, fontSize: 12, fontWeight: '700'},

@@ -187,7 +187,7 @@ const s = StyleSheet.create(scaleTextStyles({
   card: {backgroundColor: D.card, borderRadius: 16, borderWidth: 1, borderColor: D.hair, marginBottom: 12, overflow: 'hidden'},
   cardHead: {flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14},
   avatar: {width: 40, height: 40, borderRadius: 20},
-  avatarFallback: {backgroundColor: 'rgba(91,141,239,0.14)', alignItems: 'center', justifyContent: 'center'},
+  avatarFallback: {backgroundColor: 'rgba(30,136,255,0.14)', alignItems: 'center', justifyContent: 'center'},
   avatarText: {color: D.accentSoft, fontFamily: D.fBold, fontSize: 14},
   name: {color: D.text, fontFamily: D.fBold, fontSize: 14.5},
   sub: {color: D.textMute, fontFamily: D.fSans, fontSize: 11.5, marginTop: 2},

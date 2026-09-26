@@ -605,11 +605,11 @@ export const s = StyleSheet.create(scaleTextStyles({
     width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: UI.hair, marginTop: 4,
   },
-  iconBtnOn: {borderColor: 'rgba(91,141,239,0.45)', backgroundColor: 'rgba(91,141,239,0.10)'},
+  iconBtnOn: {borderColor: 'rgba(30,136,255,0.45)', backgroundColor: 'rgba(30,136,255,0.10)'},
 
   activeCard: {
     marginTop: 18, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 16,
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)', padding: 18, gap: 5,
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)', padding: 18, gap: 5,
   },
   activeTop: {flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2},
   dot: {width: 8, height: 8, borderRadius: 4},
@@ -637,7 +637,7 @@ export const s = StyleSheet.create(scaleTextStyles({
     flex: 1, minHeight: 38, borderRadius: 9, alignItems: 'center',
     justifyContent: 'center', paddingHorizontal: 4,
   },
-  segmentOn: {backgroundColor: 'rgba(91,141,239,0.16)'},
+  segmentOn: {backgroundColor: 'rgba(30,136,255,0.16)'},
   segmentText: {color: UI.textDim, fontFamily: UI.fSemi, fontSize: 12.5},
   segmentTextOn: {color: UI.accentSoft},
 
@@ -724,7 +724,7 @@ export const s = StyleSheet.create(scaleTextStyles({
     minHeight: 38, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 999,
     borderWidth: 1, borderColor: UI.hair, backgroundColor: 'rgba(255,255,255,0.03)',
   },
-  pillOn: {borderColor: 'rgba(91,141,239,0.5)', backgroundColor: 'rgba(91,141,239,0.14)'},
+  pillOn: {borderColor: 'rgba(30,136,255,0.5)', backgroundColor: 'rgba(30,136,255,0.14)'},
   pillText: {color: UI.textDim, fontFamily: UI.fSemi, fontSize: 12.5},
   pillTextOn: {color: UI.accentSoft},
   applyBtn: {

@@ -52,7 +52,7 @@ const C = {
   rec: '#F87171',
   white: '#FFFFFF',
   dim: 'rgba(255,255,255,0.72)',
-  scrim: 'rgba(7,9,13,0.55)',
+  scrim: 'rgba(10,31,63,0.55)',
 };
 
 type Phase = 'idle' | 'armed' | 'recording' | 'busy';

@@ -47,7 +47,7 @@ const s = StyleSheet.create(scaleTextStyles({
     backgroundColor: UI.surface, borderWidth: 1, borderColor: UI.hair},
   cardOn: {borderColor: 'rgba(74,222,128,0.30)', backgroundColor: 'rgba(74,222,128,0.05)'},
   iconWrap: {width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.10)'},
+    backgroundColor: 'rgba(30,136,255,0.10)'},
   titleRow: {flexDirection: 'row', alignItems: 'center', gap: 7},
   title: {fontFamily: UI.fBold, fontSize: 14.5, color: UI.text},
   req: {fontFamily: UI.fBold, fontSize: 8, letterSpacing: 0.8, color: UI.alert,

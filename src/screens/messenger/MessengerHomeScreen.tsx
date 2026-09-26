@@ -1801,15 +1801,15 @@ const styles = StyleSheet.create(scaleTextStyles({
   headerAvatarBtn: {
     width: 34, height: 34, borderRadius: 17, overflow: 'hidden',
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.35)',
   },
   headerAvatarImg: {width: 34, height: 34, borderRadius: 17},
   headerAvatarText: {color: '#3BA6FF', fontSize: 12, fontWeight: '800'},
   // B-661 - same box as iconPill (34) so every header control matches.
   headerMark: {
     width: 34, height: 34, borderRadius: 11,
-    backgroundColor: 'rgba(91,141,239,0.14)',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)',
+    backgroundColor: 'rgba(30,136,255,0.14)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)',
     alignItems: 'center', justifyContent: 'center',
   },
   // flexShrink so a long title yields before the action buttons do. The
@@ -1877,7 +1877,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   badgeText: {fontFamily: BravoFont.sans, color: '#FFF', fontSize: 11, fontWeight: '700'},
 
   emptyWrap: {alignItems:'center', paddingVertical:60, paddingHorizontal:32, gap:12, flex:1, justifyContent:'center'},
-  emptyIconWrap: {width:80, height:80, borderRadius:40, backgroundColor:'rgba(91,141,239,0.08)', borderWidth:1, borderColor:'rgba(255,255,255,0.06)', alignItems:'center', justifyContent:'center', marginBottom:8},
+  emptyIconWrap: {width:80, height:80, borderRadius:40, backgroundColor:'rgba(30,136,255,0.08)', borderWidth:1, borderColor:'rgba(255,255,255,0.06)', alignItems:'center', justifyContent:'center', marginBottom:8},
   emptyTitle: {color:'#FFFFFF', fontSize:15, fontWeight:'700'},
   emptyHint: {color:'rgba(229,233,242,0.62)', fontSize:12, textAlign:'center', lineHeight:18, maxWidth:300},
   emptyBtn: {marginTop:12, flexDirection:'row', alignItems:'center', gap:6, paddingHorizontal:20, paddingVertical:10, borderRadius:99, backgroundColor:Colors.primary},
@@ -1908,8 +1908,8 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   // Chat-list swipe actions + active-row state
   rowActive: {
-    backgroundColor: 'rgba(91,141,239,0.06)',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.12)',
+    backgroundColor: 'rgba(30,136,255,0.06)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.12)',
   },
   rowPinned: {backgroundColor:'rgba(96,165,250,0.04)'},
   swipeAction: {width:88, alignItems:'center', justifyContent:'center', gap:4, paddingHorizontal:8},
@@ -1919,7 +1919,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   // Chat multi-select (founder 2026-08-01). The transparent left border on
   // every row keeps layout identical when selection paints the accent bar.
   rowSelected: {
-    backgroundColor: 'rgba(91,141,239,0.22)',
+    backgroundColor: 'rgba(30,136,255,0.22)',
     borderLeftColor: '#1E88FF',
   },
   selBadge: {

@@ -211,7 +211,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   headerTitle: {fontSize: 17, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 3, color: '#FFFFFF'},
 
   linkRow: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)'},
-  linkIcon: {width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)', flexShrink: 0},
+  linkIcon: {width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)', flexShrink: 0},
   linkInfo: {flex: 1, minWidth: 0},
   linkUrl: {fontSize: 13, fontWeight: '600', color: '#FFFFFF'},
   linkMetaRow: {flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3},

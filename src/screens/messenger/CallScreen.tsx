@@ -4080,7 +4080,7 @@ const styles = StyleSheet.create({
     width:40, height:40, borderRadius:20, alignItems:'center', justifyContent:'center',
     backgroundColor:'rgba(0,0,0,0.55)', borderWidth:1, borderColor:'rgba(255,255,255,0.15)',
   },
-  ctrlCircleActive: {backgroundColor:'rgba(91,141,239,0.35)', borderColor:'rgba(91,141,239,0.5)'},
+  ctrlCircleActive: {backgroundColor:'rgba(30,136,255,0.35)', borderColor:'rgba(30,136,255,0.5)'},
   // B-389 — a control that cannot act yet must LOOK inert, or the user taps it
   // and gets an error for a state that resolves on its own.
   ctrlCircleDisabled: {opacity:0.4},
@@ -4105,7 +4105,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6, shadowOffset: {width: 0, height: 3},
   },
   audioInterruptTxt: {color:'#FEF3C7', fontSize: 11, fontWeight: '700', flex: 1},
-  ctrlCircleBlue: {backgroundColor:'rgba(91,141,239,0.35)', borderColor:'rgba(91,141,239,0.5)'},
+  ctrlCircleBlue: {backgroundColor:'rgba(30,136,255,0.35)', borderColor:'rgba(30,136,255,0.5)'},
   endBtnVideo: {
     width:40, height:40, borderRadius:20, alignItems:'center', justifyContent:'center',
     backgroundColor:'#DC2626', borderWidth:1, borderColor:'rgba(220,38,38,0.5)',
@@ -4217,7 +4217,7 @@ const styles = StyleSheet.create({
   },
   routePickerTitle: {color:'#F1F5F9', fontSize:14, fontWeight:'700', letterSpacing:1.6, textTransform:'uppercase', marginBottom:14},
   routeRow: {flexDirection:'row', alignItems:'center', gap:14, paddingVertical:14, paddingHorizontal:12, borderRadius:12},
-  routeRowActive: {backgroundColor:'rgba(91,141,239,0.12)'},
+  routeRowActive: {backgroundColor:'rgba(30,136,255,0.12)'},
   routeLabel: {flex:1, color:'#E2E8F0', fontSize:15, fontWeight:'600'},
 
   endBtnVoice: {
@@ -4272,7 +4272,7 @@ const styles = StyleSheet.create({
   dialpadDisplay:  {alignItems:'center', minHeight:44, justifyContent:'center', marginBottom:16, backgroundColor:'rgba(255,255,255,0.07)', borderRadius:10, paddingVertical:10},
   dialpadDigits:   {color:'#FFFFFF', fontSize:24, fontWeight:'700', letterSpacing:4},
   dialpadGrid:     {flexDirection:'row', flexWrap:'wrap', justifyContent:'space-between'},
-  dialpadKey:      {width:'30%', aspectRatio:1.2, alignItems:'center', justifyContent:'center', backgroundColor:'rgba(91,141,239,0.10)', borderRadius:14, marginBottom:12},
+  dialpadKey:      {width:'30%', aspectRatio:1.2, alignItems:'center', justifyContent:'center', backgroundColor:'rgba(30,136,255,0.10)', borderRadius:14, marginBottom:12},
   dialpadKeyText:  {color:'#FFFFFF', fontSize:26, fontWeight:'600'},
   dialpadActions:  {flexDirection:'row', justifyContent:'space-between', marginTop:4},
   dialpadClear:    {color:'#fca5a5', fontSize:14, fontWeight:'700', paddingVertical:10, paddingHorizontal:12},
@@ -4284,7 +4284,7 @@ const styles = StyleSheet.create({
   addPickerHint:     {color:'#B8C7E0', fontSize:12, lineHeight:17, marginBottom:14},
   addPickerList:     {gap:8, paddingBottom:8},
   addPickerEmpty:    {color:'#7E8AA6', fontSize:13, textAlign:'center', paddingVertical:32, fontStyle:'italic'},
-  addPickerRow:      {flexDirection:'row', alignItems:'center', gap:12, paddingHorizontal:12, paddingVertical:10, borderRadius:12, backgroundColor:'rgba(91,141,239,0.08)', borderWidth:1, borderColor:'rgba(91,141,239,0.2)'},
+  addPickerRow:      {flexDirection:'row', alignItems:'center', gap:12, paddingHorizontal:12, paddingVertical:10, borderRadius:12, backgroundColor:'rgba(30,136,255,0.08)', borderWidth:1, borderColor:'rgba(30,136,255,0.2)'},
   addPickerAvatar:   {width:38, height:38, borderRadius:19, backgroundColor:'#13182A', alignItems:'center', justifyContent:'center', borderWidth:1, borderColor:'rgba(255,255,255,0.14)'},
   addPickerAvatarTxt:{color:'#FFFFFF', fontSize:13, fontWeight:'800', letterSpacing:0.6},
   addPickerName:     {color:'#FFFFFF', fontSize:14, fontWeight:'700'},

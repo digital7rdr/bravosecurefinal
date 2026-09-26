@@ -445,7 +445,7 @@ export default function OrgRosterScreen() {
       </ScrollView>
 
       {/* ── Footer CTA ── */}
-      <LinearGradient colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']} locations={[0, 0.3]}
+      <LinearGradient colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']} locations={[0, 0.3]}
         style={{paddingHorizontal: 20, paddingTop: 14, paddingBottom: bottomPad(14)}}>
         <View style={{flexDirection: 'row', gap: 10}}>
           <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('OrgCreateCpo')} style={{flex: 1}}>
@@ -459,7 +459,7 @@ export default function OrgRosterScreen() {
               translucent surface). */}
           <TouchableOpacity activeOpacity={0.85} onPress={() => setInviteOpen(true)}
             accessibilityRole="button" accessibilityLabel="Invite officer with a code"
-            style={[s.cta, {flex: 1, backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.5)', elevation: 0, shadowOpacity: 0}]}>
+            style={[s.cta, {flex: 1, backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.5)', elevation: 0, shadowOpacity: 0}]}>
             <Icon name="key-variant" size={18} color={D.accentSoft} />
             <Text style={[s.ctaText, {color: D.accentSoft}]} numberOfLines={1}>Invite Code</Text>
           </TouchableOpacity>
@@ -518,7 +518,7 @@ const s = StyleSheet.create(scaleTextStyles({
   activeChip: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999,
-    backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)',
+    backgroundColor: 'rgba(30,136,255,0.08)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)',
   },
   activeDot: {width: 6, height: 6, borderRadius: 3, backgroundColor: D.textMute},
   activeChipText: {fontFamily: D.fBold, fontSize: 10, letterSpacing: 0.8, color: D.accentSoft},
@@ -547,7 +547,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   emptyIconTile: {
     width: 72, height: 72, borderRadius: 22,
-    backgroundColor: 'rgba(91,141,239,0.16)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)',
+    backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)',
     alignItems: 'center', justifyContent: 'center',
     shadowColor: D.accent, shadowOpacity: 0.22, shadowRadius: 18, shadowOffset: {width: 0, height: 14},
     elevation: 8,
@@ -584,7 +584,7 @@ const s = StyleSheet.create(scaleTextStyles({
   benefitRow: {flexDirection: 'row', alignItems: 'flex-start', gap: 13},
   benefitIcon: {
     width: 36, height: 36, borderRadius: 11,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
     alignItems: 'center', justifyContent: 'center',
   },
   benefitTitle: {fontFamily: D.fBold, fontSize: 13.5, letterSpacing: -0.2, color: D.text},
@@ -598,14 +598,14 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   memberAvatar: {
     width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)',
   },
   memberInitials: {fontFamily: D.fBold, fontSize: 13, color: D.accentSoft, letterSpacing: 0.5},
   nameRow: {flexDirection: 'row', alignItems: 'center', gap: 8},
   memberName: {flexShrink: 1, fontFamily: D.fBold, fontSize: 14, color: D.text, letterSpacing: -0.2},
   roleBadge: {
     paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5,
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)',
   },
   roleBadgeText: {fontFamily: D.fBold, fontSize: 8, letterSpacing: 1, color: D.accentSoft},
   memberMeta: {fontFamily: D.fSans, fontSize: 11.5, color: D.textMute, marginTop: 2},
@@ -618,7 +618,7 @@ const s = StyleSheet.create(scaleTextStyles({
   dutyBadge: {position: 'absolute', right: -1, bottom: -1, width: 11, height: 11, borderRadius: 6,
     borderWidth: 2, borderColor: D.bg},
   deployedBadge: {paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999,
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)'},
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)'},
   deployedBadgeText: {fontFamily: D.fBold, fontSize: 7.5, letterSpacing: 0.8, color: D.accentSoft},
 
   // CTA

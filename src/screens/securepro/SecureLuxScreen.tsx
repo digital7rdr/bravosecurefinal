@@ -140,7 +140,7 @@ export default function SecureLuxScreen() {
           <ImageryBackdrop source={Imagery.svcAviation} variant="hero" radius={24} />
           <View style={s.heroGlow} pointerEvents="none" />
           <LinearGradient
-            colors={['rgba(91,141,239,0.30)', 'rgba(47,91,224,0.08)']}
+            colors={['rgba(30,136,255,0.30)', 'rgba(22,110,209,0.08)']}
             start={{x: 0.2, y: 0}}
             end={{x: 0.85, y: 1}}
             style={s.medallion}>
@@ -230,7 +230,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 280, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -248,17 +248,17 @@ const s = StyleSheet.create(scaleTextStyles({
   hero: {
     alignItems: 'center', paddingVertical: 26, paddingHorizontal: 18,
     borderRadius: 24, overflow: 'hidden',
-    backgroundColor: 'rgba(16,26,46,0.6)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.25)',
+    backgroundColor: 'rgba(16,26,46,0.6)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.25)',
   },
   heroGlow: {
     position: 'absolute', top: -60, alignSelf: 'center',
     width: 260, height: 180, borderRadius: 130,
-    backgroundColor: 'rgba(91,141,239,0.12)',
+    backgroundColor: 'rgba(30,136,255,0.12)',
   },
   medallion: {
     width: 84, height: 84, borderRadius: 26,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.45)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.45)',
     shadowColor: D.accent, shadowOpacity: 0.4, shadowRadius: 24, shadowOffset: {width: 0, height: 0}, elevation: 8,
   },
   heroTitle: {fontFamily: D.fBold, fontSize: 22, letterSpacing: -0.4, color: D.text, marginTop: 16},
@@ -287,7 +287,7 @@ const s = StyleSheet.create(scaleTextStyles({
   pillarTopLight: {position: 'absolute', top: 0, left: 14, right: 14, height: 1, backgroundColor: 'rgba(120,160,255,0.3)'},
   pillarIcon: {
     width: 40, height: 40, borderRadius: 13,
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
     alignItems: 'center', justifyContent: 'center',
   },
   pillarTitle: {fontFamily: D.fBold, fontSize: 13.5, letterSpacing: -0.2, color: D.text, marginTop: 10},

@@ -147,7 +147,7 @@ const s = StyleSheet.create(scaleTextStyles({
   center: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingHorizontal: 40},
   errorText: {fontFamily: UI.fSans, fontSize: 13.5, color: UI.textDim, textAlign: 'center', lineHeight: 20},
   retryBtn: {paddingHorizontal: 18, paddingVertical: 9, borderRadius: 999,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)'},
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)'},
   retryText: {fontFamily: UI.fBold, fontSize: 12.5, color: UI.accentSoft},
   card: {borderRadius: 16, padding: 16, gap: 8, backgroundColor: 'rgba(255,255,255,0.025)', borderWidth: 1, borderColor: UI.hair},
   rowBetween: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'},

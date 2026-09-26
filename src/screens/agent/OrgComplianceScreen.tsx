@@ -226,7 +226,7 @@ const s = StyleSheet.create(scaleTextStyles({
   fieldLabel: {fontFamily: D.fSemi, fontSize: 11, color: D.textDim, marginTop: 4},
   rowWrap: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
   chip: {paddingHorizontal: 14, paddingVertical: 9, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: D.hair2},
-  chipOn: {backgroundColor: 'rgba(91,141,239,0.12)', borderColor: 'rgba(91,141,239,0.4)'},
+  chipOn: {backgroundColor: 'rgba(30,136,255,0.12)', borderColor: 'rgba(30,136,255,0.4)'},
   chipText: {fontFamily: D.fSemi, fontSize: 13, color: D.textMute},
   chipTextOn: {color: D.accentSoft},
   input: {borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: D.hair2, color: D.text, fontFamily: D.fSans, fontSize: 14},

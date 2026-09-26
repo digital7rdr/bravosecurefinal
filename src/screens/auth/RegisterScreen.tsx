@@ -47,7 +47,7 @@ const T = {
   hair2:      'rgba(255,255,255,0.09)',
   accent:     '#1E88FF',
   accentDeep: '#166ED1',
-  accentGlow: 'rgba(91,141,239,0.35)',
+  accentGlow: 'rgba(30,136,255,0.35)',
   signal:     '#4ADE80',
   amber:      '#F5B544',
   danger:     '#FF8B8B',
@@ -253,7 +253,7 @@ function CAField({
   const borderColor = valid
     ? 'rgba(74,222,128,0.34)'
     : focused
-      ? 'rgba(91,141,239,0.5)'
+      ? 'rgba(30,136,255,0.5)'
       : T.hair2;
 
   return (
@@ -273,7 +273,7 @@ function CAField({
       />
       {focused && (
         <LinearGradient
-          colors={['rgba(91,141,239,0.10)', 'rgba(255,255,255,0.02)']}
+          colors={['rgba(30,136,255,0.10)', 'rgba(255,255,255,0.02)']}
           start={{x: 0.5, y: 0}}
           end={{x: 0.5, y: 1}}
           style={StyleSheet.absoluteFill}
@@ -490,7 +490,7 @@ export default function RegisterScreen({navigation, route}: Props) {
       {/* Ambient obsidian + cobalt hero glow */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <LinearGradient
-          colors={['rgba(91,141,239,0.16)', 'rgba(91,141,239,0)']}
+          colors={['rgba(30,136,255,0.16)', 'rgba(30,136,255,0)']}
           start={{x: 0.5, y: 0}}
           end={{x: 0.5, y: 1}}
           style={styles.heroGlow}
@@ -774,7 +774,7 @@ export default function RegisterScreen({navigation, route}: Props) {
             />
             <View style={styles.mIconWrap}>
               <LinearGradient
-                colors={['rgba(91,141,239,0.28)', 'rgba(47,91,224,0.08)']}
+                colors={['rgba(30,136,255,0.28)', 'rgba(22,110,209,0.08)']}
                 start={{x: 0.2, y: 0}}
                 end={{x: 0.9, y: 1}}
                 style={StyleSheet.absoluteFill}
@@ -846,8 +846,8 @@ const styles = StyleSheet.create(scaleTextStyles({
   badgeRow: {flexDirection: 'row', gap: 8, marginBottom: 18},
   badgeCobalt: {
     paddingVertical: 3, paddingHorizontal: 8, borderRadius: 6,
-    backgroundColor: 'rgba(91,141,239,0.12)',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)',
+    backgroundColor: 'rgba(30,136,255,0.12)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)',
   },
   badgeCobaltText: {fontFamily: 'monospace', color: '#3BA6FF', fontSize: 9.5, letterSpacing: 1.8, fontWeight: '700'},
   badgeMuted: {
@@ -958,7 +958,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   mEdge: {position: 'absolute', top: 0, left: 24, right: 24, height: 1},
   mIconWrap: {
     width: 64, height: 64, borderRadius: 19,
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
     marginBottom: 18,
   },

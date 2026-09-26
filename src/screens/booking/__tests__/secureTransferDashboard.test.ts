@@ -190,7 +190,7 @@ describe('B-861 device pass — Build & confirm says each thing exactly once', (
     /**
      * Array-literal lengths for one prop — one per ternary arm.
      *
-     * TOP-LEVEL commas only: `rgba(7,9,13,0)` has three of its own, and
+     * TOP-LEVEL commas only: `rgba(10,31,63,0)` has three of its own, and
      * counting those reported a two-colour gradient as eight and made the
      * whole check noise.
      */

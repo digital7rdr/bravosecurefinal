@@ -59,7 +59,7 @@ type JobTint = 'cpo' | 'driver' | 'recon';
 // Hero-band tint per derived job type (CPO violet · Driver cobalt · Recon green).
 const TINT: Record<JobTint, {label: string; ic: string; bg: string; bd: string; ring: string; tileA: string; tileB: string}> = {
   cpo:    {label: 'CPO',    ic: '#C7B6FF', bg: 'rgba(167,139,250,0.14)', bd: 'rgba(167,139,250,0.4)',  ring: 'rgba(167,139,250,0.4)',  tileA: 'rgba(124,90,214,0.22)', tileB: 'rgba(20,18,40,0.4)'},
-  driver: {label: 'DRIVER', ic: '#3BA6FF', bg: 'rgba(91,141,239,0.14)',  bd: 'rgba(91,141,239,0.4)',   ring: 'rgba(91,141,239,0.4)',   tileA: 'rgba(47,91,224,0.22)',  tileB: 'rgba(15,22,40,0.4)'},
+  driver: {label: 'DRIVER', ic: '#3BA6FF', bg: 'rgba(30,136,255,0.14)',  bd: 'rgba(30,136,255,0.4)',   ring: 'rgba(30,136,255,0.4)',   tileA: 'rgba(22,110,209,0.22)',  tileB: 'rgba(15,22,40,0.4)'},
   recon:  {label: 'RECON',  ic: '#8FE6B4', bg: 'rgba(74,222,128,0.13)',  bd: 'rgba(74,222,128,0.36)',  ring: 'rgba(74,222,128,0.36)',  tileA: 'rgba(28,126,140,0.22)', tileB: 'rgba(10,30,30,0.4)'},
 };
 
@@ -161,7 +161,7 @@ function HeroBand({tint, pickup, dropoff}: {
           />
           {/* legibility scrim + endpoint chips */}
           <LinearGradient
-            colors={['rgba(7,9,13,0.05)', 'rgba(7,9,13,0.55)']}
+            colors={['rgba(10,31,63,0.05)', 'rgba(10,31,63,0.55)']}
             style={StyleSheet.absoluteFill}
           />
           <View style={s.routeChips}>
@@ -274,7 +274,7 @@ export default function JobMarketplaceScreen() {
                 bg: 'rgba(74,222,128,0.12)', bd: 'rgba(74,222,128,0.34)'};
       case 'ASSIGNED':
         return {label: 'On Team', icon: 'shield-check', fg: '#3BA6FF',
-                bg: 'rgba(91,141,239,0.14)', bd: 'rgba(91,141,239,0.4)', disabled: true};
+                bg: 'rgba(30,136,255,0.14)', bd: 'rgba(30,136,255,0.4)', disabled: true};
       case 'REJECTED':
         return {label: 'Not Selected', icon: 'close-circle', fg: '#F58B97',
                 bg: 'rgba(245,72,90,0.12)', bd: 'rgba(245,72,90,0.3)', disabled: true};

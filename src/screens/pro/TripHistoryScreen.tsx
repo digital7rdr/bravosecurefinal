@@ -93,7 +93,7 @@ function bookingToTrip(b: Booking): TripItem {
     // Why: total_eur is the canonical BC amount (1 BC = 1 EUR); total_aed is 4.07× and display-only.
     credits: Number(b.total_eur) > 0 ? `${Math.round(Number(b.total_eur)).toLocaleString()} BC` : '—',
     riskTag: ongoing
-      ? {label: 'ONGOING', color: '#3BA6FF', bg: 'rgba(91,141,239,0.16)'}
+      ? {label: 'ONGOING', color: '#3BA6FF', bg: 'rgba(30,136,255,0.16)'}
       : cancelled
       ? {label: 'CANCELLED', color: '#FCA5A5', bg: 'rgba(239,68,68,0.15)'}
       : {label: b.status, color: '#86efac', bg: 'rgba(34,197,94,0.1)'},
@@ -179,7 +179,7 @@ export default function TripHistoryScreen() {
             <Text style={[styles.statValue, {color: PRO_INDIGO_LIGHT}]}>{trips.length}</Text>
             <Text style={styles.statLabel}>{isAgent ? 'Missions' : 'Bookings'}</Text>
           </View>
-          <View style={[styles.statCard, {borderColor: isAgent ? 'rgba(239,68,68,0.25)' : 'rgba(91,141,239,0.25)'}]}>
+          <View style={[styles.statCard, {borderColor: isAgent ? 'rgba(239,68,68,0.25)' : 'rgba(30,136,255,0.25)'}]}>
             <Text style={[styles.statValue, {color: isAgent ? '#F87171' : '#3BA6FF'}]}>{midCount}</Text>
             <Text style={styles.statLabel}>{isAgent ? 'Incident' : 'Ongoing'}</Text>
           </View>
@@ -246,7 +246,7 @@ export default function TripHistoryScreen() {
             </View>
 
             <View style={styles.tripBottom}>
-              <View style={[styles.completedBadge, trip.ongoing && {backgroundColor: 'rgba(91,141,239,0.12)', borderColor: 'rgba(91,141,239,0.3)'}]}>
+              <View style={[styles.completedBadge, trip.ongoing && {backgroundColor: 'rgba(30,136,255,0.12)', borderColor: 'rgba(30,136,255,0.3)'}]}>
                 <Text style={[styles.completedBadgeText, trip.ongoing && {color: '#3BA6FF'}]}>● {trip.status || 'COMPLETED'}</Text>
               </View>
               {trip.target && (
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
   filtersWrap: {flexGrow: 0},
   filtersContent: {gap: 8, paddingRight: 4},
   chip: {paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: T.hair2},
-  chipActive: {backgroundColor: 'rgba(91,141,239,0.2)', borderColor: 'rgba(91,141,239,0.4)'},
+  chipActive: {backgroundColor: 'rgba(30,136,255,0.2)', borderColor: 'rgba(30,136,255,0.4)'},
   chipText: {fontFamily: BravoFont.semiBold, fontSize: 11.5, color: T.textMute},
   chipTextActive: {color: T.text},
 

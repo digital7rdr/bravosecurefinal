@@ -69,7 +69,7 @@ export default function DispatchInspectorPage() {
                 cursor: 'pointer', fontSize: 11, fontFamily: 'var(--font-mono)', letterSpacing: 0.3,
                 padding: '5px 11px', borderRadius: 999,
                 border: `1px solid ${active ? 'var(--act)' : 'var(--bd-2)'}`,
-                background: active ? 'rgba(91,141,239,0.14)' : 'transparent',
+                background: active ? 'rgba(30,136,255,0.14)' : 'transparent',
                 color: active ? 'var(--tx-1)' : 'var(--tx-3)',
               }}>
               {f.label}

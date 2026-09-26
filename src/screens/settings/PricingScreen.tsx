@@ -227,14 +227,14 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   scroll: {padding: 16, gap: 14},
 
-  currentCard: {flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)', borderRadius: 16, padding: 16},
-  currentIcon: {width: 44, height: 44, borderRadius: 13, backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)', alignItems: 'center', justifyContent: 'center'},
+  currentCard: {flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: 'rgba(30,136,255,0.08)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)', borderRadius: 16, padding: 16},
+  currentIcon: {width: 44, height: 44, borderRadius: 13, backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)', alignItems: 'center', justifyContent: 'center'},
   currentLabel: {fontSize: 9, fontWeight: '700', letterSpacing: 1.8, color: T.mute},
   currentTier: {fontSize: 18, fontWeight: '800', color: T.text, marginTop: 2},
   currentUntil: {fontSize: 11.5, color: T.dim, marginTop: 2},
 
   tierCard: {backgroundColor: T.card, borderWidth: 1, borderColor: T.hair, borderRadius: 18, padding: 16, gap: 12},
-  tierCardCurrent: {borderColor: 'rgba(91,141,239,0.45)'},
+  tierCardCurrent: {borderColor: 'rgba(30,136,255,0.45)'},
   /**
    * Client 2026-09-01 — "Bravo Messenger Enterprise" ran straight into
    * "5,000 BC / 30 days" with no space between them.

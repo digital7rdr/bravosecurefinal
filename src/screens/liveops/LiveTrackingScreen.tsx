@@ -1570,17 +1570,17 @@ const s = StyleSheet.create(scaleTextStyles({
   verifyPlate: {
     fontFamily: BravoFont.mono, fontSize: 13, fontWeight: '800', letterSpacing: 1.5,
     color: '#3BA6FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6,
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)', backgroundColor: 'rgba(91,141,239,0.10)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.35)', backgroundColor: 'rgba(30,136,255,0.10)',
   },
   verifyCard: {
     marginHorizontal: 12, padding: 14, borderRadius: 12, gap: 8,
-    backgroundColor: 'rgba(91,141,239,0.08)',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.08)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
   },
   verifyTitle: {fontFamily: BravoFont.bold, fontSize: 13, fontWeight: '700', color: Colors.textPrimary},
   verifySub: {fontFamily: BravoFont.regular, fontSize: 11, color: Colors.textSecondary, lineHeight: 15},
   verifyCode: {fontFamily: BravoFont.mono, fontSize: 26, fontWeight: '800', letterSpacing: 6, color: '#3BA6FF', textAlign: 'center', paddingVertical: 4},
-  verifyArrivalWrap: {marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(91,141,239,0.20)', gap: 4},
+  verifyArrivalWrap: {marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(30,136,255,0.20)', gap: 4},
   verifyArrivalCode: {fontFamily: BravoFont.mono, fontSize: 26, fontWeight: '800', letterSpacing: 6, color: '#7FD1A6', textAlign: 'center', paddingVertical: 4},
   verifyPanic: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
@@ -1591,7 +1591,7 @@ const s = StyleSheet.create(scaleTextStyles({
   verifyRetry: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     paddingVertical: 9, borderRadius: 10,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.30)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.30)',
   },
   verifyRetryText: {fontFamily: BravoFont.bold, fontSize: 12, fontWeight: '700', color: '#3BA6FF'},
 
@@ -1614,7 +1614,7 @@ const s = StyleSheet.create(scaleTextStyles({
     // platform floor and easy to miss (deck page 7, "must be obvious").
     width: 44, height: 44, borderRadius: 22,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(5,7,11,0.65)',
+    backgroundColor: 'rgba(6,20,43,0.65)',
     borderWidth: 1, borderColor: Colors.surfaceBorder,
   },
   mapFullscreen: {flex: 1, backgroundColor: Colors.background},
@@ -1623,7 +1623,7 @@ const s = StyleSheet.create(scaleTextStyles({
     position: 'absolute', right: 12,
     width: 34, height: 34, borderRadius: 17,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(5,7,11,0.75)',
+    backgroundColor: 'rgba(6,20,43,0.75)',
     borderWidth: 1, borderColor: Colors.surfaceBorder,
   },
   // The verify code, mirrored into the fullscreen map. Left-anchored so it
@@ -1632,7 +1632,7 @@ const s = StyleSheet.create(scaleTextStyles({
     position: 'absolute', left: 12, right: 58,
     flexDirection: 'row', alignItems: 'center', gap: 7,
     paddingHorizontal: 10, paddingVertical: 7, borderRadius: 10,
-    backgroundColor: 'rgba(5,7,11,0.82)',
+    backgroundColor: 'rgba(6,20,43,0.82)',
     borderWidth: 1, borderColor: Colors.surfaceBorder,
   },
   fsVerifyLabel: {
@@ -1765,7 +1765,7 @@ const s = StyleSheet.create(scaleTextStyles({
   // Executive Protection — hourly check-in timeline (client view)
   execHoursCard: {
     marginHorizontal: 12, padding: 14, borderRadius: 14, gap: 9,
-    backgroundColor: 'rgba(91,141,239,0.07)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.24)',
+    backgroundColor: 'rgba(30,136,255,0.07)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.24)',
   },
   execHoursTitle: {fontFamily: BravoFont.semiBold, fontSize: 12.5, color: '#FFFFFF'},
   execHoursEmpty: {fontFamily: BravoFont.medium, fontSize: 11.5, lineHeight: 16, color: 'rgba(180,188,204,0.6)'},

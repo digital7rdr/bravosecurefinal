@@ -24,8 +24,8 @@ import {
 
 // Obsidian surface + cobalt accent per the design-system master tokens.
 const C = {
-  surf:   'rgba(91, 141, 239, 0.10)',
-  bd:     'rgba(91, 141, 239, 0.35)',
+  surf:   'rgba(30,136,255, 0.10)',
+  bd:     'rgba(30,136,255, 0.35)',
   accent: '#1E88FF',
   tx:     '#E6EDF7',
   tx2:    '#8FA3C0',
@@ -137,7 +137,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: 'rgba(91, 141, 239, 0.18)',
+    backgroundColor: 'rgba(30,136,255, 0.18)',
   },
   retryTxt: {color: C.accent, fontSize: 11, fontWeight: '800', letterSpacing: 0.6},
   dismissBtn: {padding: 4},

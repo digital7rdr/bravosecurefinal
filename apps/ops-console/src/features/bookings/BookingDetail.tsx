@@ -678,7 +678,7 @@ export function BookingDetail({id, product}: {id: string; product: BookingProduc
               <Link href={routes.lite.mission(mission.id)} style={{
                 display:'flex', alignItems:'center', gap:10, textDecoration:'none',
                 padding:'10px 12px', borderRadius:8,
-                background:'rgba(91,141,239,0.08)', border:'1px solid var(--act)',
+                background:'rgba(30,136,255,0.08)', border:'1px solid var(--act)',
               }}>
                 <div style={{width:8,height:8,borderRadius:4,background:'var(--act)',boxShadow:'0 0 8px var(--act)'}}/>
                 <div style={{flex:1}}>
@@ -1039,7 +1039,7 @@ export function BookingDetail({id, product}: {id: string; product: BookingProduc
                               display:'flex', alignItems:'center', gap:10,
                               padding:'8px 10px', borderRadius:8,
                               border:'1px solid', borderColor: isLead ? 'var(--act)' : on ? 'var(--ok)' : 'var(--bd-2)',
-                              background: isLead ? 'rgba(91,141,239,0.08)' : on ? 'rgba(74,222,128,0.08)' : 'transparent',
+                              background: isLead ? 'rgba(30,136,255,0.08)' : on ? 'rgba(74,222,128,0.08)' : 'transparent',
                             }}>
                             <button
                               type="button"
@@ -1252,7 +1252,7 @@ export function BookingDetail({id, product}: {id: string; product: BookingProduc
               </div>
             </div>
 
-            <div style={{padding:'14px 20px', display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, borderBottom:'1px solid var(--bd-2)', background:'rgba(91,141,239,0.04)'}}>
+            <div style={{padding:'14px 20px', display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, borderBottom:'1px solid var(--bd-2)', background:'rgba(30,136,255,0.04)'}}>
               <div>
                 <div style={{fontFamily:'var(--font-mono)', fontSize:9, color:'var(--tx-3)', letterSpacing:1.2, fontWeight:700}}>ESCROW</div>
                 <div style={{fontFamily:'var(--font-mono)', fontSize:14, color:'var(--acc)', fontWeight:800, marginTop:2}}>

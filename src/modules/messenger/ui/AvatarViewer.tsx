@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.15)',
   },
   fallbackInitials: {color: '#FFFFFF', fontSize: 34, fontWeight: '700', letterSpacing: 0.5},
-  fallbackText: {color: 'rgba(242,244,248,0.7)', fontSize: 13.5, textAlign: 'center'},
+  fallbackText: {color: 'rgba(255,255,255,0.7)', fontSize: 13.5, textAlign: 'center'},
   retry: {
     flexDirection: 'row', alignItems: 'center', gap: 7,
     paddingVertical: 8, paddingHorizontal: 16, borderRadius: 14,

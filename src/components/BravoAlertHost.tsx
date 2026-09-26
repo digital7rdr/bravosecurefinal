@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 12,
   },
-  medallionInfo:   {backgroundColor: 'rgba(91,141,239,0.12)', borderColor: 'rgba(91,141,239,0.30)'},
+  medallionInfo:   {backgroundColor: 'rgba(30,136,255,0.12)', borderColor: 'rgba(30,136,255,0.30)'},
   medallionDanger: {backgroundColor: 'rgba(248,113,113,0.12)', borderColor: 'rgba(248,113,113,0.35)'},
   title: {
     color: T.text,
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   buttonFill: {borderRadius: 14},
   buttonPressed: {transform: [{scale: 0.97}]},
   buttonPrimary: {},
-  buttonSecondary: {borderWidth: 1, borderColor: 'rgba(91,141,239,0.30)', backgroundColor: 'rgba(91,141,239,0.10)'},
+  buttonSecondary: {borderWidth: 1, borderColor: 'rgba(30,136,255,0.30)', backgroundColor: 'rgba(30,136,255,0.10)'},
   buttonCancel: {borderWidth: 1, borderColor: T.hair2, backgroundColor: T.glassFill},
   buttonDestructive: {borderWidth: 1, borderColor: 'rgba(239,68,68,0.40)', backgroundColor: 'rgba(239,68,68,0.14)'},
   buttonText: {fontSize: 13, fontWeight: '800', letterSpacing: 0.2, textAlign: 'center'},

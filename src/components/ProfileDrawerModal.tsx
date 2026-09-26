@@ -375,7 +375,7 @@ const s = StyleSheet.create({
   avatar: {width: 46, height: 46, borderRadius: 23},
   avatarFallback: {
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.35)',
   },
   avatarText: {color: '#3BA6FF', fontSize: 15, fontWeight: '800'},
   name: {color: '#FFFFFF', fontSize: 15, fontWeight: '700'},

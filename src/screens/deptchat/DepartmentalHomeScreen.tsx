@@ -502,7 +502,7 @@ const s = StyleSheet.create(scaleTextStyles({
   actionBadgeText: {color:'#1A0A0D', fontSize:10, fontWeight:'800'},
   actionIcon: {
     width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)',
   },
   actionTitle: {color: OB.text, fontFamily: BravoFont.bold, fontSize: 14, marginTop: 3},
   actionSub: {color: OB.textMute, fontFamily: BravoFont.regular, fontSize: 11.5},

@@ -46,7 +46,7 @@ const T = {
   accent:    '#1E88FF',
   accentDeep:'#166ED1',
   accentSoft:'#7FA8FF',
-  accentGlow:'rgba(91,141,239,0.35)',
+  accentGlow:'rgba(30,136,255,0.35)',
   blue:      '#3BA6FF',
   signal:    '#4ADE80',
   gold:      '#E2C893',
@@ -373,7 +373,7 @@ export default function IndividualProfileScreen() {
             <View style={{flex: 1, minWidth: 0}}>
               <FitLine style={styles.idName} floorScale={0.7} text={holderName} />
               <View style={styles.idBadges}>
-                <View style={[styles.badge, {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: 'rgba(91,141,239,0.34)'}]}>
+                <View style={[styles.badge, {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: 'rgba(30,136,255,0.34)'}]}>
                   <Text style={[styles.badgeText, {color: T.blue}]}>{tierLabel}</Text>
                 </View>
                 <View style={[styles.badge, {backgroundColor: 'rgba(212,179,122,0.12)', borderColor: 'rgba(212,179,122,0.4)'}]}>
@@ -742,8 +742,8 @@ const styles = StyleSheet.create({
 
   content: {paddingHorizontal: 20, paddingTop: 8, gap: 18},
 
-  idCard: {position: 'relative', overflow: 'hidden', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)'},
-  idGlow: {position: 'absolute', top: -50, right: -40, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(91,141,239,0.1)'},
+  idCard: {position: 'relative', overflow: 'hidden', borderRadius: 22, padding: 20, borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)'},
+  idGlow: {position: 'absolute', top: -50, right: -40, width: 180, height: 180, borderRadius: 90, backgroundColor: 'rgba(30,136,255,0.1)'},
   idRow: {flexDirection: 'row', alignItems: 'center', gap: 16},
   idAvatar: {width: 70, height: 70, borderRadius: 20, alignItems: 'center', justifyContent: 'center'},
   idAvatarImg: {width: 70, height: 70, borderRadius: 20},
@@ -774,17 +774,17 @@ const styles = StyleSheet.create({
   memberRow: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 12},
   memberRowBorder: {borderBottomWidth: 1, borderBottomColor: T.hair},
   // B-854/P1-2 — the row a funding wake named.
-  memberRowFocused: {backgroundColor: 'rgba(91,141,239,0.10)'},
+  memberRowFocused: {backgroundColor: 'rgba(30,136,255,0.10)'},
   // B-854 — inset to the row's own gutter so the ask reads as belonging to the
   // member above it rather than to the card as a whole.
   fundingAsk: {marginHorizontal: 14, marginBottom: 12},
-  memberAvatar: {width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,141,239,0.15)'},
+  memberAvatar: {width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30,136,255,0.15)'},
   memberAvatarText: {fontFamily: BravoFont.bold, fontSize: 13, color: T.blue},
   memberName: {fontFamily: BravoFont.bold, fontSize: 13.5, color: T.text},
   memberRole: {fontFamily: BravoFont.regular, fontSize: 11, color: T.textMute, marginTop: 1},
 
   emptyCard: {alignItems: 'center', borderRadius: 20, padding: 26, backgroundColor: T.card, borderWidth: 1, borderColor: T.hair},
-  emptyIcon: {width: 60, height: 60, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)', marginBottom: 16},
+  emptyIcon: {width: 60, height: 60, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)', marginBottom: 16},
   emptyTitle: {fontFamily: BravoFont.bold, fontSize: 18, letterSpacing: -0.3, color: T.text},
   emptySub: {fontFamily: BravoFont.regular, fontSize: 13, lineHeight: 20, color: T.textDim, textAlign: 'center', marginTop: 8, paddingHorizontal: 10},
   emptyBtn: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, height: 50, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)'},
@@ -804,7 +804,7 @@ const styles = StyleSheet.create({
   note: {flexDirection: 'row', alignItems: 'flex-start', gap: 11, paddingHorizontal: 4},
   noteText: {flex: 1, fontFamily: BravoFont.regular, fontSize: 11.5, lineHeight: 17, color: T.textMute},
 
-  toast: {borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.2)'},
+  toast: {borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: 'rgba(30,136,255,0.08)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.2)'},
   toastText: {fontFamily: BravoFont.semiBold, fontSize: 12, color: T.blue},
 
   modalOverlay: {flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 24},

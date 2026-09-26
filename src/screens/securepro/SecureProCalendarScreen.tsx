@@ -575,7 +575,7 @@ export default function SecureProCalendarScreen() {
 
           {/* CTA */}
           <LinearGradient
-            colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+            colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
             locations={[0, 0.5]}
             style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
             {selectMode ? (
@@ -598,7 +598,7 @@ export default function SecureProCalendarScreen() {
                   accessibilityState={{disabled: selected.size === 0}}>
                   <LinearGradient
                     colors={selected.size === 0
-                      ? ['rgba(91,141,239,0.35)', 'rgba(91,141,239,0.35)', 'rgba(47,91,224,0.35)']
+                      ? ['rgba(30,136,255,0.35)', 'rgba(30,136,255,0.35)', 'rgba(22,110,209,0.35)']
                       : ['#3BA6FF', D.accent, D.accentDeep]}
                     locations={[0, 0.55, 1]}
                     start={{x: 0, y: 0}}
@@ -762,7 +762,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 280, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -789,7 +789,7 @@ const s = StyleSheet.create(scaleTextStyles({
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: D.hair2,
   },
-  whoseChipOn: {backgroundColor: 'rgba(91,141,239,0.16)', borderColor: 'rgba(91,141,239,0.5)'},
+  whoseChipOn: {backgroundColor: 'rgba(30,136,255,0.16)', borderColor: 'rgba(30,136,255,0.5)'},
   whoseChipText: {color: D.textDim, fontFamily: D.fSemi, fontSize: 12.5},
 
   pager: {flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14},
@@ -822,10 +822,10 @@ const s = StyleSheet.create(scaleTextStyles({
     backgroundColor: D.accent,
     shadowColor: D.accent, shadowOpacity: 0.5, shadowRadius: 10, shadowOffset: {width: 0, height: 4}, elevation: 5,
   },
-  dayCompleted: {backgroundColor: 'rgba(91,141,239,0.20)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.55)'},
+  dayCompleted: {backgroundColor: 'rgba(30,136,255,0.20)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.55)'},
   dayRequested: {borderWidth: 1.5, borderColor: 'rgba(245,199,107,0.6)', backgroundColor: 'rgba(245,199,107,0.06)'},
   daySelected: {backgroundColor: '#2E9E5B'},
-  dayToday: {borderWidth: 1, borderColor: 'rgba(91,141,239,0.5)'},
+  dayToday: {borderWidth: 1, borderColor: 'rgba(30,136,255,0.5)'},
 
   legendRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginTop: 14, justifyContent: 'center'},
   legendItem: {flexDirection: 'row', alignItems: 'center', gap: 7},
@@ -838,7 +838,7 @@ const s = StyleSheet.create(scaleTextStyles({
     alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: D.hair2,
   },
-  monthChipOn: {backgroundColor: 'rgba(91,141,239,0.16)', borderColor: 'rgba(91,141,239,0.5)'},
+  monthChipOn: {backgroundColor: 'rgba(30,136,255,0.16)', borderColor: 'rgba(30,136,255,0.5)'},
   monthChipText: {color: D.textDim, fontFamily: D.fSemi, fontSize: 12},
 
   sectionLabel: {

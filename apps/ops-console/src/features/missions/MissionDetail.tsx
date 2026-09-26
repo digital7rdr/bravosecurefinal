@@ -519,7 +519,7 @@ export function MissionDetail({id, product}: {id: string; product: BookingProduc
     return {
       key: 'telemetry-trail',
       coords: pts.map(pt => [pt.lng, pt.lat] as [number, number]),
-      color: 'rgba(91,141,239,0.55)',
+      color: 'rgba(30,136,255,0.55)',
     };
   }, [showTrail, telemetry]);
 
@@ -656,7 +656,7 @@ export function MissionDetail({id, product}: {id: string; product: BookingProduc
         {/* ── LEFT ── */}
         <div style={{display:'flex', flexDirection:'column', gap:12, overflowY:'auto', minHeight:0, height:'100%', paddingBottom:4}}>
           {/* Hero */}
-          <div className="card" style={{padding:16, background:'linear-gradient(180deg,rgba(91,141,239,0.12),var(--surf-2))', border:'1px solid var(--act)'}}>
+          <div className="card" style={{padding:16, background:'linear-gradient(180deg,rgba(30,136,255,0.12),var(--surf-2))', border:'1px solid var(--act)'}}>
             <div style={{fontFamily:'var(--font-mono)', fontSize:11, color:'var(--glow)', letterSpacing:1.5, fontWeight:700}}>
               {m?.short_code ?? 'MSN-…'} · {(booking?.id ?? m?.booking_id)?.slice(-12).toUpperCase() ?? '—'}
             </div>
@@ -746,7 +746,7 @@ export function MissionDetail({id, product}: {id: string; product: BookingProduc
               <div
                 key={c.agent_id + c.call_sign}
                 className="person"
-                style={c.is_lead ? {borderLeft:'3px solid var(--act)', background:'rgba(91,141,239,0.04)'} : undefined}>
+                style={c.is_lead ? {borderLeft:'3px solid var(--act)', background:'rgba(30,136,255,0.04)'} : undefined}>
                 <div className="person-av" style={{
                   background: c.is_lead
                     ? 'linear-gradient(135deg,var(--act),var(--acc))'
@@ -893,7 +893,7 @@ export function MissionDetail({id, product}: {id: string; product: BookingProduc
                 <div style={{
                   display:'flex', justifyContent:'space-between', alignItems:'center',
                   padding:'10px 14px', borderBottom:'1px solid var(--bd-2)',
-                  background:'linear-gradient(180deg, rgba(91,141,239,0.10), transparent)',
+                  background:'linear-gradient(180deg, rgba(30,136,255,0.10), transparent)',
                 }}>
                   <span style={{fontFamily:'var(--font-mono)', fontSize:10, color:'var(--glow)', letterSpacing:1.6, fontWeight:800, textTransform:'uppercase'}}>
                     ◆ Pick Route
@@ -1092,7 +1092,7 @@ export function MissionDetail({id, product}: {id: string; product: BookingProduc
               style={{
                 display:'flex', alignItems:'center', gap:6,
                 padding:'6px 10px', borderRadius:6,
-                background: showTrail ? 'rgba(91,141,239,0.25)' : 'rgba(5,7,10,0.92)',
+                background: showTrail ? 'rgba(30,136,255,0.25)' : 'rgba(5,7,10,0.92)',
                 border: showTrail ? '1px solid #1E88FF' : '1px solid var(--bd-1)',
                 color:'var(--tx-1)', cursor:'pointer',
                 fontFamily:'var(--font-mono)', fontSize:10, fontWeight:700,
@@ -1139,7 +1139,7 @@ export function MissionDetail({id, product}: {id: string; product: BookingProduc
               style={{
                 display:'flex', alignItems:'center', gap:6,
                 padding:'6px 10px', borderRadius:6,
-                background: mapFull ? 'rgba(91,141,239,0.25)' : 'rgba(5,7,10,0.92)',
+                background: mapFull ? 'rgba(30,136,255,0.25)' : 'rgba(5,7,10,0.92)',
                 border: mapFull ? '1px solid #1E88FF' : '1px solid var(--bd-1)',
                 color:'var(--tx-1)', cursor:'pointer',
                 fontFamily:'var(--font-mono)', fontSize:10, fontWeight:700,
@@ -1201,7 +1201,7 @@ export function MissionDetail({id, product}: {id: string; product: BookingProduc
                 const cur  = w.state === 'current' || w.state === 'sos';
                 return (
                   <div key={w.id ?? i} style={{display:'grid', gridTemplateColumns:'22px 90px 1fr auto', gap:10, padding:'9px 0', borderBottom: i < waypoints.length-1 ? '1px solid var(--bd-2)' : 'none', alignItems:'flex-start'}}>
-                    <div style={{width:18, height:18, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'var(--font-mono)', fontSize:8.5, fontWeight:800, background: done ? 'var(--ok)' : cur ? 'var(--act)' : 'var(--surf-3)', color: done ? '#06142B' : cur ? '#fff' : 'var(--tx-3)', border: cur ? 'none' : '1px solid var(--bd-1)', boxShadow: cur ? '0 0 0 3px rgba(91,141,239,0.25)' : 'none'}}>
+                    <div style={{width:18, height:18, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'var(--font-mono)', fontSize:8.5, fontWeight:800, background: done ? 'var(--ok)' : cur ? 'var(--act)' : 'var(--surf-3)', color: done ? '#06142B' : cur ? '#fff' : 'var(--tx-3)', border: cur ? 'none' : '1px solid var(--bd-1)', boxShadow: cur ? '0 0 0 3px rgba(30,136,255,0.25)' : 'none'}}>
                       {done ? '✓' : w.seq}
                     </div>
                     <div style={{fontFamily:'var(--font-mono)', fontSize:10, color: done || cur ? 'var(--tx-2)' : 'var(--tx-3)', fontWeight:600}}>

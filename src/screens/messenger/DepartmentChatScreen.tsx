@@ -1360,7 +1360,7 @@ export default function DepartmentChatScreen() {
         </TouchableOpacity>
 
         <LinearGradient
-          colors={['rgba(91,141,239,0.22)', 'rgba(47,91,224,0.06)']}
+          colors={['rgba(30,136,255,0.22)', 'rgba(22,110,209,0.06)']}
           start={{x: 0, y: 0}}
           end={{x: 1, y: 1}}
           style={styles.glyphTile}>
@@ -1897,7 +1897,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   },
   glyphTile: {
     width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)',
   },
   headerMeta: {flex: 1, minWidth: 0},
   headerTitle: {color: OB.text, fontFamily: BravoFont.bold, fontSize: 16, letterSpacing: -0.2},
@@ -1957,7 +1957,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   bubbleAnnounce: {borderColor: OB.amber, backgroundColor: 'rgba(226,200,147,0.08)'},
   bubbleMentioned: {borderColor: 'rgba(226,200,147,0.5)'},
   // Reply-jump flash — cobalt, matching ChatScreen's pulse.
-  bubbleJumped: {backgroundColor: 'rgba(91,141,239,0.32)', borderColor: OB.accentSoft},
+  bubbleJumped: {backgroundColor: 'rgba(30,136,255,0.32)', borderColor: OB.accentSoft},
   annHead: {flexDirection: 'row', alignItems: 'center', gap: 5},
   annLabel: {color: OB.amber, fontFamily: BravoFont.mono, fontSize: 9, fontWeight: '800', letterSpacing: 1},
 
@@ -1968,15 +1968,15 @@ const styles = StyleSheet.create(scaleTextStyles({
   },
   fileIcon: {
     width: 38, height: 44, borderRadius: 8, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
   },
   fileName: {flex: 1, color: OB.text, fontFamily: BravoFont.semiBold, fontSize: 12.5, letterSpacing: -0.1},
-  fileOpenBtn: {paddingHorizontal: 12, paddingVertical: 7, borderRadius: 9, backgroundColor: 'rgba(91,141,239,0.13)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)'},
+  fileOpenBtn: {paddingHorizontal: 12, paddingVertical: 7, borderRadius: 9, backgroundColor: 'rgba(30,136,255,0.13)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)'},
   fileOpenText: {color: OB.accentSoft, fontFamily: BravoFont.mono, fontSize: 9.5, fontWeight: '700', letterSpacing: 1.2},
 
   // Autocomplete bars
   mentionBar: {flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderTopWidth: 1, borderTopColor: OB.hair, backgroundColor: 'rgba(255,255,255,0.02)'},
-  mentionChip: {flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)', borderRadius: 14, paddingHorizontal: 9, paddingVertical: 5, maxWidth: 150},
+  mentionChip: {flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)', borderRadius: 14, paddingHorizontal: 9, paddingVertical: 5, maxWidth: 150},
   mentionChipText: {color: OB.text, fontFamily: BravoFont.semiBold, fontSize: 12},
   slashBar: {paddingVertical: 4, borderTopWidth: 1, borderTopColor: OB.hair, backgroundColor: 'rgba(255,255,255,0.02)'},
   slashRow: {flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 9},
@@ -2035,7 +2035,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 7, paddingVertical: 3,
     borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: OB.hair2,
   },
-  reactionChipMine: {borderColor: 'rgba(91,141,239,0.4)', backgroundColor: 'rgba(91,141,239,0.12)'},
+  reactionChipMine: {borderColor: 'rgba(30,136,255,0.4)', backgroundColor: 'rgba(30,136,255,0.12)'},
   reactionEmoji: {fontSize: 13},
   reactionCount: {color: OB.textDim, fontFamily: BravoFont.semiBold, fontSize: 10},
 
@@ -2076,7 +2076,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.04)',
   },
-  actionReactBtnMine: {backgroundColor: 'rgba(91,141,239,0.22)'},
+  actionReactBtnMine: {backgroundColor: 'rgba(30,136,255,0.22)'},
   actionReactEmoji: {fontSize: 22},
   actionDivider: {height: StyleSheet.hairlineWidth, backgroundColor: OB.hair, marginVertical: 4},
   sheetRow: {flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 18, paddingVertical: 13},

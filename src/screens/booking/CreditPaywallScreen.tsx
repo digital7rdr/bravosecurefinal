@@ -747,8 +747,8 @@ const paySheet = StyleSheet.create(scaleTextStyles({
   },
   cardIc: {
     width: 36, height: 36, borderRadius: 10,
-    backgroundColor: 'rgba(91,141,239,0.12)',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)',
+    backgroundColor: 'rgba(30,136,255,0.12)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)',
     alignItems: 'center', justifyContent: 'center',
   },
   cardT: {fontSize: 13, fontWeight: '700', color: UI.text},
@@ -819,7 +819,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   sectionLabel: {fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 2, color: UI.textMute},
 
   pkgCard: {backgroundColor: UI.surface, borderWidth: 1.5, borderColor: UI.hair, borderRadius: 16, padding: 14},
-  pkgCardSelected: {borderColor: UI.accent, backgroundColor: 'rgba(91,141,239,0.08)'},
+  pkgCardSelected: {borderColor: UI.accent, backgroundColor: 'rgba(30,136,255,0.08)'},
   pkgCardRecommended: {borderColor: 'rgba(34,197,94,0.5)', backgroundColor: 'rgba(34,197,94,0.05)'},
   pkgBadge: {position: 'absolute', top: -9, right: 14, paddingHorizontal: 10, paddingVertical: 2, borderRadius: 20},
   pkgBadgeText: {fontSize: 8, fontWeight: '800', letterSpacing: 1.5, textTransform: 'uppercase', color: '#FFF'},
@@ -834,14 +834,14 @@ const styles = StyleSheet.create(scaleTextStyles({
   },
   pkgSubRow: {flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4},
   pkgSub: {fontSize: 11, color: UI.textMute},
-  discountBadge: {backgroundColor: 'rgba(91,141,239,0.12)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4},
+  discountBadge: {backgroundColor: 'rgba(30,136,255,0.12)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4},
   discountText: {fontSize: 9, fontWeight: '700', color: UI.accentSoft},
   checkCircle: {width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: UI.hair, alignItems: 'center', justifyContent: 'center'},
   checkCircleSelected: {backgroundColor: UI.accent, borderColor: UI.accent},
 
   paymentRow: {flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: UI.surface, borderWidth: 1, borderColor: UI.hair, borderRadius: 16, padding: 14},
   paymentRowActive: {borderColor: UI.accent},
-  paymentIcon: {width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.2)', alignItems: 'center', justifyContent: 'center', flexShrink: 0},
+  paymentIcon: {width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.2)', alignItems: 'center', justifyContent: 'center', flexShrink: 0},
   paymentTitle: {fontSize: 13, fontWeight: '700', color: UI.text},
   paymentSub: {fontSize: 10, color: UI.textMute, marginTop: 2},
 
@@ -874,8 +874,8 @@ const styles = StyleSheet.create(scaleTextStyles({
   footerHint: {textAlign: 'center', fontSize: 10, color: UI.textMute, marginTop: 8},
   footerRatePill: {
     alignSelf: 'center', marginTop: 10, paddingHorizontal: 16, paddingVertical: 8,
-    borderRadius: 12, backgroundColor: 'rgba(91,141,239,0.14)',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.38)',
+    borderRadius: 12, backgroundColor: 'rgba(30,136,255,0.14)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.38)',
   },
   footerRate: {textAlign: 'center', fontSize: 15, color: '#3BA6FF', fontWeight: '700', letterSpacing: 0.3},
 

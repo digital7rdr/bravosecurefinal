@@ -488,7 +488,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   heroSummary: {color:'#94A3B8', fontSize:12, lineHeight:18, marginBottom:10},
   readBtn: {alignSelf:'flex-start', paddingHorizontal:12, paddingVertical:6, borderRadius:8, backgroundColor:'rgba(37,99,235,0.15)', borderWidth:1, borderColor:'rgba(37,99,235,0.3)'},
   heroActions: {flexDirection:'row', alignItems:'center', gap:10},
-  heroShareBtn: {flexDirection:'row', alignItems:'center', gap:6, paddingHorizontal:12, paddingVertical:6, borderRadius:8, borderWidth:1, borderColor:'rgba(91,141,239,0.35)'},
+  heroShareBtn: {flexDirection:'row', alignItems:'center', gap:6, paddingHorizontal:12, paddingVertical:6, borderRadius:8, borderWidth:1, borderColor:'rgba(30,136,255,0.35)'},
   heroShareText: {color:'#1E88FF', fontSize:11, fontWeight:'800', letterSpacing:0.8},
   readBtnText: {color:'#60A5FA', fontSize:10, fontWeight:'800', letterSpacing:0.5},
 

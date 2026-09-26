@@ -1445,7 +1445,7 @@ export default function CustomizeAddOnsScreen() {
 
       {/* ── Footer CTA ── */}
       <LinearGradient
-        colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+        colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
         locations={[0, 0.5]}
         style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
         <TouchableOpacity
@@ -1621,7 +1621,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 260, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   // Header
@@ -1699,7 +1699,7 @@ const s = StyleSheet.create(scaleTextStyles({
   clientVehicle: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     paddingVertical: 7, paddingHorizontal: 12, borderRadius: 11,
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
     // Matches `stepBtn`'s 36 so the Driver-Only branch, which swaps the stepper
     // for this chip, still lines up with the CPO stepper beside it — the same
     // skew one state over.
@@ -1714,7 +1714,7 @@ const s = StyleSheet.create(scaleTextStyles({
     flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 17,
     backgroundColor: 'rgba(255,255,255,0.022)', borderWidth: 1, borderColor: D.hair,
   },
-  driverRowOn: {backgroundColor: 'rgba(20,32,56,0.9)', borderColor: 'rgba(91,141,239,0.45)'},
+  driverRowOn: {backgroundColor: 'rgba(20,32,56,0.9)', borderColor: 'rgba(30,136,255,0.45)'},
   driverTitle: {fontFamily: D.fBold, fontSize: 15.5, letterSpacing: -0.2, color: D.text},
   driverDesc: {fontFamily: D.fSans, fontSize: 11.5, letterSpacing: -0.05, color: D.textMute, marginTop: 4},
 
@@ -1750,7 +1750,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   addonIdle: {backgroundColor: 'rgba(255,255,255,0.022)', borderWidth: 1, borderColor: D.hair},
   addonOn: {
-    backgroundColor: 'rgba(20,32,56,0.9)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.45)',
+    backgroundColor: 'rgba(20,32,56,0.9)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.45)',
     shadowColor: D.accentDeep, shadowOpacity: 0.28, shadowRadius: 16, shadowOffset: {width: 0, height: 10}, elevation: 7,
   },
   addonIc: {
@@ -1759,7 +1759,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   addonIcIdle: {backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: D.hair2},
   addonIcOn: {
-    backgroundColor: 'rgba(91,141,239,0.16)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
     shadowColor: D.accent, shadowOpacity: 0.24, shadowRadius: 16, shadowOffset: {width: 0, height: 0}, elevation: 4,
   },
   addonBody: {flex: 1, minWidth: 0},
@@ -1801,7 +1801,7 @@ const s = StyleSheet.create(scaleTextStyles({
   // LM-M1 — estimated-total strip under the rate bar.
   totalRow: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingVertical: 10, borderRadius: 12, marginTop: -6,
-    backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)'},
+    backgroundColor: 'rgba(30,136,255,0.08)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)'},
   totalCap: {flexShrink: 1, fontFamily: D.fSemi, fontSize: 10, letterSpacing: 1.4, color: D.textMute},
   totalAmt: {flexShrink: 0, fontFamily: D.fBold, fontSize: 16, color: D.accentSoft},
 
@@ -1811,7 +1811,7 @@ const s = StyleSheet.create(scaleTextStyles({
     padding: 14, borderRadius: 14,
     backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: D.hair2,
   },
-  consentRowOn: {borderColor: 'rgba(91,141,239,0.45)', backgroundColor: 'rgba(91,141,239,0.08)'},
+  consentRowOn: {borderColor: 'rgba(30,136,255,0.45)', backgroundColor: 'rgba(30,136,255,0.08)'},
   checkbox: {
     width: 22, height: 22, borderRadius: 7, marginTop: 1,
     alignItems: 'center', justifyContent: 'center',
@@ -1855,7 +1855,7 @@ const s = StyleSheet.create(scaleTextStyles({
     width: 30, height: 30, borderRadius: 9, flexShrink: 0,
     alignItems: 'center', justifyContent: 'center',
   },
-  locPinFilled: {backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)'},
+  locPinFilled: {backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)'},
   locPinIdle: {backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: D.hair2},
   locText: {fontSize: 14.5, letterSpacing: -0.1},
   locTextFilled: {fontFamily: D.fSemi, color: D.text},
@@ -1889,7 +1889,7 @@ const s = StyleSheet.create(scaleTextStyles({
   counterLeft: {flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, paddingRight: 8},
   counterIcon: {
     width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
     alignItems: 'center', justifyContent: 'center',
   },
   counterLabel: {fontFamily: D.fSemi, fontSize: 14, color: D.text, letterSpacing: -0.1},
@@ -1911,7 +1911,7 @@ const s = StyleSheet.create(scaleTextStyles({
   // Schedule info hint
   schHint: {
     flexDirection: 'row', gap: 10, padding: 13, borderRadius: 13,
-    backgroundColor: 'rgba(91,141,239,0.07)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.2)',
+    backgroundColor: 'rgba(30,136,255,0.07)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.2)',
   },
   schHintText: {flex: 1, fontFamily: D.fSans, fontSize: 11, color: D.textDim, lineHeight: 16},
   schHintStrong: {fontFamily: D.fSemi, color: D.accentSoft},
@@ -1933,7 +1933,7 @@ const s = StyleSheet.create(scaleTextStyles({
   baseCard: {
     position: 'relative', overflow: 'hidden',
     flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18,
-    backgroundColor: 'rgba(20,32,56,0.6)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(20,32,56,0.6)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
   },
   baseTopLight: {position: 'absolute', top: 0, left: 16, right: 16, height: 1, backgroundColor: 'rgba(120,160,255,0.34)'},
   baseCap: {fontFamily: D.fMono, fontSize: 9.5, fontWeight: '700', letterSpacing: 1.4, color: D.accentSoft},

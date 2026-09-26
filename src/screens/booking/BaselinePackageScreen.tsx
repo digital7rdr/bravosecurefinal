@@ -67,7 +67,7 @@ function StatTile({icon, n, label}: {icon: IconName; n: string; label: string}) 
   return (
     <View style={s.stat}>
       <LinearGradient
-        colors={['rgba(91,141,239,0.26)', 'rgba(47,91,224,0.07)']}
+        colors={['rgba(30,136,255,0.26)', 'rgba(22,110,209,0.07)']}
         start={{x: 0.2, y: 0}}
         end={{x: 0.85, y: 1}}
         style={s.statIcon}>
@@ -166,7 +166,7 @@ export default function BaselinePackageScreen() {
 
       {/* ── Footer CTA ── */}
       <LinearGradient
-        colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+        colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
         locations={[0, 0.5]}
         style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
         <TouchableOpacity activeOpacity={0.9} onPress={() => navigation.navigate('CustomizeAddOns')} accessibilityRole="button">
@@ -191,7 +191,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 280, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.08)',
+    backgroundColor: 'rgba(30,136,255,0.08)',
   },
 
   // Header
@@ -214,14 +214,14 @@ const s = StyleSheet.create(scaleTextStyles({
     position: 'relative', overflow: 'hidden',
     borderRadius: 24, paddingHorizontal: 20, paddingTop: 22, paddingBottom: 20,
     backgroundColor: 'rgba(20,32,56,0.92)',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
     shadowColor: '#14285A', shadowOpacity: 0.36, shadowRadius: 22, shadowOffset: {width: 0, height: 16}, elevation: 10,
   },
   heroTopLight: {position: 'absolute', top: 0, left: 24, right: 24, height: 1, backgroundColor: 'rgba(120,160,255,0.45)'},
   heroGlow: {
     position: 'absolute', top: -40, alignSelf: 'center',
     width: 260, height: 140, borderRadius: 130,
-    backgroundColor: 'rgba(91,141,239,0.16)',
+    backgroundColor: 'rgba(30,136,255,0.16)',
   },
   heroCap: {
     textAlign: 'center',
@@ -244,7 +244,7 @@ const s = StyleSheet.create(scaleTextStyles({
   statIcon: {
     width: 40, height: 40, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.36)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.36)',
     shadowColor: D.accent, shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: {width: 0, height: 0}, elevation: 4,
   },
   statN: {fontFamily: D.fBold, fontSize: 15, color: D.text},

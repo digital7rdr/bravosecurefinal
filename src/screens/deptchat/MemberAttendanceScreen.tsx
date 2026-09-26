@@ -155,7 +155,7 @@ const s = StyleSheet.create(scaleTextStyles({
   since: {color: OB.textMute, fontFamily: BravoFont.mono, fontSize: 10, letterSpacing: 0.4},
   rangeRow: {flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12, marginBottom: 12},
   chip: {paddingHorizontal: 12, paddingVertical: 7, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)', backgroundColor: 'rgba(255,255,255,0.03)'},
-  chipOn: {borderColor: 'rgba(91,141,239,0.55)', backgroundColor: 'rgba(91,141,239,0.14)'},
+  chipOn: {borderColor: 'rgba(30,136,255,0.55)', backgroundColor: 'rgba(30,136,255,0.14)'},
   chipText: {color: OB.textDim, fontFamily: BravoFont.semiBold, fontSize: 11.5},
   chipTextOn: {color: OB.accentSoft},
   kpiGrid: {flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 8},

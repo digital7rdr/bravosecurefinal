@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
   content: {paddingHorizontal: 20, paddingTop: 8, gap: 12},
 
   card: {flexDirection: 'row', alignItems: 'center', gap: 13, padding: 14, borderRadius: 16, backgroundColor: T.card, borderWidth: 1, borderColor: T.hair2},
-  cardIcon: {width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.26)'},
+  cardIcon: {width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.26)'},
   cardBrand: {fontFamily: BravoFont.bold, fontSize: 15, letterSpacing: 0.4, color: T.text},
   cardExp: {fontFamily: BravoFont.regular, fontSize: 11.5, color: T.textMute, marginTop: 3},
   defaultBadge: {paddingHorizontal: 9, paddingVertical: 4, borderRadius: 7, backgroundColor: 'rgba(74,222,128,0.1)', borderWidth: 1, borderColor: 'rgba(74,222,128,0.3)'},

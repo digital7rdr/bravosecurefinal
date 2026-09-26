@@ -56,7 +56,7 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(12,16,24,0.92)',
+    backgroundColor: 'rgba(18,39,71,0.92)',
     borderColor: 'rgba(255,193,7,0.45)',
     borderWidth: 1,
     paddingHorizontal: 14,

@@ -242,14 +242,14 @@ const s = StyleSheet.create(scaleTextStyles({
   backBtn: {width: 42, height: 42, borderRadius: 13, backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: D.hair2, alignItems: 'center', justifyContent: 'center'},
   accentBar: {width: 3, height: 17, borderRadius: 2, backgroundColor: D.accent},
   headerTitle: {flex: 1, fontFamily: D.fBold, fontSize: 13, letterSpacing: 2.2, color: D.text},
-  countChip: {paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)'},
+  countChip: {paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)'},
   countChipText: {fontFamily: D.fBold, fontSize: 10, letterSpacing: 0.8, color: D.accentSoft},
   body: {paddingHorizontal: 20, paddingTop: 4, gap: 12},
 
   regionRow: {gap: 8, paddingRight: 8, paddingBottom: 4},
   regionChip: {paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: D.hair2},
-  regionChipOn: {backgroundColor: 'rgba(91,141,239,0.10)', borderColor: 'rgba(91,141,239,0.34)'},
+  regionChipOn: {backgroundColor: 'rgba(30,136,255,0.10)', borderColor: 'rgba(30,136,255,0.34)'},
   regionChipText: {fontFamily: D.fSemi, fontSize: 12, color: D.textDim, letterSpacing: 0.2},
   regionChipTextOn: {fontFamily: D.fBold, color: D.accentSoft},
 
@@ -262,7 +262,7 @@ const s = StyleSheet.create(scaleTextStyles({
   cardBottom: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2},
   cardCount: {fontFamily: D.fSemi, fontSize: 12, color: D.textDim},
   acceptBtn: {flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 7,
-    borderRadius: 999, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.40)'},
+    borderRadius: 999, backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.40)'},
   acceptText: {fontFamily: D.fBold, fontSize: 10, letterSpacing: 0.8, color: D.accentSoft},
   pendingChip: {fontFamily: D.fBold, fontSize: 9, letterSpacing: 0.8, color: D.textMute},
 

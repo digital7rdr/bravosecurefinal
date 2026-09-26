@@ -36,7 +36,7 @@ const T = {
   hair2:      'rgba(255,255,255,0.09)',
   accent:     '#1E88FF',
   accentDeep: '#166ED1',
-  accentGlow: 'rgba(91,141,239,0.35)',
+  accentGlow: 'rgba(30,136,255,0.35)',
   signal:     '#4ADE80',
   danger:     '#FF8B8B',
 } as const;
@@ -160,7 +160,7 @@ function Field({
   const borderColor = hasError
     ? 'rgba(255,93,93,0.5)'
     : focused
-      ? 'rgba(91,141,239,0.5)'
+      ? 'rgba(30,136,255,0.5)'
       : T.hair2;
 
   return (
@@ -179,7 +179,7 @@ function Field({
       />
       {focused && (
         <LinearGradient
-          colors={['rgba(91,141,239,0.10)', 'rgba(255,255,255,0.02)']}
+          colors={['rgba(30,136,255,0.10)', 'rgba(255,255,255,0.02)']}
           start={{x: 0.5, y: 0}}
           end={{x: 0.5, y: 1}}
           style={StyleSheet.absoluteFill}
@@ -328,7 +328,7 @@ export default function LoginScreen({navigation}: Props) {
       {/* Ambient obsidian + cobalt hero glow */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <LinearGradient
-          colors={['rgba(91,141,239,0.16)', 'rgba(91,141,239,0)']}
+          colors={['rgba(30,136,255,0.16)', 'rgba(30,136,255,0)']}
           start={{x: 0.5, y: 0}}
           end={{x: 0.5, y: 1}}
           style={styles.heroGlow}
@@ -350,7 +350,7 @@ export default function LoginScreen({navigation}: Props) {
           <View style={styles.header}>
             <View style={styles.brandTile}>
               <LinearGradient
-                colors={['rgba(91,141,239,0.26)', 'rgba(20,28,46,0.6)']}
+                colors={['rgba(30,136,255,0.26)', 'rgba(20,28,46,0.6)']}
                 start={{x: 0.1, y: 0}}
                 end={{x: 0.9, y: 1}}
                 style={StyleSheet.absoluteFill}
@@ -501,7 +501,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   header: {alignItems: 'center'},
   brandTile: {
     width: 64, height: 64, borderRadius: 19,
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.45)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.45)',
     alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
   },
   eyebrow: {fontFamily: 'monospace', color: T.accent, fontSize: 12, fontWeight: '700', letterSpacing: 3, textTransform: 'uppercase', marginTop: 26, marginBottom: 10},

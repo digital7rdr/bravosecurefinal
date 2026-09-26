@@ -931,7 +931,7 @@ const s = StyleSheet.create(scaleTextStyles({
   row: {flexDirection: 'row', alignItems: 'center', gap: 12},
   rowIcon: {
     width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: OB.hair2,
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: OB.hair2,
   },
   rowName: {color: OB.text, fontFamily: BravoFont.bold, fontSize: 14},
   errorStrip: {
@@ -955,6 +955,6 @@ const s = StyleSheet.create(scaleTextStyles({
   badgeText: {fontFamily: BravoFont.mono, fontSize: 8.5, fontWeight: '700', letterSpacing: 0.8},
   footer: {
     position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12,
-    backgroundColor: 'rgba(7,9,13,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
+    backgroundColor: 'rgba(10,31,63,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
   },
 }));

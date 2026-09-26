@@ -122,7 +122,7 @@ export function ProtectionMonitor({selectedId}: {selectedId?: string | null}) {
                   const col = STALE_COLOR[sn.staleness.state];
                   return (
                     <tr key={sn.id} style={{borderTop: `1px solid ${C.hair}`, cursor: 'pointer',
-                      background: selected === sn.id ? 'rgba(91,141,239,0.08)' : undefined}}
+                      background: selected === sn.id ? 'rgba(30,136,255,0.08)' : undefined}}
                       onClick={() => setSelected(sn.id)}>
                       <td style={td}>{sn.customer_name ?? '—'} {sn.sos_active && <span style={pill(C.unavailable)}>SOS</span>}</td>
                       <td style={td}>{sn.cpo_name ?? '—'}</td>
@@ -297,7 +297,7 @@ function pill(color: string): React.CSSProperties {
   return {display: 'inline-block', padding: '2px 8px', borderRadius: 99, border: `1px solid ${color}66`, color, fontSize: 10, fontWeight: 800, letterSpacing: 0.5, marginLeft: 6};
 }
 function tab(active: boolean): React.CSSProperties {
-  return {padding: '6px 14px', borderRadius: 10, border: `1px solid ${active ? C.accent : C.hair}`, background: active ? 'rgba(91,141,239,0.14)' : 'transparent', color: active ? '#4CC2FF' : C.dim, cursor: 'pointer', fontSize: 13, fontWeight: 700};
+  return {padding: '6px 14px', borderRadius: 10, border: `1px solid ${active ? C.accent : C.hair}`, background: active ? 'rgba(30,136,255,0.14)' : 'transparent', color: active ? '#4CC2FF' : C.dim, cursor: 'pointer', fontSize: 13, fontWeight: 700};
 }
 function btn(color: string): React.CSSProperties {
   return {padding: '9px 16px', borderRadius: 10, border: `1px solid ${color}66`, background: color + '18', color, cursor: 'pointer', fontSize: 13, fontWeight: 700};

@@ -230,7 +230,7 @@ export default function SecureProProposalScreen() {
           {/* CTAs */}
           {reviewable && (
             <LinearGradient
-              colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+              colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
               locations={[0, 0.4]}
               style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
               <TouchableOpacity
@@ -242,7 +242,7 @@ export default function SecureProProposalScreen() {
                 accessibilityState={{disabled: isSubmitting || expired}}>
                 <LinearGradient
                   colors={expired
-                    ? ['rgba(91,141,239,0.35)', 'rgba(91,141,239,0.35)', 'rgba(47,91,224,0.35)']
+                    ? ['rgba(30,136,255,0.35)', 'rgba(30,136,255,0.35)', 'rgba(22,110,209,0.35)']
                     : ['#3BA6FF', D.accent, D.accentDeep]}
                   locations={[0, 0.55, 1]}
                   start={{x: 0, y: 0}}
@@ -301,7 +301,7 @@ export default function SecureProProposalScreen() {
               accessibilityLabel="Send change request">
               <LinearGradient
                 colors={changesText.trim().length < 3
-                  ? ['rgba(91,141,239,0.35)', 'rgba(91,141,239,0.35)', 'rgba(47,91,224,0.35)']
+                  ? ['rgba(30,136,255,0.35)', 'rgba(30,136,255,0.35)', 'rgba(22,110,209,0.35)']
                   : ['#3BA6FF', D.accent, D.accentDeep]}
                 locations={[0, 0.55, 1]}
                 start={{x: 0, y: 0}}
@@ -323,7 +323,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 280, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -378,7 +378,7 @@ const s = StyleSheet.create(scaleTextStyles({
   teamRow: {flexDirection: 'row', alignItems: 'center', gap: 11, paddingHorizontal: 14, paddingVertical: 12},
   teamIcon: {
     width: 30, height: 30, borderRadius: 9, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.25)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.25)',
     alignItems: 'center', justifyContent: 'center',
   },
   teamRole: {flex: 1, minWidth: 0, color: D.text, fontFamily: D.fSemi, fontSize: 13},

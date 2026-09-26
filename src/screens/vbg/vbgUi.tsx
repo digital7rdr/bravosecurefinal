@@ -53,7 +53,7 @@ export const VBG = {
 
   accent:     '#1E88FF',
   accentDeep: '#166ED1',
-  accentGlow: 'rgba(91,141,239,0.35)',
+  accentGlow: 'rgba(30,136,255,0.35)',
   accentSoft: '#3BA6FF',
 
   indigo:    '#A78BFA',
@@ -182,7 +182,7 @@ const RISK: Record<RiskLevel, {fg: string; bg: string; bd: string}> = {
   caution:  {fg: VBG.amber, bg: VBG.amberDim,           bd: 'rgba(245,181,68,0.30)'},
   low:      {fg: VBG.signal, bg: VBG.signalDim,         bd: 'rgba(74,222,128,0.30)'},
   info:     {fg: VBG.info,  bg: 'rgba(110,168,254,0.12)', bd: 'rgba(110,168,254,0.30)'},
-  blue:     {fg: '#3BA6FF', bg: 'rgba(91,141,239,0.13)', bd: 'rgba(91,141,239,0.32)'},
+  blue:     {fg: '#3BA6FF', bg: 'rgba(30,136,255,0.13)', bd: 'rgba(30,136,255,0.32)'},
 };
 
 export function RiskBadge({
@@ -274,10 +274,10 @@ export function TacticalMap({
         style={StyleSheet.absoluteFill}>
         {/* grid */}
         {Array.from({length: 9}).map((_, i) => (
-          <Path key={`h${i}`} d={`M0 ${i * 35} L380 ${i * 35}`} stroke="rgba(91,141,239,0.10)" strokeWidth={1} />
+          <Path key={`h${i}`} d={`M0 ${i * 35} L380 ${i * 35}`} stroke="rgba(30,136,255,0.10)" strokeWidth={1} />
         ))}
         {Array.from({length: 13}).map((_, i) => (
-          <Path key={`v${i}`} d={`M${i * 30} 0 L${i * 30} 280`} stroke="rgba(91,141,239,0.10)" strokeWidth={1} />
+          <Path key={`v${i}`} d={`M${i * 30} 0 L${i * 30} 280`} stroke="rgba(30,136,255,0.10)" strokeWidth={1} />
         ))}
         {/* streets */}
         <Path d="M-10,120 C60,100 120,150 190,120 C260,90 320,130 400,110" stroke="#1E3E70" strokeWidth={3} fill="none" opacity={0.7} />
@@ -286,7 +286,7 @@ export function TacticalMap({
         <Path d="M-10,180 C70,165 130,200 200,182 C270,164 330,196 400,178" stroke="#1E5099" strokeWidth={13} opacity={0.32} fill="none" strokeLinecap="round" />
         {route ? (
           <>
-            <Path d="M70,235 C120,190 150,150 175,110 C200,70 250,55 300,60" stroke="rgba(91,141,239,0.25)" strokeWidth={6} fill="none" strokeLinecap="round" />
+            <Path d="M70,235 C120,190 150,150 175,110 C200,70 250,55 300,60" stroke="rgba(30,136,255,0.25)" strokeWidth={6} fill="none" strokeLinecap="round" />
             <Path d="M70,235 C120,190 150,150 175,110 C200,70 250,55 300,60" stroke={VBG.accent} strokeWidth={3} fill="none" strokeLinecap="round" />
           </>
         ) : null}
@@ -352,7 +352,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   bodyFrame: {flex: 1},
   ambientGlow: {
     position: 'absolute', top: -160, left: 0, right: 0, height: 400,
-    backgroundColor: 'rgba(91,141,239,0.05)', borderRadius: 400,
+    backgroundColor: 'rgba(30,136,255,0.05)', borderRadius: 400,
   },
 
   card: {
@@ -373,7 +373,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   badgeText: {fontWeight: '700', letterSpacing: 1.1, textTransform: 'uppercase'},
 
   chip: {paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1},
-  chipOn: {backgroundColor: 'rgba(91,141,239,0.16)', borderColor: 'rgba(91,141,239,0.34)'},
+  chipOn: {backgroundColor: 'rgba(30,136,255,0.16)', borderColor: 'rgba(30,136,255,0.34)'},
   chipOff: {backgroundColor: 'rgba(255,255,255,0.03)', borderColor: VBG.hair2},
   chipText: {fontSize: 9.5, fontWeight: '600', letterSpacing: 1, textTransform: 'uppercase'},
 

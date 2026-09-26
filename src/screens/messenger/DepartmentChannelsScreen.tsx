@@ -1263,7 +1263,7 @@ function ChannelRow({c, icon, last, busy, onPress}: {
 // accent / good / warn are tinted, everything else (read-only, inactive) is neutral.
 function badgeTone(color: string): {fg: string; bg: string; bd: string} {
   switch (color) {
-    case OB.accentSoft: return {fg: OB.accentSoft, bg: 'rgba(91,141,239,0.14)', bd: 'rgba(91,141,239,0.4)'};
+    case OB.accentSoft: return {fg: OB.accentSoft, bg: 'rgba(30,136,255,0.14)', bd: 'rgba(30,136,255,0.4)'};
     case OB.signal:     return {fg: OB.signal, bg: 'rgba(74,222,128,0.13)', bd: 'rgba(74,222,128,0.36)'};
     case OB.amber:      return {fg: OB.amber, bg: 'rgba(226,200,147,0.13)', bd: 'rgba(226,200,147,0.36)'};
     default:            return {fg: OB.textDim, bg: 'rgba(255,255,255,0.05)', bd: OB.hair2};
@@ -1368,7 +1368,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: OB.hair2,
   },
-  hBtnAccent: {backgroundColor: 'rgba(91,141,239,0.10)', borderColor: 'rgba(91,141,239,0.28)'},
+  hBtnAccent: {backgroundColor: 'rgba(30,136,255,0.10)', borderColor: 'rgba(30,136,255,0.28)'},
   hSpacer: {width: 40},
   hMeta: {flex: 1},
   hTitle: {color: OB.text, fontFamily: BravoFont.extraBold, fontSize: 20, letterSpacing: -0.4},
@@ -1387,7 +1387,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   searchInput: {flex: 1, minWidth: 0, color: OB.text, fontFamily: BravoFont.sans, fontSize: 13, padding: 0},
   searchEmpty: {color: OB.textMute, fontFamily: BravoFont.sans, fontSize: 12, paddingVertical: 18, textAlign: 'center'},
   chip: {flex: 1, borderRadius: 16, paddingVertical: 12, paddingHorizontal: 16, borderWidth: 1},
-  chipTint: {backgroundColor: 'rgba(91,141,239,0.07)', borderColor: 'rgba(91,141,239,0.24)'},
+  chipTint: {backgroundColor: 'rgba(30,136,255,0.07)', borderColor: 'rgba(30,136,255,0.24)'},
   chipPlain: {backgroundColor: 'rgba(255,255,255,0.03)', borderColor: OB.hair2},
   chipValue: {color: OB.text, fontFamily: BravoFont.extraBold, fontSize: 22, letterSpacing: -0.5},
   chipLabel: {
@@ -1405,9 +1405,9 @@ const styles = StyleSheet.create(scaleTextStyles({
   rowDivider: {borderBottomWidth: 1, borderBottomColor: OB.hair},
   rowIcon: {
     width: 46, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.2)',
+    backgroundColor: 'rgba(30,136,255,0.08)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.2)',
   },
-  rowIconHot: {backgroundColor: 'rgba(91,141,239,0.16)', borderColor: 'rgba(91,141,239,0.4)'},
+  rowIconHot: {backgroundColor: 'rgba(30,136,255,0.16)', borderColor: 'rgba(30,136,255,0.4)'},
   rowNameLine: {flexDirection: 'row', alignItems: 'center', gap: 8},
   rowName: {color: OB.text, fontFamily: BravoFont.bold, fontSize: 16.5, letterSpacing: -0.3, flexShrink: 1},
   rowNameHot: {fontFamily: BravoFont.extraBold},
@@ -1423,11 +1423,11 @@ const styles = StyleSheet.create(scaleTextStyles({
   emptySub: {color: OB.textMute, fontFamily: BravoFont.regular, fontSize: 12.5, textAlign: 'center', lineHeight: 18},
   emptyCtas: {flexDirection: 'row', gap: 10, marginTop: 16},
   workspaceRow: {flexDirection: 'row', alignItems: 'center', gap: 12, marginHorizontal: 16, marginBottom: 4, padding: 14, borderRadius: 16, borderWidth: 1, borderColor: OB.hair2, backgroundColor: 'rgba(255,255,255,0.03)'},
-  workspaceIcon: {width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)'},
+  workspaceIcon: {width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)'},
   workspaceTitle: {color: OB.text, fontFamily: BravoFont.semiBold, fontSize: 13.5},
   workspaceSub: {color: OB.textMute, fontFamily: BravoFont.regular, fontSize: 11, marginTop: 2},
   emptyCta: {flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: OB.accent, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 11},
-  emptyCtaGhost: {backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)'},
+  emptyCtaGhost: {backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.35)'},
   // vs2 item 6 — the discoverable Manage Channels route. Cobalt accent, 8pt
   // grid, one primary action on the surface (the cog stays secondary).
   manageCta: {
@@ -1444,7 +1444,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   gateWrap: {flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28, paddingVertical: 24, gap: 14},
   gateIcon: {
     width: 84, height: 84, borderRadius: 26, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.25)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.25)',
   },
   gateTitle: {color: OB.text, fontFamily: BravoFont.extraBold, fontSize: 22},
   gateSub: {color: OB.textDim, fontFamily: BravoFont.regular, fontSize: 13, textAlign: 'center', lineHeight: 19},

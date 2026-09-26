@@ -581,7 +581,7 @@ const s = StyleSheet.create(scaleTextStyles({
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1, borderColor: UI.hair,
   },
-  avGradient: {backgroundColor: 'rgba(91,141,239,0.14)'},
+  avGradient: {backgroundColor: 'rgba(30,136,255,0.14)'},
   avPlain:    {backgroundColor: 'rgba(255,255,255,0.06)'},
   avText: {
     fontFamily: BravoFont.bold, fontSize: 11,

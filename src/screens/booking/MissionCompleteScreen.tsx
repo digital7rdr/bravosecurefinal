@@ -99,7 +99,7 @@ const s = StyleSheet.create(scaleTextStyles({
     backgroundColor: UI.accent, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)'},
   primaryText: {fontFamily: UI.fBold, fontSize: 15, color: '#fff', letterSpacing: 0.3},
   secondaryBtn: {flexDirection: 'row', gap: 8, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)'},
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)'},
   secondaryText: {fontFamily: UI.fBold, fontSize: 14, color: UI.accentSoft},
   doneBtn: {height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: UI.hair},

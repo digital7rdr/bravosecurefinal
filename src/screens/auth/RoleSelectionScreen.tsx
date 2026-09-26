@@ -34,7 +34,7 @@ const T = {
   hair2:      'rgba(255,255,255,0.09)',
   accent:     '#1E88FF',
   accentDeep: '#166ED1',
-  accentGlow: 'rgba(91,141,239,0.35)',
+  accentGlow: 'rgba(30,136,255,0.35)',
   signal:     '#4ADE80',
 } as const;
 
@@ -153,7 +153,7 @@ function SubCard({
       style={styles.subCardWrap}>
       {on && !soon ? (
         <LinearGradient
-          colors={['rgba(91,141,239,0.18)', 'rgba(47,91,224,0.05)']}
+          colors={['rgba(30,136,255,0.18)', 'rgba(22,110,209,0.05)']}
           start={{x: 0.2, y: 0}}
           end={{x: 0.9, y: 1}}
           style={[styles.subCard, styles.subCardActive]}>
@@ -255,13 +255,13 @@ export default function RoleSelectionScreen({navigation}: Props) {
       {/* Ambient obsidian + cobalt glow */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
         <LinearGradient
-          colors={['rgba(91,141,239,0.10)', 'rgba(91,141,239,0)']}
+          colors={['rgba(30,136,255,0.10)', 'rgba(30,136,255,0)']}
           start={{x: 0.5, y: 0}}
           end={{x: 0.5, y: 1}}
           style={styles.topGlow}
         />
         <LinearGradient
-          colors={['rgba(47,91,224,0.06)', 'rgba(47,91,224,0)']}
+          colors={['rgba(22,110,209,0.06)', 'rgba(22,110,209,0)']}
           start={{x: 0.5, y: 1}}
           end={{x: 0.5, y: 0}}
           style={styles.bottomGlow}
@@ -334,12 +334,12 @@ export default function RoleSelectionScreen({navigation}: Props) {
                       style={[
                         styles.cardIcon,
                         active
-                          ? {borderColor: 'rgba(91,141,239,0.4)'}
+                          ? {borderColor: 'rgba(30,136,255,0.4)'}
                           : {backgroundColor: 'rgba(255,255,255,0.04)', borderColor: T.hair2},
                       ]}>
                       {active && (
                         <LinearGradient
-                          colors={['rgba(91,141,239,0.28)', 'rgba(47,91,224,0.08)']}
+                          colors={['rgba(30,136,255,0.28)', 'rgba(22,110,209,0.08)']}
                           start={{x: 0.2, y: 0}}
                           end={{x: 0.9, y: 1}}
                           style={StyleSheet.absoluteFill}
@@ -405,7 +405,7 @@ export default function RoleSelectionScreen({navigation}: Props) {
 
       {/* Fixed footer CTA */}
       <LinearGradient
-        colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+        colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
         start={{x: 0.5, y: 0}}
         end={{x: 0.5, y: 0.55}}
         style={[styles.footer, {paddingBottom: insets.bottom + 24}]}>
@@ -463,7 +463,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   cardWrap: {borderRadius: 22},
   card: {borderRadius: 22, padding: 18, overflow: 'hidden'},
   cardIdle: {borderWidth: 1, borderColor: T.hair},
-  cardActive: {borderWidth: 1, borderColor: 'rgba(91,141,239,0.5)'},
+  cardActive: {borderWidth: 1, borderColor: 'rgba(30,136,255,0.5)'},
   edgeLight: {position: 'absolute', top: 0, left: 18, right: 18, height: 1},
 
   cardTop: {flexDirection: 'row', alignItems: 'flex-start', gap: 14},
@@ -497,7 +497,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   subRow: {flexDirection: 'row', gap: 10},
   subCardWrap: {flex: 1, borderRadius: 14},
   subCard: {flex: 1, borderRadius: 14, paddingTop: 13, paddingHorizontal: 14, paddingBottom: 14, backgroundColor: 'rgba(255,255,255,0.025)', borderWidth: 1, borderColor: T.hair2, overflow: 'hidden'},
-  subCardActive: {borderColor: 'rgba(91,141,239,0.45)'},
+  subCardActive: {borderColor: 'rgba(30,136,255,0.45)'},
   subCardSoon: {opacity: 0.6, borderStyle: 'dashed'},
   subTop: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6},
   subName: {color: T.text, fontSize: 16, fontWeight: '700', letterSpacing: -0.3},

@@ -520,7 +520,7 @@ const s = StyleSheet.create({
     width: 156, height: 156, borderRadius: 78,
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 1, borderColor: C.glow,
-    backgroundColor: 'rgba(91,141,239,0.12)',
+    backgroundColor: 'rgba(30,136,255,0.12)',
     shadowColor: C.glow, shadowOpacity: 0.55, shadowRadius: 22, shadowOffset: {width: 0, height: 0}, elevation: 10,
   },
   avatarInner: {

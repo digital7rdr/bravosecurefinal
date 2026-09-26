@@ -50,7 +50,7 @@ export default function ReadinessGate({
   if (!iAmBlocking && otherSide.length > 0) {
     return (
       <View style={s.wrap}>
-        <View style={[s.badge, {borderColor: 'rgba(91,141,239,0.35)'}]}>
+        <View style={[s.badge, {borderColor: 'rgba(30,136,255,0.35)'}]}>
           <ActivityIndicator color={D.accent} />
         </View>
         <Text style={s.title}>Almost ready</Text>

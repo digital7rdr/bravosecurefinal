@@ -542,7 +542,7 @@ export function GeoRiskPanel() {
                   {(recsOpen ? sra.recommendations : sra.recommendations.slice(0, 2)).map(rec => (
                     <View key={rec} style={styles.recRow}>
                       <Svg width={16} height={16} viewBox="0 0 20 20" style={{marginTop: 1}}>
-                        <Circle cx={10} cy={10} r={8.5} stroke="rgba(91,141,239,0.4)" strokeWidth={1.3} fill="rgba(91,141,239,0.1)" />
+                        <Circle cx={10} cy={10} r={8.5} stroke="rgba(30,136,255,0.4)" strokeWidth={1.3} fill="rgba(30,136,255,0.1)" />
                         <Path d="M6.5 10.2l2.3 2.3 4.5-4.8" stroke="#3BA6FF" strokeWidth={1.6} fill="none" strokeLinecap="round" strokeLinejoin="round" />
                       </Svg>
                       <Text style={styles.recText}>{rec}</Text>
@@ -624,9 +624,9 @@ const styles = StyleSheet.create(scaleTextStyles({
   },
   gpsBtn: {
     marginTop: 11, height: 46, borderRadius: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9,
-    backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: VBG.hair2,
+    backgroundColor: 'rgba(30,136,255,0.08)', borderWidth: 1, borderColor: VBG.hair2,
   },
-  gpsBtnOn: {backgroundColor: 'rgba(91,141,239,0.16)', borderColor: 'rgba(91,141,239,0.4)'},
+  gpsBtnOn: {backgroundColor: 'rgba(30,136,255,0.16)', borderColor: 'rgba(30,136,255,0.4)'},
   gpsText: {fontSize: 12, fontWeight: '600', color: VBG.accentSoft, letterSpacing: 0.2},
 
   suggestBox: {marginTop: 8, borderRadius: 12, backgroundColor: 'rgba(13,17,25,0.98)', borderWidth: 1, borderColor: VBG.hair2, overflow: 'hidden'},
@@ -669,7 +669,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   riskChevron: {width: 12, alignItems: 'center', justifyContent: 'center'},
   riskDot: {width: 8, height: 8, borderRadius: 4, shadowOpacity: 0.8, shadowRadius: 5, shadowOffset: {width: 0, height: 0}},
   riskName: {fontSize: 13, fontWeight: '500', color: VBG.text, letterSpacing: -0.2},
-  riskCount: {fontSize: 9, fontWeight: '700', color: VBG.accentSoft, backgroundColor: 'rgba(91,141,239,0.14)', borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1, overflow: 'hidden'},
+  riskCount: {fontSize: 9, fontWeight: '700', color: VBG.accentSoft, backgroundColor: 'rgba(30,136,255,0.14)', borderRadius: 999, paddingHorizontal: 6, paddingVertical: 1, overflow: 'hidden'},
   tapHint: {fontSize: 8.5, color: VBG.textMute, fontWeight: '500', letterSpacing: 0},
 
   newsWrap: {paddingHorizontal: 12, paddingBottom: 11, gap: 9},

@@ -192,7 +192,7 @@ const styles = StyleSheet.create(scaleTextStyles({
     paddingHorizontal: 9, paddingVertical: 5, borderRadius: 99,
     borderWidth: 1, borderColor: 'transparent',
   },
-  legendItemOn: {borderColor: 'rgba(91,141,239,0.45)', backgroundColor: 'rgba(91,141,239,0.10)'},
+  legendItemOn: {borderColor: 'rgba(30,136,255,0.45)', backgroundColor: 'rgba(30,136,255,0.10)'},
   legendDot: {width: 9, height: 9, borderRadius: 5, shadowOpacity: 0.8, shadowRadius: 5, shadowOffset: {width: 0, height: 0}},
   legendLabel: {fontSize: 11.5, color: VBG.textDim, fontWeight: '500'},
   legendLabelOn: {color: VBG.text, fontWeight: '700'},

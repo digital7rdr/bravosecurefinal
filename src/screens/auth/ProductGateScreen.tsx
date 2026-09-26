@@ -138,7 +138,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   cardBody: {flexDirection: 'row', alignItems: 'center', gap: 14, padding: 18},
   cardIcon: {
     width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)',
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)',
   },
   cardTitleRow: {flexDirection: 'row', alignItems: 'center', gap: 8},
   cardTitle: {flexShrink: 1, minWidth: 0, color: T.text, fontSize: 16, fontWeight: '700'},

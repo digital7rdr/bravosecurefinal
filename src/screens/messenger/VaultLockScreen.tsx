@@ -465,12 +465,12 @@ export default function VaultLockScreen() {
 const styles = StyleSheet.create({
   root: {flex: 1, backgroundColor: Colors.background},
 
-  header: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(91,141,239,0.1)'},
+  header: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(30,136,255,0.1)'},
   backBtn: {width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center'},
   headerTitle: {fontSize: 12, fontWeight: '700', color: 'rgba(229,233,242,0.62)', letterSpacing: 3, textTransform: 'uppercase'},
 
   lockSection: {alignItems: 'center', paddingTop: 24, paddingBottom: 16},
-  lockIcon: {width: 48, height: 48, borderRadius: 16, backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 8},
+  lockIcon: {width: 48, height: 48, borderRadius: 16, backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 8},
   lockTitle: {fontSize: 16, fontWeight: '800', color: 'rgba(229,233,242,0.62)', marginBottom: 4},
   lockSub: {fontSize: 11, color: 'rgba(180,188,204,0.45)', textAlign: 'center', paddingHorizontal: 32},
 
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
 
   keypad: {alignItems: 'center', gap: 8, paddingHorizontal: 24},
   keyRow: {flexDirection: 'row', gap: 20},
-  keyBtn: {width: 58, height: 58, borderRadius: 29, backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', alignItems: 'center', justifyContent: 'center'},
+  keyBtn: {width: 58, height: 58, borderRadius: 29, backgroundColor: 'rgba(30,136,255,0.08)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', alignItems: 'center', justifyContent: 'center'},
   // Holds the biometric key's place so hiding it does not shift 0 off centre.
   keyBtnSpacer: {width: 58, height: 58},
   keyNum: {fontSize: 19, fontWeight: '700', color: '#FFFFFF', lineHeight: 22},

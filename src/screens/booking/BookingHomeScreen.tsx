@@ -438,7 +438,7 @@ export default function BookingHomeScreen() {
             <EdgeLight />
 
             <LinearGradient
-              colors={['rgba(91,141,239,0.2)', 'rgba(47,91,224,0.08)']}
+              colors={['rgba(30,136,255,0.2)', 'rgba(22,110,209,0.08)']}
               start={{x: 0.2, y: 0}}
               end={{x: 0.9, y: 1}}
               style={styles.heroIconWrap}>
@@ -751,18 +751,18 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   header: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4},
   headerLeft: {flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minWidth: 0},
-  headerBadge: {width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)'},
+  headerBadge: {width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)'},
   headerAvatar: {
     width: 32, height: 32, borderRadius: 16, overflow: 'hidden',
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
   },
   headerAvatarImg: {width: 32, height: 32, borderRadius: 16},
   headerAvatarText: {color: '#3BA6FF', fontSize: 12, fontWeight: '800'},
   // B-657 - 16/1.5 rendered ~171dp for 15 uppercase chars and overflowed the
   // row. 13.5/0.6 is ~135dp and still reads as the product title.
   headerTitle: {color: B.text, fontFamily: BravoFont.extraBold, fontSize: 13.5, letterSpacing: 0.6, flexShrink: 1},
-  liteBadge: {paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(91,141,239,0.13)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)'},
+  liteBadge: {paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(30,136,255,0.13)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)'},
   liteBadgeText: {color: B.glow, fontFamily: BravoFont.mono, fontSize: 8.5, fontWeight: '800', letterSpacing: 1.2},
   proBadge: {paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(74,222,128,0.12)', borderWidth: 1, borderColor: 'rgba(74,222,128,0.4)'},
   proBadgeText: {color: '#4ADE80', fontFamily: BravoFont.mono, fontSize: 8.5, fontWeight: '800', letterSpacing: 1.2},
@@ -775,7 +775,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   // Mission hero
   heroWrap: {paddingHorizontal: 20, paddingTop: 16},
   heroCard: {borderRadius: 22, paddingTop: 24, paddingBottom: 20, paddingHorizontal: 20, borderWidth: 1, borderColor: B.hair2, overflow: 'hidden'},
-  heroIconWrap: {width: 64, height: 64, borderRadius: 18, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(91,141,239,0.4)'},
+  heroIconWrap: {width: 64, height: 64, borderRadius: 18, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)'},
   heroTitle: {color: B.text, fontFamily: BravoFont.extraBold, fontSize: 26, letterSpacing: -0.6, textAlign: 'center', marginTop: 16},
   heroStatusRow: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 9},
   heroPill: {paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, borderWidth: 1},
@@ -792,7 +792,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   // Trust strip
   featuresRow: {flexDirection: 'row', gap: 9, paddingHorizontal: 20, marginTop: 14},
   featureCell: {flex: 1, alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 6, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.022)', borderWidth: 1, borderColor: B.hair},
-  featureIcon: {width: 38, height: 38, borderRadius: 11, backgroundColor: 'rgba(91,141,239,0.16)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)', alignItems: 'center', justifyContent: 'center'},
+  featureIcon: {width: 38, height: 38, borderRadius: 11, backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)', alignItems: 'center', justifyContent: 'center'},
   featureLabel: {color: B.text, fontFamily: BravoFont.bold, fontSize: 11.5, letterSpacing: -0.1},
   featureSub: {color: B.textMute, fontFamily: BravoFont.mono, fontSize: 8, letterSpacing: 0.6, textTransform: 'uppercase'},
 
@@ -808,7 +808,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   emptySub: {color: B.textMute, fontFamily: BravoFont.regular, fontSize: 11, textAlign: 'center'},
   bookingCard: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14, paddingHorizontal: 15, paddingVertical: 14, borderRadius: 16, backgroundColor: 'rgba(22,27,37,0.72)', borderWidth: 1, borderColor: B.hair, overflow: 'hidden'},
   bookingLeft: {flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1, minWidth: 0},
-  bookingIconWrap: {width: 44, height: 44, borderRadius: 13, backgroundColor: 'rgba(91,141,239,0.16)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)', alignItems: 'center', justifyContent: 'center'},
+  bookingIconWrap: {width: 44, height: 44, borderRadius: 13, backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)', alignItems: 'center', justifyContent: 'center'},
   bookingMeta: {flex: 1, minWidth: 0},
   bookingRef: {color: B.text, fontFamily: BravoFont.mono, fontSize: 13.5, fontWeight: '700', letterSpacing: 0.3},
   bookingType: {color: B.textMute, fontFamily: BravoFont.regular, fontSize: 11.5, marginTop: 4},
@@ -827,7 +827,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   },
   planIconWrap: {
     width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.16)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
     alignItems: 'center', justifyContent: 'center',
   },
   planTitle: {color: B.text, fontFamily: BravoFont.bold, fontSize: 13.5},
@@ -836,7 +836,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   // How it works
   stepList: {gap: 12, marginTop: 4},
   stepRow: {flexDirection: 'row', alignItems: 'flex-start', gap: 14},
-  stepNum: {width: 32, height: 32, borderRadius: 9, backgroundColor: 'rgba(91,141,239,0.16)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)', alignItems: 'center', justifyContent: 'center', flexShrink: 0},
+  stepNum: {width: 32, height: 32, borderRadius: 9, backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)', alignItems: 'center', justifyContent: 'center', flexShrink: 0},
   stepNumText: {color: B.glow, fontFamily: BravoFont.mono, fontSize: 11, fontWeight: '800'},
   stepMeta: {flex: 1, minWidth: 0},
   stepTitle: {color: B.text, fontFamily: BravoFont.bold, fontSize: 13},

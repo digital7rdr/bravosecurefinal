@@ -106,7 +106,7 @@ const ICON_TINT: Record<MediaKindIconName, {color: string; bg: string; border: s
   'video-outline':         {color: '#60A5FA', bg: 'rgba(96,165,250,0.12)',  border: 'rgba(96,165,250,0.28)'},
   'microphone-outline':    {color: '#F472B6', bg: 'rgba(244,114,182,0.12)', border: 'rgba(244,114,182,0.28)'},
   'file-pdf-box':          {color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.28)'},
-  'file-document-outline': {color: '#3BA6FF', bg: 'rgba(91,141,239,0.1)',   border: 'rgba(91,141,239,0.25)'},
+  'file-document-outline': {color: '#3BA6FF', bg: 'rgba(30,136,255,0.1)',   border: 'rgba(30,136,255,0.25)'},
 };
 
 function iconFor(row: FileRow): {name: IconName; color: string; bg: string; border: string} {
@@ -1009,7 +1009,7 @@ export default function FilesScreen() {
                   rx={28.5}
                   ry={28.5}
                   fill="none"
-                  stroke="rgba(91,141,239,0.45)"
+                  stroke="rgba(30,136,255,0.45)"
                   strokeWidth={1.5}
                   strokeDasharray="6 5"
                 />
@@ -1053,7 +1053,7 @@ export default function FilesScreen() {
               </>
             )}
             <View style={styles.chipRow}>
-              <TrustChip label="End-to-end encrypted" fg={OB.accentSoft} border="rgba(91,141,239,0.3)" />
+              <TrustChip label="End-to-end encrypted" fg={OB.accentSoft} border="rgba(30,136,255,0.3)" />
               <TrustChip label="R2 storage" fg={OB.textDim} border={OB.hair2} />
             </View>
           </View>
@@ -1425,8 +1425,8 @@ const styles = StyleSheet.create(scaleTextStyles({
     width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
     backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: OB.hair2,
   },
-  hBtnAccent: {backgroundColor: 'rgba(91,141,239,0.10)', borderColor: 'rgba(91,141,239,0.28)'},
-  hBtnActive: {backgroundColor: 'rgba(91,141,239,0.22)', borderColor: 'rgba(91,141,239,0.5)'},
+  hBtnAccent: {backgroundColor: 'rgba(30,136,255,0.10)', borderColor: 'rgba(30,136,255,0.28)'},
+  hBtnActive: {backgroundColor: 'rgba(30,136,255,0.22)', borderColor: 'rgba(30,136,255,0.5)'},
   searchRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     marginHorizontal: 16, marginBottom: 10, paddingHorizontal: 12, minHeight: 40, paddingVertical: 6,
@@ -1441,7 +1441,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   uploadLink: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.28)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.28)',
   },
   uploadLinkText: {
     fontFamily: BravoFont.mono, fontSize: 9, fontWeight: '700', letterSpacing: 1.6,
@@ -1473,7 +1473,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   },
 
   fileRow: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: OB.hair},
-  fileRowSelected: {backgroundColor: 'rgba(91,141,239,0.07)'},
+  fileRowSelected: {backgroundColor: 'rgba(30,136,255,0.07)'},
   fileIcon: {width: 42, height: 42, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'center', flexShrink: 0},
   fileInfo: {flex: 1, minWidth: 0},
   fileName: {fontFamily: BravoFont.bold, fontSize: 14, color: OB.text},
@@ -1499,7 +1499,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   selRingOn: {backgroundColor: OB.accent, borderColor: OB.accent},
   batchBar: {
     flexDirection: 'row', paddingTop: 10, paddingHorizontal: 12,
-    borderTopWidth: 1, borderTopColor: OB.hair2, backgroundColor: 'rgba(12,16,24,0.98)',
+    borderTopWidth: 1, borderTopColor: OB.hair2, backgroundColor: 'rgba(18,39,71,0.98)',
   },
   batchBtn: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 6},
   batchBtnDisabled: {opacity: 0.45},
@@ -1507,14 +1507,14 @@ const styles = StyleSheet.create(scaleTextStyles({
   batchHint: {
     fontFamily: BravoFont.mono, fontSize: 9.5, letterSpacing: 1.2, textTransform: 'uppercase',
     color: OB.textMute, textAlign: 'center', paddingTop: 8, paddingHorizontal: 12,
-    backgroundColor: 'rgba(12,16,24,0.98)',
+    backgroundColor: 'rgba(18,39,71,0.98)',
   },
 
   // Empty state
   emptyWrap: {flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 40, paddingBottom: 24},
   dropTile: {
     width: 116, height: 116, borderRadius: 30, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.08)', borderWidth: 1, borderColor: OB.hair,
+    backgroundColor: 'rgba(30,136,255,0.08)', borderWidth: 1, borderColor: OB.hair,
     overflow: 'hidden',
   },
   emptyTitle: {color: OB.text, fontFamily: BravoFont.extraBold, fontSize: 22, letterSpacing: -0.5, marginTop: 24},

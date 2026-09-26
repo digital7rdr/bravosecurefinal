@@ -41,7 +41,7 @@ const T = {
   accent:    '#1E88FF',
   accentDeep:'#166ED1',
   accentSoft:'#7FA8FF',
-  accentGlow:'rgba(91,141,239,0.35)',
+  accentGlow:'rgba(30,136,255,0.35)',
   blue:      '#3BA6FF',
   signal:    '#4ADE80',
   gold:      '#E2C893',
@@ -364,7 +364,7 @@ function CreditsScreen() {
                           accessibilityLabel: `${label}, ${formatDate(tx.created_at)}, ${credit ? 'credited' : 'debited'} ${tx.amount.toLocaleString()} ${tx.currency}`,
                         }
                       : {})}>
-                    <View style={[styles.txIcon, {backgroundColor: credit ? 'rgba(74,222,128,0.1)' : 'rgba(91,141,239,0.1)', borderColor: credit ? 'rgba(74,222,128,0.3)' : 'rgba(91,141,239,0.26)'}]}>
+                    <View style={[styles.txIcon, {backgroundColor: credit ? 'rgba(74,222,128,0.1)' : 'rgba(30,136,255,0.1)', borderColor: credit ? 'rgba(74,222,128,0.3)' : 'rgba(30,136,255,0.26)'}]}>
                       <Icon name={credit ? 'arrow-down' : 'arrow-up'} size={18} color={credit ? T.signal : T.blue} />
                     </View>
                     <View style={{flex: 1, minWidth: 0}}>
@@ -493,20 +493,20 @@ const styles = StyleSheet.create({
 
   seg: {flexDirection: 'row', gap: 4, padding: 4, marginHorizontal: 20, marginBottom: 6, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: T.hair, borderRadius: 14},
   segItem: {flex: 1, alignItems: 'center', paddingVertical: 11, borderRadius: 11, borderWidth: 1, borderColor: 'transparent'},
-  segItemOn: {backgroundColor: 'rgba(91,141,239,0.2)', borderColor: 'rgba(91,141,239,0.32)'},
+  segItemOn: {backgroundColor: 'rgba(30,136,255,0.2)', borderColor: 'rgba(30,136,255,0.32)'},
   segText: {fontFamily: BravoFont.semiBold, fontSize: 13, letterSpacing: 0.2, color: T.textMute},
   segTextOn: {fontFamily: BravoFont.bold, color: T.text},
 
   content: {paddingHorizontal: 20, paddingTop: 8, gap: 14},
 
   // hero
-  hero: {position: 'relative', overflow: 'hidden', borderRadius: 22, padding: 22, borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)'},
+  hero: {position: 'relative', overflow: 'hidden', borderRadius: 22, padding: 22, borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)'},
   heroGlow: {position: 'absolute', top: -60, right: -40, width: 200, height: 200, borderRadius: 100, backgroundColor: 'rgba(212,179,122,0.1)'},
   heroLabelRow: {flexDirection: 'row', alignItems: 'center', gap: 8},
   heroLabel: {fontFamily: BravoFont.mono, fontSize: 10, letterSpacing: 2, color: T.textMute},
   heroValue: {fontFamily: BravoFont.extraBold, fontSize: 50, letterSpacing: -2, color: T.text, textAlign: 'center', marginTop: 14},
   heroUnit: {fontFamily: BravoFont.mono, fontSize: 11, letterSpacing: 3, color: T.textMute, textAlign: 'center', marginTop: 6},
-  heroExpiry: {alignSelf: 'center', marginTop: 14, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(91,141,239,0.1)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.26)'},
+  heroExpiry: {alignSelf: 'center', marginTop: 14, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(30,136,255,0.1)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.26)'},
   heroExpiryText: {fontFamily: BravoFont.mono, fontSize: 9.5, letterSpacing: 0.8, color: T.blue},
 
   topUpShortcut: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, height: 50, borderRadius: 15, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)'},
@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
   bestTag: {position: 'absolute', top: -10, right: 16, zIndex: 2, paddingHorizontal: 11, paddingVertical: 4, borderRadius: 999, backgroundColor: T.accent},
   bestTagText: {fontFamily: BravoFont.mono, fontSize: 9, fontWeight: '800', letterSpacing: 1, color: '#fff'},
   optCard: {flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18, backgroundColor: T.card, borderWidth: 1, borderColor: T.hair},
-  optCardOn: {backgroundColor: 'rgba(91,141,239,0.16)', borderColor: 'rgba(91,141,239,0.5)'},
+  optCardOn: {backgroundColor: 'rgba(30,136,255,0.16)', borderColor: 'rgba(30,136,255,0.5)'},
   optBc: {fontFamily: BravoFont.extraBold, fontSize: 21, letterSpacing: -0.5, color: T.text},
   optBcUnit: {fontFamily: BravoFont.mono, fontSize: 11, letterSpacing: 1, color: T.textDim},
   optSub: {fontFamily: BravoFont.regular, fontSize: 12.5, color: T.textDim, marginTop: 3},
@@ -534,8 +534,8 @@ const styles = StyleSheet.create({
   radioOn: {backgroundColor: T.accent, borderColor: T.accent},
 
   // payment method card
-  payCard: {flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18, backgroundColor: 'rgba(91,141,239,0.06)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)'},
-  payIcon: {width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)'},
+  payCard: {flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16, borderRadius: 18, backgroundColor: 'rgba(30,136,255,0.06)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)'},
+  payIcon: {width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)'},
   payTitle: {fontFamily: BravoFont.bold, fontSize: 15, color: T.text},
   paySub: {fontFamily: BravoFont.regular, fontSize: 12, color: T.textDim, marginTop: 2},
 
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   promoLinkText: {fontFamily: BravoFont.bold, fontSize: 13, color: T.blue},
 
   // Refund/redemption disclaimer (obsidian info-card, matches ProDashboard noteCard).
-  noteCard: {flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 4, padding: 14, borderRadius: 14, backgroundColor: 'rgba(91,141,239,0.07)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)'},
+  noteCard: {flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 4, padding: 14, borderRadius: 14, backgroundColor: 'rgba(30,136,255,0.07)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)'},
   noteTitle: {fontFamily: BravoFont.bold, fontSize: 12, color: T.text, marginBottom: 3},
   noteText: {flex: 1, minWidth: 0, fontFamily: BravoFont.regular, fontSize: 11.5, lineHeight: 17, color: T.textDim},
 
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
   // promo modal
   modalOverlay: {flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28},
   modalCard: {width: '100%', backgroundColor: '#11151D', borderRadius: 22, borderWidth: 1, borderColor: T.hair2, padding: 22, alignItems: 'center'},
-  modalIcon: {width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)', marginBottom: 12},
+  modalIcon: {width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)', marginBottom: 12},
   modalTitle: {fontFamily: BravoFont.extraBold, fontSize: 18, letterSpacing: -0.3, color: T.text},
   modalSub: {fontFamily: BravoFont.regular, fontSize: 12.5, color: T.textMute, textAlign: 'center', marginTop: 6, lineHeight: 18},
   modalInput: {width: '100%', height: 52, borderRadius: 14, paddingHorizontal: 16, marginTop: 16, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: T.hair2, fontFamily: BravoFont.bold, fontSize: 16, letterSpacing: 1, color: T.text, textAlign: 'center'},

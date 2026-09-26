@@ -252,7 +252,7 @@ export default function SecureProApplyScreen() {
         footerGap={12}
         footer={
           <LinearGradient
-            colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+            colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
             locations={[0, 0.4]}
             style={s.ctaWrap}>
             {storeError ? (
@@ -269,7 +269,7 @@ export default function SecureProApplyScreen() {
               accessibilityState={{disabled: !!gateHint || isSubmitting}}>
               <LinearGradient
                 colors={gateHint
-                  ? ['rgba(91,141,239,0.35)', 'rgba(91,141,239,0.35)', 'rgba(47,91,224,0.35)']
+                  ? ['rgba(30,136,255,0.35)', 'rgba(30,136,255,0.35)', 'rgba(22,110,209,0.35)']
                   : ['#3BA6FF', D.accent, D.accentDeep]}
                 locations={[0, 0.55, 1]}
                 start={{x: 0, y: 0}}
@@ -514,7 +514,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 280, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {
@@ -543,7 +543,7 @@ const s = StyleSheet.create(scaleTextStyles({
     backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: D.hair2,
     minWidth: '46%', flexGrow: 1,
   },
-  useChipOn: {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: 'rgba(91,141,239,0.5)'},
+  useChipOn: {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: 'rgba(30,136,255,0.5)'},
   useChipText: {flexShrink: 1, minWidth: 0, fontFamily: D.fSemi, fontSize: 12.5, color: D.textDim},
   useChipTextOn: {color: D.text},
 
@@ -552,7 +552,7 @@ const s = StyleSheet.create(scaleTextStyles({
     paddingVertical: 9, paddingHorizontal: 14, borderRadius: 99,
     backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: D.hair2,
   },
-  durChipOn: {backgroundColor: 'rgba(91,141,239,0.14)', borderColor: 'rgba(91,141,239,0.5)'},
+  durChipOn: {backgroundColor: 'rgba(30,136,255,0.14)', borderColor: 'rgba(30,136,255,0.5)'},
   durChipText: {fontFamily: D.fSemi, fontSize: 12.5, color: D.textDim},
   durChipTextOn: {color: D.text},
 
@@ -578,7 +578,7 @@ const s = StyleSheet.create(scaleTextStyles({
   counterLeft: {flexDirection: 'row', alignItems: 'center', gap: 11, flex: 1, minWidth: 0},
   counterIcon: {
     width: 36, height: 36, borderRadius: 11, flexShrink: 0,
-    backgroundColor: 'rgba(91,141,239,0.14)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.3)',
+    backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)',
     alignItems: 'center', justifyContent: 'center',
   },
   counterLabel: {flex: 1, minWidth: 0, color: D.text, fontFamily: D.fSemi, fontSize: 13},
@@ -612,7 +612,7 @@ const s = StyleSheet.create(scaleTextStyles({
   kycNote: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 10,
     marginTop: 22, padding: 14, borderRadius: 14,
-    backgroundColor: 'rgba(91,141,239,0.07)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.22)',
+    backgroundColor: 'rgba(30,136,255,0.07)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)',
   },
   kycNoteText: {flex: 1, minWidth: 0, fontFamily: D.fSans, fontSize: 11.5, lineHeight: 17, color: D.textDim},
 

@@ -155,7 +155,7 @@ export function ServicePricingCard() {
               <div key={p.key} style={{
                 display: 'grid', gridTemplateColumns: 'minmax(240px,1fr) 130px 140px 100px 80px', gap: 14,
                 padding: '11px 0', borderBottom: '1px solid var(--bd-2)', alignItems: 'center',
-                background: p.key === 'eur_per_bc' ? 'rgba(91,141,239,0.05)' : undefined,
+                background: p.key === 'eur_per_bc' ? 'rgba(30,136,255,0.05)' : undefined,
               }}>
                 <div style={{minWidth: 0}}>
                   <div style={{fontSize: 12, color: 'var(--tx-1)', fontFamily: 'var(--font-sans)', fontWeight: 700}}>
@@ -196,7 +196,7 @@ export function ServicePricingCard() {
                   onClick={() => { void save(p); }}
                   disabled={busyKey === p.key || !pending}
                   style={{
-                    border: '1px solid rgba(91,141,239,0.4)', color: 'var(--glow)', background: 'transparent',
+                    border: '1px solid rgba(30,136,255,0.4)', color: 'var(--glow)', background: 'transparent',
                     borderRadius: 6, padding: '6px 14px', fontSize: 11, fontWeight: 700, cursor: 'pointer',
                     opacity: busyKey === p.key || !pending ? 0.4 : 1,
                   }}>

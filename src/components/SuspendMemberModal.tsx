@@ -216,7 +216,7 @@ const s = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 8, borderRadius: 999,
     borderWidth: 1, borderColor: DIALOG.hair2, backgroundColor: DIALOG.glassFill,
   },
-  chipOn: {borderColor: 'rgba(91,141,239,0.45)', backgroundColor: 'rgba(91,141,239,0.16)'},
+  chipOn: {borderColor: 'rgba(30,136,255,0.45)', backgroundColor: 'rgba(30,136,255,0.16)'},
   chipText: {color: DIALOG.textDim, fontSize: 12, fontWeight: '700'},
   chipTextOn: {color: DIALOG.onAccent},
   dateRow: {

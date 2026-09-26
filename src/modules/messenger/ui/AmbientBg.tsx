@@ -18,7 +18,7 @@ import {Bravo} from '@/theme/bravo';
 export function AmbientBg({variant = 'default', bg}: {variant?: 'default' | 'alert'; bg?: string}) {
   const topGlow = variant === 'alert'
     ? ['rgba(255,93,93,0.08)', 'rgba(255,93,93,0)']
-    : ['rgba(91,141,239,0.09)', 'rgba(91,141,239,0)'];
+    : ['rgba(30,136,255,0.09)', 'rgba(30,136,255,0)'];
   // `bg` overrides the base fill — Command Home passes obsidian (#0A1F3F)
   // to match its design tokens; other screens default to the app-wide
   // Command Navy. The cobalt glow layers stay identical either way.
@@ -34,7 +34,7 @@ export function AmbientBg({variant = 'default', bg}: {variant?: 'default' | 'ale
       />
       {/* Bottom reinforcing glow — keeps the lower half from reading flat. */}
       <LinearGradient
-        colors={['rgba(47,91,224,0.06)', 'rgba(47,91,224,0)']}
+        colors={['rgba(22,110,209,0.06)', 'rgba(22,110,209,0)']}
         start={{x: 0.5, y: 1}}
         end={{x: 0.5, y: 0}}
         style={styles.bottomGlow}

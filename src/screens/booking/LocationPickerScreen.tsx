@@ -51,8 +51,8 @@ function ResultSeparator() {
 const zs = StyleSheet.create({
   chip: {
     alignSelf: 'flex-start', marginTop: 4, minHeight: 28, paddingHorizontal: 10,
-    borderRadius: 999, borderWidth: 1, borderColor: 'rgba(91,141,239,0.45)',
-    backgroundColor: 'rgba(91,141,239,0.14)', justifyContent: 'center', maxWidth: '100%',
+    borderRadius: 999, borderWidth: 1, borderColor: 'rgba(30,136,255,0.45)',
+    backgroundColor: 'rgba(30,136,255,0.14)', justifyContent: 'center', maxWidth: '100%',
   },
   chipText: {color: UI.accentSoft, fontFamily: UI.fSemi, fontSize: 11.5},
   chipWarn: {borderColor: 'rgba(245,199,107,0.5)', backgroundColor: 'rgba(245,199,107,0.12)'},
@@ -893,8 +893,8 @@ const s = StyleSheet.create(scaleTextStyles({
   topBar: {
     position: 'absolute', top: 0, left: 0, right: 0,
     gap: 8, paddingHorizontal: 14, paddingBottom: 10,
-    backgroundColor: 'rgba(7,9,13,0.82)',
-    borderBottomWidth: 1, borderBottomColor: 'rgba(91,141,239,0.18)',
+    backgroundColor: 'rgba(10,31,63,0.82)',
+    borderBottomWidth: 1, borderBottomColor: 'rgba(30,136,255,0.18)',
   },
   topRow: {flexDirection: 'row', alignItems: 'center', gap: 12},
   back: {
@@ -912,7 +912,7 @@ const s = StyleSheet.create(scaleTextStyles({
   searchBar: {
     flexDirection: 'row', alignItems: 'center', gap: 9,
     minHeight: 48, paddingHorizontal: 13, paddingVertical: 10, borderRadius: 14,
-    backgroundColor: 'rgba(91,141,239,0.18)',
+    backgroundColor: 'rgba(30,136,255,0.18)',
     borderWidth: 1.5, borderColor: UI.accent,
     shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 8,
     shadowOffset: {width: 0, height: 3}, elevation: 3,
@@ -989,7 +989,7 @@ const s = StyleSheet.create(scaleTextStyles({
   mapOverlay: {
     position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
     alignItems: 'center', justifyContent: 'center', gap: 10,
-    backgroundColor: 'rgba(7,9,13,0.55)',
+    backgroundColor: 'rgba(10,31,63,0.55)',
   },
   mapOverlayText: {
     fontFamily: BravoFont.semiBold, fontSize: 11, letterSpacing: 1.4,
@@ -1022,7 +1022,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ctaWrap: {
     position: 'absolute', left: 0, right: 0, bottom: 0,
     paddingHorizontal: 16, paddingTop: 10,
-    backgroundColor: 'rgba(7,9,13,0.92)',
+    backgroundColor: 'rgba(10,31,63,0.92)',
     borderTopWidth: 1, borderTopColor: UI.hair,
   },
   cta: {
@@ -1054,8 +1054,8 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   mIconWrap: {
     width: 56, height: 56, borderRadius: 28,
-    backgroundColor: 'rgba(91,141,239,0.14)',
-    borderWidth: 1, borderColor: 'rgba(91,141,239,0.35)',
+    backgroundColor: 'rgba(30,136,255,0.14)',
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.35)',
     alignItems: 'center', justifyContent: 'center',
     marginBottom: 14,
   },

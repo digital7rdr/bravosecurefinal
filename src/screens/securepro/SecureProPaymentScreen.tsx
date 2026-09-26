@@ -226,7 +226,7 @@ export default function SecureProPaymentScreen() {
           </ScrollView>
 
           <LinearGradient
-            colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+            colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
             locations={[0, 0.4]}
             style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
             {shortfall > 0 ? (
@@ -255,7 +255,7 @@ export default function SecureProPaymentScreen() {
                 accessibilityState={{disabled: isSubmitting || !payable}}>
                 <LinearGradient
                   colors={!payable
-                    ? ['rgba(91,141,239,0.35)', 'rgba(91,141,239,0.35)', 'rgba(47,91,224,0.35)']
+                    ? ['rgba(30,136,255,0.35)', 'rgba(30,136,255,0.35)', 'rgba(22,110,209,0.35)']
                     : ['#3BA6FF', D.accent, D.accentDeep]}
                   locations={[0, 0.55, 1]}
                   start={{x: 0, y: 0}}
@@ -294,7 +294,7 @@ const s = StyleSheet.create(scaleTextStyles({
   ambient: {
     position: 'absolute', top: -100, alignSelf: 'center',
     width: 460, height: 280, borderRadius: 230,
-    backgroundColor: 'rgba(91,141,239,0.07)',
+    backgroundColor: 'rgba(30,136,255,0.07)',
   },
 
   header: {

@@ -173,7 +173,7 @@ const s = StyleSheet.create(scaleTextStyles({
   row: {flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 56, paddingVertical: 8},
   avatar: {
     width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(91,141,239,0.12)', borderWidth: 1, borderColor: OB.hair2,
+    backgroundColor: 'rgba(30,136,255,0.12)', borderWidth: 1, borderColor: OB.hair2,
   },
   name: {color: OB.text, fontFamily: BravoFont.semiBold, fontSize: 14},
   phone: {color: OB.textMute, fontFamily: BravoFont.regular, fontSize: 12, marginTop: 2},

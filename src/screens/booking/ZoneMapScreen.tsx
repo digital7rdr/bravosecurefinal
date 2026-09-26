@@ -63,7 +63,7 @@ const D = {
   hair2:      'rgba(255,255,255,0.09)',
   accent:     '#1E88FF',
   accentDeep: '#166ED1',
-  accentGlow: 'rgba(91,141,239,0.35)',
+  accentGlow: 'rgba(30,136,255,0.35)',
   signal:     '#4ADE80',
   amber:      '#F5C76B',
   fSans:    'Manrope_500Medium',
@@ -443,7 +443,7 @@ export default function ZoneMapScreen() {
 
       {/* ── Footer CTA ── */}
       <LinearGradient
-        colors={['rgba(7,9,13,0)', 'rgba(7,9,13,1)']}
+        colors={['rgba(10,31,63,0)', 'rgba(10,31,63,1)']}
         locations={[0, 0.5]}
         style={[s.ctaWrap, {paddingBottom: bottomPad(12)}]}>
         <TouchableOpacity
@@ -511,7 +511,7 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   rowIdle: {backgroundColor: 'rgba(255,255,255,0.022)', borderWidth: 1, borderColor: D.hair},
   rowSelected: {
-    backgroundColor: 'rgba(16,26,46,0.9)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.5)',
+    backgroundColor: 'rgba(16,26,46,0.9)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.5)',
     shadowColor: '#14285A', shadowOpacity: 0.34, shadowRadius: 16, shadowOffset: {width: 0, height: 12}, elevation: 8,
   },
   rowDisabled: {opacity: 0.62},
@@ -546,7 +546,7 @@ const s = StyleSheet.create(scaleTextStyles({
     alignItems: 'center', justifyContent: 'center',
   },
   chevIdle: {backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: D.hair2},
-  chevSelected: {backgroundColor: 'rgba(91,141,239,0.16)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.34)'},
+  chevSelected: {backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)'},
 
   // Located-country tag
   youAreHere: {

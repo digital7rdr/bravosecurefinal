@@ -780,7 +780,7 @@ const s = StyleSheet.create(scaleTextStyles({
   geoRow: {flexDirection: 'row', alignItems: 'center', gap: 12},
   geoBtn: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, height: 44, borderRadius: 12,
-    backgroundColor: 'rgba(91,141,239,0.10)', borderWidth: 1, borderColor: 'rgba(91,141,239,0.32)',
+    backgroundColor: 'rgba(30,136,255,0.10)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.32)',
   },
   geoBtnText: {color: OB.accentSoft, fontFamily: BravoFont.semiBold, fontSize: 13},
   coordRow: {flexDirection: 'row', alignItems: 'center', gap: 8},
@@ -839,7 +839,7 @@ const s = StyleSheet.create(scaleTextStyles({
 
   footer: {
     position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12,
-    backgroundColor: 'rgba(7,9,13,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
+    backgroundColor: 'rgba(10,31,63,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
   },
 
   iosBackdrop: {flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end'},

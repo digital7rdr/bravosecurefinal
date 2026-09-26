@@ -50,7 +50,8 @@ export default function ReportIncidentCategoryScreen() {
     : !!meUser && (meUser.is_org_manager ?? (meUser.role === 'service_provider' || meUser.account_kind === 'agency'));
   // vs2 item 4 — drafts are per (user, ORG). Read at use time, not at
   // mount: the user can switch workspaces without this screen unmounting.
-  const activeOrgId = activeWorkspaceOrgParam()?.orgId ?? null;
+  const activeOrgId = activeWorkspaceOrgParam()?.orgId ?? null;
+
   const [category, setCategory] = useState<IncidentCategoryDto | null>(null);
   const [severity, setSeverity] = useState<IncidentSeverityDto | null>(null);
   const [draft, setDraft] = useState<IncidentDraft | null>(null);
@@ -219,7 +220,7 @@ const s = StyleSheet.create(scaleTextStyles({
     width: '47.8%', minHeight: 84, borderRadius: 15, padding: 13, gap: 9,
     backgroundColor: 'rgba(255,255,255,0.022)', borderWidth: 1, borderColor: OB.hair,
   },
-  catOn: {backgroundColor: 'rgba(91,141,239,0.12)', borderColor: 'rgba(91,141,239,0.45)'},
+  catOn: {backgroundColor: 'rgba(30,136,255,0.12)', borderColor: 'rgba(30,136,255,0.45)'},
   catLabel: {color: OB.textDim, fontFamily: BravoFont.semiBold, fontSize: 12.5, lineHeight: 16},
   sevRow: {flexDirection: 'row', gap: 9},
   sev: {
@@ -230,6 +231,6 @@ const s = StyleSheet.create(scaleTextStyles({
   sevText: {color: OB.textDim, fontFamily: BravoFont.bold, fontSize: 11.5},
   footer: {
     position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 20, paddingTop: 12,
-    backgroundColor: 'rgba(7,9,13,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
+    backgroundColor: 'rgba(10,31,63,0.92)', borderTopWidth: 1, borderTopColor: OB.hair,
   },
 }));
