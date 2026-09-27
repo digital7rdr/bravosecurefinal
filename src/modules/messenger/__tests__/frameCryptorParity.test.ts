@@ -15,6 +15,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import {androidSourcePath} from '../../../testSupport/androidSource';
 
 jest.mock('react-native', () => ({
   Platform: {OS: 'ios'},
@@ -24,7 +25,9 @@ jest.mock('react-native', () => ({
 import {isAvailable} from '../webrtc/frameCryptorTransport';
 
 const REPO = path.resolve(__dirname, '..', '..', '..', '..');
-const KOTLIN = path.join(REPO, 'android', 'app', 'src', 'main', 'java', 'com', 'bravosecure', 'app', 'BravoFrameCryptorModule.kt');
+// Generated android/ tree when present (what gets built), else the tracked
+// native/android/ copy — android/ is gitignored, so CI has only the latter.
+const KOTLIN = androidSourcePath(REPO, 'android/app/src/main/java/com/bravosecure/app/BravoFrameCryptorModule.kt');
 const SWIFT = path.join(REPO, 'native', 'ios', 'BravoFrameCryptor.swift');
 const OBJC = path.join(REPO, 'native', 'ios', 'BravoFrameCryptor.m');
 const TRANSPORT = path.join(REPO, 'src', 'modules', 'messenger', 'webrtc', 'frameCryptorTransport.ts');
@@ -43,10 +46,11 @@ const METHODS = [
 ];
 
 describe('B-111-B parity pins', () => {
-  // Audit Rev2 QA-01 — this suite reads four files from the native tree. All
-  // four ARE git-tracked (android/ is in .gitignore, but tracked files win),
-  // so a fresh Linux clone finds them. The guard is belt-and-braces against an
-  // `expo prebuild` that wipes android/ mid-session.
+  // Audit Rev2 QA-01 — this suite reads four files from the native tree. The
+  // Kotlin one resolves through androidSourcePath: the generated android/ copy
+  // locally, the tracked native/android/ copy in a fresh clone (android/ is
+  // gitignored and was never actually committed — corrected 2026-09-27). The
+  // guard is belt-and-braces against a missing or empty target.
   //
   // It FAILS LOUDLY rather than `describe.skip`-ing, deliberately. Most of the
   // assertions below are POSITIVE (`toContain('fun setKey')`), so skipping them

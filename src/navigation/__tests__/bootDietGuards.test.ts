@@ -22,6 +22,7 @@
  * CRLF-safe.
  */
 import {readFileSync} from 'node:fs';
+import {androidSourcePath} from '../../testSupport/androidSource';
 import {join} from 'node:path';
 
 function stripped(rel: string): string {
@@ -55,7 +56,8 @@ describe('W4 boot diet — Mapbox auto-init is stripped from the manifest', () =
     // Raw manifest, no comment strip (XML comments contain the tokens, but the
     // assertions anchor on the meta-data ELEMENT shape, which prose never has).
     const manifest = readFileSync(
-      join(process.cwd(), 'android', 'app', 'src', 'main', 'AndroidManifest.xml'), 'utf8',
+      // Tracked native/android/ snapshot in a fresh clone (android/ is gitignored).
+      androidSourcePath(process.cwd(), 'android/app/src/main/AndroidManifest.xml'), 'utf8',
     ).replace(/<!--[\s\S]*?-->/g, '');
     // The maps FQCN carries a `.loader.` segment — the first cut targeted
     // `com.mapbox.maps.MapboxMapsInitializer` (the truncated logcat tag) and

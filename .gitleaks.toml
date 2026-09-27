@@ -39,3 +39,18 @@ paths = [
     '''.*\.spec\.ts$''',
     '''.*\.test\.ts$''',
 ]
+# 2026-09-27 — LINE-level exemptions (gitleaks scans all history, so an inline
+# `gitleaks:allow` in a new commit cannot clear an old one). Each regex must
+# match the whole offending line, so a real secret on any other line — or a
+# different value shape on these — is still reported.
+regexTarget = "line"
+regexes = [
+    # 5. Supabase ANON key assignments outside package.json/eas.json (.env.production,
+    #    scripts/build-user-apk.ps1) — public by design, same as #2 above.
+    '''EXPO_PUBLIC_SUPABASE_ANON_KEY\s*=\s*'?eyJ[A-Za-z0-9_-]+\.eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+'?\s*$''',
+    # 6. AsyncStorage key NAMES (e.g. 'bravo.news.prefs.v2'), not credentials — the
+    #    generic-api-key rule fires on any `…KEY… = '<string>'`.
+    '''(KEY_PREFIX|PREFS_KEY_V\d+)\s*=\s*'[A-Za-z0-9._]+';?''',
+    # 7. SHA-256 fingerprint of the APNs VoIP .p8 (an integrity pin, not the key).
+    '''APNS_VOIP_KEY_SHA256=[0-9a-f]{64}\s*$''',
+]

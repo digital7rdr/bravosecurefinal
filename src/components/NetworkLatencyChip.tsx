@@ -34,7 +34,7 @@ const C = {
 const MONO = Platform.select({ios: 'Menlo', default: 'monospace'});
 
 function tier(rtt: number | null): {color: string; label: string} {
-  if (rtt == null)   return {color: C.muted, label: '—'};
+  if (rtt === null || rtt === undefined) return {color: C.muted, label: '—'}; // eqeqeq; same as `== null`
   if (rtt < 80)      return {color: C.ok,    label: `${rtt}ms`};
   if (rtt <= 200)    return {color: C.warn,  label: `${rtt}ms`};
   return {color: C.err, label: `${rtt}ms`};

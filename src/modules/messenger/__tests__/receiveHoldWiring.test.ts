@@ -21,9 +21,12 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
+import {androidSourcePath} from '../../../testSupport/androidSource';
 
 const ROOT = path.resolve(__dirname, '..', '..', '..', '..');
-const read = (rel: string): string => fs.readFileSync(path.join(ROOT, rel), 'utf8');
+// android/… paths fall back to the tracked native/android/ copy in a fresh
+// clone (android/ is gitignored); every other path is unchanged.
+const read = (rel: string): string => fs.readFileSync(androidSourcePath(ROOT, rel), 'utf8');
 
 /** Strip block and line comments so prose can never satisfy a code assertion. */
 function stripComments(src: string): string {

@@ -10,6 +10,7 @@
  * actually serialize.
  */
 import {bootIntegrationDb, getPool, resetWriteableTables, shouldSkipIntegration, teardownIntegrationDb} from './harness';
+import {BookingStateMachine} from '../../src/booking/state-machine.service';
 
 const describeIfDb = shouldSkipIntegration() ? describe.skip : describe;
 
@@ -49,6 +50,7 @@ describeIfDb('Phase 1.1 — real-DB concurrency on approveBooking', () => {
         '[]'::jsonb, 100, 400, 4, 400, 1600, 'card');
     `);
 
+    const fsm = new BookingStateMachine();
     async function attemptApprove(): Promise<boolean> {
       const client = await pool.connect();
       try {
@@ -59,6 +61,18 @@ describeIfDb('Phase 1.1 — real-DB concurrency on approveBooking', () => {
         );
         const status = sel.rows[0]?.status;
         if (!status) { await client.query('ROLLBACK'); return false; }
+        // The service's guard (ops.service approveBooking) runs HERE, on the
+        // row read under the lock: the booking FSM only allows PENDING_OPS →
+        // OPS_APPROVED, so the loser — which reads OPS_APPROVED once the winner
+        // commits — is refused before its UPDATE. Use the REAL state machine:
+        // the old hand-copy skipped this step, so both sides "won" the first
+        // time the suite ran against a complete schema (2026-09-27).
+        try {
+          fsm.assert(status as never, 'OPS_APPROVED', 'OPS_HANDLER');
+        } catch {
+          await client.query('ROLLBACK');
+          return false;
+        }
         // Mimic the service: conditional UPDATE only commits if the
         // status still matches the snapshot we read after the FOR UPDATE
         // lock. The loser of the race finds the row already at

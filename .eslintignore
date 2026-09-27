@@ -11,6 +11,9 @@ worldmonitor/
 # eslint config can't parse them with `parserOptions.project` set to
 # the RN tsconfig.json. Each service should have its own lint pass.
 apps/
+# Node e2e drivers (ts-node) outside the RN tsconfig `include` — same reason as
+# apps/: typed lint can't resolve them against tsconfig.json (CI parse errors).
+scripts/*.ts
 *.config.js
 babel.config.js
 metro.config.js
