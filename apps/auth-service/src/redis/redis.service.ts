@@ -16,6 +16,11 @@ const PUSH_REVOKE_PREFIX = 'push-revoke:';
 const PUSH_REVOKE_INDEX_KEY = 'push-revoke:index';
 const PUSH_REVOKE_TTL_SECONDS = 90 * 24 * 3600;
 
+/** A server-held OTP: `h` = HMAC of (destination, code). Never the code itself. */
+export interface OtpCodeRecord {
+  h: string;
+}
+
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RedisService.name);
@@ -136,6 +141,56 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     if (n === 1) await this.client.expire(key, windowSeconds);
     return n;
   }
+
+  // ── server-held OTP codes (Twilio SMS mode, 2026-09-28) ─────────────────────
+  // Twilio Verify keeps the code on Twilio's side. In SMS mode Twilio only
+  // delivers, so the server holds the code: a keyed hash (never the code) under
+  // the normalized destination, one live code per destination, TTL = OTP TTL.
+  private static readonly OTP_CODE_PREFIX  = 'otp-code:';
+  private static readonly OTP_CHECK_PREFIX = 'otp-chk:';
+
+  /** Replace any live code for this destination and reset its check budget. */
+  async storeOtpCode(destination: string, record: OtpCodeRecord, ttlSeconds: number): Promise<void> {
+    await this.client.set(`${RedisService.OTP_CODE_PREFIX}${destination}`, JSON.stringify(record), 'EX', ttlSeconds);
+    await this.client.del(`${RedisService.OTP_CHECK_PREFIX}${destination}`);
+  }
+
+  async getOtpCode(destination: string): Promise<OtpCodeRecord | null> {
+    const raw = await this.client.get(`${RedisService.OTP_CODE_PREFIX}${destination}`);
+    if (!raw) return null;
+    try {
+      const rec = JSON.parse(raw) as OtpCodeRecord;
+      return typeof rec?.h === 'string' ? rec : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Counts checks against the live code; expires with it. */
+  async incrOtpChecks(destination: string, ttlSeconds: number): Promise<number> {
+    const key = `${RedisService.OTP_CHECK_PREFIX}${destination}`;
+    const n = await this.client.incr(key);
+    if (n === 1) await this.client.expire(key, ttlSeconds);
+    return n;
+  }
+
+  /**
+   * Single-use claim: only the caller whose DEL actually removed the code wins,
+   * so two concurrent requests carrying the right code cannot both succeed.
+   */
+  async consumeOtpCode(destination: string): Promise<boolean> {
+    const removed = await this.client.del(`${RedisService.OTP_CODE_PREFIX}${destination}`);
+    await this.client.del(`${RedisService.OTP_CHECK_PREFIX}${destination}`);
+    return removed === 1;
+  }
+
+  async clearOtpCode(destination: string): Promise<void> {
+    await this.client.del(
+      `${RedisService.OTP_CODE_PREFIX}${destination}`,
+      `${RedisService.OTP_CHECK_PREFIX}${destination}`,
+    );
+  }
+
 
   async clearTotpFailures(userId: string): Promise<void> {
     await this.client.del(`${RedisService.TOTP_FAIL_PREFIX}${userId}`);

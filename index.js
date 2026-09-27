@@ -32,9 +32,10 @@ import {registerMissionForegroundService} from './src/modules/agent/missionForeg
 // anything else logs so the joiner's group-create:recv trace is whole.
 installGroupCallFileLog();
 
-// Boot Crashlytics + Analytics as early as possible. Must be after the
-// react-native runtime is up (AppRegistry import above) but before App
-// mounts so any startup error is captured.
+// Boot crash reporting (Sentry protocol; no-op without EXPO_PUBLIC_SENTRY_DSN)
+// as early as possible. Must be after the react-native runtime is up
+// (AppRegistry import above) but before App mounts so any startup error is
+// captured.
 initCrashlytics();
 
 // ── FCM background/quit-state handler — registered at BUNDLE ENTRY (before login) ──

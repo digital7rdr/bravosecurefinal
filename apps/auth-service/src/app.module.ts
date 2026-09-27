@@ -7,6 +7,7 @@ import configuration      from './config/configuration';
 import {DatabaseModule}   from './database/database.module';
 import {RedisModule}      from './redis/redis.module';
 import {SettingsModule}     from './settings/settings.module';
+import {MessagingModule}    from './messaging/messaging.module';
 import {ModuleAccessModule} from './module-access/module-access.module';
 import {KafkaModule}      from './kafka/kafka.module';
 import {AuthModule}       from './auth/auth.module';
@@ -100,6 +101,7 @@ import {ObservabilityModule} from './observability/observability.module';
     DatabaseModule,
     RedisModule,
     SettingsModule,
+    MessagingModule,
     ModuleAccessModule,
     KafkaModule,
 

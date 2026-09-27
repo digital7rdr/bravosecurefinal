@@ -19,7 +19,7 @@ import {ErrorBoundary} from './ErrorBoundary';
  *   - the user sees a screen-local error card with Retry + Back buttons
  *   - the rest of the app (other tabs, navigator state, persisted store)
  *     stays alive
- *   - the error is still reported to Crashlytics by the inner
+ *   - the error is still reported to the crash reporter by the inner
  *     ErrorBoundary (recordError + breadcrumbs)
  *
  * The fallback uses `useNavigation` directly so we can offer Back

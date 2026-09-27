@@ -60,10 +60,10 @@ Write-Host ""
 # ---------------------------------------------------------------------
 # 1. Firebase package bump
 # ---------------------------------------------------------------------
+# 2026-09-27: analytics + crashlytics removed (crash reporting is Sentry /
+# GlitchTip now). app + messaging stay for the Android FCM wake channel.
 $FIREBASE_PKGS = @(
   '@react-native-firebase/app',
-  '@react-native-firebase/analytics',
-  '@react-native-firebase/crashlytics',
   '@react-native-firebase/messaging'
 )
 

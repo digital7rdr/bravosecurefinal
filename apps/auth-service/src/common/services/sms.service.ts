@@ -1,16 +1,17 @@
 import {Injectable, Logger} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
-import {SettingsService} from '../../settings/settings.service';
+import {MessagingService} from '../../messaging/messaging.service';
+import {maskPhone} from '../../messaging/messaging.types';
 
 /**
  * Thin Twilio SMS sender for arbitrary message bodies — used by the VBG
  * escalation paths (panic, biometric-miss, geofence breach) to text the
- * principal / emergency contacts.
+ * principal / emergency contacts, and by ops user invites.
  *
- * Mirrors the Programmable-SMS branch of OtpService (which only sends
- * OTP codes). Honours the same dev bypass so local/dev builds never
- * actually hit Twilio. Best-effort: never throws into the caller — a
- * Twilio outage must not block the escalation's other channels (WS, Kafka).
+ * Credentials come from Integrations → Twilio (env fallback). Honours the OTP
+ * dev bypass so local/dev builds never actually hit Twilio. Best-effort: never
+ * throws into the caller — a Twilio outage must not block the escalation's
+ * other channels (WS, Kafka).
  */
 @Injectable()
 export class SmsService {
@@ -18,7 +19,7 @@ export class SmsService {
 
   constructor(
     private readonly config: ConfigService,
-    private readonly settings: SettingsService,
+    private readonly messaging: MessagingService,
   ) {}
 
   async sendSms(to: string, body: string): Promise<{sent: boolean}> {
@@ -26,17 +27,12 @@ export class SmsService {
       this.log.log(`SMS (dev bypass) → ${maskPhone(to)}`);
       return {sent: false};
     }
-    const sid  = this.settings.getSync('twilio.accountSid');
-    const tok  = this.settings.getSync('twilio.authToken');
-    const from = this.settings.getSync('twilio.fromNumber');
-    if (!sid || !tok || !from) {
+    if (!this.messaging.isSmsReady()) {
       this.log.warn('SMS not sent — Twilio FROM/credentials missing');
       return {sent: false};
     }
     try {
-      const {Twilio} = await import('twilio');
-      const client = new Twilio(sid, tok);
-      await client.messages.create({to, from, body: body.slice(0, 480)});
+      await this.messaging.sendSms(to, body.slice(0, 480));
       this.log.log(`SMS sent → ${maskPhone(to)}`);
       return {sent: true};
     } catch (e) {
@@ -44,9 +40,4 @@ export class SmsService {
       return {sent: false};
     }
   }
-}
-
-// Never log a full phone number.
-function maskPhone(p: string): string {
-  return p.length > 4 ? `${p.slice(0, 3)}***${p.slice(-2)}` : '***';
 }

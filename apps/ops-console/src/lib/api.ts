@@ -38,6 +38,8 @@ export interface IntegrationSetting {
   help?: string;
   secret: boolean;
   placeholder?: string;
+  /** Closed choice — rendered as a select; the server rejects other values. */
+  options?: {value: string; label: string}[];
   configured: boolean;
   /** db = set in this console · env = deployment env fallback · unset = neither */
   source: 'db' | 'env' | 'unset';
@@ -1246,6 +1248,11 @@ export const opsApi = {
   clearIntegrationSetting: (key: string) =>
     fetchJson<{ok: true; setting: IntegrationSetting | null}>(`/ops/settings/${encodeURIComponent(key)}`, {
       method: 'DELETE',
+    }),
+  /** One test SMS with the saved Twilio credentials. */
+  testSms: (to: string) =>
+    fetchJson<{ok: boolean; error: string | null}>(`/ops/settings/sms/test`, {
+      method: 'POST', body: JSON.stringify({to}),
     }),
   // 2026-09-27 — Module Access (group × module matrix + per-user overrides) and
   // ops-created app accounts as SMS invites. All SUPER_ADMIN (rank 3).

@@ -24,6 +24,7 @@ export interface SettingStatus {
   help?: string;
   secret: boolean;
   placeholder?: string;
+  options?: readonly {value: string; label: string}[];
   configured: boolean;
   source: 'db' | 'env' | 'unset';
   preview: string | null;
@@ -191,7 +192,7 @@ export class SettingsService implements OnModuleInit {
 
       return {
         key: def.key, category: def.category, label: def.label, help: def.help,
-        secret: def.secret, placeholder: def.placeholder,
+        secret: def.secret, placeholder: def.placeholder, options: def.options,
         configured: source !== 'unset', source, preview, updatedAt, updatedBy,
       };
     });
@@ -203,6 +204,9 @@ export class SettingsService implements OnModuleInit {
     if (!def) {throw new Error(`unknown setting key: ${key}`);}
     const value = rawValue.trim();
     if (value === '') {throw new Error('value is empty — use clear to remove a setting');}
+    if (def.options && !def.options.some(o => o.value === value)) {
+      throw new Error(`value must be one of: ${def.options.map(o => o.value).join(', ')}`);
+    }
 
     if (def.secret) {
       if (!this.crypto.available) {

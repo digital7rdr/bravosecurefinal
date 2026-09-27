@@ -1,8 +1,11 @@
 # Integration settings — third-party keys from the ops console (2026-09-27)
 
-Stripe, Twilio, the Mapbox **server** token and the biometric Google key can be
-set at runtime from **Ops console → App Configuration → Integrations**, instead
-of only through the deployment environment.
+Stripe, Twilio (including the OTP delivery mode — see
+`OTP_SMS_AND_CRASH_REPORTING.md`), the Mapbox **server** token and the biometric
+Google key can be set at runtime from **Ops console → App Configuration →
+Integrations**, instead of only through the deployment environment. Settings
+with a fixed set of values (the OTP delivery mode) render as a select and the
+server rejects anything else.
 
 ## How it works
 
@@ -12,7 +15,7 @@ of only through the deployment environment.
 | Encryption | Secrets are AES-256-GCM encrypted (`v1:<iv>:<tag>:<ct>`) with `SETTINGS_ENCRYPTION_KEY`. Non-secrets (price IDs, numbers, SIDs) are stored plain. |
 | Resolver | `apps/auth-service/src/settings/settings.service.ts` — `getSync(key)`: **console value → deployment env → unset**. Warm in-memory snapshot, refreshed every 15 s and immediately after a write; cross-replica invalidation via the Redis `cfgver:integrations` counter. |
 | Catalog | `settings-catalog.ts` — the single list of editable keys. The console renders from it, so adding an entry there surfaces it in the UI. |
-| API | `GET /ops/settings`, `PUT /ops/settings/:key {value}`, `DELETE /ops/settings/:key`. `@RequireRoles('SUPER_ADMIN')` (rank 3 — legacy `ADMIN` is the same rank), CSRF + per-user throttle like every `/ops` route. |
+| API | `GET /ops/settings`, `PUT /ops/settings/:key {value}`, `DELETE /ops/settings/:key`, `POST /ops/settings/sms/test {to}` (one test SMS through Twilio, audited as `integration.sms.test` with the number masked). `@RequireRoles('SUPER_ADMIN')` (rank 3 — legacy `ADMIN` is the same rank), CSRF + per-user throttle like every `/ops` route. |
 | Audit | Every set/clear writes `integration.setting.set` / `.clear` to the ops audit log with the key and category — **never the value**. |
 | UI | `/config/integrations` — visible only to rank-3 admins. Secrets are write-only: shown masked (`••••1234`), never pre-filled, dropped from browser state after save. "Revert to env" deletes the console value. |
 

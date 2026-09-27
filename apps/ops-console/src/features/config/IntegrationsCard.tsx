@@ -63,6 +63,11 @@ export function IntegrationsCard() {
     setEditing(s.key);
     // Never pre-fill a secret. A non-secret is pre-filled only when the preview
     // is the full value (the server truncates long plain values with "…").
+    if (s.options?.length) {
+      // A closed choice: start on the current value, or the first option.
+      setDraft(s.options.some(o => o.value === s.preview) ? s.preview! : s.options[0].value);
+      return;
+    }
     setDraft(!s.secret && s.preview && !s.preview.endsWith('…') ? s.preview : '');
   }
 
@@ -153,7 +158,9 @@ export function IntegrationsCard() {
 
                   <div className="cfg-meta" style={{marginTop: 5, fontFamily: 'var(--font-mono)'}}>
                     {s.key}
-                    {s.preview !== null && <> · <span style={{color: 'var(--tx-1)'}}>{s.preview}</span></>}
+                    {s.preview !== null && <> · <span style={{color: 'var(--tx-1)'}}>
+                      {s.options?.find(o => o.value === s.preview)?.label ?? s.preview}
+                    </span></>}
                     {s.source === 'db' && s.updatedAt && <> · updated {fmtWhen(s.updatedAt)}</>}
                   </div>
                   {s.help && <div className="cfg-meta" style={{marginTop: 4}}>{s.help}</div>}
@@ -161,6 +168,17 @@ export function IntegrationsCard() {
                   {isEditing && (
                     <form style={{display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap'}}
                       onSubmit={e => { e.preventDefault(); void save(s); }}>
+                      {s.options?.length ? (
+                        <select
+                          className="modal-input"
+                          style={{flex: '1 1 320px', marginTop: 0}}
+                          autoFocus
+                          aria-label={s.label}
+                          value={draft}
+                          onChange={e => setDraft(e.target.value)}>
+                          {s.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                        </select>
+                      ) : (
                       <input
                         className="modal-input"
                         style={{flex: '1 1 320px', marginTop: 0, fontFamily: 'var(--font-mono)'}}
@@ -172,6 +190,7 @@ export function IntegrationsCard() {
                         placeholder={s.placeholder ?? (s.secret ? 'Paste the new value' : '')}
                         value={draft}
                         onChange={e => setDraft(e.target.value)} />
+                      )}
                       <button type="submit" className="btn btn-sm btn-pri" disabled={busy === s.key}>
                         {busy === s.key ? 'SAVING…' : 'SAVE'}
                       </button>
@@ -184,16 +203,61 @@ export function IntegrationsCard() {
                 </div>
               );
             })}
+            {cat.id === 'twilio' && <SmsTestPanel />}
           </div>
         );
       })}
 
       <div className="cfg-meta" style={{lineHeight: 1.7}}>
         Precedence: a value set here wins; otherwise the server uses its deployment environment.
-        Every change is written to the audit log with the key name — never the value. Mobile-app
+        Every change is written to the audit log with the key name — never the value. Provider
+        choices take effect within about 15 seconds on every server; no restart. Mobile-app
         keys (the map tile token, Stripe publishable key) are baked into the app build and are not
         managed here yet.
       </div>
     </>
+  );
+}
+
+/**
+ * Send one real SMS with the saved Twilio credentials, to confirm delivery
+ * after changing a key. Audited server-side with the number masked.
+ */
+function SmsTestPanel() {
+  const [to, setTo] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ok: boolean; text: string} | null>(null);
+
+  async function send() {
+    const num = to.trim();
+    if (!/^\+[1-9]\d{6,14}$/.test(num)) {setResult({ok: false, text: 'Enter the number in international format, e.g. +971501234567.'}); return;}
+    setBusy(true); setResult(null);
+    try {
+      const r = await opsApi.testSms(num);
+      setResult(r.ok ? {ok: true, text: 'Sent. Check the phone.'} : {ok: false, text: `Not sent: ${r.error ?? 'unknown error'}`});
+    } catch (e) {
+      setResult({ok: false, text: e instanceof ApiError ? e.message : 'Could not send the test'});
+    } finally {setBusy(false);}
+  }
+
+  return (
+    <div style={{padding: '12px 16px'}}>
+      <div className="cfg-name">Send a test SMS</div>
+      <div className="cfg-meta" style={{marginTop: 4}}>
+        Uses the Twilio values saved above. Each test is written to the audit log with the number masked.
+      </div>
+      <form style={{display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap'}}
+        onSubmit={e => { e.preventDefault(); void send(); }}>
+        <input className="modal-input" style={{flex: '1 1 220px', marginTop: 0, fontFamily: 'var(--font-mono)'}}
+          type="tel" inputMode="tel" autoComplete="off" aria-label="Test phone number"
+          placeholder="+971501234567" value={to} onChange={e => setTo(e.target.value)} />
+        <button type="submit" className="btn btn-sm btn-pri" disabled={busy}>{busy ? 'SENDING…' : 'SEND TEST'}</button>
+      </form>
+      {result && (
+        <div className={result.ok ? 'cfg-meta' : 'modal-err'} style={result.ok ? {marginTop: 8, color: 'var(--ok)'} : undefined}>
+          {result.text}
+        </div>
+      )}
+    </div>
   );
 }

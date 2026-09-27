@@ -1,8 +1,8 @@
 import {
-  BadRequestException, Body, Controller, Delete, Get, Param, Put, Req, UseGuards,
+  BadRequestException, Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Req, UseGuards,
 } from '@nestjs/common';
 import type {Request} from 'express';
-import {IsString, Length} from 'class-validator';
+import {IsString, Length, Matches} from 'class-validator';
 import {JwtAuthGuard} from '../common/guards/jwt-auth.guard';
 import {CsrfGuard} from '../common/guards/csrf.guard';
 import {Throttle} from '@nestjs/throttler';
@@ -12,6 +12,8 @@ import {AdminGuard, RequireRoles, type AdminContext} from '../ops/admin.guard';
 import {OpsAuditService} from '../ops/ops-audit.service';
 import {SettingsService} from './settings.service';
 import {CATALOG_BY_KEY, CATALOG_CATEGORIES} from './settings-catalog';
+import {MessagingService} from '../messaging/messaging.service';
+import {maskPhone} from '../messaging/messaging.types';
 
 type OpsReq = Request & {admin: AdminContext};
 
@@ -20,6 +22,11 @@ class SetSettingDto {
   // (clearing is DELETE, not an empty PUT).
   @IsString() @Length(1, 8192)
   value!: string;
+}
+
+class SmsTestDto {
+  @IsString() @Matches(/^\+[1-9]\d{6,14}$/, {message: 'to must be an E.164 number, e.g. +971501234567'})
+  to!: string;
 }
 
 /**
@@ -40,6 +47,7 @@ export class SettingsController {
   constructor(
     private readonly settings: SettingsService,
     private readonly audit: OpsAuditService,
+    private readonly messaging: MessagingService,
   ) {}
 
   @Get()
@@ -82,5 +90,26 @@ export class SettingsController {
     });
     const settings = await this.settings.status();
     return {ok: true, setting: settings.find(s => s.key === key) ?? null};
+  }
+
+  /**
+   * Send one test SMS with the saved Twilio credentials, so an admin can
+   * confirm delivery after changing a key. Audited with the number masked.
+   */
+  @Post('sms/test')
+  @HttpCode(200)
+  async testSms(@Body() dto: SmsTestDto, @Req() req: OpsReq) {
+    let ok = false;
+    let error: string | null = null;
+    try {
+      await this.messaging.sendSms(dto.to, 'Bravo Secure: test message from the ops console. SMS delivery is working.');
+      ok = true;
+    } catch (e) {
+      error = (e as Error).message.slice(0, 300);
+    }
+    await this.audit.recordAdmin(req.admin, 'integration.sms.test', 'system', 'twilio.sms', {
+      ok, to: maskPhone(dto.to),
+    });
+    return {ok, error};
   }
 }

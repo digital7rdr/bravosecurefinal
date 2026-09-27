@@ -6,11 +6,10 @@ import {devForceCrash, log, recordError} from './crashlytics';
 /**
  * Test Crash button — dev/staging only.
  *
- * Two ways to verify Crashlytics is wired:
- *   1. "Force native crash" — calls crashlytics().crash(). The app dies
- *      on the spot. Restart it and the report shows up in the Firebase
- *      console within a few minutes. This is the path Google's "Step 3"
- *      verification asks for.
+ * Two ways to verify crash reporting (Sentry / GlitchTip) is wired:
+ *   1. "Force native crash" — calls Sentry.nativeCrash(). The app dies
+ *      on the spot. Restart it and the report shows up in the Sentry /
+ *      GlitchTip project within a minute or two.
  *   2. "Send non-fatal error" — synthesises an Error and ships it via
  *      recordError. The app keeps running. Useful when you don't want
  *      to nuke a debug session to verify the pipeline.
@@ -27,7 +26,7 @@ export function TestCrashButton(): React.JSX.Element | null {
     recordError(new Error('Bravo dev test — non-fatal'), {kind: 'dev-test'});
     Alert.alert(
       'Sent',
-      'Non-fatal error sent to Crashlytics. Check the Firebase console in a few minutes.',
+      'Non-fatal error sent to the crash reporter. Check the Sentry / GlitchTip project in a minute or two (needs EXPO_PUBLIC_SENTRY_DSN in the build).',
     );
   };
 
@@ -51,7 +50,7 @@ export function TestCrashButton(): React.JSX.Element | null {
 
   return (
     <View style={styles.root}>
-      <Text style={styles.label}>Crashlytics dev tools</Text>
+      <Text style={styles.label}>Crash reporting dev tools</Text>
       <TouchableOpacity style={styles.btnSoft} onPress={onNonFatal}>
         <Text style={styles.btnText}>Send non-fatal error</Text>
       </TouchableOpacity>

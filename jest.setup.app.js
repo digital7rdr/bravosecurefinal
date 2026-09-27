@@ -118,15 +118,3 @@ jest.mock('expo-local-authentication', () => ({
   SecurityLevel: {NONE: 0, SECRET: 1, BIOMETRIC_WEAK: 2, BIOMETRIC_STRONG: 3},
 }));
 
-jest.mock('@react-native-firebase/crashlytics', () => {
-  const noop = jest.fn();
-  const crashlytics = () => ({
-    log: noop,
-    recordError: noop,
-    setUserId: noop,
-    setAttribute: noop,
-    setAttributes: noop,
-    setCrashlyticsCollectionEnabled: noop,
-  });
-  return {__esModule: true, default: crashlytics, firebase: {crashlytics}};
-});

@@ -11,10 +11,9 @@ export {
 export {ErrorBoundary} from './ErrorBoundary';
 export {withScreenErrorBoundary} from './withScreenErrorBoundary';
 export {TestCrashButton} from './TestCrashButton';
-// Audit fix 5.4 — Sentry shim (lives alongside crashlytics; both can
-// be active. Crashlytics is the Firebase-backed crash reporter the app
-// has shipped with; Sentry covers structured ops breadcrumbs + the
-// audit-failure alert path).
+// Sentry-protocol transport (2026-09-27: replaces Firebase Crashlytics).
+// Prefer the wrapper above; these are for the few direct ops-breadcrumb /
+// audit-failure call sites.
 export {
   captureException,
   addBreadcrumb,

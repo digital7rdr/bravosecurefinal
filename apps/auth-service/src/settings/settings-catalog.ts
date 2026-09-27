@@ -22,9 +22,13 @@ export interface SettingDef {
   /** Secret → stored AES-GCM encrypted, never returned in clear, shown masked. */
   secret: boolean;
   placeholder?: string;
+  /** Closed choice: the console renders a select and the service rejects anything else. */
+  options?: readonly {value: string; label: string}[];
   /** How the value was sourced from env before the table existed. */
   envFallback: (cfg: ConfigService) => string | undefined;
 }
+
+const env = (name: string): string | undefined => process.env[name] || undefined;
 
 const mapboxEnv = (): string | undefined =>
   process.env.MAPBOX_ACCESS_TOKEN ??
@@ -55,11 +59,18 @@ export const SETTINGS_CATALOG: readonly SettingDef[] = [
   {key: 'twilio.authToken', category: 'twilio', label: 'Auth token', secret: true,
    envFallback: c => c.get<string>('twilio.authToken')},
   {key: 'twilio.fromNumber', category: 'twilio', label: 'From number', secret: false,
-   placeholder: '+1…', help: 'E.164. Used for plain SMS when no Verify SID is set.',
+   placeholder: '+1…', help: 'E.164. Sender for Twilio SMS — OTP codes in SMS mode, VBG alerts and invite texts.',
    envFallback: c => c.get<string>('twilio.fromNumber')},
   {key: 'twilio.verifySid', category: 'twilio', label: 'Verify service SID', secret: false,
-   placeholder: 'VA…', help: 'When set, OTP uses Twilio Verify instead of raw SMS.',
+   placeholder: 'VA…', help: 'Used when OTP delivery is Twilio Verify.',
    envFallback: c => c.get<string>('twilio.verifySid')},
+  {key: 'twilio.otpMode', category: 'twilio', label: 'OTP delivery', secret: false,
+   help: 'How login, sign-up and PIN-reset codes are sent. Unset = Verify if its SID is set, otherwise SMS.',
+   options: [
+     {value: 'verify', label: 'Twilio Verify (Twilio manages the code)'},
+     {value: 'sms', label: 'Twilio SMS (server manages the code)'},
+   ],
+   envFallback: () => env('TWILIO_OTP_MODE')},
 
   // ── Mapbox (server token: directions + geocoding + VBG) ─────────────────────
   {key: 'mapbox.serverToken', category: 'mapbox', label: 'Server access token', secret: true,

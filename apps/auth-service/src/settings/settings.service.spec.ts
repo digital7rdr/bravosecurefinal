@@ -119,6 +119,17 @@ describe('SettingsService', () => {
     await expect(svc.set('bogus.key', 'x', null)).rejects.toThrow(/unknown/);
   });
 
+  it('a setting with options accepts only a listed value, and status() returns the options', async () => {
+    const {db, config, redis} = makeDeps();
+    const svc = new SettingsService(db as never, config as never, redis as never);
+    await expect(svc.set('twilio.otpMode', 'carrier-pigeon', null)).rejects.toThrow(/must be one of/);
+    expect(db.q.mock.calls.some(([sql]) => String(sql).trim().toLowerCase().startsWith('insert'))).toBe(false);
+    await svc.set('twilio.otpMode', 'sms', 'admin-1');
+    expect(await svc.get('twilio.otpMode')).toBe('sms');
+    const row = (await svc.status()).find(s => s.key === 'twilio.otpMode')!;
+    expect(row.options?.map(o => o.value)).toContain('verify');
+  });
+
   it('refuses to store a secret when no encryption key is configured', async () => {
     delete process.env.SETTINGS_ENCRYPTION_KEY;
     const {db, config, redis} = makeDeps();

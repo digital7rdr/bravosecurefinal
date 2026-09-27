@@ -13,7 +13,7 @@ interface State {
 
 /**
  * Top-level React error boundary. Catches render-phase errors that
- * would otherwise unmount the entire tree, ships them to Crashlytics
+ * would otherwise unmount the entire tree, ships them to the crash reporter
  * with the React component stack as breadcrumbs, and shows a recovery
  * screen so the user can retry without quitting the app.
  *
@@ -21,7 +21,7 @@ interface State {
  *
  * NOTE: Does NOT catch errors in event handlers, async code, or the
  * native side. Those still flow through `ErrorUtils.setGlobalHandler`
- * in index.js (which also reports to Crashlytics via recordError).
+ * in index.js (which also reports via recordError).
  */
 export class ErrorBoundary extends React.Component<Props, State> {
   state: State = {err: null};

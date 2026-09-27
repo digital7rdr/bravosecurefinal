@@ -1,112 +1,48 @@
 /**
- * Crashlytics + Analytics wrapper.
+ * Crash / error reporting wrapper — the app's single observability chokepoint.
  *
- * Why a wrapper instead of importing @react-native-firebase/* directly:
- *   - Keeps a single chokepoint for redaction. Crash reports must NOT
- *     contain plaintext message bodies, identity keys, or session
- *     fingerprints. Every `log()` and `recordError()` call passes
- *     through `redact()` here.
+ * 2026-09-27: backed by the Sentry protocol (sentry.ts — hosted Sentry or a
+ * self-hosted GlitchTip) instead of Firebase Crashlytics + Analytics. The file
+ * keeps its old name and exports so the existing imports and the test mocks of
+ * '../../observability/crashlytics' keep working unchanged.
+ *
+ * Why a wrapper instead of importing the SDK directly:
+ *   - One chokepoint for redaction. Crash reports must NOT contain plaintext
+ *     message bodies, identity keys, or session fingerprints. Every `log()` and
+ *     `recordError()` call passes through `redact()`, and sentry.ts scrubs the
+ *     final event again in beforeSend.
  *   - Lets unit tests stub the whole surface with one mock module.
- *   - Lets us no-op on web / dev / Jest without try/catch sprinkled
- *     across the codebase.
+ *   - No-ops on web / dev / Jest (no DSN) without try/catch sprinkled across
+ *     the codebase.
  *
- * Crashlytics is opt-out at runtime via `setEnabled(false)` — we leave
- * collection enabled by default but expose a hook so the Privacy screen
- * can flip it off without rebuilding.
- *
- * Native integration:
- *   - Android: gradle plugin in android/app/build.gradle uploads R8 +
- *     Hermes mapping files on every release build.
- *   - iOS:     handled by the @react-native-firebase/crashlytics
- *     CocoaPods script-phase added by the expo config plugin.
+ * Product analytics (the old Firebase Analytics `trackEvent`) is gone on
+ * purpose: nothing called it, and a secure messenger should not ship a usage
+ * tracker by default. `trackEvent` stays as a breadcrumb so call sites compile.
  */
-
-// B-702 (2026-08-29) — MODULAR API, not the deprecated namespaced getters.
-// Every `crashlytics()` / `analytics()` call logged a native init-check line
-// AND an RNFB deprecation warn; during the B-701 redeliver churn (one
-// breadcrumb per envelope pass) that flooded device logcat at ~5 lines/sec
-// and materially slowed live debugging on the founder's phone. The modular
-// functions hit the same native module without either log source, and the
-// instances are resolved once and cached.
+import {redact} from './redact';
 import {
-  getCrashlytics,
-  log as clLog,
-  recordError as clRecordError,
-  setAttribute as clSetAttribute,
-  setUserId as clSetUserId,
-  setCrashlyticsCollectionEnabled as clSetCollectionEnabled,
-  crash as clCrash,
-} from '@react-native-firebase/crashlytics';
-import {
-  getAnalytics,
-  logEvent as anLogEvent,
-  setUserId as anSetUserId,
-  setAnalyticsCollectionEnabled as anSetCollectionEnabled,
-} from '@react-native-firebase/analytics';
-import type {FirebaseCrashlyticsTypes} from '@react-native-firebase/crashlytics';
-import type {FirebaseAnalyticsTypes} from '@react-native-firebase/analytics';
-
-// Resolved lazily (the default app may not be ready at module-eval on a cold
-// start) and cached so the native lookup runs once per process, not per call.
-let clInstance: FirebaseCrashlyticsTypes.Module | null = null;
-let anInstance: FirebaseAnalyticsTypes.Module | null = null;
-function cl(): FirebaseCrashlyticsTypes.Module {
-  if (!clInstance) {clInstance = getCrashlytics();}
-  return clInstance;
-}
-function an(): FirebaseAnalyticsTypes.Module {
-  if (!anInstance) {anInstance = getAnalytics();}
-  return anInstance;
-}
-
-// ── Redaction ──────────────────────────────────────────────────────
-// Crashlytics breadcrumbs (`log`) and custom keys are visible in the
-// Firebase console, which means anyone with project access can read
-// them. NEVER pass plaintext message content, identity keys, signal
-// session state, or auth tokens through this module.
-//
-// `redact()` is the last line of defense. The patterns here match the
-// shapes that have shown up in past incidents (b64 keys, JWTs, PEM
-// blocks, hex fingerprints). Add to this list when you find new ones.
-const REDACT_PATTERNS: Array<[RegExp, string]> = [
-  [/eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}/g, '<jwt>'],
-  [/-----BEGIN [^-]+-----[\s\S]+?-----END [^-]+-----/g, '<pem>'],
-  [/[A-Fa-f0-9]{40,}/g, '<hex>'],
-  [/[A-Za-z0-9+/]{43}=/g, '<b64-32>'], // base64-encoded 32-byte key
-  [/Bearer\s+[A-Za-z0-9._-]+/gi, 'Bearer <token>'],
-];
-
-function redact(input: string): string {
-  let out = input;
-  for (const [re, sub] of REDACT_PATTERNS) {
-    out = out.replace(re, sub);
-  }
-  // Cap length — Firebase truncates anyway, but stack traces with raw
-  // memory dumps can balloon and dominate the report.
-  return out.length > 4000 ? out.slice(0, 4000) + '…<truncated>' : out;
-}
+  addBreadcrumb,
+  captureException,
+  initSentry,
+  nativeCrash,
+  setCollectionEnabled as sentrySetCollectionEnabled,
+  setSentryUser,
+  setTag,
+} from './sentry';
 
 // ── Initialization ─────────────────────────────────────────────────
 
 let initialized = false;
 
+/** Name kept for index.js; boots the Sentry transport (no-op without a DSN). */
 export function initCrashlytics(): void {
   if (initialized) {return;}
   initialized = true;
-
   try {
-    // Tag the build so we can filter the dashboard by env.
-    const env = process.env.EXPO_PUBLIC_API_BASE_URL?.includes('94-136-184-52')
-      ? 'staging'
-      : process.env.EXPO_PUBLIC_API_BASE_URL?.includes('127.0.0.1')
-        ? 'local'
-        : 'production';
-    void clSetAttribute(cl(), 'env', env);
-    clLog(cl(), `[bravo.observability] crashlytics ready env=${env}`);
+    initSentry();
+    addBreadcrumb({category: 'bravo', message: '[bravo.observability] crash reporter ready'});
   } catch (e) {
-    // Crashlytics not available (web, Jest, or first launch before
-    // google-services finished init). Silent no-op — we don't want
-    // observability code to crash the app.
+    // Observability code must never crash the app.
     if (__DEV__) {console.warn('[bravo.observability] init failed:', e);}
   }
 }
@@ -114,26 +50,28 @@ export function initCrashlytics(): void {
 // ── Public API ─────────────────────────────────────────────────────
 
 /**
- * Record a non-fatal JS error. Use for caught exceptions where the
- * app continues running (e.g. failed-to-decrypt envelope, message
- * send retry exhausted). Fatal crashes (red box, native segfaults)
- * are recorded automatically by the SDK.
+ * Record a non-fatal JS error. Use for caught exceptions where the app
+ * continues running (e.g. failed-to-decrypt envelope, message send retry
+ * exhausted). Fatal JS crashes and native crashes are recorded automatically
+ * by the SDK.
  */
 export function recordError(err: unknown, context?: Record<string, string | number | boolean>): void {
   try {
+    const extra: Record<string, string | number | boolean> = {};
     if (context) {
       for (const [k, v] of Object.entries(context)) {
-        void clSetAttribute(cl(), k, redact(String(v)));
+        extra[k] = typeof v === 'string' ? redact(v) : v;
       }
     }
+    let safe: Error;
     if (err instanceof Error) {
-      const safe = new Error(redact(err.message));
+      safe = new Error(redact(err.message));
       safe.name = err.name;
       safe.stack = err.stack ? redact(err.stack) : undefined;
-      clRecordError(cl(), safe);
     } else {
-      clRecordError(cl(), new Error(redact(String(err))));
+      safe = new Error(redact(String(err)));
     }
+    captureException(safe, context ? {extra} : undefined);
   } catch {
     /* never throw from observability */
   }
@@ -146,7 +84,7 @@ export function recordError(err: unknown, context?: Record<string, string | numb
  */
 export function log(message: string): void {
   try {
-    clLog(cl(), redact(message));
+    addBreadcrumb({category: 'bravo', message: redact(message), level: 'info'});
   } catch {
     /* never throw */
   }
@@ -169,51 +107,49 @@ export function log(message: string): void {
  */
 export function setUser(id: string | null): void {
   try {
-    void clSetUserId(cl(), id ?? '');
-    if (id) {void anSetUserId(an(), id);}
+    setSentryUser(id ? {id} : null);
   } catch {
     /* never throw */
   }
 }
 
 /**
- * Tag a long-lived attribute on every subsequent crash report.
+ * Tag a long-lived attribute on every subsequent report.
  * Examples: `app_screen`, `runtime_mode`, `network_kind`.
  */
 export function setAttribute(key: string, value: string | number | boolean): void {
   try {
-    void clSetAttribute(cl(), key, redact(String(value)));
+    setTag(key, redact(String(value)));
   } catch {
     /* never throw */
   }
 }
 
 /**
- * Track a product event for Analytics. Strings are redacted but param
- * names are passed through as-is — stick to a fixed event taxonomy.
+ * Former Firebase Analytics event. Recorded only as a breadcrumb (so it shows
+ * in the timeline before an error); nothing is sent on its own.
  */
 export function trackEvent(name: string, params?: Record<string, string | number | boolean>): void {
   try {
-    const cleaned: Record<string, string | number | boolean> = {};
+    const data: Record<string, string | number | boolean> = {};
     if (params) {
       for (const [k, v] of Object.entries(params)) {
-        cleaned[k] = typeof v === 'string' ? redact(v) : v;
+        data[k] = typeof v === 'string' ? redact(v) : v;
       }
     }
-    void anLogEvent(an(), name, cleaned);
+    addBreadcrumb({category: 'event', message: redact(name), data});
   } catch {
     /* never throw */
   }
 }
 
 /**
- * Toggle collection at runtime — wired up to the Privacy screen.
- * Default is enabled (set in app.json).
+ * Toggle collection at runtime — for the Privacy screen. While off, events
+ * are dropped before they leave the device.
  */
 export async function setCollectionEnabled(enabled: boolean): Promise<void> {
   try {
-    await clSetCollectionEnabled(cl(), enabled);
-    await anSetCollectionEnabled(an(), enabled);
+    sentrySetCollectionEnabled(enabled);
   } catch {
     /* never throw */
   }
@@ -222,13 +158,13 @@ export async function setCollectionEnabled(enabled: boolean): Promise<void> {
 /**
  * Test-only — force a native crash so you can verify the dashboard
  * receives reports end-to-end. NEVER call this from production code
- * paths; it's gated by __DEV__ and an explicit flag.
+ * paths; it's gated by __DEV__.
  */
 export function devForceCrash(): void {
   if (!__DEV__) {return;}
   try {
-    clCrash(cl());
+    nativeCrash();
   } catch {
-    /* native crash() doesn't return; this catches the no-op path */
+    /* native crash doesn't return; this catches the no-op path */
   }
 }
