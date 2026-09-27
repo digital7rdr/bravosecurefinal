@@ -53,6 +53,45 @@ export interface IntegrationSettingsResponse {
   settings: IntegrationSetting[];
 }
 
+/** Module Access — what GET /ops/module-access returns. */
+export interface ModuleAccessMatrix {
+  groups: {id: string; label: string; description: string}[];
+  modules: {key: string; label: string; description: string; groups: string[]; serverGate: string}[];
+  alwaysOn: {key: string; label: string; reason: string}[];
+  notYet: {key: string; label: string; reason: string}[];
+  cells: {group: string; module: string; applicable: boolean; enabled: boolean | null; updatedAt: string | null}[];
+}
+export interface UserModuleView {
+  group: string;
+  modules: {
+    key: string; label: string; applicable: boolean;
+    groupEnabled: boolean | null; override: boolean | null; enabled: boolean | null;
+  }[];
+}
+export interface InviteStatus {
+  pending: boolean;
+  invited_at: string | null;
+  expires_at: string | null;
+  expired: boolean;
+  claimed: boolean;
+}
+export type AppAccountType = 'individual' | 'agency' | 'cpo';
+export interface CreateAppUserBody {
+  account_type: AppAccountType;
+  display_name: string;
+  email: string;
+  phone_e164: string;
+  agency_user_id?: string;
+  coverage_country?: string;
+  call_sign?: string;
+}
+export interface CreateAppUserResult {
+  user_id: string;
+  account_type: AppAccountType;
+  invite: InviteStatus;
+  sms_sent: boolean;
+}
+
 export class ApiError extends Error {
   constructor(public status: number, public body: unknown, message: string) {
     super(message);
@@ -1208,6 +1247,27 @@ export const opsApi = {
     fetchJson<{ok: true; setting: IntegrationSetting | null}>(`/ops/settings/${encodeURIComponent(key)}`, {
       method: 'DELETE',
     }),
+  // 2026-09-27 — Module Access (group × module matrix + per-user overrides) and
+  // ops-created app accounts as SMS invites. All SUPER_ADMIN (rank 3).
+  moduleAccess: () => fetchJson<ModuleAccessMatrix>(`/ops/module-access`),
+  setGroupModule: (group: string, module: string, enabled: boolean) =>
+    fetchJson<{ok: true}>(`/ops/module-access/groups/${encodeURIComponent(group)}/${encodeURIComponent(module)}`, {
+      method: 'PUT', body: JSON.stringify({enabled}),
+    }),
+  userModules: (userId: string) =>
+    fetchJson<UserModuleView>(`/ops/module-access/users/${encodeURIComponent(userId)}`),
+  setUserModule: (userId: string, module: string, enabled: boolean | null) =>
+    fetchJson<{ok: true; view: UserModuleView}>(
+      `/ops/module-access/users/${encodeURIComponent(userId)}/${encodeURIComponent(module)}`,
+      {method: 'PUT', body: JSON.stringify({enabled})},
+    ),
+  createAppUser: (body: CreateAppUserBody) =>
+    fetchJson<CreateAppUserResult>(`/ops/users`, {method: 'POST', body: JSON.stringify(body)}),
+  userInvite: (userId: string) => fetchJson<InviteStatus>(`/ops/users/${encodeURIComponent(userId)}/invite`),
+  resendInvite: (userId: string) =>
+    fetchJson<{user_id: string; invite: InviteStatus; sms_sent: boolean}>(
+      `/ops/users/${encodeURIComponent(userId)}/invite/resend`, {method: 'POST'},
+    ),
   // B-788a — Dispatch v2: operational areas, provider ladders, the routing switch.
   dispatchAreas: () => fetchJson<DispatchAreasResponse>(`/ops/dispatch/areas`),
   createDispatchArea: (body: {

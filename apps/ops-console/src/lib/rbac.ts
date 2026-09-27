@@ -198,6 +198,15 @@ export function canManageIntegrations(role: AdminRole | undefined): boolean {
   return hasRole(role, 'ADMIN');
 }
 
+/** 2026-09-27 — create app accounts (SMS invites) + Module Access. Backend: /ops/users
+ *  and /ops/module-access are @RequireRoles('SUPER_ADMIN') → rank 3. */
+export function canCreateUsers(role: AdminRole | undefined): boolean {
+  return hasRole(role, 'ADMIN');
+}
+export function canManageModules(role: AdminRole | undefined): boolean {
+  return hasRole(role, 'ADMIN');
+}
+
 export function canManageAdmins(role: AdminRole | undefined): boolean {
   return hasRole(role, 'ADMIN');
 }

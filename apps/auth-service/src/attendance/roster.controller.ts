@@ -6,6 +6,7 @@ import {DeptChatV2Guard} from '../common/guards/dept-chat-v2.guard';
 import {CurrentOrgManager} from '../org/current-org-manager.decorator';
 import {RosterService} from './roster.service';
 import {EnsureMonthDto, PublishMonthDto, RecordCorrectionDto} from './dto/roster.dto';
+import {ModuleGate} from '../module-access/module-access.guard';
 
 /**
  * Scope v2 Phase 5 — Monthly Roster (A7.2) and Attendance Corrections (A7.4).
@@ -26,6 +27,7 @@ import {EnsureMonthDto, PublishMonthDto, RecordCorrectionDto} from './dto/roster
 // DeptChatV2Guard 404s the whole controller while the rollout flag is off,
 // exactly as the v2 routes on AttendanceController do — Phase 5's endpoints
 // must not ship LIVE ahead of any UI.
+@ModuleGate('departmental')
 @UseGuards(JwtAuthGuard, DeptChatV2Guard, OrgManagerGuard)
 export class RosterController {
   constructor(private readonly roster: RosterService) {}

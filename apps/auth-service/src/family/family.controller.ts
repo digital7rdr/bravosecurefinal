@@ -10,6 +10,7 @@ import {
   ListMembersQueryDto, RejectCreditDto, ReportLocationDto, RequestCreditDto,
   SetFundMembersDto, SetHoldDto, SetSpendLimitDto,
 } from './dto/family.dto';
+import {ModuleGate} from '../module-access/module-access.guard';
 
 /**
  * Member hierarchy endpoints. JWT-guarded + per-user throttled. Holder ops
@@ -17,6 +18,7 @@ import {
  * no endpoint accepts a foreign user id.
  */
 @Controller('family')
+@ModuleGate('family')
 @UseGuards(JwtAuthGuard, UserThrottlerGuard)
 export class FamilyController {
   constructor(

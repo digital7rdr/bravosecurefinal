@@ -9,6 +9,7 @@ import {DepartmentService, type ChannelSummary} from './department.service';
 import {
   CreateChannelDto, ConfigureChannelDto, RegisterGroupDto, AddMemberDto, UpdateMemberRoleDto,
 } from './dto/channel.dto';
+import {ModuleGate} from '../module-access/module-access.guard';
 
 /**
  * Department Channels REST surface (all routes under /department).
@@ -25,6 +26,7 @@ import {
  * routes (create/configure/archive) add OrgManagerGuard on top.
  */
 @Controller('department')
+@ModuleGate('departmental')
 @UseGuards(JwtAuthGuard, DeptChatAccessGuard)
 export class DepartmentController {
   constructor(private readonly dept: DepartmentService) {}

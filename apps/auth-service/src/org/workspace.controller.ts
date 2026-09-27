@@ -6,6 +6,7 @@ import {CurrentUser} from '../common/decorators/current-user.decorator';
 import type {AccessClaims} from '../auth/jwt.service';
 import {WorkspaceService} from './workspace.service';
 import {readOrgContextHeader} from './org-context';
+import {ModuleGate} from '../module-access/module-access.guard';
 
 /** Just enough of the request to read a header from. */
 type RawRequest = {headers?: Record<string, unknown>};
@@ -75,6 +76,7 @@ export class CreateWorkspaceDto {
  * so a caller cannot mint a workspace owned by somebody else.
  */
 @Controller('org/workspace')
+@ModuleGate('departmental')
 @UseGuards(JwtAuthGuard, DeptChatV2Guard)
 export class WorkspaceController {
   constructor(private readonly workspace: WorkspaceService) {}

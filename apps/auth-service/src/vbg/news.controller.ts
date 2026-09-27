@@ -4,6 +4,7 @@ import {JwtAuthGuard}       from '../common/guards/jwt-auth.guard';
 import {UserThrottlerGuard} from '../common/guards/user-throttler.guard';
 import {NewsFeedService}    from './newsfeed.service';
 import {NewsFeedQueryDto}   from './dto/vbg.dto';
+import {ModuleGate} from '../module-access/module-access.guard';
 
 /**
  * General news feed for the messenger News screens. Lives in the VBG module
@@ -11,6 +12,7 @@ import {NewsFeedQueryDto}   from './dto/vbg.dto';
  * way as /vbg/* (JWT first so req.user exists, then per-user throttle).
  */
 @Controller('news')
+@ModuleGate('news')
 @UseGuards(JwtAuthGuard, UserThrottlerGuard)
 export class NewsController {
   constructor(private readonly news: NewsFeedService) {}

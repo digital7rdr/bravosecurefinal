@@ -26,6 +26,7 @@ import {JobFeedService}       from './job-feed.service';
 import {OpsAuditService}      from './ops-audit.service';
 import {AdminGuard}           from './admin.guard';
 import {SettingsController}   from '../settings/settings.controller';
+import {ModuleAccessController} from '../module-access/module-access.controller';
 import {MissionStateMachine}  from './mission-state-machine.service';
 import {JobStateMachine}      from './job-state-machine.service';
 import {SystemMessengerService} from './system-messenger.service';
@@ -58,7 +59,7 @@ import {ReferralCodesService}    from './referral-codes.service';
     // B-867 — the audited identity-document read on OpsDataController. Direction
     // OpsModule → IdentityModule only (it re-provides OpsAuditService locally).
     IdentityModule],
-  controllers: [OpsController, OpsDataController, OpsAdminsController, AdminInviteAcceptController, OpsSubscriptionController, OpsServicePricingController, OpsRegionsController, OpsDispatchAreasController, ReferralCodesController, OpsSectionsController, OpsReferralCampaignsController, SettingsController],
+  controllers: [OpsController, OpsDataController, OpsAdminsController, AdminInviteAcceptController, OpsSubscriptionController, OpsServicePricingController, OpsRegionsController, OpsDispatchAreasController, ReferralCodesController, OpsSectionsController, OpsReferralCampaignsController, SettingsController, ModuleAccessController],
   providers: [
     OpsService, OpsDataService, MissionService, JobFeedService, OpsAuditService,
     // 2026-09-03 IA restructure — config status, provider agencies, enterprise queue.

@@ -22,6 +22,7 @@ import {
   // E2E-06 — lead-declared client no-show (device fix + optional note).
   ClientNoShowDto,
 } from './dto/agent.dto';
+import {ModuleGate} from '../module-access/module-access.guard';
 
 /**
  * Agent Portal REST surface — partner-self endpoints only.
@@ -203,6 +204,7 @@ export class AgentController {
   // Published jobs the agent can apply for.
   // Testing affordance — provider region browse of open jobs (LB1 coarse-only).
   // Company (service-provider) agents only; ?region= optional (omit / ALL = every region).
+  @ModuleGate('job_portal')
   @Get('me/open-jobs')
   browseOpenJobs(@Query('region') region: string | undefined, @CurrentUser() user: AccessClaims) {
     return this.agents.browseOpenJobs(user.sub, region);

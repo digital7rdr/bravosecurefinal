@@ -169,6 +169,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {label: 'Packages & Catalog', href: routes.config.packages, icon: iconBox},
       {label: 'Tier Grants', href: routes.config.tierGrants, icon: iconStar},
       {label: 'Switches', href: routes.config.switches, icon: iconSwitch},
+      {label: 'Module Access', href: routes.config.modules, icon: iconGrid, minRole: 'ADMIN'},
       {label: 'Integrations', href: routes.config.integrations, icon: iconLock, minRole: 'ADMIN'},
     ],
   },

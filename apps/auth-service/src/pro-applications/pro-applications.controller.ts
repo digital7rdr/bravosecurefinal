@@ -9,12 +9,14 @@ import {ProApplicationsService} from './pro-applications.service';
 import {
   CreateProApplicationDto, CreateProMissionDto, ProThreadMessageDto, RequestChangesDto,
 } from './dto/pro-application.dto';
+import {ModuleGate} from '../module-access/module-access.guard';
 
 @Controller('pro-applications')
 @UseGuards(JwtAuthGuard)
 export class ProApplicationsController {
   constructor(private readonly proApps: ProApplicationsService) {}
 
+  @ModuleGate('secure_pro')
   @Post()
   create(
     @Body() dto: CreateProApplicationDto,
@@ -29,6 +31,7 @@ export class ProApplicationsController {
   }
 
   /** One-tap renewal of an EXPIRED (or REJECTED) plan with its old details. */
+  @ModuleGate('secure_pro')
   @Post(':id/renew')
   renew(
     @Param('id') id: string,
@@ -37,6 +40,7 @@ export class ProApplicationsController {
     return this.proApps.renew(user.sub, id);
   }
 
+  @ModuleGate('secure_pro')
   @Post(':id/accept')
   accept(
     @Param('id') id: string,
@@ -55,6 +59,7 @@ export class ProApplicationsController {
   }
 
   /** Pay & activate — the wallet debit and the ACTIVE flip are one txn. */
+  @ModuleGate('secure_pro')
   @Post(':id/activate')
   @UseInterceptors(IdempotencyInterceptor)
   activate(
@@ -74,6 +79,7 @@ export class ProApplicationsController {
   }
 
   /** Multi-date protection request inside an ACTIVE plan (owner or member). */
+  @ModuleGate('secure_pro')
   @Post(':id/missions')
   requestMission(
     @Param('id') id: string,

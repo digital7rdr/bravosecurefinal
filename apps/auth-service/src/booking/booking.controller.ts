@@ -17,6 +17,7 @@ import {CreateBookingDto, EstimateBookingDto} from './dto/create-booking.dto';
 import {CreateDisputeDto} from './dto/dispute.dto';
 import {PayWithCreditsDto} from './dto/pay-with-credits.dto';
 import {SubmitRatingDto} from './dto/rating.dto';
+import {ModuleAccessService} from '../module-access/module-access.service';
 
 @Controller('bookings')
 @UseGuards(JwtAuthGuard)
@@ -29,6 +30,9 @@ export class BookingController {
     // controller is also constructed positionally in specs, and inserting a
     // parameter mid-list silently shifts every one after it.
     private readonly history: BookingHistoryService,
+    // 2026-09-27 — also appended last, for the same reason. Module Access: an
+    // admin can switch Secure Transfer / Executive Protection off per group.
+    private readonly moduleAccess: ModuleAccessService,
   ) {}
 
   /**
@@ -64,6 +68,10 @@ export class BookingController {
     @CurrentUser() user: AccessClaims,
     @Headers('idempotency-key') idempotencyKey?: string,
   ): Promise<{booking: ClientBooking}> {
+    // Module Access — blocks STARTING a booking only; existing bookings, their
+    // payment, tracking and SOS are untouched (module-catalog SAFETY RULE).
+    await this.moduleAccess.assertEnabled(
+      user.sub, dto.service === 'executive_protection' ? 'executive_protection' : 'secure_lite');
     // No key = an app built before 2026-09-04: no per-booking UI and no
     // double-submit key. It keeps the one-active rule it was built against.
     return this.bookings.create(user.sub, dto, {legacyClient: !idempotencyKey});

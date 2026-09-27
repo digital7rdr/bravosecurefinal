@@ -99,6 +99,7 @@ export const routes = {
     tierGrants: '/config/tier-grants',
     switches: '/config/switches',
     integrations: '/config/integrations',
+    modules: '/config/modules',
   },
 
   finance: {

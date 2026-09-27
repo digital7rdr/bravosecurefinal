@@ -174,7 +174,9 @@ export class AuthService {
       `SELECT id FROM public.users WHERE (email=$1 OR phone_e164=$2) AND deleted_at IS NULL`,
       [dto.email, dto.phoneE164],
     );
-    if (existing) {
+    // 2026-09-27 — an admin-created SMS invite for THIS phone is not a conflict:
+    // the OTP below proves the phone and registerVerify claims the row.
+    if (existing && !(await this.claimableInvite(dto.email, dto.phoneE164))) {
       await this.audit.emit({event_type:'auth.register', user_id:null, device_id:null, ip, outcome:'failure', detail:'already_exists'});
       throw new ConflictException('already_exists');
     }
@@ -234,7 +236,8 @@ export class AuthService {
       `SELECT id FROM public.users WHERE (email=$1 OR phone_e164=$2) AND deleted_at IS NULL`,
       [dto.email, dto.phoneE164],
     );
-    if (existing) {
+    const inviteId = existing ? await this.claimableInvite(dto.email, dto.phoneE164) : null;
+    if (existing && !inviteId) {
       await this.audit.emit({event_type:'auth.register', user_id:null, device_id:dto.deviceId, ip, outcome:'failure', detail:'already_exists'});
       throw new ConflictException('already_exists');
     }
@@ -247,22 +250,66 @@ export class AuthService {
     const role = 'individual';
     const tier = 'lite';
     const pwHash = await this.password.hash(dto.password);
-    const [inserted] = await this.db.q<{id:string}>(
-      `INSERT INTO public.users
-         (id,email,phone_e164,display_name,role,subscription_tier,password_hash,kyc_status)
-       VALUES (gen_random_uuid(),$1,$2,$3,$4,$5,$6,'approved') RETURNING id`,
-      [dto.email, dto.phoneE164, dto.displayName, role, tier, pwHash],
-    );
+    let newUserId: string;
+    if (inviteId) {
+      // CLAIM the admin-created invite: the person sets their own password; the
+      // admin-assigned role / tier / agency membership stay as provisioned. The
+      // WHERE re-checks "still unclaimed" so two racing claims cannot both win.
+      const claimed = await this.db.qOne<{id: string}>(
+        `UPDATE public.users
+            SET password_hash = $2, password_set_at = now(), invite_expires_at = NULL,
+                display_name = COALESCE(NULLIF(display_name, ''), $3)
+          WHERE id = $1 AND password_hash IS NULL AND invited_at IS NOT NULL AND deleted_at IS NULL
+          RETURNING id`,
+        [inviteId, pwHash, dto.displayName],
+      );
+      if (!claimed) {
+        await this.audit.emit({event_type:'auth.register', user_id:null, device_id:dto.deviceId, ip, outcome:'failure', detail:'already_exists'});
+        throw new ConflictException('already_exists');
+      }
+      newUserId = claimed.id;
+    } else {
+      const [inserted] = await this.db.q<{id:string}>(
+        `INSERT INTO public.users
+           (id,email,phone_e164,display_name,role,subscription_tier,password_hash,kyc_status)
+         VALUES (gen_random_uuid(),$1,$2,$3,$4,$5,$6,'approved') RETURNING id`,
+        [dto.email, dto.phoneE164, dto.displayName, role, tier, pwHash],
+      );
+      newUserId = inserted.id;
+    }
 
     const user = await this.db.qOne<UserRow>(
       `SELECT id,email,display_name,role,subscription_tier,phone_e164 FROM public.users WHERE id=$1`,
-      [inserted.id],
+      [newUserId],
     );
     if (!user) throw new NotFoundException('user_not_found');
 
     const session = await this.issueSession(user, dto.deviceId, dto.platform, false, dto);
-    await this.audit.emit({event_type:'auth.register', user_id:user.id, device_id:dto.deviceId, ip, outcome:'success'});
+    await this.audit.emit({event_type:'auth.register', user_id:user.id, device_id:dto.deviceId, ip, outcome:'success',
+      ...(inviteId ? {detail: 'invite_claimed'} : {})});
     return {user, ...session};
+  }
+
+  /**
+   * 2026-09-27 — admin-created SMS invites. Returns the invite row id when THIS
+   * phone has a claimable invite (created by ops, no password yet, not expired,
+   * not suspended) AND nothing else matches the email or phone. Any other match
+   * stays the existing already_exists conflict. Defensive on the result shape:
+   * a caller that got no rows (or a bare mock) simply has no invite.
+   */
+  private async claimableInvite(email: string, phone: string): Promise<string | null> {
+    const rows = await this.db.q<{id: string; phone_e164: string | null; claimable: boolean}>(
+      `SELECT id, phone_e164,
+              (invited_at IS NOT NULL AND password_hash IS NULL AND suspended_at IS NULL
+                 AND invite_expires_at > now()) AS claimable
+         FROM public.users
+        WHERE (email = $1 OR phone_e164 = $2) AND deleted_at IS NULL`,
+      [email, phone],
+    );
+    if (!Array.isArray(rows)) {return null;}
+    const invite = rows.find(r => r.claimable && r.phone_e164 === phone);
+    if (!invite) {return null;}
+    return rows.every(r => r.id === invite.id) ? invite.id : null;
   }
 
   // ── login (no account enumeration — always 200) ───────────────────────────

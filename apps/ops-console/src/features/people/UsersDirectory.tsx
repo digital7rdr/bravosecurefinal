@@ -12,7 +12,9 @@
  */
 
 import {useEffect, useState} from 'react';
-import {ApiError, opsDataApi, POLL_DASH, type OpsUserRow} from '@/lib/api';
+import {ApiError, opsDataApi, POLL_DASH, useOpsMe, type OpsUserRow} from '@/lib/api';
+import {canCreateUsers} from '@/lib/rbac';
+import {AddUserModal} from './AddUserModal';
 import {usePagedList} from '@/lib/usePagedList';
 import {formatDateTimeUtc} from '@/lib/datetime';
 import {roleLabel} from '@/lib/format';
@@ -57,6 +59,9 @@ export function UsersDirectory({scope}: {scope: DirectoryScope}) {
   const [role, setRole] = useState<string | undefined>(isClients ? 'individual' : undefined);
   const [kyc, setKyc] = useState<string | undefined>(undefined);
   const [tier, setTier] = useState<string | undefined>(undefined);
+  const [adding, setAdding] = useState(false);
+  const {data: me} = useOpsMe();
+  const canAdd = canCreateUsers(me?.admin.role);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQ(q.trim()), 400);
@@ -67,7 +72,7 @@ export function UsersDirectory({scope}: {scope: DirectoryScope}) {
   // can clear into "everyone", which is what made the old page ambiguous.
   const effectiveRole = isClients ? 'individual' : role;
 
-  const {rows, isLoading, isLoadingMore, error, hasMore, loadMore} = usePagedList<OpsUserRow>({
+  const {rows, isLoading, isLoadingMore, error, hasMore, loadMore, mutate} = usePagedList<OpsUserRow>({
     key: ['ops-users', scope, debouncedQ, effectiveRole ?? '', kyc ?? '', tier ?? ''],
     pageSize: PAGE,
     maxRows: LIMIT_MAX,
@@ -160,7 +165,11 @@ export function UsersDirectory({scope}: {scope: DirectoryScope}) {
           ? 'People who book Lite and Executive protection or hold a Secure Pro plan. Contact details stay on the detail page behind audited click-to-reveal.'
           : 'Every account on the platform: clients, agents (CPOs) and provider agencies. Contact details stay behind audited click-to-reveal.'}
         badges={<span className="pill">{rows.length} SHOWN</span>}
+        actions={canAdd ? (
+          <button type="button" className="btn btn-sm btn-pri" onClick={() => setAdding(true)}>+ ADD USER</button>
+        ) : undefined}
       />
+      {adding && <AddUserModal onClose={() => setAdding(false)} onCreated={() => { void mutate(); }} />}
 
       <RouteTabs
         ariaLabel="People sections"

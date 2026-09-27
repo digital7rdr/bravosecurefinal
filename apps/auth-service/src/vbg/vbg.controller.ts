@@ -12,6 +12,7 @@ import {
   BiometricCheckinDto, TelemetryDto, PanicDto, CreateGeofenceDto, TrackQueryDto,
   SetFavoritesDto,
 } from './dto/vbg.dto';
+import {ModuleGate} from '../module-access/module-access.guard';
 
 /**
  * Bravo GeoRisk (VBG, formerly Virtual Bodyguard) endpoints. JWT-guarded + per-user throttled, same as
@@ -40,6 +41,7 @@ export class VbgController {
     return this.geo.reverse(q.lat ?? Number.NaN, q.lng ?? Number.NaN);
   }
 
+  @ModuleGate('vbg')
   @Post('monitoring/enroll')
   enroll(@Body() dto: EnrollMonitoringDto, @CurrentUser() user: AccessClaims) {
     // Pass the device id so a per-device telemetry key is minted + returned.
@@ -95,6 +97,7 @@ export class VbgController {
     return this.geofence.listZones(user.sub).then(zones => ({zones}));
   }
 
+  @ModuleGate('vbg')
   @Post('geofences')
   createGeofence(@Body() dto: CreateGeofenceDto, @CurrentUser() user: AccessClaims) {
     return this.geofence.createZone(user.sub, dto);
@@ -106,17 +109,20 @@ export class VbgController {
     return {ok: true};
   }
 
+  @ModuleGate('vbg')
   @Get('sra')
   sra(@Query() q: SraQueryDto, @CurrentUser() user: AccessClaims) {
     return this.vbg.sraSnapshot(user.sub, q);
   }
 
   /** Live region-based threat feed (GPS → region → GDELT) for the OSINT screen. */
+  @ModuleGate('vbg')
   @Get('threats')
   threats(@Query() q: SraQueryDto) {
     return this.vbg.regionThreats({lat: q.lat, lng: q.lng, timeWindowHours: q.timeWindowHours});
   }
 
+  @ModuleGate('vbg')
   @Get('keypoints')
   async keypoints(@Query() q: KeyPointsQueryDto) {
     return {keypoints: await this.vbg.keyPoints(q)};

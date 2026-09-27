@@ -8,6 +8,7 @@ import {randomBytes} from 'node:crypto';
 import {AuthService}        from './auth.service';
 import {JwtService}         from './jwt.service';
 import {RedisService}       from '../redis/redis.service';
+import {ModuleAccessService} from '../module-access/module-access.service';
 import {JwtAuthGuard}       from '../common/guards/jwt-auth.guard';
 import {CurrentUser}        from '../common/decorators/current-user.decorator';
 import type {AccessClaims}  from './jwt.service';
@@ -113,6 +114,7 @@ export class AuthController {
     private readonly auth:  AuthService,
     private readonly jwt:   JwtService,
     private readonly redis: RedisService,
+    private readonly moduleAccess: ModuleAccessService,
   ) {}
 
   // 5 requests per 10-minute window per IP — rate limited by @nestjs/throttler
@@ -291,8 +293,16 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  me(@CurrentUser() user: AccessClaims) {
-    return this.auth.getMe(user.sub);
+  async me(@CurrentUser() user: AccessClaims) {
+    // Module Access (2026-09-27) — the app hides what the server refuses.
+    // `disabled_modules` is presentation; ModuleAccessGuard is the gate. Null
+    // group + [] on any failure: an older/unknown state shows everything and
+    // the server still enforces.
+    const [me, modules] = await Promise.all([
+      this.auth.getMe(user.sub),
+      this.moduleAccess.effectiveOrNull(user.sub),
+    ]);
+    return {...me, module_group: modules?.group ?? null, disabled_modules: modules?.disabled ?? []};
   }
 
   // Self-service profile update (display name + avatar). Returns the same

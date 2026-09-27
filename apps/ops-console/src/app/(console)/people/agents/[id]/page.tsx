@@ -709,6 +709,8 @@ export default function AgentDetailPage({params}: {params: Promise<{id: string}>
           </h2>
         </div>
         <div className="page-head-right">
+          {/* 2026-09-27 — suspend / erase / module access live on the account record. */}
+          <Link href={routes.people.user(agent.user_id)} className="btn btn-ghost">ACCOUNT RECORD →</Link>
           <Link href={routes.people.agents} className="btn btn-ghost">← BACK</Link>
         </div>
       </div>

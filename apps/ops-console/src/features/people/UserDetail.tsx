@@ -9,7 +9,8 @@ import {CopyId} from '@/components/CopyId';
 import {ApiError, opsDataApi, resolveUserLocation, useOpsMe, useOpsUserDetail, useUserFamily, type OpsUserDetail} from '@/lib/api';
 import {formatDateTimeUtc} from '@/lib/datetime';
 import {deviceLabel, roleLabel, since} from '@/lib/format';
-import {canForceFundMembersOff, canManageFamily, canMintProviderInvite, hasRole, roleDomains, type AdminRole} from '@/lib/rbac';
+import {canForceFundMembersOff, canManageFamily, canManageModules, canMintProviderInvite, hasRole, roleDomains, type AdminRole} from '@/lib/rbac';
+import {UserAccessCard} from './UserAccessCard';
 import {ProviderInvitesCard} from './ProviderInvitesCard';
 import {IdentityDocumentCard} from './IdentityDocumentCard';
 import {LinkedMembersCard} from './LinkedMembersCard';
@@ -328,6 +329,9 @@ export function UserDetail() {
           canReveal={hasRole(role, 'SUPERVISOR') && roleDomains(role).includes('operations')}
           Card={Card}
         />
+
+        {/* 2026-09-27 — invite state + per-user module overrides (rank 3). */}
+        {!user.deleted_at && <UserAccessCard userId={user.id} enabled={canManageModules(role)} Card={Card} />}
 
         {/* B-812 — renders only for a service-provider (company) account. */}
         <ProviderInvitesCard userId={user.id} canMint={canMintProviderInvite(role)} Card={Card} />

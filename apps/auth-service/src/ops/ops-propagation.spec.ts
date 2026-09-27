@@ -126,7 +126,7 @@ describe('OP-16 — the two unbounded console reads are bounded now', () => {
 describe('OP-01 — the client display board is region-aware', () => {
   it('GET /bookings/service-pricing?region=AE prices the AE board; junk resolves GLOBAL', async () => {
     const pricing = {config: jest.fn().mockResolvedValue({eur_per_bc: 1})};
-    const ctrl = new BookingController({} as never, {} as never, pricing as never, {} as never);
+    const ctrl = new BookingController({} as never, {} as never, pricing as never, {} as never, {} as never);
     await ctrl.servicePricing('ae');
     expect(pricing.config).toHaveBeenCalledWith('AE');
     await ctrl.servicePricing("'; DROP");
@@ -137,7 +137,7 @@ describe('OP-01 — the client display board is region-aware', () => {
 
   it('a pickup point is resolved with the SAME regionFromPoint the charge uses; the code is the fallback', async () => {
     const pricing = {config: jest.fn().mockResolvedValue({eur_per_bc: 1})};
-    const ctrl = new BookingController({} as never, {} as never, pricing as never, {} as never);
+    const ctrl = new BookingController({} as never, {} as never, pricing as never, {} as never, {} as never);
     // The compiled region set carries no bounding boxes, so the point resolves
     // to nothing and the draft's zone code stands in — the exact fallback the
     // client relies on before a pin is placed.

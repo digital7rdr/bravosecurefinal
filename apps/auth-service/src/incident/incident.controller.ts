@@ -16,6 +16,7 @@ import {
   AddIncidentNoteDto, AssignIncidentDto, AttachIncidentDto, StoreAttachmentKeysDto,
   SubmitIncidentDto, UpdateIncidentStatusDto,
 } from './dto/incident.dto';
+import {ModuleGate} from '../module-access/module-access.guard';
 
 /**
  * Incident reporting (Dept Chat v2). Two scopes on one controller:
@@ -26,6 +27,7 @@ import {
  * Static routes (`mine`, `queue`) are declared before `:id` so they win.
  */
 @Controller('incidents')
+@ModuleGate('departmental')
 @UseGuards(JwtAuthGuard, DeptChatV2Guard)
 export class IncidentController {
   constructor(private readonly incidents: IncidentService) {}

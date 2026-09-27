@@ -5,6 +5,9 @@ import {OrgModule} from '../org/org.module';
 import {ProtectionModule} from '../protection/protection.module';
 import {PasswordService} from '../common/services/password.service';
 import {ProManagementService} from './pro-management.service';
+import {UserAdminService} from './user-admin.service';
+import {UserAdminController} from './user-admin.controller';
+import {SmsService} from '../common/services/sms.service';
 import {ProFleetService} from './pro-fleet.service';
 import {ProMissionActivationService} from './pro-mission-activation.service';
 import {ProManagementOpsController} from './pro-management-ops.controller';
@@ -27,7 +30,7 @@ import {CpoMissionCodeController} from './cpo-mission-code.controller';
  */
 @Module({
   imports:     [AuthModule, OpsModule, OrgModule, ProtectionModule],
-  controllers: [ProManagementOpsController, ProFleetOpsController, CpoMissionCodeController],
-  providers:   [ProManagementService, ProFleetService, PasswordService, ProMissionActivationService],
+  controllers: [ProManagementOpsController, ProFleetOpsController, CpoMissionCodeController, UserAdminController],
+  providers:   [ProManagementService, ProFleetService, PasswordService, ProMissionActivationService, UserAdminService, SmsService],
 })
 export class ProManagementModule {}

@@ -8,6 +8,7 @@ import {OrgManagerGuard, type OrgManagerContext} from '../org/org-manager.guard'
 import {IdempotencyInterceptor} from '../common/interceptors/idempotency.interceptor';
 import {DispatchService} from './dispatch.service';
 import {WithdrawBookingDto} from './dto/offer.dto';
+import {ModuleGate} from '../module-access/module-access.guard';
 
 interface OrgScopedRequest {
   orgManager: OrgManagerContext;
@@ -32,6 +33,7 @@ export class DispatchJobsController {
    *  exactly-once is the booking-locked conditional flip in claimOpenBooking. */
   @Throttle({default: {limit: 10, ttl: 60_000}})
   @UseInterceptors(IdempotencyInterceptor)
+  @ModuleGate('job_portal')
   @Post('open-jobs/:bookingId/claim')
   claim(
     @Req() req: OrgScopedRequest,

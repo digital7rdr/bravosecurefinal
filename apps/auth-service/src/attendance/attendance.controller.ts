@@ -22,6 +22,7 @@ import {
   PatchAssignmentsDto, EditShiftDto, ExportSessionsDto, RefusePingDto, ReviewSessionDto,
   SetDayStatusDto, UpdateShiftDto,
 } from './dto/attendance.dto';
+import {ModuleGate} from '../module-access/module-access.guard';
 
 /**
  * Attendance — provider-managed CPO shift clock-in/out.
@@ -32,6 +33,7 @@ import {
  *    edit. OrgManagerGuard runs after JwtAuthGuard so req.user is populated.
  */
 @Controller('attendance')
+@ModuleGate('departmental')
 @UseGuards(JwtAuthGuard)
 export class AttendanceController {
   constructor(

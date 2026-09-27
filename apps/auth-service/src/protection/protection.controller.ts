@@ -7,6 +7,7 @@ import {IdempotencyInterceptor} from '../common/interceptors/idempotency.interce
 import type {AccessClaims} from '../auth/jwt.service';
 import {ProtectionService} from './protection.service';
 import {CreateSessionDto, LocationBatchDto, ReadinessDto, SessionNoteDto} from './dto/protection.dto';
+import {ModuleGate} from '../module-access/module-access.guard';
 
 /**
  * Customer protection-session surface (spec §4). Self-access only — every
@@ -20,6 +21,7 @@ export class ProtectionController {
   constructor(private readonly protection: ProtectionService) {}
 
   /** Open a session (or return the existing live one, `already_active`). */
+  @ModuleGate('secure_pro')
   @Post('sessions')
   @UseInterceptors(IdempotencyInterceptor)
   create(@Body() dto: CreateSessionDto, @CurrentUser() user: AccessClaims) {
