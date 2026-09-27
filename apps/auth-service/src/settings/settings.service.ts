@@ -138,7 +138,7 @@ export class SettingsService implements OnModuleInit {
           try {
             snap.set(r.key, this.crypto.decrypt(r.value_enc));
           } catch (e) {
-            this.log.error(`decrypt failed for ${r.key}: ${(e as Error).message} — using env fallback`);
+            this.log.error(`stored value for ${r.key} could not be opened: ${(e as Error).message} — using env fallback`);
           }
         } else if (!r.is_secret && r.value_plain !== null) {
           snap.set(r.key, r.value_plain);
