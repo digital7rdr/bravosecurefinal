@@ -21,25 +21,41 @@
 #                   https://expo.dev/accounts/[acct]/settings/access-tokens
 #
 # Triggers:
-#   - push to main touching src/**, App.tsx, app.config.ts, eas.json
+#   - (push trigger disabled 2026-09-27 — see note above `on:`)
 #   - manual workflow_dispatch with platform + profile inputs
 # ──────────────────────────────────────────────────────────────────────
 name: Build mobile (EAS)
 
+# ─────────────────────────────────────────────────────────────────────────
+# ⛔ PUSH TRIGGER DISABLED — 2026-09-27
+#
+# Native app distribution is a separate, explicitly-instructed step from the
+# ops.bravosecure.cloud deployment. A push to main must NOT start an EAS
+# build: with an EXPO_TOKEN secret present it would produce installable
+# builds on the preview-staging profile (old sslip.io staging endpoints) on
+# every push. Since 2026-09-27 EXPO_PUBLIC_MAPBOX_TOKEN is no longer in
+# eas.json either, so an EAS build also needs that EAS environment variable
+# first (docs/runbooks/MOBILE_BUILD_ENV.md) or maps are disabled.
+#
+# This workflow now runs ONLY when started by hand
+# (Actions → Build mobile (EAS) → "Run workflow", pick profile + platform).
+#
+# To restore automatic builds, delete this note and un-comment `push:`.
+# ─────────────────────────────────────────────────────────────────────────
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'src/**'
-      - 'packages/messenger-core/**'
-      - 'App.tsx'
-      - 'index.ts'
-      - 'app.config.ts'
-      - 'app.json'
-      - 'eas.json'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/build-mobile.yml'
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'src/**'
+  #     - 'packages/messenger-core/**'
+  #     - 'App.tsx'
+  #     - 'index.ts'
+  #     - 'app.config.ts'
+  #     - 'app.json'
+  #     - 'eas.json'
+  #     - 'package.json'
+  #     - 'package-lock.json'
+  #     - '.github/workflows/build-mobile.yml'
   workflow_dispatch:
     inputs:
       profile:

@@ -78,6 +78,10 @@ jobs:
           retention-days: 30
 
   sbom-attest:
+    # Artifact attestations need a public repo or GitHub Enterprise Cloud; on a
+    # private repo on another plan this step errors. The SBOM itself is still
+    # produced and uploaded by the `sbom` job, so don't fail the run over it.
+    continue-on-error: true
     name: Attest SBOM (release artifact)
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
