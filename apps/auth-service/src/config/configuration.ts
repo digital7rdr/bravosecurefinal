@@ -105,6 +105,19 @@ export default () => ({
     refreshTtl:   process.env['JWT_REFRESH_TTL'] ?? '30d',
   },
 
+  auth: {
+    // Which second factor gates login/registration (ported 2026-09-28 from the
+    // bravosecure.cloud production branch).
+    //   'sms'  — Twilio delivers a code (Verify or SMS mode; see OtpService).
+    //   'totp' — RFC 6238 authenticator app; no SMS provider needed. The
+    //            login response carries an enrolment payload (otpauth URI,
+    //            manual key, backup codes) until the user has a VERIFIED seed.
+    // Production with no Twilio credentials MUST run 'totp' — devFlag()
+    // forces the OTP dev-bypass off there, so 'sms' without Twilio means
+    // nobody can log in (main.ts refuses to start in that state).
+    secondFactor: (process.env['AUTH_SECOND_FACTOR'] ?? 'sms') === 'totp' ? 'totp' as const : 'sms' as const,
+  },
+
   otp: {
     length:        parseInt(process.env['OTP_LENGTH'] ?? '6', 10),
     ttlMinutes:    parseInt(process.env['OTP_TTL_MINUTES'] ?? '10', 10),

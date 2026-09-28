@@ -6,6 +6,7 @@ import {AuditService}      from '../kafka/audit.service';
 import {TotpCryptoService} from '../common/services/totp-crypto.service';
 import {AuthService}       from '../auth/auth.service';
 import {RedisService}      from '../redis/redis.service';
+import {TotpChallengeService} from '../common/services/totp-challenge.service';
 
 const mockDb     = {q: jest.fn(), qOne: jest.fn()};
 const mockAudit  = {emit: jest.fn()};
@@ -64,6 +65,7 @@ describe('TotpService', () => {
         {provide: TotpCryptoService, useValue: mockCrypto},
         {provide: AuthService,       useValue: mockAuth},
         {provide: RedisService,      useValue: mockRedis},
+        TotpChallengeService,   // real — the verify core under test now lives here
       ],
     }).compile();
     service = module.get(TotpService);
@@ -123,21 +125,21 @@ describe('TotpService', () => {
     const row  = {secret_encrypted: Buffer.from('enc'), verified_at: null};
 
     it('throws BadRequestException when totp not set up', async () => {
-      mockDb.qOne.mockResolvedValueOnce(null);
+      mockDb.qOne.mockResolvedValueOnce(FAKE_USER).mockResolvedValueOnce(null);   // account ok, no seed
       await expect(service.verify(USER_ID, dto as any, '1.1.1.1')).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('throws BadRequestException on invalid 6-digit TOTP code', async () => {
       // verifyCode defaults to null (set in beforeEach) — no override needed
-      mockDb.qOne.mockResolvedValueOnce(row);
+      mockDb.qOne.mockResolvedValueOnce(FAKE_USER).mockResolvedValueOnce(row);
       await expect(service.verify(USER_ID, dto as any, '1.1.1.1')).rejects.toBeInstanceOf(BadRequestException);
     });
 
     it('issues tokens on valid TOTP code', async () => {
       mockCrypto.verifyCode.mockReturnValue(0);      // delta 0 = current step
       mockDb.qOne
-        .mockResolvedValueOnce(row)
-        .mockResolvedValueOnce(FAKE_USER);
+        .mockResolvedValueOnce(FAKE_USER)
+        .mockResolvedValueOnce(row);
       const result = await service.verify(USER_ID, dto as any, '1.1.1.1');
       expect(result.accessToken).toBe('tok');
       expect(mockAuth.issueSession).toHaveBeenCalled();
@@ -146,8 +148,8 @@ describe('TotpService', () => {
     it('marks verified_at on first successful verify', async () => {
       mockCrypto.verifyCode.mockReturnValue(0);
       mockDb.qOne
-        .mockResolvedValueOnce(row)     // verified_at = null
-        .mockResolvedValueOnce(FAKE_USER);
+        .mockResolvedValueOnce(FAKE_USER)
+        .mockResolvedValueOnce(row);     // verified_at = null
       await service.verify(USER_ID, dto as any, '1.1.1.1');
       const updateCall = mockDb.q.mock.calls.find(
         c => String(c[0]).includes('verified_at=now()'),
@@ -159,8 +161,8 @@ describe('TotpService', () => {
       mockCrypto.verifyCode.mockReturnValue(0);
       const alreadyVerified = {...row, verified_at: new Date()};
       mockDb.qOne
-        .mockResolvedValueOnce(alreadyVerified)
-        .mockResolvedValueOnce(FAKE_USER);
+        .mockResolvedValueOnce(FAKE_USER)
+        .mockResolvedValueOnce(alreadyVerified);
       await service.verify(USER_ID, dto as any, '1.1.1.1');
       const updateCall = mockDb.q.mock.calls.find(
         c => String(c[0]).includes('verified_at=now()'),
@@ -172,9 +174,9 @@ describe('TotpService', () => {
       // verifyCode returns null (default) — TOTP check fails, backup code succeeds
       const backupDto = {...dto, code: 'ABCD1234'};   // 8-char
       mockDb.qOne
+        .mockResolvedValueOnce(FAKE_USER)             // account loaded first
         .mockResolvedValueOnce(row)
-        .mockResolvedValueOnce({id: 'bc-1'})          // backup code claimed
-        .mockResolvedValueOnce(FAKE_USER);
+        .mockResolvedValueOnce({id: 'bc-1'});         // backup code claimed
       const result = await service.verify(USER_ID, backupDto as any, '1.1.1.1');
       expect(result.accessToken).toBe('tok');
     });
@@ -182,9 +184,9 @@ describe('TotpService', () => {
     it('marks backup code as used_at after consumption', async () => {
       const backupDto = {...dto, code: 'ABCD1234'};
       mockDb.qOne
+        .mockResolvedValueOnce(FAKE_USER)
         .mockResolvedValueOnce(row)
-        .mockResolvedValueOnce({id: 'bc-1'})
-        .mockResolvedValueOnce(FAKE_USER);
+        .mockResolvedValueOnce({id: 'bc-1'});
       await service.verify(USER_ID, backupDto as any, '1.1.1.1');
       // The consume is now a single atomic UPDATE ... RETURNING issued through
       // qOne (it used to be a SELECT via qOne then an UPDATE via q — a TOCTOU
@@ -197,7 +199,7 @@ describe('TotpService', () => {
 
     it('emits auth.totp.verify failure on wrong code', async () => {
       // verifyCode defaults to null — no override needed
-      mockDb.qOne.mockResolvedValueOnce(row);
+      mockDb.qOne.mockResolvedValueOnce(FAKE_USER).mockResolvedValueOnce(row);
       await expect(service.verify(USER_ID, dto as any, '1.1.1.1')).rejects.toBeDefined();
       expect(mockAudit.emit).toHaveBeenCalledWith(
         expect.objectContaining({event_type: 'auth.totp.verify', outcome: 'failure'}),
@@ -207,8 +209,8 @@ describe('TotpService', () => {
     it('emits auth.totp.verify success on valid code', async () => {
       mockCrypto.verifyCode.mockReturnValue(0);
       mockDb.qOne
-        .mockResolvedValueOnce(row)
-        .mockResolvedValueOnce(FAKE_USER);
+        .mockResolvedValueOnce(FAKE_USER)
+        .mockResolvedValueOnce(row);
       await service.verify(USER_ID, dto as any, '1.1.1.1');
       expect(mockAudit.emit).toHaveBeenCalledWith(
         expect.objectContaining({event_type: 'auth.totp.verify', outcome: 'success'}),

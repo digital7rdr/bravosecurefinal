@@ -201,19 +201,42 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
 
 // ─── Auth (ops-console login) ───────────────────────────────────────
 
+export interface TotpEnrolment {
+  uri:         string;
+  secret:      string;
+  backupCodes: string[];
+}
+export interface LoginStartResult {
+  userId:       string | null;
+  otpSentTo:    string | null;
+  challengeId:  string | null;
+  secondFactor: 'sms' | 'totp' | 'totp_enrol' | null;
+  enrol:        TotpEnrolment | null;
+}
+
 export const authApi = {
-  /** Step 1 — phone + password → triggers OTP, returns the userId. */
+  /**
+   * Step 1 — phone + password. What comes back depends on the server's
+   * AUTH_SECOND_FACTOR:
+   *   sms         → an OTP was sent to `otpSentTo`
+   *   totp        → `challengeId`; user enters their authenticator code
+   *   totp_enrol  → `challengeId` + `enrol` (otpauth URI, manual key, backup
+   *                 codes) — the account has no verified authenticator yet,
+   *                 so this login doubles as enrolment
+   * A wrong password returns every field null (no account enumeration). An
+   * older server omits the three new fields; they read as undefined → SMS.
+   */
   loginStart: (phoneE164: string, password: string) =>
-    fetchJson<{userId: string | null; otpSentTo: string | null}>(
+    fetchJson<LoginStartResult>(
       `/auth/login`,
       {method: 'POST', body: JSON.stringify({phoneE164, password})},
     ),
 
-  /** Step 2 — userId + OTP → returns access + refresh tokens. */
-  loginVerify: (userId: string, code: string, deviceId: string) =>
+  /** Step 2 — code → tokens. `challengeId` is required in TOTP mode. */
+  loginVerify: (userId: string, code: string, deviceId: string, challengeId?: string | null) =>
     fetchJson<{user: {id: string; role: string}; accessToken: string; refreshToken: string; expiresIn: number}>(
       `/auth/verify`,
-      {method: 'POST', body: JSON.stringify({userId, code, deviceId, platform: 'web'})},
+      {method: 'POST', body: JSON.stringify({userId, code, deviceId, platform: 'web', ...(challengeId ? {challengeId} : {})})},
     ),
 
   // Audit fix 0.1 — registerStart + registerVerifyAdmin removed alongside

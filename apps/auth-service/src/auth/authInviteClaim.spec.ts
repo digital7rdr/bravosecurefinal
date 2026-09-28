@@ -11,6 +11,7 @@ import {Test, TestingModule} from '@nestjs/testing';
 import {ConflictException} from '@nestjs/common';
 import {ConfigService}   from '@nestjs/config';
 import {AuthService}     from './auth.service';
+import {TotpChallengeService} from '../common/services/totp-challenge.service';
 import {JwtService}      from './jwt.service';
 import {DatabaseService} from '../database/database.service';
 import {RedisService}    from '../redis/redis.service';
@@ -72,6 +73,7 @@ describe('AuthService — SMS invite claim', () => {
         {provide: OtpService, useValue: mockOtp},
         {provide: JwtService, useValue: mockJwt},
         {provide: ConfigService, useValue: mockConfig},
+        {provide: TotpChallengeService, useValue: {status: jest.fn().mockResolvedValue('none'), enrol: jest.fn(), check: jest.fn()}},
       ],
     }).compile();
     service = module.get(AuthService);
@@ -81,7 +83,7 @@ describe('AuthService — SMS invite claim', () => {
     it('a pending invite for THIS phone is not a conflict — the OTP is sent', async () => {
       mockDb.qOne.mockResolvedValueOnce({id: 'inv-1'});
       routeQ([inviteRow()]);
-      await expect(service.register(signup as never, '1.1.1.1')).resolves.toEqual({otpSentTo: PHONE});
+      await expect(service.register(signup as never, '1.1.1.1')).resolves.toEqual({userId: null, otpSentTo: PHONE, challengeId: null, secondFactor: 'sms', enrol: null});
       expect(mockOtp.send).toHaveBeenCalledWith(PHONE, '');
     });
 

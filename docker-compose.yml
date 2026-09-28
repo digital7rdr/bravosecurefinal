@@ -150,23 +150,25 @@ services:
       # bound to 127.0.0.1 inside the coturn host). coturn relays
       # blindly because it has no business-logic layer; the only place
       # to gate this is the relay config.
-      #   --no-loopback-peers       — denies relay to 127.0.0.0/8 and
-      #                                ::1, so services bound locally
-      #                                on the coturn host stay invisible.
+      #   loopback                  — coturn 4.6 refuses loopback peers
+      #                                by default (the old
+      #                                --no-loopback-peers flag was removed
+      #                                and now aborts startup); the explicit
+      #                                127.0.0.0/8 and ::1 denials below
+      #                                keep locally bound services invisible.
       #   --denied-peer-ip ranges   — the canonical SSRF denylist:
       #                                RFC1918 private space + RFC6890
       #                                special-use + AWS/GCP IMDS.
       #   --allowed-peer-ip empty   — explicit allowlist not used
       #                                (every public peer remains open;
       #                                this gate is denylist-only).
-      - --no-loopback-peers
       # RFC1918
       - --denied-peer-ip=10.0.0.0-10.255.255.255
       - --denied-peer-ip=172.16.0.0-172.31.255.255
       - --denied-peer-ip=192.168.0.0-192.168.255.255
       # Link-local + IMDS (AWS / GCP / OpenStack all share 169.254.169.254)
       - --denied-peer-ip=169.254.0.0-169.254.255.255
-      # Loopback (belt-and-braces with --no-loopback-peers)
+      # Loopback (coturn 4.6 also refuses it by default)
       - --denied-peer-ip=127.0.0.0-127.255.255.255
       # IETF assignments — TEST-NET, benchmark, multicast, reserved
       - --denied-peer-ip=0.0.0.0-0.255.255.255
@@ -179,11 +181,11 @@ services:
       - --denied-peer-ip=224.0.0.0-239.255.255.255
       - --denied-peer-ip=240.0.0.0-255.255.255.255
       # IPv6 loopback + link-local + ULA + IMDS-equivalent
-      - --denied-peer-ip=::-::
-      - --denied-peer-ip=::1-::1
-      - --denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
-      - --denied-peer-ip=fe80::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff
-      - --denied-peer-ip=fd00:ec2::-fd00:ec2:ffff:ffff:ffff:ffff:ffff:ffff
+      - "--denied-peer-ip=::-::"
+      - "--denied-peer-ip=::1-::1"
+      - "--denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
+      - "--denied-peer-ip=fe80::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
+      - "--denied-peer-ip=fd00:ec2::-fd00:ec2:ffff:ffff:ffff:ffff:ffff:ffff"
       - --log-file=stdout
       - --simple-log
     restart: unless-stopped

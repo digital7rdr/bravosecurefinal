@@ -9,8 +9,14 @@ Two changes made together:
    channel, App Check and the iOS path — see "What still uses Firebase".
 
 WhatsApp and Unifonic were built on 2026-09-27 and removed on 2026-09-28 at
-the owner's request; they never reached GitHub. Authenticator-app codes are a
-planned follow-up.
+the owner's request; they never reached GitHub.
+
+**Production (bravosecure.cloud) does not use SMS at all:** it runs
+`AUTH_SECOND_FACTOR=totp` — an authenticator app is the second factor for
+login, registration and vault-PIN reset (see `deploy/production/README.md`).
+The Twilio modes below apply only where `AUTH_SECOND_FACTOR=sms` (the
+default), e.g. the old staging server. Without Twilio, VBG alert texts and
+ops invite SMS are not sent (they log "not sent"); share invites another way.
 
 Nothing changes on a deployment until someone changes a setting: with no OTP
 mode chosen the servers behave exactly as before (Twilio Verify when its SID

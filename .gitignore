@@ -157,3 +157,15 @@ roles_*.sql
 
 # Claude desktop app writes session deliverables (screenshots, previews) here
 /Claude outputs/
+
+# production secrets — generated on the box by deploy/production/make-env.sh
+# (ported 2026-09-28 with deploy/production from the bravosecure.cloud branch)
+deploy/production/.env
+deploy/production/.env.*
+deploy/production/secrets/
+deploy/production/package.json
+deploy/production/package-lock.json
+deploy/production/node_modules/
+# client env files for *:staging:mac / *:prod:mac — may carry tokens
+config/staging.env
+config/production.env

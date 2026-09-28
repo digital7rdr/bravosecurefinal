@@ -5,6 +5,7 @@ import {RedisService}    from '../redis/redis.service';
 import {AuditService}    from '../kafka/audit.service';
 import {PasswordService} from '../common/services/password.service';
 import {OtpService}      from '../common/services/otp.service';
+import {TotpChallengeService, type TotpEnrolment} from '../common/services/totp-challenge.service';
 import {JwtService}      from './jwt.service';
 import {resolveAccountKind, resolveIsOrgManager, resolveManagerContext} from './account-kind';
 import {IDENTITY_FACTS_UNKNOWN, resolveIdentityDocument} from '../identity/identityGate';
@@ -51,7 +52,53 @@ export class AuthService {
     private readonly otp:      OtpService,
     private readonly jwt:      JwtService,
     private readonly config:   ConfigService,
+    private readonly totp:     TotpChallengeService,
   ) {}
+
+  // ── Second factor (AUTH_SECOND_FACTOR) ────────────────────────────────────
+  // Ported 2026-09-28 from the bravosecure.cloud production branch. 'sms' is
+  // the Twilio code path below; 'totp' is an authenticator app, no SMS needed.
+  private get secondFactor(): 'sms' | 'totp' {
+    return this.config.get<'sms' | 'totp'>('auth.secondFactor') ?? 'sms';
+  }
+
+  /**
+   * TOTP mode — open a login challenge for a user who has passed the
+   * password step. The row's id is the opaque `challengeId` the client must
+   * echo to /auth/verify. Reuses `auth_otps` (channel already permits
+   * 'totp') so expiry, attempt caps and single-use come for free from the
+   * same machinery the SMS path is audited on.
+   */
+  private async openTotpChallenge(userId: string): Promise<string> {
+    const expiresAt = new Date(Date.now() + (this.config.get<number>('otp.ttlMinutes') ?? 10) * 60_000);
+    const [row] = await this.db.q<{id: string}>(
+      `INSERT INTO auth_otps (user_id,channel,code_hash,expires_at) VALUES ($1,'totp','TOTP',$2) RETURNING id`,
+      [userId, expiresAt],
+    );
+    return row.id;
+  }
+
+  /**
+   * TOTP mode — the second step of login/registration. A verified seed
+   * means "enter your authenticator code"; anything else means the user has
+   * never completed enrolment, so hand them a fresh seed to enrol with. The
+   * password step is the only thing gating enrolment, which is the
+   * unavoidable bootstrap for any second factor — and is why enrol() is
+   * refused the moment a VERIFIED seed exists.
+   */
+  private async totpSecondStep(user: UserRow, ip: string): Promise<{
+    challengeId: string;
+    secondFactor: 'totp' | 'totp_enrol';
+    enrol: TotpEnrolment | null;
+  }> {
+    const challengeId = await this.openTotpChallenge(user.id);
+    const status      = await this.totp.status(user.id);
+    if (status === 'verified') {
+      return {challengeId, secondFactor: 'totp', enrol: null};
+    }
+    const enrol = await this.totp.enrol(user.id, user.email ?? user.phone_e164 ?? user.id, null, ip);
+    return {challengeId, secondFactor: 'totp_enrol', enrol};
+  }
 
   // ── Shared: create access + refresh tokens for a verified device ─────────
   async issueSession(
@@ -170,6 +217,8 @@ export class AuthService {
 
   // ── register (step 1: dup-check + send OTP only — NO user row created) ────
   async register(dto: RegisterDto, ip: string) {
+    if (this.secondFactor === 'totp') return this.registerTotp(dto, ip);
+
     const existing = await this.db.qOne(
       `SELECT id FROM public.users WHERE (email=$1 OR phone_e164=$2) AND deleted_at IS NULL`,
       [dto.email, dto.phoneE164],
@@ -212,11 +261,106 @@ export class AuthService {
     }
 
     await this.audit.emit({event_type:'auth.register', user_id:null, device_id:null, ip, outcome:'success', detail:'otp_sent'});
-    return {otpSentTo: dto.phoneE164};
+    // Same shape as the TOTP branch so clients read ONE contract per endpoint.
+    return {userId: null, otpSentTo: dto.phoneE164, challengeId: null, secondFactor: 'sms' as const, enrol: null};
+  }
+
+  // ── register, TOTP mode ───────────────────────────────────────────────────
+  //
+  // The SMS flow creates the user only AFTER the phone is proven. With TOTP
+  // there is nothing to prove before the seed exists, so the user is created
+  // here (kyc_status 'pending' — the SMS path's 'approved' meant "phone
+  // proven", which has not happened) and the enrolment payload is returned.
+  // verify() flips kyc to 'approved' on the first successful code.
+  //
+  // What an existing row may be:
+  //   * an admin-created invite for THIS phone → claimed here (the person sets
+  //     their own password), exactly like the SMS path's registerVerify;
+  //   * an unfinished TOTP sign-up — a seed that was never verified AND the
+  //     account has never had a session → "start over" (new password, new
+  //     seed) so an abandoned enrolment does not lock the number out;
+  //   * anything else (a verified seed, OR an existing password account with
+  //     no seed — e.g. users migrated from the SMS era) → already_exists. Those
+  //     accounts enrol their authenticator by logging in with their password.
+  //     Resetting them here would let anyone who knows a phone number take
+  //     over the account.
+  private async registerTotp(dto: RegisterDto, ip: string) {
+    const existing = await this.db.qOne<{id: string}>(
+      `SELECT id FROM public.users WHERE (email=$1 OR phone_e164=$2) AND deleted_at IS NULL`,
+      [dto.email, dto.phoneE164],
+    );
+
+    const pwHash = await this.password.hash(dto.password);
+    let userId: string;
+    let detail = 'totp_enrol_issued';
+    if (existing) {
+      const inviteId = await this.claimableInvite(dto.email, dto.phoneE164);
+      if (inviteId) {
+        const claimed = await this.db.qOne<{id: string}>(
+          `UPDATE public.users
+              SET password_hash = $2, password_set_at = now(), invite_expires_at = NULL,
+                  display_name = COALESCE(NULLIF(display_name, ''), $3)
+            WHERE id = $1 AND password_hash IS NULL AND invited_at IS NOT NULL AND deleted_at IS NULL
+            RETURNING id`,
+          [inviteId, pwHash, dto.displayName],
+        );
+        if (!claimed) {
+          await this.audit.emit({event_type:'auth.register', user_id:null, device_id:null, ip, outcome:'failure', detail:'already_exists'});
+          throw new ConflictException('already_exists');
+        }
+        userId = claimed.id;
+        detail = 'invite_claimed';
+      } else {
+        const status = await this.totp.status(existing.id);
+        const everSignedIn = await this.db.qOne<{n: number}>(
+          `SELECT count(*)::int AS n FROM auth_devices WHERE user_id=$1`, [existing.id]);
+        const abandoned = status === 'pending' && (everSignedIn?.n ?? 0) === 0;
+        if (!abandoned) {
+          await this.audit.emit({event_type:'auth.register', user_id:null, device_id:null, ip, outcome:'failure', detail:'already_exists'});
+          throw new ConflictException('already_exists');
+        }
+        await this.db.q(
+          `UPDATE public.users SET password_hash=$2, display_name=$3 WHERE id=$1`,
+          [existing.id, pwHash, dto.displayName],
+        );
+        userId = existing.id;
+      }
+    } else {
+      const [inserted] = await this.db.q<{id: string}>(
+        `INSERT INTO public.users
+           (id,email,phone_e164,display_name,role,subscription_tier,password_hash,kyc_status)
+         VALUES (gen_random_uuid(),$1,$2,$3,'individual','lite',$4,'pending') RETURNING id`,
+        [dto.email, dto.phoneE164, dto.displayName, pwHash],
+      );
+      userId = inserted.id;
+    }
+
+    const user = await this.db.qOne<UserRow>(
+      `SELECT id,email,display_name,role,subscription_tier,phone_e164 FROM public.users WHERE id=$1`,
+      [userId],
+    );
+    if (!user) throw new NotFoundException('user_not_found');
+
+    const step = await this.totpSecondStep(user, ip);
+    await this.audit.emit({event_type:'auth.register', user_id:user.id, device_id:null, ip, outcome:'success', detail});
+    return {userId: user.id, otpSentTo: null, ...step};
   }
 
   // ── register (step 2: Twilio approves → create user + issue session) ──────
   async registerVerify(dto: RegisterVerifyDto, ip: string) {
+    if (this.secondFactor === 'totp') {
+      // The user already exists (created by registerTotp); this is just the
+      // code step. Resolve the id from the phone and run the same path as
+      // login → verify. New clients should call /auth/verify directly.
+      const u = await this.db.qOne<{id: string}>(
+        `SELECT id FROM public.users WHERE phone_e164=$1 AND deleted_at IS NULL`, [dto.phoneE164]);
+      if (!u) throw new BadRequestException('otp_invalid');
+      return this.verify({
+        userId: u.id, code: dto.code, deviceId: dto.deviceId, platform: dto.platform, challengeId: dto.challengeId,
+        deviceModel: dto.deviceModel, deviceBrand: dto.deviceBrand, osVersion: dto.osVersion, appVersion: dto.appVersion,
+      }, ip);
+    }
+
     const approved = await this.otp.check(dto.phoneE164, dto.code);
     if (!approved) {
       await this.audit.emit({event_type:'auth.register', user_id:null, device_id:dto.deviceId, ip, outcome:'failure', detail:'otp_invalid'});
@@ -327,7 +471,13 @@ export class AuthService {
     if (!ok) {
       await this.audit.emit({event_type:'auth.login', user_id:user?.id??null, device_id:null, ip, outcome:'failure', detail:'invalid_credentials'});
       // Same response shape whether account exists or not — prevent enumeration.
-      return {userId: null, otpSentTo: null, devOtpCode: null};
+      return {userId: null, otpSentTo: null, devOtpCode: null, challengeId: null, secondFactor: null, enrol: null};
+    }
+
+    if (this.secondFactor === 'totp') {
+      const step = await this.totpSecondStep(user!, ip);
+      await this.audit.emit({event_type:'auth.login', user_id:user!.id, device_id:null, ip, outcome:'success', detail:step.secondFactor});
+      return {userId: user!.id, otpSentTo: null, devOtpCode: null, ...step};
     }
 
     // Twilio Verify owns the OTP code; local row only tracks attempt_count/expiry.
@@ -357,6 +507,7 @@ export class AuthService {
       [dto.userId],
     );
     if (!user) throw new NotFoundException('user_not_found');
+    if (this.secondFactor === 'totp') return this.verifyTotp(user, dto, ip);
     if (!user.phone_e164) throw new BadRequestException('user_has_no_phone');
 
     const maxAttempts = this.config.get<number>('otp.maxAttempts') ?? 3;
@@ -393,6 +544,53 @@ export class AuthService {
     // this account). refresh() deliberately passes the default (false).
     const session = await this.issueSession(user, dto.deviceId, dto.platform, true, dto);
     await this.audit.emit({event_type:'auth.verify', user_id:dto.userId, device_id:dto.deviceId, ip, outcome:'success'});
+    return {user, ...session};
+  }
+
+  // ── verify, TOTP mode ─────────────────────────────────────────────────────
+  //
+  // The caller has ALREADY loaded `user` with deleted_at/suspended_at checks —
+  // TotpChallengeService.check() stamps verified_at on success and must only
+  // run for an account that is known good (see its contract note).
+  private async verifyTotp(user: UserRow, dto: VerifyDto, ip: string) {
+    if (!dto.challengeId) throw new BadRequestException('challenge_required');
+
+    const maxAttempts = this.config.get<number>('otp.maxAttempts') ?? 3;
+    const challenge = await this.db.qOne<{id:string; expires_at:Date; used_at:Date|null; attempt_count:number}>(
+      `SELECT id,expires_at,used_at,attempt_count FROM auth_otps
+        WHERE id=$1 AND user_id=$2 AND channel='totp'`,
+      [dto.challengeId, user.id],
+    );
+    // One error code for "no such challenge" and "not yours": naming the
+    // difference would let a caller probe which challenge ids exist.
+    if (!challenge)                                   throw new BadRequestException('no_pending_otp');
+    if (challenge.used_at)                            throw new BadRequestException('otp_already_used');
+    if (new Date(challenge.expires_at) < new Date())  throw new BadRequestException('otp_expired');
+    if (challenge.attempt_count >= maxAttempts)       throw new BadRequestException('otp_max_attempts');
+
+    try {
+      await this.totp.check(user.id, dto.code, dto.deviceId, ip);
+    } catch (err) {
+      // Wrong code: burn an attempt on the challenge (the TOTP-level lockout
+      // in check() is a second, independent brake on the same account).
+      const next = challenge.attempt_count + 1;
+      if (next >= maxAttempts) {
+        await this.db.q(`UPDATE auth_otps SET attempt_count=$1,used_at=now() WHERE id=$2`, [next, challenge.id]);
+        await this.audit.emit({event_type:'auth.verify', user_id:user.id, device_id:dto.deviceId, ip, outcome:'failure', detail:'otp_max_attempts_reached'});
+        throw new BadRequestException('otp_max_attempts');
+      }
+      await this.db.q(`UPDATE auth_otps SET attempt_count=$1 WHERE id=$2`, [next, challenge.id]);
+      await this.audit.emit({event_type:'auth.verify', user_id:user.id, device_id:dto.deviceId, ip, outcome:'failure', detail:'otp_invalid'});
+      if (err instanceof BadRequestException && (err.getResponse() as {message?: string})?.message === 'totp_not_setup') throw err;
+      throw new BadRequestException({error:'otp_invalid', attemptsLeft: maxAttempts - next});
+    }
+
+    await this.db.q(`UPDATE auth_otps SET used_at=now() WHERE id=$1`, [challenge.id]);
+    await this.db.q(`UPDATE public.users SET kyc_status='approved' WHERE id=$1 AND kyc_status='pending'`, [user.id]);
+
+    // Fresh login → single active device per platform, same as the SMS path.
+    const session = await this.issueSession(user, dto.deviceId, dto.platform, true, dto);
+    await this.audit.emit({event_type:'auth.verify', user_id:user.id, device_id:dto.deviceId, ip, outcome:'success', detail:'totp'});
     return {user, ...session};
   }
 

@@ -3,6 +3,7 @@ import {NestFactory}          from '@nestjs/core';
 import {ValidationPipe}       from '@nestjs/common';
 import type {NestExpressApplication} from '@nestjs/platform-express';
 import {AppModule}            from './app.module';
+import {MessagingService}     from './messaging/messaging.service';
 import {join}                 from 'node:path';
 import {mkdirSync}            from 'node:fs';
 
@@ -189,6 +190,21 @@ async function bootstrap(): Promise<void> {
   // Step 26 — run onModuleDestroy on SIGTERM so the Redis-locked watchdog/SLO/
   // reconciliation sweeps clear their timers cleanly on a rolling deploy.
   app.enableShutdownHooks();
+
+  // Which second factor gates login (AUTH_SECOND_FACTOR, default 'sms'). In
+  // production, 'sms' with no usable Twilio credentials is a silent lock-out:
+  // devFlag() has already forced the OTP dev-bypass off, so every login would
+  // die at otp.send(). Refuse to start instead. init() first so the settings
+  // snapshot is warm and Twilio keys saved in the ops console count too
+  // (listen() would run the same init anyway).
+  const secondFactor = process.env.AUTH_SECOND_FACTOR === 'totp' ? 'totp' : 'sms';
+  if (process.env.NODE_ENV === 'production' && secondFactor === 'sms') {
+    await app.init();
+    if (!app.get(MessagingService).otpMode()) {
+      throw new Error('refusing_to_start: AUTH_SECOND_FACTOR=sms in production but Twilio is not configured — set AUTH_SECOND_FACTOR=totp, or supply Twilio credentials (env or Integrations → Twilio)');
+    }
+  }
+  console.log(`[auth-service] second factor: ${secondFactor}`);
 
   const port = process.env['PORT'] ?? 3001;
   await app.listen(port, '0.0.0.0');

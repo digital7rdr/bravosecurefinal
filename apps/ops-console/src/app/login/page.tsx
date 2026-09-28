@@ -2,7 +2,8 @@
 
 import {useState, useEffect} from 'react';
 import {useRouter} from 'next/navigation';
-import {authApi, deviceId} from '@/lib/api';
+import {authApi, deviceId, type LoginStartResult} from '@/lib/api';
+import QRCode from 'qrcode';
 import {AuthLayout, Field, Note, Err, authCol} from '@/components/auth-primitives';
 
 export default function LoginPage() {
@@ -10,7 +11,10 @@ export default function LoginPage() {
   const [phone,    setPhone]    = useState('');
   const [password, setPassword] = useState('');
   const [otp,      setOtp]      = useState('');
-  const [userId,   setUserId]   = useState<string | null>(null);
+  const [step,     setStep]     = useState<LoginStartResult | null>(null);   // non-null once the password step passed
+  const [qr,       setQr]       = useState<string | null>(null);              // data-URL of the enrolment QR
+  const [saved,    setSaved]    = useState(false);                            // "I saved my backup codes"
+  const userId = step?.userId ?? null;
   const [busy,     setBusy]     = useState(false);
   const [err,      setErr]      = useState<string | null>(null);
   const [idleNote, setIdleNote] = useState(false);
@@ -37,6 +41,15 @@ export default function LoginPage() {
     }
   }, [router]);
 
+  useEffect(() => {
+    if (!step?.enrol) { setQr(null); return; }
+    let live = true;
+    QRCode.toDataURL(step.enrol.uri, {margin: 2, width: 196, color: {dark: '#06142B', light: '#FFFFFF'}})   // dark-on-white: inverted codes trip some phone scanners
+      .then(url => { if (live) setQr(url); })
+      .catch(() => { if (live) setQr(null); });   // manual key is always shown as the fallback
+    return () => { live = false; };
+  }, [step]);
+
   async function onLogin(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
@@ -47,7 +60,8 @@ export default function LoginPage() {
         setErr('Wrong phone or password.');
         return;
       }
-      setUserId(res.userId);
+      setSaved(false);
+      setStep(res);
     } catch (e) {
       setErr((e as Error).message);
     } finally { setBusy(false); }
@@ -58,7 +72,7 @@ export default function LoginPage() {
     if (busy || !userId) return;
     setBusy(true); setErr(null);
     try {
-      const res = await authApi.loginVerify(userId, otp, deviceId());
+      const res = await authApi.loginVerify(userId, otp, deviceId(), step?.challengeId);
       // Audit fix 0.4 — no client-side session persistence: the auth-service
       // set the httpOnly cookies on /auth/verify; the tokens in `res` are
       // never stored by JS.
@@ -80,7 +94,7 @@ export default function LoginPage() {
       {idleNote && (
         <Note>Signed out after 15 minutes of inactivity. Sign in to continue.</Note>
       )}
-      {!userId && (
+      {!step && (
         <form onSubmit={onLogin} style={authCol(12)}>
           <Field label="Phone (E.164)" placeholder="+919876543210"
             value={phone} onChange={setPhone} autoFocus inputMode="tel"/>
@@ -89,7 +103,7 @@ export default function LoginPage() {
           <button className="btn btn-pri" disabled={busy || !phone || !password}
             type="submit"
             style={{height:42,justifyContent:'center',fontSize:13,marginTop:6}}>
-            {busy ? 'SENDING OTP…' : 'CONTINUE'}
+            {busy ? 'CHECKING…' : 'CONTINUE'}
           </button>
           {/* Audit fix 0.1 — public admin self-registration removed. New
               admins are added by an existing ADMIN via an invite flow
@@ -97,24 +111,64 @@ export default function LoginPage() {
         </form>
       )}
 
-      {userId && (
+      {step && (
         <form onSubmit={onVerify} style={authCol(12)}>
-          <Note>
-            OTP sent to <b style={{color:'var(--tx-1)'}}>{phone}</b>.
-          </Note>
-          <Field label="One-time code" placeholder="123456"
-            value={otp} onChange={setOtp} autoFocus inputMode="numeric"/>
+          {step.secondFactor === 'totp_enrol' && step.enrol && (
+            <>
+              <Note>
+                This account has no authenticator yet. Scan the code with
+                <b style={{color:'var(--tx-1)'}}> Google Authenticator</b>, Aegis, 1Password or
+                any TOTP app, then enter the 6-digit code it shows.
+              </Note>
+              <div style={{display:'flex',gap:14,alignItems:'flex-start'}}>
+                {qr
+                  ? // eslint-disable-next-line @next/next/no-img-element -- generated data-URL; nothing for next/image to fetch or optimise
+                    <img src={qr} alt="Authenticator enrolment QR" width={148} height={148}
+                      style={{borderRadius:8,border:'1px solid var(--bd-2)',flex:'0 0 auto'}}/>
+                  : <div style={{width:148,height:148,borderRadius:8,border:'1px dashed var(--bd-2)',
+                      display:'grid',placeItems:'center',fontSize:11,color:'var(--tx-3)'}}>QR unavailable</div>}
+                <div style={{fontSize:12,color:'var(--tx-2)',minWidth:0}}>
+                  <div style={{fontFamily:'var(--font-mono)',fontSize:10.5,letterSpacing:0.5,color:'var(--tx-3)',marginBottom:4}}>
+                    CAN&apos;T SCAN? ENTER THIS KEY
+                  </div>
+                  <code style={{display:'block',fontFamily:'var(--font-mono)',fontSize:12,wordBreak:'break-all',
+                    padding:'6px 8px',borderRadius:6,background:'var(--surf-3)',border:'1px solid var(--bd-2)',userSelect:'all'}}>
+                    {step.enrol.secret}
+                  </code>
+                  <div style={{fontFamily:'var(--font-mono)',fontSize:10.5,letterSpacing:0.5,color:'var(--tx-3)',margin:'10px 0 4px'}}>
+                    BACKUP CODES — SHOWN ONCE
+                  </div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'2px 10px',fontFamily:'var(--font-mono)',fontSize:11.5,userSelect:'all'}}>
+                    {step.enrol.backupCodes.map(c => <span key={c}>{c}</span>)}
+                  </div>
+                </div>
+              </div>
+              <label style={{display:'flex',gap:8,alignItems:'center',fontSize:12,color:'var(--tx-2)',cursor:'pointer'}}>
+                <input type="checkbox" checked={saved} onChange={e => setSaved(e.target.checked)}/>
+                I have saved the backup codes somewhere safe.
+              </label>
+            </>
+          )}
+          {step.secondFactor === 'totp' && (
+            <Note>Enter the 6-digit code from your authenticator app, or an 8-character backup code.</Note>
+          )}
+          {(step.secondFactor === 'sms' || step.secondFactor === null) && (
+            <Note>OTP sent to <b style={{color:'var(--tx-1)'}}>{step.otpSentTo ?? phone}</b>.</Note>
+          )}
+          <Field label={step.secondFactor?.startsWith('totp') ? 'Authenticator code' : 'One-time code'} placeholder="123456"
+            value={otp} onChange={setOtp} autoFocus inputMode={step.secondFactor === 'totp' ? 'text' : 'numeric'}/>
           {err && <Err msg={err}/>}
           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
             <button type="button" className="btn btn-ghost"
-              onClick={() => { setUserId(null); setOtp(''); setErr(null); }}
+              onClick={() => { setStep(null); setOtp(''); setErr(null); }}
               style={{height:42,justifyContent:'center',fontSize:13}}>
               BACK
             </button>
-            <button className="btn btn-pri" disabled={busy || otp.length < 4}
+            <button className="btn btn-pri"
+              disabled={busy || otp.length < 4 || (step.secondFactor === 'totp_enrol' && !saved)}
               type="submit"
               style={{height:42,justifyContent:'center',fontSize:13}}>
-              {busy ? 'VERIFYING…' : 'SIGN IN'}
+              {busy ? 'VERIFYING…' : step.secondFactor === 'totp_enrol' ? 'ENROL & SIGN IN' : 'SIGN IN'}
             </button>
           </div>
         </form>

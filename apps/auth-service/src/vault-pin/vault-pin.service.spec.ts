@@ -16,6 +16,8 @@ import {AuditService} from '../kafka/audit.service';
 import {JwtService} from '../auth/jwt.service';
 import {PasswordService} from '../common/services/password.service';
 import {OtpService} from '../common/services/otp.service';
+import {TotpChallengeService} from '../common/services/totp-challenge.service';
+import {ConfigService} from '@nestjs/config';
 
 const mockDb = {qOne: jest.fn(), q: jest.fn()};
 const mockRedis = {
@@ -66,6 +68,8 @@ describe('VaultPinService', () => {
         {provide: JwtService,      useValue: mockJwt},
         {provide: PasswordService, useValue: mockPassword},
         {provide: OtpService,      useValue: mockOtp},
+        {provide: TotpChallengeService, useValue: {status: jest.fn().mockResolvedValue('verified'), check: jest.fn()}},
+        {provide: ConfigService,   useValue: {get: jest.fn().mockReturnValue(undefined)}},
       ],
     }).compile();
     svc = module.get(VaultPinService);
@@ -170,7 +174,7 @@ describe('VaultPinService', () => {
       expect(mockPassword.verify).toHaveBeenCalledWith('$argon2id$pw', 'correct');
       expect(mockOtp.send).toHaveBeenCalledWith('+8801812345678', '');
       expect(out.maskedPhone).not.toContain('12345');
-      expect(out.maskedPhone.startsWith('+8801')).toBe(true);
+      expect(out.maskedPhone!.startsWith('+8801')).toBe(true);
     });
 
     it('request: no phone on file → reset_unavailable, nothing sent', async () => {

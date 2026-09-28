@@ -8,6 +8,7 @@ import {RedisService}    from '../redis/redis.service';
 import {AuditService}    from '../kafka/audit.service';
 import {PasswordService} from '../common/services/password.service';
 import {OtpService}      from '../common/services/otp.service';
+import {TotpChallengeService} from '../common/services/totp-challenge.service';
 
 // ── Mocks ─────────────────────────────────────────────────────────────────
 const mockDb = {
@@ -85,6 +86,7 @@ describe('AuthService', () => {
         {provide: OtpService,      useValue: mockOtp},
         {provide: JwtService,      useValue: mockJwt},
         {provide: ConfigService,   useValue: mockConfig},
+        {provide: TotpChallengeService, useValue: {status: jest.fn().mockResolvedValue('none'), enrol: jest.fn(), check: jest.fn()}},
       ],
     }).compile();
     service = module.get(AuthService);
@@ -108,7 +110,7 @@ describe('AuthService', () => {
       // registerVerify() once the OTP is approved.
       expect(mockOtp.send).toHaveBeenCalledWith(dto.phoneE164, '');
       expect(mockPw.hash).not.toHaveBeenCalled();
-      expect(result).toEqual({otpSentTo: dto.phoneE164});
+      expect(result).toEqual({userId: null, otpSentTo: dto.phoneE164, challengeId: null, secondFactor: 'sms', enrol: null});
     });
 
     it('emits audit success event', async () => {

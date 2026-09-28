@@ -5,6 +5,8 @@ import {AuditService} from '../kafka/audit.service';
 import {JwtService} from '../auth/jwt.service';
 import {PasswordService} from '../common/services/password.service';
 import {OtpService} from '../common/services/otp.service';
+import {TotpChallengeService} from '../common/services/totp-challenge.service';
+import {ConfigService} from '@nestjs/config';
 import type {
   SetVaultPinDto, VerifyVaultPinDto,
   VaultPinResetRequestDto, VaultPinResetVerifyDto, VaultPinResetCompleteDto,
@@ -51,7 +53,13 @@ export class VaultPinService {
     private readonly jwt:      JwtService,
     private readonly password: PasswordService,
     private readonly otp:      OtpService,
+    private readonly totp:     TotpChallengeService,
+    private readonly config:   ConfigService,
   ) {}
+
+  private get secondFactor(): 'sms' | 'totp' {
+    return this.config.get<'sms' | 'totp'>('auth.secondFactor') ?? 'sms';
+  }
 
   async status(userId: string): Promise<{exists: boolean}> {
     const row = await this.db.qOne<{user_id: string}>(
@@ -119,6 +127,14 @@ export class VaultPinService {
       await this.recordFailure(userId, deviceId, ip, 'auth.vault_pin.reset', 'wrong_password');
       throw new ForbiddenException('reset_denied');
     }
+    if (this.secondFactor === 'totp') {
+      // No SMS to send: the client shows the authenticator code box directly.
+      // A user with no verified seed cannot reset this way — they never
+      // finished enrolment, so there is no second factor to reset against.
+      if ((await this.totp.status(userId)) !== 'verified') throw new BadRequestException('reset_unavailable');
+      await this.audit.emit({event_type: 'auth.vault_pin.reset', user_id: userId, device_id: deviceId, ip, outcome: 'success', detail: 'totp_challenge'});
+      return {maskedPhone: null, method: 'totp' as const};
+    }
     if (!user?.phone_e164) {
       // No phone on file — nothing to send an OTP to. Distinct code so the
       // client can route to support instead of showing a code box.
@@ -126,7 +142,7 @@ export class VaultPinService {
     }
     await this.otp.send(user.phone_e164, '');   // send-cap enforced inside OtpService (429)
     await this.audit.emit({event_type: 'auth.vault_pin.reset', user_id: userId, device_id: deviceId, ip, outcome: 'success', detail: 'otp_sent'});
-    return {maskedPhone: maskPhone(user.phone_e164)};
+    return {maskedPhone: maskPhone(user.phone_e164), method: 'sms' as const};
   }
 
   async resetVerify(dto: VaultPinResetVerifyDto, userId: string, deviceId: string, ip: string) {
@@ -134,8 +150,16 @@ export class VaultPinService {
     const user = await this.db.qOne<{phone_e164: string | null}>(
       'SELECT phone_e164 FROM public.users WHERE id = $1 AND deleted_at IS NULL', [userId],
     );
-    if (!user?.phone_e164) {throw new BadRequestException('reset_unavailable');}
-    const ok = await this.otp.check(user.phone_e164, dto.code);
+    let ok: boolean;
+    if (this.secondFactor === 'totp') {
+      // The controller's guard has already established `userId` from the
+      // access token and the row above proved the account is live.
+      try { await this.totp.check(userId, dto.code, deviceId, ip); ok = true; }
+      catch { ok = false; }
+    } else {
+      if (!user?.phone_e164) {throw new BadRequestException('reset_unavailable');}
+      ok = await this.otp.check(user.phone_e164, dto.code);
+    }
     if (!ok) {
       await this.recordFailure(userId, deviceId, ip, 'auth.vault_pin.reset', 'wrong_otp');
       throw new ForbiddenException('reset_denied');

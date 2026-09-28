@@ -1,4 +1,4 @@
-import {IsEmail, IsString, MinLength, MaxLength, Matches, IsIn} from 'class-validator';
+import {IsUUID, IsOptional, IsEmail, IsString, MinLength, MaxLength, Matches, IsIn} from 'class-validator';
 import {DeviceIdentityDto} from './device-identity.dto';
 
 // DTO audit P0-V1 — `role` and `subscriptionTier` REMOVED from the
@@ -21,4 +21,6 @@ export class RegisterVerifyDto extends DeviceIdentityDto {
   @Matches(/^\d{4,8}$/)                     code!:     string;
   @IsString() @MinLength(1) @MaxLength(128) deviceId!: string;
   @IsIn(['ios','android','web'])            platform!: string;
+  // TOTP mode only — the id /auth/register returned. See VerifyDto.
+  @IsOptional() @IsUUID()                   challengeId?: string;
 }

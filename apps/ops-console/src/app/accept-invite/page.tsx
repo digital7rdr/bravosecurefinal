@@ -67,14 +67,16 @@ function AcceptInviteForm() {
                 Console access added to your existing Bravo account — call sign{' '}
                 <b style={{color:'var(--tx-1)'}}>{done.call_sign}</b>, role{' '}
                 <b style={{color:'var(--tx-1)'}}>{done.role}</b>. Sign in with your phone,
-                your EXISTING Bravo password and the SMS code. The password you just typed
-                was not applied — your app password is unchanged.
+                your EXISTING Bravo password and the verification code (SMS, or your
+                authenticator app — the first sign-in sets it up). The password you just
+                typed was not applied — your app password is unchanged.
               </>
             ) : (
               <>
                 Account created — call sign <b style={{color:'var(--tx-1)'}}>{done.call_sign}</b>,
-                role <b style={{color:'var(--tx-1)'}}>{done.role}</b>. Sign in with your phone,
-                password and the SMS code.
+                role <b style={{color:'var(--tx-1)'}}>{done.role}</b>. Sign in with your phone and
+                password, then the verification code — an SMS, or your authenticator app (the
+                first sign-in sets it up).
               </>
             )}
           </Note>

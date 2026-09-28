@@ -36,6 +36,7 @@ import {AuditService}              from '../kafka/audit.service';
 import {TotpCryptoService}         from '../common/services/totp-crypto.service';
 import {AuthService}               from '../auth/auth.service';
 import {RedisService}              from '../redis/redis.service';
+import {TotpChallengeService} from '../common/services/totp-challenge.service';
 
 const CALLER = '11111111-1111-4111-8111-111111111111';
 const VICTIM = '22222222-2222-4222-8222-222222222222';
@@ -83,6 +84,7 @@ describe('SEC-02 — TOTP verify must not be a standalone login', () => {
         {provide: TotpCryptoService, useValue: mockCrypto},
         {provide: AuthService,       useValue: mockAuth},
         {provide: RedisService,      useValue: mockRedis},
+        TotpChallengeService,   // real — the verify core under test now lives here
       ],
     }).compile();
     service = module.get(TotpService);
