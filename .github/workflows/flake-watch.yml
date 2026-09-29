@@ -23,11 +23,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # 22 and TZ: same reasons as ci.yml's Jest job.
+          node-version: '22'
           cache: 'npm'
       - run: npm ci --legacy-peer-deps
 
       - name: Run jest 5x and record per-test failures
+        env:
+          TZ: Europe/London
         run: node scripts/flake-detect.mjs ${{ matrix.project }}
 
       - name: Upload flake report

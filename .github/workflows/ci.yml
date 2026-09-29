@@ -69,6 +69,8 @@ jobs:
   test:
     name: Jest (${{ matrix.project }})
     runs-on: ubuntu-latest
+    # A wedged worker used to hold this job for GitHub's 6-hour limit.
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -77,10 +79,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          # 22: the SQL store tests use node:sqlite (Node >= 22.13); on 20
+          # those 8 suites fail to load. The services still build on node:20.
+          node-version: '22'
           cache: 'npm'
       - run: npm ci --legacy-peer-deps
       - name: Run tests with coverage
+        env:
+          # shiftWindowDst pins DST behaviour and needs a zone that has DST;
+          # the runner's UTC has none.
+          TZ: Europe/London
         run: |
           npx jest --selectProjects ${{ matrix.project }} \
             --ci --coverage \
