@@ -1,5 +1,18 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
+// Brand typefaces, self-hosted from node_modules (OFL). They used to come from
+// Google Fonts at runtime; a blocked or slow fetch dropped the console onto
+// system fonts, and an ops console should not call a third party on load.
+import '@fontsource/manrope/400.css';
+import '@fontsource/manrope/500.css';
+import '@fontsource/manrope/600.css';
+import '@fontsource/manrope/700.css';
+import '@fontsource/manrope/800.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
+import '@fontsource/jetbrains-mono/600.css';
+import '@fontsource/jetbrains-mono/700.css';
+import '@fontsource/jetbrains-mono/800.css';
 import './globals.css';
 import {MessengerProvider} from '@/components/messenger/MessengerProvider';
 import {SwrProvider} from '@/components/SwrProvider';

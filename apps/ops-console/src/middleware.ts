@@ -77,12 +77,8 @@ function buildCsp(nonce: string): string {
   // older browsers that don't honour 'strict-dynamic'. Modern browsers
   // see the nonce and ignore the unsafe-inline; old browsers fall back.
   //
-  // Allow Google Fonts (https://fonts.googleapis.com for CSS, and
-  // https://fonts.gstatic.com for the actual font files) — Next/Tailwind
-  // pulls Manrope from there at runtime; without these the body text
-  // falls back to system fonts and CSP errors spam the console.
-  const GOOGLE_FONTS_STYLE = 'https://fonts.googleapis.com';
-  const GOOGLE_FONTS_FILES = 'https://fonts.gstatic.com';
+  // Fonts are self-hosted (2026-09-29, @fontsource imports in layout.tsx),
+  // so style-src / font-src no longer allow Google Fonts.
   const scriptSrc = IS_PROD
     ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' ${MAPBOX_HOSTS}`
     : `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-inline' 'unsafe-eval' ${MAPBOX_HOSTS}`;
@@ -95,9 +91,9 @@ function buildCsp(nonce: string): string {
     // blob: — workers fail to start and the entire basemap stays
     // black. Allow self + blob: for workers explicitly.
     `worker-src 'self' blob:`,
-    `style-src 'self' 'unsafe-inline' ${GOOGLE_FONTS_STYLE} ${MAPBOX_HOSTS}`,
+    `style-src 'self' 'unsafe-inline' ${MAPBOX_HOSTS}`,
     `img-src 'self' data: blob: ${MAPBOX_HOSTS}`,
-    `font-src 'self' data: ${GOOGLE_FONTS_FILES}`,
+    `font-src 'self' data:`,
     `connect-src 'self' ${API_BASE} ${MSG_BASE} ${wsHost(MSG_BASE)} ${MAPBOX_HOSTS}`,
     `frame-ancestors 'none'`,
     `base-uri 'self'`,

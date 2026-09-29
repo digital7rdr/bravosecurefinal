@@ -14,6 +14,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@fontsource/manrope": "^5.3.0",
     "@privacyresearch/libsignal-protocol-typescript": "^0.0.16",
     "buffer": "^6.0.3",
     "idb": "^8.0.3",

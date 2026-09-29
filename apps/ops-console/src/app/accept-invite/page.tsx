@@ -33,7 +33,7 @@ function AcceptInviteForm() {
     try {
       const res = await authApi.acceptAdminInvite({
         token,
-        phone_e164: phone.trim(),
+        phone_e164: phone.trim().replace(/[\s\-().]/g, ''),
         password,
         ...(name.trim() ? {display_name: name.trim()} : {}),
       });
@@ -59,8 +59,8 @@ function AcceptInviteForm() {
 
   if (done) {
     return (
-      <AuthLayout subtitle="Admin invite">
-        <div style={authCol(12)}>
+      <AuthLayout subtitle="Invite accepted">
+        <div style={authCol(18)}>
           <Note>
             {done.existing_account ? (
               <>
@@ -80,9 +80,8 @@ function AcceptInviteForm() {
               </>
             )}
           </Note>
-          <Link href={routes.login} className="btn btn-pri"
-            style={{height:42, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13}}>
-            GO TO SIGN IN
+          <Link href={routes.login} className="btn btn-pri auth-submit">
+            Go to sign in
           </Link>
         </div>
       </AuthLayout>
@@ -90,23 +89,22 @@ function AcceptInviteForm() {
   }
 
   return (
-    <AuthLayout subtitle="Accept your admin invite">
-      <form onSubmit={onSubmit} style={authCol(12)}>
-        <Note>
-          Your role and call sign were set by the admin who invited you.
-          Choose the credentials you will sign in with.
-        </Note>
-        <Field label="Phone (E.164)" placeholder="+919876543210"
+    <AuthLayout subtitle="Accept your admin invite"
+      description="Your role and call sign were set by the admin who invited you. Choose the details you will sign in with.">
+      <form onSubmit={onSubmit} style={authCol(18)}>
+        <Field label="Phone number" hint="Include the country code, for example +971 50 123 4567."
+          placeholder="+971 50 123 4567" autoComplete="username"
           value={phone} onChange={setPhone} autoFocus inputMode="tel"/>
         <Field label="Display name (optional)" placeholder="As shown on the console"
           value={name} onChange={setName}/>
-        <Field label="Password (min 8 chars)" type="password" value={password} onChange={setPassword}/>
-        <Field label="Confirm password" type="password" value={confirm} onChange={setConfirm}/>
+        <Field label="Password" hint="At least 8 characters." type="password" autoComplete="new-password"
+          value={password} onChange={setPassword}/>
+        <Field label="Confirm password" type="password" autoComplete="new-password"
+          value={confirm} onChange={setConfirm}/>
         {err && <Err msg={err}/>}
-        <button className="btn btn-pri" type="submit"
-          disabled={busy || !phone || password.length < 8 || !confirm}
-          style={{height:42, justifyContent:'center', fontSize:13, marginTop:6}}>
-          {busy ? 'CREATING ACCOUNT…' : 'CREATE ADMIN ACCOUNT'}
+        <button className="btn btn-pri auth-submit" type="submit"
+          disabled={busy || !phone || password.length < 8 || !confirm}>
+          {busy ? <><span className="spinner" aria-hidden="true"/>Creating account…</> : 'Create admin account'}
         </button>
       </form>
     </AuthLayout>

@@ -80,7 +80,10 @@ COPY --from=build /app/apps/ops-console/.next/standalone ./
 # so /.next/static must also be at /app/.next/static (not nested under
 # apps/ops-console/.next/static).
 COPY --from=build /app/apps/ops-console/.next/static ./.next/static
-# (No public/ directory in this project; skip the optional copy.)
+# public/ (logo, favicons) must also sit next to server.js. It was missing
+# from this image until 2026-09-29, so the logo and favicons 404'd in
+# production (pinned by src/__tests__/dockerPublicAssets.test.ts).
+COPY --from=build /app/apps/ops-console/public ./public
 EXPOSE 3002
 ENV PORT=3002 HOSTNAME=0.0.0.0
 # OC-05 — probe the real health route (a login redirect on `/` also passed
