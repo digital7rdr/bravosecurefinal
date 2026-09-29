@@ -188,6 +188,7 @@
     ]
   },
   "jest": {
+    "workerIdleMemoryLimit": "1KB",
     "projects": [
       {
         "displayName": "app",
