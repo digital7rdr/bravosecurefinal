@@ -29,6 +29,15 @@ export interface StoredMessage {
   replyToId:      string | null;
 }
 
+export interface ConversationSummary {
+  conversationId: string;
+  lastBody:       string;
+  lastAt:         number;
+  lastDirection:  'in' | 'out';
+  lastStatus:     StoredMessage['status'];
+  count:          number;
+}
+
 export class MessageStore {
   constructor(private readonly db: MessengerDb, private readonly key: WrapKey) {}
 
@@ -117,6 +126,37 @@ export class MessageStore {
         replyToId:      r.reply_to_id,
       });
     }
+    return out;
+  }
+
+  /**
+   * One row per conversation (newest first) with its latest message. Only
+   * the latest row of each thread is unwrapped, so the cost is one AES-GCM
+   * open per conversation, not per message. Legacy rows filed under ''
+   * (pre-2026-09-30 1:1 history, all peers mixed) are skipped.
+   */
+  async listSummaries(): Promise<ConversationSummary[]> {
+    const rows = await this.db.getAll('messages');
+    const latest = new Map<string, (typeof rows)[number]>();
+    const counts = new Map<string, number>();
+    for (const r of rows) {
+      if (!r.conversation_id) continue;
+      counts.set(r.conversation_id, (counts.get(r.conversation_id) ?? 0) + 1);
+      const cur = latest.get(r.conversation_id);
+      if (!cur || r.sent_at > cur.sent_at) latest.set(r.conversation_id, r);
+    }
+    const out: ConversationSummary[] = [];
+    for (const [cid, r] of latest) {
+      out.push({
+        conversationId: cid,
+        lastBody:       await unwrapString(this.key, r.body),
+        lastAt:         r.sent_at,
+        lastDirection:  r.direction,
+        lastStatus:     r.status,
+        count:          counts.get(cid) ?? 0,
+      });
+    }
+    out.sort((a, b) => b.lastAt - a.lastAt);
     return out;
   }
 }

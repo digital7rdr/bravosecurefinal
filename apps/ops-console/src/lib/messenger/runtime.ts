@@ -41,7 +41,9 @@ import {exportPublicBundle} from './identityHelpers';
 import {keysApi} from './keys';
 import {relay, type StoredEnvelope} from './relay';
 import {TransportClient} from './transport';
-import {MessageStore, type StoredMessage} from './messageStore';
+import {MessageStore, type StoredMessage, type ConversationSummary} from './messageStore';
+import {sealDirectText} from './directSeal';
+export type {StoredMessage, ConversationSummary} from './messageStore';
 import {getMessengerTicket} from '@/lib/api';
 
 const DEFAULT_DEVICE_ID = 1;
@@ -1095,37 +1097,120 @@ export class MessengerRuntime {
     }
 
     // 1:1 path — sealed.group is narrowed to undefined here by the
-    // `if (sealed.group)` block above (which always returns), so we
-    // don't read it again. Conversation id is the empty string for
-    // 1:1; markRead will fall back to a per-sender lookup keyed by
-    // the empty conversation id, so we still record it.
-    this.envelopePeerByConvo.set('', sender);
+    // `if (sealed.group)` block above (which always returns).
+    //
+    // 2026-09-30 — each peer gets its own thread, `direct:<peerUserId>`,
+    // the same device-local slot grammar the mobile store uses
+    // (src/modules/messenger/conversationIds.ts). It used to be '' for
+    // every 1:1, which mixed all direct chats into one bucket.
+    //
+    // Payloads with no text to show (reactions, edits, deletes, call
+    // presence) are acknowledged but not rendered as empty bubbles; an
+    // attachment is shown as a placeholder — media opens on the app.
+    const hasText = typeof sealed.body === 'string' && sealed.body.length > 0;
+    if (!hasText && !sealed.attachment) return null;
+    const directId = directSlotId(sender.userId);
+    const shownBody = hasText ? sealed.body : '📎 Attachment — open it in the Bravo app';
+    this.envelopePeerByConvo.set(directId, sender);
     this.envelopePeerById.set(env.envelopeId, sender);
     // Audit fix — AWAIT before returning (see group path above).
     await this.messages.upsert({
-      conversationId: '',
+      conversationId: directId,
       id:             env.envelopeId,
       senderUserId:   sender.userId,
       direction:      'in',
-      body:           sealed.body,
+      body:           shownBody,
       sentAt:         env.timestamp,
       envelopeId:     env.envelopeId,
-      clientMsgId:    env.clientMsgId ?? null,
+      clientMsgId:    sealed.clientMsgId ?? env.clientMsgId ?? null,
       status:         'delivered',
       reactions:      null,
       replyToId:      null,
     });
-    this.notifyHistoryChange('');
+    this.notifyHistoryChange(directId);
     return {
       envelopeId:     env.envelopeId,
-      conversationId: '',
+      conversationId: directId,
       senderUserId:   sender.userId,
       senderDeviceId: sender.deviceId,
-      body:           sealed.body,
-      clientMsgId:    env.clientMsgId,
+      body:           shownBody,
+      clientMsgId:    sealed.clientMsgId ?? env.clientMsgId,
       receivedAt:     env.timestamp,
       expiresAtSec:   sealed.expiresAtSec,
     };
+  }
+
+  // ── 1:1 outbound ──────────────────────────────────────────────────
+
+  /**
+   * Send a 1:1 text to an app user, byte-shaped like the mobile live send
+   * (productionRuntime `sealPayload` with the full P0-N2 AAD: recipient,
+   * compose time, sender, and the symmetric `direct:<lo>|<hi>` id), then
+   * Signal-encrypt, Sealed-Sender-v3 wrap and submit to the relay.
+   * The bubble is persisted to the peer's `direct:<peer>` thread.
+   */
+  async sendDirect(peerUserId: string, body: string): Promise<{id: string; envelopeId: string | null}> {
+    const text = body.trim();
+    if (!text) throw new Error('empty message');
+    if (peerUserId === this.self.userId) throw new Error('cannot message yourself');
+    const peer: SessionAddress = {userId: peerUserId, deviceId: 1};
+    const conversationId = directSlotId(peerUserId);
+    const id = genId();
+    const clientMsgId = genId();
+    const sentAt = Date.now();
+    await this.messages.upsert({
+      conversationId, id, senderUserId: this.userId, direction: 'out', body: text, sentAt,
+      envelopeId: null, clientMsgId, status: 'sending', reactions: null, replyToId: null,
+    });
+    this.notifyHistoryChange(conversationId);
+    try {
+      if (!(await this.session.hasSession(peer))) {
+        const bundle = await keysApi.fetchBundle(peer.userId);
+        await this.session.initOutgoingSession({
+          registrationId: bundle.registrationId,
+          address:        peer,
+          identityKey:    bundle.identityKey,
+          signedPreKey: {
+            keyId:     bundle.signedPrekeyId,
+            publicKey: bundle.signedPrekey,
+            signature: bundle.signedPrekeySig,
+          },
+          preKey: bundle.oneTimePrekey
+            ? {keyId: bundle.oneTimePrekey.keyId, publicKey: bundle.oneTimePrekey.publicKey}
+            : undefined,
+        });
+      }
+      const cert = await this.getSenderCert();
+      const sealed = sealDirectText({cert, text, self: this.self, peer, clientMsgId, ts: sentAt});
+      const ct = await this.session.encrypt(peer, sealed);
+      const cached = await this.store.loadIdentityKey(`${peer.userId}.${peer.deviceId}`);
+      const recipientIdentityKeyB64 = cached
+        ? toBase64(cached)
+        : (await keysApi.fetchBundle(peer.userId)).identityKey;
+      const outerSealed = await wrapOuter({recipientIdentityKeyB64, sender: this.self, ciphertext: ct, cert});
+      const r = await relay.send(this.self.deviceId, {recipient: peer, outerSealed, clientMsgId});
+      const envelopeId = r.envelopeId ?? null;
+      await this.messages.patch(conversationId, id, {status: 'sent', envelopeId});
+      // Read receipts for this thread go back to this peer.
+      this.envelopePeerByConvo.set(conversationId, peer);
+      this.notifyHistoryChange(conversationId);
+      return {id, envelopeId};
+    } catch (e) {
+      await this.messages.patch(conversationId, id, {status: 'failed'});
+      this.notifyHistoryChange(conversationId);
+      throw e;
+    }
+  }
+
+  /** Drop a local bubble (used when a failed send is retried). */
+  async discardMessage(conversationId: string, id: string): Promise<void> {
+    await this.messages.remove(conversationId, id);
+    this.notifyHistoryChange(conversationId);
+  }
+
+  /** Newest-first list of every thread with history on this browser. */
+  async listConversations(): Promise<ConversationSummary[]> {
+    return this.messages.listSummaries();
   }
 
   /**
@@ -1282,6 +1367,11 @@ export class MessengerRuntime {
       req.onblocked = () => res();
     });
   }
+}
+
+/** Device-local 1:1 thread id — same grammar as mobile's `direct:<peerUserId>`. */
+export function directSlotId(peerUserId: string): string {
+  return `direct:${peerUserId}`;
 }
 
 function genId(): string {
