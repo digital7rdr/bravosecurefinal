@@ -399,7 +399,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <div className="topbar-admin-av">{initials}</div>
           <div>
             <div className="topbar-admin-name">{callSign}</div>
-            <div className="topbar-admin-role">{role}</div>
+            <div className="topbar-admin-role">{ROLE_LABEL[role as AdminRole] ?? role}</div>
           </div>
           <button
             onClick={logout}

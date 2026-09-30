@@ -66,7 +66,7 @@ export default function AdminsPage() {
   // ── Direct account (B-818) ──
   const [acName, setAcName] = useState('');
   const [acCallSign, setAcCallSign] = useState('');
-  const [acRole, setAcRole] = useState<AdminRole>('RISK_ADMIN');
+  const [acRole, setAcRole] = useState<AdminRole>('OPERATION_ADMIN');
   const [acPhone, setAcPhone] = useState('');
   const [acPassword, setAcPassword] = useState('');
   const [acPassword2, setAcPassword2] = useState('');
@@ -108,7 +108,7 @@ export default function AdminsPage() {
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [callSign, setCallSign] = useState('');
-  const [role, setRole] = useState<AdminRole>('OPS');
+  const [role, setRole] = useState<AdminRole>('OPERATION_ADMIN');
   const [busy, setBusy] = useState(false);
   const [formErr, setFormErr] = useState<string | null>(null);
   // The raw token is shown ONCE (it is never stored server-side).
@@ -124,7 +124,7 @@ export default function AdminsPage() {
         email: email.trim(), display_name: name.trim(), call_sign: callSign.trim(), role,
       });
       setMintedLink(`${window.location.origin}/accept-invite?token=${token}`);
-      setEmail(''); setName(''); setCallSign(''); setRole('OPS');
+      setEmail(''); setName(''); setCallSign(''); setRole('OPERATION_ADMIN');
       void mutateInvites();
     } catch (e) {
       const msg = (e as Error).message;

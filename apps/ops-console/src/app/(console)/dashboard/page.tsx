@@ -20,6 +20,7 @@ import {formatDateTimeShortUtc} from '@/lib/datetime';
 import {PageHeader} from '@/components/PageHeader';
 import {KpiTile, KpiRow} from '@/components/SectionLanding';
 import {LITE_SERVICES, routes, bookingHref} from '@/lib/routes';
+import {canActInDomain, type AdminDomain} from '@/lib/rbac';
 
 export default function Dashboard() {
   // OP-15 — share the Shell's key (['dashboard', admin region]) so the
@@ -38,6 +39,14 @@ export default function Dashboard() {
   const ent = kpis?.enterprise;
 
   const approvals = (pending ?? []).slice(0, 6);
+
+  // Each admin level sees the businesses it works in (the rail and the
+  // server's domain guard already do this; the board follows them). Nothing
+  // renders until /ops/me has answered, so a Risk Admin never sees a flash
+  // of operations tiles.
+  const role = me?.admin.role;
+  const can = (d: AdminDomain) => canActInDomain(role, d);
+  const ops = can('operations'), comms = can('communication'), risk = can('risk');
 
   // Only live missions with a GPS lock become markers. Explicit null checks —
   // a fix at exactly 0/0 is a valid coordinate.
@@ -63,7 +72,7 @@ export default function Dashboard() {
       />
 
       {/* ── Lite ─────────────────────────────────────────────────────── */}
-      <SectionStrip title="Lite · Secure Transfer" href={routes.lite.root} columns={5}>
+      {ops && <SectionStrip title="Lite · Secure Transfer" href={routes.lite.root} columns={5}>
         <KpiTile
           label="Waiting on ops" value={lite?.waiting ?? kpis?.pending_approval ?? 0}
           href={routes.lite.bookings} tone="warn" urgent={(lite?.waiting ?? 0) > 0}
@@ -76,10 +85,10 @@ export default function Dashboard() {
           label="GMV today" value={(lite?.gmv_today_bc ?? kpis?.gmv_today_bc ?? 0).toLocaleString()}
           href={routes.finance.ledger} sub="BC"
         />
-      </SectionStrip>
+      </SectionStrip>}
 
       {/* ── Executive Protection ─────────────────────────────────────── */}
-      <SectionStrip title="Executive Protection" href={routes.executive.root} columns={4}>
+      {ops && <SectionStrip title="Executive Protection" href={routes.executive.root} columns={4}>
         <KpiTile
           label="Waiting on ops" value={exec?.waiting ?? 0}
           href={routes.executive.bookings} tone="warn" urgent={(exec?.waiting ?? 0) > 0}
@@ -93,39 +102,67 @@ export default function Dashboard() {
           label="GMV today" value={(exec?.gmv_today_bc ?? 0).toLocaleString()}
           href={routes.finance.ledger} sub="BC"
         />
-      </SectionStrip>
+      </SectionStrip>}
 
       {/* ── Secure Pro + Enterprise + Safety ─────────────────────────── */}
-      <SectionStrip title="Secure Pro · Enterprise · Safety" href={routes.pro.root} columns={6}>
-        <KpiTile
-          label="Pro applications" value={kpis?.pro_pending ?? 0}
-          href={routes.pro.applications} tone="warn" urgent={(kpis?.pro_pending ?? 0) > 0}
-          sub="new or revision requested"
-        />
-        <KpiTile
-          label="Pro date requests" value={kpis?.pro_requests ?? 0}
-          href={routes.pro.assignments} tone="warn" sub="awaiting officers"
-        />
-        <KpiTile
-          label="Enterprise join requests" value={ent?.waiting ?? 0}
-          href={routes.enterprise.joinRequests} tone="info"
-        />
-        <KpiTile
-          label="Critical incidents 24h" value={ent?.critical_incidents_24h ?? 0}
-          href={routes.enterprise.incidents} tone="err" urgent={(ent?.critical_incidents_24h ?? 0) > 0}
-        />
-        <KpiTile
-          label="SOS active" value={kpis?.sos_active ?? 0}
-          href={routes.safety.sos} tone="err" urgent={(kpis?.sos_active ?? 0) > 0}
-        />
-        <KpiTile
-          label="Agents on duty" value={`${kpis?.agents_on_duty ?? 0}`}
-          sub={`of ${kpis?.agents_total ?? 0} total`} href={routes.people.agents}
-        />
-      </SectionStrip>
+      {(() => {
+        const tiles: ReactNode[] = [];
+        const parts: string[] = [];
+        if (ops) {
+          parts.push('Secure Pro');
+          tiles.push(
+            <KpiTile key="pro-apps"
+              label="Pro applications" value={kpis?.pro_pending ?? 0}
+              href={routes.pro.applications} tone="warn" urgent={(kpis?.pro_pending ?? 0) > 0}
+              sub="new or revision requested"
+            />,
+            <KpiTile key="pro-req"
+              label="Pro date requests" value={kpis?.pro_requests ?? 0}
+              href={routes.pro.assignments} tone="warn" sub="awaiting officers"
+            />,
+          );
+        }
+        if (comms) {
+          parts.push('Enterprise');
+          tiles.push(
+            <KpiTile key="ent-join"
+              label="Enterprise join requests" value={ent?.waiting ?? 0}
+              href={routes.enterprise.joinRequests} tone="info"
+            />,
+            <KpiTile key="ent-inc"
+              label="Critical incidents 24h" value={ent?.critical_incidents_24h ?? 0}
+              href={routes.enterprise.incidents} tone="err" urgent={(ent?.critical_incidents_24h ?? 0) > 0}
+            />,
+          );
+        }
+        if (risk) {
+          parts.push('Safety');
+          tiles.push(
+            <KpiTile key="sos"
+              label="SOS active" value={kpis?.sos_active ?? 0}
+              href={routes.safety.sos} tone="err" urgent={(kpis?.sos_active ?? 0) > 0}
+            />,
+          );
+        }
+        if (ops) {
+          tiles.push(
+            <KpiTile key="agents"
+              label="Agents on duty" value={`${kpis?.agents_on_duty ?? 0}`}
+              sub={`of ${kpis?.agents_total ?? 0} total`} href={routes.people.agents}
+            />,
+          );
+        }
+        if (tiles.length === 0) return null;
+        const href = ops ? routes.pro.root : comms ? routes.enterprise.joinRequests : routes.safety.sos;
+        return (
+          <SectionStrip title={parts.join(' · ')} href={href} columns={Math.max(tiles.length, 3)}>
+            {tiles}
+          </SectionStrip>
+        );
+      })()}
 
-      <div className="dash-grid">
-        <div className="card" style={{display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
+      <div className="dash-grid" style={ops ? undefined : {gridTemplateColumns: '1.4fr 1fr'}}>
+        {ops && <div className="card" style={{display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
           <div className="card-header">
             <div className="card-header-title"><span className="bar" />Lite Approval Queue</div>
             <Link href={routes.lite.bookings} className="card-header-act">
@@ -163,7 +200,7 @@ export default function Dashboard() {
               </Link>
             ))}
           </div>
-        </div>
+        </div>}
 
         <div className="card" style={{display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
           <div className="card-header">
