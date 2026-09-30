@@ -407,10 +407,10 @@ export function Shell({ children }: { children: ReactNode }) {
             style={{
               marginLeft: 10, padding: '6px 10px', borderRadius: 6,
               background: 'var(--surf-3)', border: '1px solid var(--bd-2)',
-              color: 'var(--tx-2)', fontFamily: 'var(--font-mono)', fontSize: 9.5,
-              letterSpacing: 1.2, fontWeight: 700, cursor: 'pointer',
+              color: 'var(--tx-2)', fontFamily: 'var(--font-sans)', fontSize: 12,
+              fontWeight: 700, cursor: 'pointer',
             }}>
-            SIGN OUT
+            Sign out
           </button>
         </div>
       </header>

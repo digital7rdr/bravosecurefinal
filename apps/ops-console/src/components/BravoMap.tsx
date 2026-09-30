@@ -94,6 +94,14 @@ interface Props {
    * without each page wiring its own control.
    */
   styleId?: BravoMapStyleId;
+  /**
+   * Centre the camera on the signed-in operator's own position (browser
+   * geolocation) and keep following it until they pan the map. Every map
+   * shows the operator's position as a blue dot and offers a "my location"
+   * button; only maps with followUser move the camera on their own.
+   * The position never leaves the browser.
+   */
+  followUser?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -121,6 +129,7 @@ export function BravoMap({
   route,
   alternativeRoutes,
   styleId: styleIdProp,
+  followUser = false,
   className,
   style,
 }: Props) {
@@ -168,6 +177,13 @@ export function BravoMap({
   // Fallback styling (no token, grid-only)
   const fallback = !TOKEN;
 
+  // Operator's own position (browser geolocation, watched while mounted).
+  const [me, setMe] = useState<{lng: number; lat: number} | null>(null);
+  const [geoState, setGeoState] = useState<'idle' | 'ok' | 'denied' | 'unavailable'>('idle');
+  const followRef = useRef(followUser);
+  const meMarkerRef = useRef<Marker | null>(null);
+  const firstFixRef = useRef(true);
+
   useEffect(() => {
     if (fallback || !container.current || mapRef.current) return;
 
@@ -182,6 +198,8 @@ export function BravoMap({
       antialias: true,
     });
     mapRef.current = map;
+    // Any manual pan stops "follow me" until the location button is pressed.
+    map.on('dragstart', () => { followRef.current = false; });
     // Capture the (stable-for-lifetime) marker map for the cleanup closure
     // so the ref isn't read at teardown time (react-hooks/exhaustive-deps).
     const markersAtMount = markersById.current;
@@ -465,6 +483,49 @@ export function BravoMap({
     markerRefs.current = Array.from(markersById.current.values()).map(e => e.marker);
   }, [markers, fallback]);
 
+  // Watch the operator's position. Needs HTTPS and the browser's permission;
+  // Permissions-Policy allows geolocation for this origin (middleware.ts).
+  useEffect(() => {
+    if (fallback || typeof navigator === 'undefined' || !navigator.geolocation) {
+      setGeoState('unavailable');
+      return;
+    }
+    const id = navigator.geolocation.watchPosition(
+      pos => { setMe({lng: pos.coords.longitude, lat: pos.coords.latitude}); setGeoState('ok'); },
+      err => setGeoState(err.code === err.PERMISSION_DENIED ? 'denied' : 'unavailable'),
+      {enableHighAccuracy: true, maximumAge: 10_000, timeout: 20_000},
+    );
+    return () => navigator.geolocation.clearWatch(id);
+  }, [fallback]);
+
+  // Draw / move the "you are here" dot; follow it when asked to.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (fallback || !map || !me) return;
+    if (!meMarkerRef.current) {
+      const el = document.createElement('div');
+      el.className = 'bravo-me';
+      el.title = 'Your location';
+      el.innerHTML = '<span class="bravo-me-pulse"></span><span class="bravo-me-dot"></span>';
+      meMarkerRef.current = new mapboxgl.Marker({element: el}).setLngLat([me.lng, me.lat]).addTo(map);
+    } else {
+      meMarkerRef.current.setLngLat([me.lng, me.lat]);
+    }
+    if (followRef.current) {
+      if (firstFixRef.current) map.flyTo({center: [me.lng, me.lat], zoom: Math.max(map.getZoom(), 13), speed: 1.4});
+      else map.easeTo({center: [me.lng, me.lat], duration: 800});
+    }
+    firstFixRef.current = false;
+  }, [me, fallback]);
+  useEffect(() => () => { meMarkerRef.current?.remove(); meMarkerRef.current = null; }, []);
+
+  function locateMe() {
+    const map = mapRef.current;
+    if (!map || !me) return;
+    followRef.current = true;
+    map.flyTo({center: [me.lng, me.lat], zoom: Math.max(map.getZoom(), 14), speed: 1.4});
+  }
+
   // Fly to center/zoom only when the coordinate VALUES change. Callers pass
   // `center` as a fresh array literal on every render, and SWR polls re-render
   // them every 2s — keying on the array reference re-fired flyTo on every poll
@@ -527,6 +588,22 @@ export function BravoMap({
   return (
     <div className={className} style={{position: 'relative', ...style}}>
       <div ref={container} style={{position: 'absolute', inset: 0}}/>
+      <button
+        type="button"
+        onClick={locateMe}
+        disabled={!me}
+        className="bravo-locate"
+        aria-label="Centre on my location"
+        title={me ? 'Centre on my location'
+          : geoState === 'denied' ? 'Location blocked — allow location for this site in your browser settings'
+          : geoState === 'unavailable' ? 'Location unavailable on this device'
+          : 'Finding your location…'}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+          strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+          <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+        </svg>
+      </button>
       {!controlled && (
         <button
           onClick={() => setInternalStyleId(prev =>
@@ -537,8 +614,8 @@ export function BravoMap({
             display: 'flex', alignItems: 'center', gap: 6,
             padding: '5px 10px', borderRadius: 6, cursor: 'pointer',
             background: 'rgba(4,16,31,0.92)', border: '1px solid var(--bd-1)',
-            color: 'var(--tx-1)', fontFamily: 'var(--font-mono)', fontSize: 10,
-            fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase',
+            color: 'var(--tx-1)', fontFamily: 'var(--font-sans)', fontSize: 11.5,
+            fontWeight: 700,
           }}>
           <span style={{
             width: 8, height: 8, borderRadius: 2,
@@ -547,8 +624,8 @@ export function BravoMap({
                       : styleId === 'streets' ? '#7ED320'
                       : '#FFC107',
           }}/>
-          {styleId === 'dark' ? 'DARK' : styleId === 'light' ? 'LIGHT'
-            : styleId === 'streets' ? 'STREETS' : 'SAT'}
+          {styleId === 'dark' ? 'Dark' : styleId === 'light' ? 'Light'
+            : styleId === 'streets' ? 'Streets' : 'Satellite'}
         </button>
       )}
     </div>

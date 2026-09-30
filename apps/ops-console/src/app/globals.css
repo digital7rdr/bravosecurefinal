@@ -27,9 +27,9 @@
   --bg-canvas:   #06142B;
   --bg-primary:  #0A1F3F;
   --bg-depth:    #040E1F;
-  --surf-1:      #1B3A66;
-  --surf-2:      #162F54;
-  --surf-3:      #122747;
+  --surf-1:      #132A48;
+  --surf-2:      #0E2240;
+  --surf-3:      #0B1C36;
   --act:         #1E88FF;
   --act-hov:     #3BA6FF;
   --act-press:   #166ED1;
@@ -39,8 +39,8 @@
   --tx-1:        #FFFFFF;
   --tx-2:        #B8C7E0;
   --tx-3:        #7E8AA6;
-  --bd-1:        #244C82;
-  --bd-2:        #1C3B66;
+  --bd-1:        #22406A;
+  --bd-2:        #17304F;
   --ok:          #00C853;
   --warn:        #FFC107;
   --err:         #FF3B3B;
@@ -1298,3 +1298,88 @@ button.region-chip { text-align: center; }
   .auth-title { font-size: 24px; }
   .auth-codes { grid-template-columns: 1fr 1fr; gap: 8px 10px; padding: 12px; font-size: 13px; }
 }
+
+/* ── Console refresh (2026-09-30) ────────────────────────────────────
+   Calmer, more legible chrome: labels and headings in Manrope sentence
+   case instead of wide-tracked monospace capitals; numbers in Manrope
+   with tabular figures. Monospace stays for IDs, codes and timestamps.
+   Surfaces were toned down in :root (quieter cards on the navy canvas). */
+.rail-group { font-family: var(--font-sans); font-size: 10.5px; letter-spacing: 0.9px; color: #6F7F9E; padding: 4px 10px 6px; }
+.rail-item { height: 38px; }
+.rail-item.active { background: rgba(30,136,255,0.12); color: #FFFFFF; }
+.rail-item.active .rail-ic { color: var(--act); }
+.rail-item.active::before { box-shadow: none; }
+.rail-brand { font-size: 14px; letter-spacing: 0.2px; }
+
+.topbar { background: rgba(10,31,63,0.72); backdrop-filter: blur(8px); }
+.topbar-clock { font-size: 12.5px; letter-spacing: 0; color: var(--tx-2); font-variant-numeric: tabular-nums; }
+.topbar-admin-name { font-family: var(--font-sans); font-size: 12.5px; letter-spacing: 0; }
+.topbar-admin-role { font-family: var(--font-sans); font-size: 11px; letter-spacing: 0.2px; }
+
+.page-crumbs { font-family: var(--font-sans); font-size: 12px; letter-spacing: 0.2px; text-transform: none; }
+.page-head h2 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+
+.pill { font-family: var(--font-sans); font-size: 11px; font-weight: 700; letter-spacing: 0.4px; padding: 3px 9px; border-radius: 999px; }
+.pill-live { animation: none; }
+
+.card { border-radius: 14px; box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 8px 24px rgba(0,0,0,0.18); }
+.card-header { padding: 16px 18px 14px; }
+.card-header-title { font-size: 14.5px; letter-spacing: -0.1px; text-transform: none; color: var(--tx-1); gap: 10px; }
+.card-header-title .bar { box-shadow: none; height: 14px; }
+.card-header-act { font-family: var(--font-sans); font-size: 12.5px; letter-spacing: 0; text-transform: none; color: var(--tx-3); }
+a.card-header-act:hover { color: var(--glow); }
+
+.dash-strip-head {
+  margin: 10px 0 12px; font-family: var(--font-sans); font-size: 15px; font-weight: 700;
+  letter-spacing: -0.1px; text-transform: none; color: var(--tx-1);
+}
+.dash-strip-link { font-size: 12.5px; font-weight: 600; color: var(--act-hov); }
+
+.kpi-row { gap: 14px; margin-bottom: 26px; }
+.kpi { padding: 18px 18px 16px; border-radius: 14px; }
+.kpi-cap {
+  font-family: var(--font-sans); font-size: 12.5px; font-weight: 600;
+  letter-spacing: 0; text-transform: none; color: var(--tx-2);
+}
+.kpi-cap { min-height: 34px; align-items: flex-start; line-height: 1.35; }
+.kpi-cap::before { width: 6px; height: 6px; flex: 0 0 auto; margin-top: 6px; }
+.kpi-num { margin-top: 6px; }
+.kpi-num {
+  font-family: var(--font-sans); font-size: 32px; font-weight: 800; letter-spacing: -0.8px;
+  font-variant-numeric: tabular-nums;
+}
+.kpi-sub { font-family: var(--font-sans); font-size: 12px; letter-spacing: 0; color: var(--tx-3); }
+.kpi-accent { width: 2px; opacity: 0.7; }
+.kpi-link:hover { border-color: var(--act-dim); transform: none; background: var(--surf-1); }
+.kpi-urgent { border-color: rgba(255,193,7,0.55); }
+.kpi-urgent .kpi-num { color: var(--warn); }
+
+.q-empty { font-size: 13px; color: var(--tx-3); }
+.af-ts { font-size: 11px; }
+.af-msg { font-size: 13px; }
+
+/* ── Map: operator's own position (BravoMap) ─────────────────────── */
+.bravo-me { position: relative; width: 18px; height: 18px; }
+.bravo-me-dot {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: #1E88FF; border: 3px solid #FFFFFF; box-shadow: 0 1px 6px rgba(0,0,0,0.45);
+}
+.bravo-me-pulse {
+  position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px;
+  border-radius: 50%; background: rgba(30,136,255,0.35); animation: bravo-me-pulse 2s ease-out infinite;
+}
+@keyframes bravo-me-pulse { from { transform: scale(1); opacity: 0.9; } to { transform: scale(3.2); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .bravo-me-pulse { animation: none; opacity: 0.4; transform: scale(2); } }
+.bravo-locate {
+  position: absolute; right: 10px; bottom: 26px; z-index: 5;
+  width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; cursor: pointer;
+  background: rgba(4,16,31,0.92); border: 1px solid var(--bd-1); color: var(--tx-1);
+}
+.bravo-locate:hover { border-color: var(--act); color: var(--glow); }
+.bravo-locate:disabled { opacity: 0.45; cursor: default; }
+
+/* Console refresh — tabs, tables, buttons (2026-09-30) */
+.rtab { font-family: var(--font-sans); font-size: 12.5px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--tx-2); padding: 7px 14px; }
+.dt thead th { font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: 0.3px; text-transform: none; color: var(--tx-3); }
+.dt tbody td { font-size: 13px; }
+.btn { letter-spacing: 0.2px; }

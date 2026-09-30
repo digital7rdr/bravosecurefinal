@@ -107,7 +107,7 @@ function applySecurityHeaders(res: NextResponse, nonce: string): NextResponse {
   res.headers.set('X-Frame-Options',         'DENY');
   res.headers.set('X-Content-Type-Options',  'nosniff');
   res.headers.set('Referrer-Policy',         'no-referrer');
-  res.headers.set('Permissions-Policy',      'camera=(), microphone=(), geolocation=()');
+  res.headers.set('Permissions-Policy',      'camera=(), microphone=(), geolocation=(self)');
   // HSTS is prod-only — emitting it from a localhost dev server can
   // poison the browser's HSTS cache for sibling https:// services on the
   // same parent domain (loopback aside, devs often `hosts`-map a real

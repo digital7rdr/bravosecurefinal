@@ -57,8 +57,8 @@ export default function Dashboard() {
         title="Today at a Glance"
         subtitle="What is waiting on ops right now, per business. Every tile opens the list it counts."
         badges={<>
-          <span className="pill pill-live">● LIVE</span>
-          <span className="pill">{live ? 'API ONLINE' : 'API OFFLINE'}</span>
+          <span className="pill pill-live">● Live</span>
+          <span className="pill">{live ? 'API online' : 'API offline'}</span>
         </>}
       />
 
@@ -129,7 +129,7 @@ export default function Dashboard() {
           <div className="card-header">
             <div className="card-header-title"><span className="bar" />Lite Approval Queue</div>
             <Link href={routes.lite.bookings} className="card-header-act">
-              VIEW ALL · {lite?.pending_approval ?? kpis?.pending_approval ?? 0} →
+              View all ({lite?.pending_approval ?? kpis?.pending_approval ?? 0}) →
             </Link>
           </div>
           <div style={{flex: 1, overflow: 'auto'}}>
@@ -169,17 +169,17 @@ export default function Dashboard() {
           <div className="card-header">
             <div className="card-header-title"><span className="bar" />Live Ops Map</div>
             <div className="card-header-act">
-              {kpis?.active_missions ?? 0} ACTIVE · {kpis?.sos_active ?? 0} SOS
+              {kpis?.active_missions ?? 0} active · {kpis?.sos_active ?? 0} SOS
             </div>
           </div>
-          <BravoMap markers={markers} center={[55.272, 25.208]} zoom={11} style={{flex: 1}} />
+          <BravoMap markers={markers} center={[55.272, 25.208]} zoom={11} followUser style={{flex: 1}} />
         </div>
 
         <div className="card" style={{display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
           <div className="card-header">
             <div className="card-header-title"><span className="bar" />Activity</div>
             {/* N-35 — a poll, not a live stream; label it honestly. */}
-            <div className="card-header-act">RECENT</div>
+            <div className="card-header-act">Recent</div>
           </div>
           <div style={{flex: 1, overflow: 'auto'}}>
             {activity.length === 0 && <div className="q-empty">No recent activity.</div>}
@@ -203,7 +203,7 @@ function SectionStrip({
     <section style={{marginBottom: 6}}>
       <div className="dash-strip-head">
         <span>{title}</span>
-        <Link href={href} className="dash-strip-link">OPEN SECTION →</Link>
+        <Link href={href} className="dash-strip-link">View section →</Link>
       </div>
       <KpiRow columns={columns}>{children}</KpiRow>
     </section>
