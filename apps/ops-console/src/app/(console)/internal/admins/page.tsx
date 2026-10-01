@@ -82,14 +82,24 @@ export default function AdminsPage() {
     setAcErr(null); setAcDone(null);
     if (acPassword !== acPassword2) { setAcErr('The two passwords do not match.'); return; }
     if (acPassword.length < 8) { setAcErr('Password must be at least 8 characters.'); return; }
+    // 2026-10-01 — the phone input used to carry an HTML pattern with an
+    // escaped plus. In a JSX attribute the backslashes are literal, so the
+    // browser demanded a backslash before the + and refused every real number
+    // — no account could be created. Normalise and check here instead (the
+    // server re-validates). Pinned by noEscapedJsxPattern.test.ts.
+    const phone = acPhone.trim().replace(/[\s\-().]/g, '');
+    if (!/^\+[0-9]{7,15}$/.test(phone)) {
+      setAcErr('Enter the login phone with the country code, for example +971 50 123 4567.');
+      return;
+    }
     setAcBusy(true);
     try {
       const res = await opsApi.createAdminAccount({
         display_name: acName.trim(), call_sign: acCallSign.trim(), role: acRole,
-        phone_e164: acPhone.trim(), password: acPassword,
+        phone_e164: phone, password: acPassword,
         email: acEmail.trim() || undefined, region: acRegion.trim() || undefined,
       });
-      setAcDone({call_sign: res.call_sign, role: res.role, phone: acPhone.trim(), existing: res.existing_account});
+      setAcDone({call_sign: res.call_sign, role: res.role, phone, existing: res.existing_account});
       setAcName(''); setAcCallSign(''); setAcPhone(''); setAcPassword(''); setAcPassword2(''); setAcEmail(''); setAcRegion('');
       void mutateAdmins();
     } catch (e) {
@@ -279,7 +289,7 @@ export default function AdminsPage() {
                     <RoleOptions />
                   </select>
                   <input value={acPhone} onChange={e => setAcPhone(e.target.value)} placeholder="Login phone (+9715…)"
-                    required pattern="\\+[0-9]{7,15}" title="E.164: + and 7–15 digits, no spaces"
+                    required inputMode="tel" title="Country code first, e.g. +971 50 123 4567"
                     className={`w-44 ${inputCls}`} autoComplete="off"/>
                   <input value={acPassword} onChange={e => setAcPassword(e.target.value)} placeholder="Password (min 8)"
                     type="password" required minLength={8} className={`w-40 ${inputCls}`} autoComplete="new-password"/>
