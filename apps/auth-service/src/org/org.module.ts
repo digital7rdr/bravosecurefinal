@@ -6,6 +6,8 @@ import {AgentModule} from '../agents/agent.module';
 import {DispatchRoomIntentsModule} from '../dispatch/dispatch-room-intents.module';
 import {OrgController} from './org.controller';
 import {OrgInviteController} from './org-invite.controller';
+import {ProviderConsoleController} from './provider-console.controller';
+import {OrgModuleGuard} from './org-module.guard';
 import {WorkspaceController} from './workspace.controller';
 import {WorkspaceService} from './workspace.service';
 import {OrgCpoService} from './org-cpo.service';
@@ -30,8 +32,8 @@ import {IdempotencyInterceptor} from '../common/interceptors/idempotency.interce
   // AgentModule (exports AgentService) powers the LM-C7 org confirm-complete —
   // cycle-free: AgentModule never imports OrgModule.
   imports:     [AuthModule, DepartmentModule, OpsModule, AgentModule, DispatchRoomIntentsModule],
-  controllers: [OrgController, OrgInviteController, WorkspaceController],
-  providers:   [OrgCpoService, OrgMissionService, OrgManagerGuard, OrgAuditService, PasswordService, IdempotencyInterceptor, WorkspaceService],
-  exports:     [OrgCpoService, OrgManagerGuard, OrgAuditService],
+  controllers: [OrgController, OrgInviteController, WorkspaceController, ProviderConsoleController],
+  providers:   [OrgCpoService, OrgMissionService, OrgManagerGuard, OrgModuleGuard, OrgAuditService, PasswordService, IdempotencyInterceptor, WorkspaceService],
+  exports:     [OrgCpoService, OrgManagerGuard, OrgModuleGuard, OrgAuditService],
 })
 export class OrgModule {}

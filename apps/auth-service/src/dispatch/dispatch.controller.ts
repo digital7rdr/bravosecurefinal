@@ -4,6 +4,8 @@ import {
 import {Throttle} from '@nestjs/throttler';
 import {JwtAuthGuard} from '../common/guards/jwt-auth.guard';
 import {UserThrottlerGuard} from '../common/guards/user-throttler.guard';
+import {CsrfGuard} from '../common/guards/csrf.guard';
+import {OrgModules} from '../org/org-module.guard';
 import {OrgManagerGuard, type OrgManagerContext} from '../org/org-manager.guard';
 import {IdempotencyInterceptor} from '../common/interceptors/idempotency.interceptor';
 import {OpsAuditService} from '../ops/ops-audit.service';
@@ -24,9 +26,13 @@ interface OrgScopedRequest {
  * route is scoped to the caller's resolved org — getCurrentOfferForOrg only
  * reads that org's offer, and accept/reject/getFullOffer 403 on a cross-tenant
  * offer (LB7 IDOR). Pre-accept payloads are COARSE (LB1): no exact location.
+ *
+ * 2026-10-01 — CsrfGuard for the provider web console's cookie session (Bearer
+ * callers exempt), and @OrgModules so a delegated manager needs the "Missions"
+ * or "Job Portal" grant to see or answer offers; the owner is never limited.
  */
 @Controller('dispatch/offers')
-@UseGuards(JwtAuthGuard, OrgManagerGuard, UserThrottlerGuard)
+@UseGuards(JwtAuthGuard, CsrfGuard, OrgManagerGuard, UserThrottlerGuard)
 export class DispatchController {
   constructor(
     private readonly dispatch: DispatchService,
@@ -35,6 +41,7 @@ export class DispatchController {
 
   /** The caller-org's single live offer (or null), COARSE only. */
   @Throttle({default: {limit: 30, ttl: 60_000}})
+  @OrgModules('jobs', 'portal')
   @Get('current')
   current(@Req() req: OrgScopedRequest): Promise<CoarseOfferDto | null> {
     return this.dispatch.getCurrentOfferForOrg(req.orgManager.org_user_id);
@@ -44,6 +51,7 @@ export class DispatchController {
    *  The audit is fail-closed: if dispatch.full_read cannot be recorded, the
    *  record() throw propagates and the coordinates are never returned. */
   @Throttle({default: {limit: 20, ttl: 60_000}})
+  @OrgModules('jobs', 'portal')
   @Get(':id/full')
   async full(
     @Req() req: OrgScopedRequest,
@@ -67,6 +75,7 @@ export class DispatchController {
    *  would replay the first offer's cached response. */
   @Throttle({default: {limit: 10, ttl: 60_000}})
   @UseInterceptors(IdempotencyInterceptor)
+  @OrgModules('jobs', 'portal')
   @Post(':id/accept')
   accept(
     @Req() req: OrgScopedRequest,
@@ -77,6 +86,7 @@ export class DispatchController {
 
   /** Decline — cascades to the next-nearest agency. */
   @Throttle({default: {limit: 20, ttl: 60_000}})
+  @OrgModules('jobs', 'portal')
   @Post(':id/reject')
   async reject(
     @Req() req: OrgScopedRequest,

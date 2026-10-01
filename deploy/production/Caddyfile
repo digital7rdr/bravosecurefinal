@@ -51,6 +51,18 @@ ops.bravosecure.cloud {
 	reverse_proxy localhost:3002
 }
 
+# Service provider console (2026-10-01). The SAME ops-console container: its
+# middleware serves the provider pages when the host is provider.*, and the
+# auth-service gives this origin its own session cookies (bravo_pv_*), so it
+# also needs PROVIDER_CONSOLE_ORIGINS and a CORS_ALLOWED_ORIGINS entry in
+# .env.auth. Caddy passes the original Host header through, which is what the
+# console routes on.
+provider.bravosecure.cloud {
+	import security
+	encode zstd gzip
+	reverse_proxy localhost:3002
+}
+
 media.bravosecure.cloud {
 	import security
 	# Attachments are already AES-256-CBC encrypted client-side before upload;

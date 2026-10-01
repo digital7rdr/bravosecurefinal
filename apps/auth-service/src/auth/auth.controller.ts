@@ -21,6 +21,7 @@ import {SessionDeleteDto}   from './dto/session-delete.dto';
 import {ChangePasswordDto}  from './dto/change-password.dto';
 import {UpdateProfileDto}   from './dto/update-profile.dto';
 import {clientIp}           from '../common/http/client-ip';
+import {sessionCookiesFor, type SessionCookieNames} from '../common/http/session-cookies';
 
 const ip = clientIp;
 
@@ -84,28 +85,31 @@ function refreshCookieOptions(maxAgeSec: number): CookieOptions {
   };
 }
 
+// The cookie NAMES depend on which web console made the request (ops or
+// service provider), chosen from the Origin header: see session-cookies.ts.
 function setSessionCookies(
   res: Response,
+  names: SessionCookieNames,
   accessToken: string,
   expiresIn: number,
   refreshToken?: string,
   refreshTtlSec?: number,
 ): string {
-  res.cookie('bravo_ops_token', accessToken, tokenCookieOptions(expiresIn));
+  res.cookie(names.token, accessToken, tokenCookieOptions(expiresIn));
   const csrfToken = randomBytes(32).toString('base64url');
-  res.cookie('bravo_ops_csrf', csrfToken, csrfCookieOptions(expiresIn));
+  res.cookie(names.csrf, csrfToken, csrfCookieOptions(expiresIn));
   res.setHeader('X-CSRF-Token', csrfToken);
   if (refreshToken && refreshTtlSec) {
-    res.cookie('bravo_ops_refresh', refreshToken, refreshCookieOptions(refreshTtlSec));
+    res.cookie(names.refresh, refreshToken, refreshCookieOptions(refreshTtlSec));
   }
   return csrfToken;
 }
 
-function clearSessionCookies(res: Response): void {
+function clearSessionCookies(res: Response, names: SessionCookieNames): void {
   const dom = COOKIE_DOMAIN ? {domain: COOKIE_DOMAIN} : {};
-  res.clearCookie('bravo_ops_token',   {path: '/', ...dom});
-  res.clearCookie('bravo_ops_csrf',    {path: '/', ...dom});
-  res.clearCookie('bravo_ops_refresh', {path: '/auth/session/refresh', ...dom});
+  res.clearCookie(names.token,   {path: '/', ...dom});
+  res.clearCookie(names.csrf,    {path: '/', ...dom});
+  res.clearCookie(names.refresh, {path: '/auth/session/refresh', ...dom});
 }
 
 @Controller('auth')
@@ -180,7 +184,7 @@ export class AuthController {
       // access JWT ahead of expiry without ever exposing the refresh
       // value to JS. 30d default TTL via JWT_REFRESH_TTL.
       const refreshTtlSec = this.jwt.ttlToSeconds(this.refreshTtl());
-      setSessionCookies(res, result.accessToken, result.expiresIn, result.refreshToken, refreshTtlSec);
+      setSessionCookies(res, sessionCookiesFor(req), result.accessToken, result.expiresIn, result.refreshToken, refreshTtlSec);
     }
     return result;
   }
@@ -199,7 +203,7 @@ export class AuthController {
     // cookie is only re-set when the original session was 'web'.
     if (result.platform === 'web') {
       const refreshTtlSec = this.jwt.ttlToSeconds(this.refreshTtl());
-      setSessionCookies(res, result.accessToken, result.expiresIn, result.refreshToken, refreshTtlSec);
+      setSessionCookies(res, sessionCookiesFor(req), result.accessToken, result.expiresIn, result.refreshToken, refreshTtlSec);
     }
     return result;
   }
@@ -224,17 +228,18 @@ export class AuthController {
     @Req()  req: Request & {cookies?: Record<string, string>},
     @Res({passthrough: true}) res: Response,
   ) {
-    const refreshToken = req.cookies?.['bravo_ops_refresh'];
+    const names = sessionCookiesFor(req);
+    const refreshToken = req.cookies?.[names.refresh];
     if (!refreshToken) throw new ForbiddenException('missing_refresh_cookie');
     const result = await this.auth.refresh({refreshToken}, ip(req));
     if (result.platform !== 'web') {
       // Defensive: a non-web refresh token shouldn't be living in our
       // web cookie jar. If it is, clear it and force a re-login.
-      clearSessionCookies(res);
+      clearSessionCookies(res, names);
       throw new ForbiddenException('non_web_session');
     }
     const refreshTtlSec = this.jwt.ttlToSeconds(this.refreshTtl());
-    setSessionCookies(res, result.accessToken, result.expiresIn, result.refreshToken, refreshTtlSec);
+    setSessionCookies(res, sessionCookiesFor(req), result.accessToken, result.expiresIn, result.refreshToken, refreshTtlSec);
     return {expiresIn: result.expiresIn};
   }
 
@@ -268,7 +273,7 @@ export class AuthController {
     // and doesn't need a 5-min rotator. Refusing the Bearer path also
     // means a stolen mobile token can't be silently amplified into an
     // unending stream of fresh 5-min tickets bypassing rotation/audit.
-    if (!req.cookies?.['bravo_ops_token']) {
+    if (!req.cookies?.[sessionCookiesFor(req).token]) {
       throw new ForbiddenException('messenger_ticket_requires_cookie_session');
     }
     const ttlSec = 300; // 5 min
@@ -326,7 +331,7 @@ export class AuthController {
     const out = await this.auth.deleteSession(dto, user.sub, ip(req));
     // Always clear cookies on session delete — covers logout from any
     // device in the user's auth_devices set.
-    clearSessionCookies(res);
+    clearSessionCookies(res, sessionCookiesFor(req));
     return out;
   }
 
@@ -352,7 +357,7 @@ export class AuthController {
     @Res({passthrough: true}) res: Response,
   ) {
     const out = await this.auth.changePassword(user.sub, dto, ip(req));
-    clearSessionCookies(res);
+    clearSessionCookies(res, sessionCookiesFor(req));
     return out;
   }
 

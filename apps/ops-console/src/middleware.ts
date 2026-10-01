@@ -1,5 +1,8 @@
 import {NextResponse, type NextRequest} from 'next/server';
 import {isPublicAsset, isPublicPath} from '@/lib/publicRoutes';
+import {
+  PROVIDER_PUBLIC_PATHS, isInternalProviderPath, isProviderHost, toInternalProviderPath,
+} from '@/lib/provider/host';
 
 /**
  * Audit fix 0.5 — edge auth gate.
@@ -144,6 +147,16 @@ export function middleware(req: NextRequest): NextResponse {
     return applySecurityHeaders(NextResponse.next(), nonce);
   }
 
+  // Service provider console (provider.* host): its own pages, its own
+  // session cookie. See lib/provider/host.ts.
+  if (isProviderHost(req.headers.get('host'))) {
+    return providerGate(req, nonce);
+  }
+  // The provider pages are never served on the ops address.
+  if (isInternalProviderPath(pathname)) {
+    return applySecurityHeaders(new NextResponse('Not found', {status: 404}), nonce);
+  }
+
   // Public pages bypass the auth gate but still get headers.
   if (isPublicPath(pathname)) {
     const requestHeaders = new Headers(req.headers);
@@ -173,6 +186,32 @@ export function middleware(req: NextRequest): NextResponse {
   loginUrl.pathname = '/login';
   loginUrl.searchParams.set('next', pathname + req.nextUrl.search);
   return applySecurityHeaders(NextResponse.redirect(loginUrl), nonce);
+}
+
+/**
+ * Provider host: rewrite the clean path to the internal /provider route group.
+ * Same gate as the ops console, keyed on the provider session cookie
+ * (bravo_pv_token): presence only; the auth-service verifies the token on
+ * every API call.
+ */
+function providerGate(req: NextRequest, nonce: string): NextResponse {
+  const {pathname} = req.nextUrl;
+  if (isInternalProviderPath(pathname)) {
+    return applySecurityHeaders(new NextResponse('Not found', {status: 404}), nonce);
+  }
+  const isPublic = (PROVIDER_PUBLIC_PATHS as readonly string[]).includes(pathname);
+  if (!isPublic && !req.cookies.has('bravo_pv_token')) {
+    const loginUrl = req.nextUrl.clone();
+    loginUrl.pathname = '/login';
+    loginUrl.search = '';
+    if (pathname !== '/') loginUrl.searchParams.set('next', pathname + req.nextUrl.search);
+    return applySecurityHeaders(NextResponse.redirect(loginUrl), nonce);
+  }
+  const target = req.nextUrl.clone();
+  target.pathname = toInternalProviderPath(pathname);
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set('x-nonce', nonce);
+  return applySecurityHeaders(NextResponse.rewrite(target, {request: {headers: requestHeaders}}), nonce);
 }
 
 // Run on every request EXCEPT static files Next.js manages itself.

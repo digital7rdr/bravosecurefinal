@@ -4,6 +4,8 @@ import {
 import {Throttle} from '@nestjs/throttler';
 import {JwtAuthGuard} from '../common/guards/jwt-auth.guard';
 import {UserThrottlerGuard} from '../common/guards/user-throttler.guard';
+import {CsrfGuard} from '../common/guards/csrf.guard';
+import {OrgModules} from '../org/org-module.guard';
 import {OrgManagerGuard, type OrgManagerContext} from '../org/org-manager.guard';
 import {IdempotencyInterceptor} from '../common/interceptors/idempotency.interceptor';
 import {DispatchService} from './dispatch.service';
@@ -23,7 +25,7 @@ interface OrgScopedRequest {
  * it), UserThrottlerGuard rate-limits per user. Both routes act as the resolved org.
  */
 @Controller('dispatch')
-@UseGuards(JwtAuthGuard, OrgManagerGuard, UserThrottlerGuard)
+@UseGuards(JwtAuthGuard, CsrfGuard, OrgManagerGuard, UserThrottlerGuard)
 export class DispatchJobsController {
   constructor(private readonly dispatch: DispatchService) {}
 
@@ -34,6 +36,7 @@ export class DispatchJobsController {
   @Throttle({default: {limit: 10, ttl: 60_000}})
   @UseInterceptors(IdempotencyInterceptor)
   @ModuleGate('job_portal')
+  @OrgModules('portal', 'jobs')
   @Post('open-jobs/:bookingId/claim')
   claim(
     @Req() req: OrgScopedRequest,
@@ -46,6 +49,7 @@ export class DispatchJobsController {
    *  409 crew_already_assigned once a live mission exists). Key: `withdraw-<bookingId>`. */
   @Throttle({default: {limit: 10, ttl: 60_000}})
   @UseInterceptors(IdempotencyInterceptor)
+  @OrgModules('jobs', 'portal')
   @Post('bookings/:bookingId/withdraw')
   withdraw(
     @Req() req: OrgScopedRequest,

@@ -101,7 +101,12 @@ REDIS_URL=redis://:${REDIS_PW}@redis:6379
 # The ops-console origin. An EMPTY value yields origin:false in main.ts — CORS
 # off entirely, which the browser reports as a bare "Failed to fetch". In
 # production an empty value refuses to boot instead.
-CORS_ALLOWED_ORIGINS=https://ops.bravosecure.cloud
+CORS_ALLOWED_ORIGINS=https://ops.bravosecure.cloud,https://provider.bravosecure.cloud
+
+# The service provider console. Requests from this origin read and write their
+# own session cookies (bravo_pv_*) instead of the ops console's (bravo_ops_*),
+# so a provider and an HQ operator never share or overwrite a session.
+PROVIDER_CONSOLE_ORIGINS=https://provider.bravosecure.cloud
 
 # Parent domain so a cookie set by auth. is delivered to ops.. This is the
 # whole reason both live under bravosecure.cloud.

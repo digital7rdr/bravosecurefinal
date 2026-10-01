@@ -2,6 +2,8 @@ import {
   Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, UseGuards, UseInterceptors,
 } from '@nestjs/common';
 import {JwtAuthGuard} from '../common/guards/jwt-auth.guard';
+import {CsrfGuard} from '../common/guards/csrf.guard';
+import {OrgModules, OrgOwnerOnly} from './org-module.guard';
 import {IdempotencyInterceptor} from '../common/interceptors/idempotency.interceptor';
 import {OrgManagerGuard, type OrgManagerContext} from './org-manager.guard';
 import {CurrentOrgManager} from './current-org-manager.decorator';
@@ -18,9 +20,18 @@ import {CreateManagedCpoDto, SetMemberStatusDto, SetMemberRoleDto, SetManagerPer
  * req.orgManager — every handler scopes to manager.org_user_id, NOT to a path
  * param, so a manager can only ever touch their own roster. This is a separate
  * trust tier from admin_users (HQ ops) — do not mount ops routes here.
+ *
+ * CsrfGuard (2026-10-01): the provider web console calls these routes with a
+ * cookie session, so mutations need the double-submit token. Bearer callers
+ * (the mobile app) are exempt, exactly as on /ops/*.
+ *
+ * @OrgModules (2026-10-01): a delegated manager reaches a route only if the
+ * owner granted them one of the listed modules; the owner reaches everything.
+ * The lists follow the app screens that call each route, so no manager loses
+ * a screen they were granted. See org-module.guard.ts.
  */
 @Controller('org')
-@UseGuards(JwtAuthGuard, OrgManagerGuard)
+@UseGuards(JwtAuthGuard, CsrfGuard, OrgManagerGuard)
 export class OrgController {
   constructor(
     private readonly orgCpo: OrgCpoService,
@@ -35,6 +46,7 @@ export class OrgController {
   }
 
   // Step 13 — this agency's jobs, grouped needs-crew / active / recent.
+  @OrgModules('jobs')
   @Get('missions')
   listMissions(@CurrentOrgManager() manager: OrgManagerContext) {
     return this.orgMission.listMissions(manager.org_user_id);
@@ -42,12 +54,14 @@ export class OrgController {
 
   // MISSION-HISTORY (#3) — the agency's all-completed-missions list + count.
   // Declared BEFORE the :missionId param route so 'completed' isn't captured as an id.
+  @OrgModules('jobs', 'earn')
   @Get('missions/completed')
   listCompletedMissions(@CurrentOrgManager() manager: OrgManagerContext) {
     return this.orgMission.listCompletedMissions(manager.org_user_id);
   }
 
   // F6 — the agency earnings roll-up (totals + per-mission escrow splits).
+  @OrgModules('earn')
   @Get('earnings')
   getEarnings(@CurrentOrgManager() manager: OrgManagerContext) {
     return this.orgMission.getEarnings(manager.org_user_id);
@@ -56,6 +70,7 @@ export class OrgController {
   // Step 32 — one mission's live positions (CPO leader + principal) for the org
   // desk monitor. Org-scoped in SQL (owner-org only) so a manager can only watch
   // their own deployment; same response shape as the crew-gated agent read.
+  @OrgModules('jobs')
   @Get('missions/:missionId/live')
   getMissionLive(
     @Param('missionId', ParseUUIDPipe) missionId: string,
@@ -67,6 +82,7 @@ export class OrgController {
   // SP-MISSION-DETAIL (#2nd · Decision §3) — the agency's escrow view for a
   // booking it owns (payout + hold status). Org resolved from the guard; the
   // service tenant-gates the booking (IDOR).
+  @OrgModules('jobs', 'earn')
   @Get('bookings/:bookingId/escrow')
   getMissionEscrow(
     @Param('bookingId', ParseUUIDPipe) bookingId: string,
@@ -78,6 +94,7 @@ export class OrgController {
   // LM-C7 — the agency confirms a completion when the lead can't (phone died /
   // a crew member requested it). Same money-safe core as the lead Finish: the
   // proof gate + release sweep still stand, so the agency cannot pay itself early.
+  @OrgModules('jobs')
   @Post('missions/:missionId/complete')
   @HttpCode(200)
   @UseInterceptors(IdempotencyInterceptor)
@@ -92,6 +109,7 @@ export class OrgController {
   // it assigned is now MOVING toward the client (mission CREWED → DISPATCHED).
   // Org-scoped through the booking's assigned provider; same idempotent core as
   // the lead's button, plus a wake to every crew member who did not press it.
+  @OrgModules('jobs')
   @Post('missions/:missionId/dispatch')
   @HttpCode(200)
   @UseInterceptors(IdempotencyInterceptor)
@@ -104,6 +122,7 @@ export class OrgController {
 
   // Step 13 — crew a CONFIRMED booking: pick guards + a leader → creates the mission.
   // Idempotency-Key required: a double-confirm must yield ONE mission.
+  @OrgModules('jobs')
   @Post('bookings/:bookingId/crew')
   @UseInterceptors(IdempotencyInterceptor)
   assignCrew(
@@ -115,6 +134,7 @@ export class OrgController {
   }
 
   // Create a managed CPO sub-account under the caller's org.
+  @OrgModules('roster')
   @Post('cpos')
   createCpo(
     @Body() dto: CreateManagedCpoDto,
@@ -124,6 +144,7 @@ export class OrgController {
   }
 
   // List the caller org's roster.
+  @OrgModules('roster', 'jobs', 'dept', 'orgChart', 'msg', 'compliance')
   @Get('cpos')
   listCpos(@CurrentOrgManager() manager: OrgManagerContext) {
     return this.orgCpo.listRoster(manager.org_user_id);
@@ -136,6 +157,7 @@ export class OrgController {
    * never mints a sub-account and never changes the member's app shell —
    * 'employee' is invisible to the §35A account-kind discriminator.
    */
+  @OrgModules('dept', 'roster')
   @Post('employees')
   @HttpCode(200)
   addEmployee(
@@ -148,6 +170,7 @@ export class OrgController {
   // MISSION-HISTORY (#3) — a roster CPO's completed-mission call-log. Org is
   // resolved from the guard (never a path param); the service tenant-gates the
   // member against org_members (the IDOR close).
+  @OrgModules('roster', 'orgChart')
   @Get('cpos/:memberUserId/missions')
   listMemberMissions(
     @Param('memberUserId', ParseUUIDPipe) memberUserId: string,
@@ -158,6 +181,7 @@ export class OrgController {
 
   // Officer profile — identity, compliance, duty state, suspension window and
   // lifetime mission stats in one round-trip. Same IDOR close as /missions.
+  @OrgModules('roster', 'orgChart')
   @Get('cpos/:memberUserId/profile')
   getMemberProfile(
     @Param('memberUserId', ParseUUIDPipe) memberUserId: string,
@@ -169,12 +193,14 @@ export class OrgController {
   }
 
   // Org chart (owner → managers → cpos/employees). Org from the guard.
+  @OrgModules('orgChart')
   @Get('hierarchy')
   getHierarchy(@CurrentOrgManager() manager: OrgManagerContext) {
     return this.orgCpo.getOrgHierarchy(manager.org_user_id);
   }
 
   // Apply to a job as the org, naming one of the caller org's CPOs.
+  @OrgModules('portal')
   @Post('jobs/:jobId/apply')
   applyToJob(
     @Param('jobId') jobId: string,
@@ -188,6 +214,7 @@ export class OrgController {
   }
 
   // Suspend / reinstate / remove a roster member (scoped to caller's org).
+  @OrgModules('roster', 'dept')
   @Patch('cpos/:memberUserId/status')
   @HttpCode(200)
   async setStatus(
@@ -210,6 +237,7 @@ export class OrgController {
   // unscoped managers (Q7), enforced in the service — the owner is untouchable
   // and a branch-scoped manager is refused; the channel reseed + rekey intents
   // ride along.
+  @OrgModules('roster', 'dept')
   @Patch('cpos/:memberUserId/role')
   @HttpCode(200)
   async setRole(
@@ -226,6 +254,7 @@ export class OrgController {
 
   // Owner's "Manager Permissions" screen — every manager + their currently
   // granted dashboard modules.
+  @OrgOwnerOnly()
   @Get('managers')
   listManagers(@CurrentOrgManager() manager: OrgManagerContext) {
     return this.orgCpo.listManagers(manager.org_user_id);
@@ -235,17 +264,20 @@ export class OrgController {
   // The redeem route lives on OrgInviteController (JwtAuthGuard only — the
   // joiner is on no roster yet). Minting is the PROVIDER's act, so it sits
   // here behind OrgManagerGuard; the org comes from the guard, never the body.
+  @OrgModules('roster')
   @Post('invites')
   @HttpCode(200)
   mintInvite(@Body() dto: MintInviteDto, @CurrentOrgManager() manager: OrgManagerContext) {
     return this.orgCpo.mintInviteCode(manager.org_user_id, manager.user_id, dto);
   }
 
+  @OrgModules('roster')
   @Get('invites')
   listInvites(@CurrentOrgManager() manager: OrgManagerContext) {
     return this.orgCpo.listInviteCodes(manager.org_user_id);
   }
 
+  @OrgModules('roster')
   @Post('invites/:code/revoke')
   @HttpCode(200)
   revokeInvite(@Param('code') code: string, @CurrentOrgManager() manager: OrgManagerContext) {
@@ -254,6 +286,7 @@ export class OrgController {
 
   // Owner-only (enforced in the service, mirrors setRole) — replaces the
   // full granted-module set for one manager.
+  @OrgOwnerOnly()
   @Patch('managers/:memberUserId/permissions')
   @HttpCode(200)
   async setManagerPermissions(

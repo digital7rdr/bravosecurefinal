@@ -17,10 +17,32 @@ const col = (gap: number) => ({display:'flex' as const,flexDirection:'column' as
  * It is on the PUBLIC_ASSETS allowlist so it renders before sign-in, and the
  * Dockerfile copies public/ into the image so the server can serve it.
  */
-export function AuthLayout({subtitle, description, wide, children}: {
+export interface AuthBrand {
+  kicker: string;
+  headline: string;
+  lede: string;
+  points: string[];
+  foot: string;
+}
+
+/** The HQ ops console's brand panel (the default). */
+export const OPS_BRAND: AuthBrand = {
+  kicker: 'Ops Console',
+  headline: 'Operations Command Center',
+  lede: 'Dispatch, protection details and incident response for Bravo Secure, in one console.',
+  points: [
+    'Live missions, SOS alerts and field teams',
+    'Two-step verification on every operator account',
+    'Encrypted operator messaging',
+  ],
+  foot: 'Authorised personnel only. Sign-ins and console activity are logged.',
+};
+
+export function AuthLayout({subtitle, description, wide, brand = OPS_BRAND, children}: {
   subtitle: string;
   description?: ReactNode;
   wide?: boolean;
+  brand?: AuthBrand;
   children: ReactNode;
 }) {
   return (
@@ -29,15 +51,11 @@ export function AuthLayout({subtitle, description, wide, children}: {
         {/* eslint-disable-next-line @next/next/no-img-element -- static SVG logo; next/image adds nothing */}
         <img src="/bravo-logo-light.svg" alt="" width={132} height={95} className="auth-logo"/>
         <div>
-          <div className="auth-kicker">Ops Console</div>
-          <h1 className="auth-headline">Operations Command Center</h1>
-          <p className="auth-lede">
-            Dispatch, protection details and incident response for Bravo Secure, in one console.
-          </p>
+          <div className="auth-kicker">{brand.kicker}</div>
+          <h1 className="auth-headline">{brand.headline}</h1>
+          <p className="auth-lede">{brand.lede}</p>
           <ul className="auth-points">
-            <li><CheckIcon/>Live missions, SOS alerts and field teams</li>
-            <li><CheckIcon/>Two-step verification on every operator account</li>
-            <li><CheckIcon/>Encrypted operator messaging</li>
+            {brand.points.map(p => <li key={p}><CheckIcon/>{p}</li>)}
           </ul>
         </div>
         <div className="auth-legal">© {new Date().getFullYear()} Bravo Secure</div>
@@ -52,7 +70,7 @@ export function AuthLayout({subtitle, description, wide, children}: {
           {children}
           <div className="auth-foot">
             <ShieldIcon/>
-            <span>Authorised personnel only. Sign-ins and console activity are logged.</span>
+            <span>{brand.foot}</span>
           </div>
         </div>
       </main>

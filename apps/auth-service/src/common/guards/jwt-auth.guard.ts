@@ -2,6 +2,7 @@ import {Injectable, CanActivate, ExecutionContext, UnauthorizedException} from '
 import type {Request} from 'express';
 import {JwtService} from '../../auth/jwt.service';
 import {RedisService} from '../../redis/redis.service';
+import {sessionCookiesFor} from '../http/session-cookies';
 
 /**
  * Audit fix 0.4 — accept token from EITHER Authorization header (mobile
@@ -10,6 +11,11 @@ import {RedisService} from '../../redis/redis.service';
  *
  * Header takes precedence so a mobile dev tool inspecting cookies can't
  * accidentally race with the bearer flow.
+ *
+ * The cookie read is the one belonging to the console that sent the request
+ * (`bravo_pv_token` from the provider console, `bravo_ops_token` otherwise;
+ * see common/http/session-cookies.ts), so one console never authenticates
+ * with the other console's session.
  */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -24,8 +30,9 @@ export class JwtAuthGuard implements CanActivate {
     let token: string | null = null;
     if (header?.startsWith('Bearer ')) {
       token = header.slice(7);
-    } else if (req.cookies?.['bravo_ops_token']) {
-      token = req.cookies['bravo_ops_token'];
+    } else {
+      const cookieName = sessionCookiesFor(req).token;
+      if (req.cookies?.[cookieName]) token = req.cookies[cookieName];
     }
     if (!token) throw new UnauthorizedException('missing_token');
 

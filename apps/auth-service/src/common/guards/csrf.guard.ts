@@ -1,5 +1,6 @@
 import {Injectable, CanActivate, ExecutionContext, ForbiddenException} from '@nestjs/common';
 import type {Request} from 'express';
+import {sessionCookiesFor} from '../http/session-cookies';
 
 /**
  * Audit fix 0.4 — double-submit CSRF guard.
@@ -21,6 +22,13 @@ import type {Request} from 'express';
  *     attacker would need the token itself, at which point the game's
  *     already over.
  *
+ * Cookie names follow the console that sent the request (session-cookies.ts):
+ * the provider console's `bravo_pv_*` pair or the ops console's `bravo_ops_*`.
+ *
+ * A request that carries `Authorization: Bearer` is a Bearer caller even if
+ * the browser also attached cookies: JwtAuthGuard authenticates it from the
+ * header, and a cross-site page cannot set that header without the token.
+ *
  * Failure mode: 403 with code `csrf_token_invalid`. Don't leak whether
  * the cookie is missing vs the header is missing — both branches collapse
  * into the same error, same as Django's default.
@@ -33,13 +41,17 @@ export class CsrfGuard implements CanActivate {
     const method = (req.method || 'GET').toUpperCase();
     if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return true;
 
-    const usingCookieSession = !!req.cookies?.['bravo_ops_token'];
+    const auth = req.headers['authorization'];
+    if (typeof auth === 'string' && auth.startsWith('Bearer ')) return true;
+
+    const names = sessionCookiesFor(req);
+    const usingCookieSession = !!req.cookies?.[names.token];
     if (!usingCookieSession) {
       // Bearer-token caller — CSRF doesn't apply.
       return true;
     }
 
-    const cookieCsrf = req.cookies?.['bravo_ops_csrf'];
+    const cookieCsrf = req.cookies?.[names.csrf];
     const headerCsrf = req.headers['x-csrf-token'];
     if (
       typeof cookieCsrf !== 'string' || cookieCsrf.length === 0 ||

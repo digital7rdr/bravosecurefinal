@@ -3,6 +3,7 @@ import {DispatchController} from './dispatch.controller';
 import {JwtAuthGuard} from '../common/guards/jwt-auth.guard';
 import {OrgManagerGuard} from '../org/org-manager.guard';
 import {UserThrottlerGuard} from '../common/guards/user-throttler.guard';
+import {CsrfGuard} from '../common/guards/csrf.guard';
 import {IdempotencyInterceptor} from '../common/interceptors/idempotency.interceptor';
 import type {DispatchService} from './dispatch.service';
 import type {OpsAuditService} from '../ops/ops-audit.service';
@@ -79,10 +80,10 @@ describe('DispatchController', () => {
   });
 
   describe('security wiring (decorator metadata)', () => {
-    it('guards the controller with Jwt → OrgManager → Throttler, in that order', () => {
+    it('guards the controller with Jwt → Csrf → OrgManager → Throttler, in that order', () => {
       const guards = (Reflect.getMetadata(GUARDS_METADATA, DispatchController) ?? []) as Array<new (...a: never[]) => unknown>;
       const names = guards.map(g => g.name);
-      expect(names).toEqual([JwtAuthGuard.name, OrgManagerGuard.name, UserThrottlerGuard.name]);
+      expect(names).toEqual([JwtAuthGuard.name, CsrfGuard.name, OrgManagerGuard.name, UserThrottlerGuard.name]);
     });
 
     it('wraps accept in the IdempotencyInterceptor (tap-safety)', () => {

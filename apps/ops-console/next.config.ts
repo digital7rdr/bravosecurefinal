@@ -1,6 +1,9 @@
 import type { NextConfig } from 'next';
 import { REDIRECTS } from './src/lib/routes';
 
+/** Host names served as the provider console (see src/lib/provider/host.ts). */
+const PROVIDER_HOST_PATTERN = 'provider\\..*';
+
 // Audit fix 0.6 — security headers (CSP w/ per-request nonce, HSTS,
 // X-Frame-Options, Referrer-Policy, Permissions-Policy) now live in
 // src/middleware.ts so the CSP nonce can vary per response. Keep
@@ -19,8 +22,16 @@ const nextConfig: NextConfig = {
    * The list lives in src/lib/routes.ts so the pin suite can assert every
    * destination is a real route; this function only shapes it for Next.
    */
+  //
+  // The legacy paths belong to the ops console only. On the service provider
+  // host (provider.*) "/jobs" is the provider's own Jobs page, and a redirect
+  // runs before the middleware could route it, so it is skipped there.
   async redirects() {
-    return REDIRECTS.map(r => ({...r, permanent: true}));
+    return REDIRECTS.map(r => ({
+      ...r,
+      permanent: true,
+      missing: [{type: 'host' as const, value: PROVIDER_HOST_PATTERN}],
+    }));
   },
   reactStrictMode: true,
   output: 'standalone',

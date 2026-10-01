@@ -16,6 +16,7 @@ import type {OpsUserLocation} from './userLocation';
 import {routes} from '@/lib/routes';
 import {usePathname} from 'next/navigation';
 import {isPublicPath} from './publicRoutes';
+import {isProviderHost} from './provider/host';
 import {pollMs} from './pollCadence';
 
 // Audit fix 4.1 — fail loudly if API base URL is missing in prod. Defaulting
@@ -357,7 +358,10 @@ export function clearMessengerTicket(): void {
  */
 export async function clearSession(): Promise<void> {
   try {
-    await fetchJson('/auth/session', {method: 'DELETE', body: JSON.stringify({allDevices: false})});
+    // deviceId is REQUIRED by SessionDeleteDto. Without it the DELETE was a
+    // 400 validation error: the session was never revoked server-side and the
+    // httpOnly token cookie stayed valid until it expired (found 2026-10-01).
+    await fetchJson('/auth/session', {method: 'DELETE', body: JSON.stringify({deviceId: deviceId(), allDevices: false})});
   } catch {
     // Best-effort: even if the delete fails (already revoked, etc.),
     // we still want the redirect-to-login to fire. The middleware will
@@ -2642,8 +2646,11 @@ export function useOpsMe() {
   // i.e. anything they actually try to do — still boots on its first 401. What
   // it removes is the background timer's ability to do it underneath them.
   const consecutiveSessionLoss = useRef(0);
+  // The provider console (provider.* host) shares the root layout, and so the
+  // MessengerProvider that calls this hook. It has no ops session: never ask.
+  const onProviderHost = typeof window !== 'undefined' && isProviderHost(window.location.host);
   return useSWR<OpsMe>(
-    isPublicPath(pathname) ? null : 'me',
+    isPublicPath(pathname) || onProviderHost ? null : 'me',
     async () => {
       try {
         const me = await opsApi.me();
