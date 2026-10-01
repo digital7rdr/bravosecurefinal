@@ -27,7 +27,12 @@ describe('GET /org/console/context', () => {
 
   it('a person with no agency gets an empty list, not an error', async () => {
     const {c} = controller([]);
-    await expect(c.context(user)).resolves.toEqual({user: {id: ME, display_name: 'Sam'}, orgs: []});
+    await expect(c.context(user)).resolves.toEqual({user: {id: ME, display_name: 'Sam', password_temporary: false}, orgs: []});
+  });
+
+  it('flags an admin-issued password that was never changed', async () => {
+    const {c} = controller([], {id: ME, display_name: 'Sam', password_temporary: true});
+    expect((await c.context(user)).user.password_temporary).toBe(true);
   });
 
   it('only ACTIVE company agents count, so workspaces never appear', async () => {

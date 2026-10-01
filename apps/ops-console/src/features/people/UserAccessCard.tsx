@@ -13,6 +13,7 @@ import Link from 'next/link';
 import {ApiError, opsApi, type UserModuleView} from '@/lib/api';
 import {formatDateTimeUtc} from '@/lib/datetime';
 import {routes} from '@/lib/routes';
+import {IssuePassword} from './IssuePassword';
 
 const GROUP_LABEL: Record<string, string> = {
   individual: 'Individual client', enterprise: 'Enterprise', agency: 'Service-provider agency', cpo: 'CPO agent',
@@ -84,10 +85,13 @@ export function UserAccessCard({userId, enabled, Card}: {
             className="mt-2 rounded-md border border-bd1 px-3 py-1.5 text-xs font-semibold text-t1 hover:bg-s1 disabled:opacity-50">
             {busy === 'invite' ? 'SENDING…' : inv.expired ? 'RENEW & RESEND SMS' : 'RESEND SMS'}
           </button>
+          <IssuePassword userId={userId}
+            accountType={view?.group === 'agency' ? 'agency' : view?.group === 'cpo' ? 'cpo' : view ? 'individual' : null}
+            onIssued={() => { void invite.mutate(); }}/>
         </div>
       )}
       {inv?.claimed && (
-        <p className="mb-3 text-xs text-t3">Activated by the user from an admin invitation.</p>
+        <p className="mb-3 text-xs text-t3">Created from an admin invitation; the account has a password.</p>
       )}
 
       {mods.error && <p className="text-sm text-err">Could not load module access.</p>}

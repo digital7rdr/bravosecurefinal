@@ -1659,3 +1659,6 @@ textarea.pv-input { resize: vertical; }
 @media (max-width: 640px) {
   .app-shell .rail-group, .app-shell .rail-head { display: none; }
 }
+.pv-banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 18px; padding: 12px 16px; border-radius: 10px; font-size: 13.5px; color: var(--tx-1);
+  border: 1px solid rgba(255,193,7,.35); background: rgba(255,193,7,.08); }

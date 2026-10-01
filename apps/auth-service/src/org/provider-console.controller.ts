@@ -16,7 +16,9 @@ export interface ProviderConsoleOrg {
 }
 
 export interface ProviderConsoleContext {
-  user: {id: string; display_name: string | null};
+  /** password_temporary: the password was issued by an HQ admin (ops console)
+   *  and has not been changed by the person since; the console asks them to. */
+  user: {id: string; display_name: string | null; password_temporary: boolean};
   /** Security agencies this person may run. Empty = no access to the console. */
   orgs: ProviderConsoleOrg[];
 }
@@ -48,8 +50,10 @@ export class ProviderConsoleController {
   @Get('context')
   async context(@CurrentUser() user: AccessClaims): Promise<ProviderConsoleContext> {
     const [me, rows] = await Promise.all([
-      this.db.qOne<{id: string; display_name: string | null}>(
-        `SELECT id, display_name FROM public.users WHERE id = $1 AND deleted_at IS NULL`,
+      this.db.qOne<{id: string; display_name: string | null; password_temporary: boolean}>(
+        `SELECT id, display_name,
+                (password_set_at IS NULL AND invited_at IS NOT NULL) AS password_temporary
+           FROM public.users WHERE id = $1 AND deleted_at IS NULL`,
         [user.sub],
       ),
       this.db.q<{
@@ -79,7 +83,7 @@ export class ProviderConsoleController {
     ]);
     const all = [...OrgCpoService.MANAGER_MODULES] as string[];
     return {
-      user: {id: user.sub, display_name: me?.display_name ?? null},
+      user: {id: user.sub, display_name: me?.display_name ?? null, password_temporary: !!me?.password_temporary},
       orgs: rows.map(r => ({
         org_id: r.org_id,
         name: r.name ?? '',

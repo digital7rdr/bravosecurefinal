@@ -81,3 +81,48 @@ describe('UserAdminService — accounts as SMS invites, no admin passwords', () 
     await expect(svc.resendInvite(admin, 'u-claimed')).rejects.toThrow('not_a_pending_invite');
   });
 });
+
+describe('UserAdminService.issueInvitePassword — ops-issued first password', () => {
+  function svcWith(row: unknown, updated: unknown) {
+    const db = {
+      q: jest.fn(),
+      qOne: jest.fn(async (sql: string) => {
+        if (/FROM public\.users u LEFT JOIN agents/.test(sql)) return row;
+        if (/UPDATE public\.users/.test(sql)) return updated;
+        return null;
+      }),
+    };
+    const passwords = {hash: jest.fn(async (p: string) => `hashed:${p}`)};
+    return {svc: new UserAdminService(db as never, {} as never, {} as never, passwords as never), db, passwords};
+  }
+
+  it('sets a strong temporary password on a pending invite and returns it once', async () => {
+    const {svc, db, passwords} = svcWith({is_admin: false, agent_type: 'company'}, {id: 'u1'});
+    const out = await svc.issueInvitePassword(admin, 'u1');
+    expect(out.account_type).toBe('agency');
+    expect(out.password).toMatch(/^[a-z2-9]{4}-[a-z2-9]{4}-[a-z2-9]{4}-[2-9]{4}$/);
+    expect(passwords.hash).toHaveBeenCalledWith(out.password);
+    const [sql, params] = db.qOne.mock.calls.find(c => /UPDATE public\.users/.test(c[0] as string)) as unknown as [string, unknown[]];
+    // only a never-claimed invite, and password_set_at stays NULL (temporary)
+    expect(sql).toMatch(/password_hash IS NULL/);
+    expect(sql).toMatch(/invited_at IS NOT NULL/);
+    expect(sql).toMatch(/suspended_at IS NULL/);
+    expect(sql).toMatch(/password_set_at = NULL/);
+    expect(params).toEqual(['u1', `hashed:${out.password}`]);
+  });
+
+  it('refuses an account that already has a password (no takeover)', async () => {
+    const {svc} = svcWith({is_admin: false, agent_type: null}, null);
+    await expect(svc.issueInvitePassword(admin, 'u1')).rejects.toThrow('not_a_pending_invite');
+  });
+
+  it('refuses HQ admin accounts and unknown users', async () => {
+    await expect(svcWith({is_admin: true, agent_type: null}, {id: 'u1'}).svc.issueInvitePassword(admin, 'u1')).rejects.toThrow('admin_accounts_not_allowed');
+    await expect(svcWith(null, null).svc.issueInvitePassword(admin, 'u1')).rejects.toThrow('user_not_found');
+  });
+
+  it('passwords differ every time', () => {
+    const set = new Set(Array.from({length: 200}, () => UserAdminService.signInPassword()));
+    expect(set.size).toBe(200);
+  });
+});

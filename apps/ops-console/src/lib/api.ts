@@ -1298,6 +1298,11 @@ export const opsApi = {
   createAppUser: (body: CreateAppUserBody) =>
     fetchJson<CreateAppUserResult>(`/ops/users`, {method: 'POST', body: JSON.stringify(body)}),
   userInvite: (userId: string) => fetchJson<InviteStatus>(`/ops/users/${encodeURIComponent(userId)}/invite`),
+  /** First sign-in password for a pending invite; returned ONCE (2026-10-01). */
+  issueInvitePassword: (userId: string) =>
+    fetchJson<{user_id: string; password: string; account_type: AppAccountType}>(
+      `/ops/users/${encodeURIComponent(userId)}/invite/password`, {method: 'POST'},
+    ),
   resendInvite: (userId: string) =>
     fetchJson<{user_id: string; invite: InviteStatus; sms_sent: boolean}>(
       `/ops/users/${encodeURIComponent(userId)}/invite/resend`, {method: 'POST'},

@@ -2,7 +2,9 @@
 
 import {SignInFlow} from '@/components/SignInFlow';
 import type {AuthBrand} from '@/components/auth-primitives';
-import {pvAuth, PV_CSRF_COOKIE, PV_EXPIRES_KEY, PV_IDLE_KEY} from '@/lib/provider/api';
+import {pvAuth, PV_CSRF_COOKIE, PV_EXPIRES_KEY, PV_IDLE_KEY, PV_PW_CHANGED_KEY} from '@/lib/provider/api';
+
+const NOTICES = [{key: PV_PW_CHANGED_KEY, text: 'Password changed. Sign in again with your new password.'}];
 
 const BRAND: AuthBrand = {
   kicker: 'Provider Console',
@@ -48,6 +50,7 @@ export default function ProviderLoginPage() {
       accountNoun="service provider"
       brand={BRAND}
       afterSignIn={requireAgency}
+      notices={NOTICES}
     />
   );
 }

@@ -1,5 +1,6 @@
-import {ConflictException, Injectable, Logger, NotFoundException} from '@nestjs/common';
-import {randomBytes} from 'node:crypto';
+import {ConflictException, ForbiddenException, Injectable, Logger, NotFoundException, Optional} from '@nestjs/common';
+import {randomBytes, randomInt} from 'node:crypto';
+import {PasswordService} from '../common/services/password.service';
 import {DatabaseService} from '../database/database.service';
 import {SmsService} from '../common/services/sms.service';
 import type {AdminContext} from '../ops/admin.guard';
@@ -53,6 +54,7 @@ export class UserAdminService {
     private readonly db: DatabaseService,
     private readonly proMgmt: ProManagementService,
     private readonly sms: SmsService,
+    @Optional() private readonly passwords?: PasswordService,
   ) {}
 
   async createUser(admin: AdminContext, dto: CreateAppUserInput) {
@@ -110,6 +112,59 @@ export class UserAdminService {
     const invite = await this.inviteStatus(userId);
     const sms = row.phone_e164 ? await this.sendInviteSms(row.phone_e164, invite.expires_at) : false;
     return {user_id: userId, invite, sms_sent: sms};
+  }
+
+  /**
+   * 2026-10-01 — first sign-in password for a PENDING invite, issued from the
+   * ops console. For when the SMS invite cannot reach the person (SMS is off
+   * on this server) — the alternative was a root shell on the server.
+   *
+   * Rules:
+   *   - only a never-claimed invite (invited_at set, no password, not deleted,
+   *     not suspended): an account already in use is never touched, so this
+   *     is not a takeover tool;
+   *   - never an HQ admin account (admins are made on Internal → Admins);
+   *   - the server makes the password (~57 bits), the admin cannot choose it,
+   *     and it is returned exactly once, never stored or logged in clear;
+   *   - password_set_at stays NULL: the password is TEMPORARY. Officers are
+   *     made to replace it by the app, the provider console asks the agency
+   *     to, and the first change records password_set_at.
+   * Issuing it also closes the window in which anyone who knows the phone
+   * number could claim the invite through the app's sign-up.
+   */
+  async issueInvitePassword(_admin: AdminContext, userId: string): Promise<{user_id: string; password: string; account_type: AppAccountType}> {
+    if (!this.passwords) throw new Error('PasswordService not provided');
+    const row = await this.db.qOne<{is_admin: boolean; agent_type: string | null}>(
+      `SELECT EXISTS(SELECT 1 FROM admin_users au WHERE au.user_id = u.id) AS is_admin,
+              a.type AS agent_type
+         FROM public.users u LEFT JOIN agents a ON a.user_id = u.id
+        WHERE u.id = $1 AND u.deleted_at IS NULL`,
+      [userId],
+    );
+    if (!row) throw new NotFoundException('user_not_found');
+    if (row.is_admin) throw new ForbiddenException('admin_accounts_not_allowed');
+
+    const password = UserAdminService.signInPassword();
+    const hash = await this.passwords.hash(password);
+    const updated = await this.db.qOne<{id: string}>(
+      `UPDATE public.users
+          SET password_hash = $2, password_set_at = NULL, invite_expires_at = NULL
+        WHERE id = $1 AND invited_at IS NOT NULL AND password_hash IS NULL
+          AND deleted_at IS NULL AND suspended_at IS NULL
+        RETURNING id`,
+      [userId, hash],
+    );
+    if (!updated) throw new ConflictException('not_a_pending_invite');
+    const account_type: AppAccountType = row.agent_type === 'company' ? 'agency' : row.agent_type ? 'cpo' : 'individual';
+    return {user_id: userId, password, account_type};
+  }
+
+  /** xxxx-xxxx-xxxx-0000, no look-alike characters (~57 bits). */
+  static signInPassword(): string {
+    const a = 'abcdefghjkmnpqrstuvwxyz23456789';
+    const d = '23456789';
+    const pick = (set: string, n: number) => Array.from({length: n}, () => set[randomInt(set.length)]).join('');
+    return `${pick(a, 4)}-${pick(a, 4)}-${pick(a, 4)}-${pick(d, 4)}`;
   }
 
   async inviteStatus(userId: string): Promise<InviteStatus> {

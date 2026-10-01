@@ -108,3 +108,18 @@ describe('provider nav and labels', () => {
     expect(errorText({body: {message: 'crew_count_mismatch'}})).toMatch(/exactly/);
   });
 });
+
+describe('ops-issued sign-in passwords', () => {
+  it('the password is only ever held in component state', () => {
+    const code = stripComments(read('features/people/IssuePassword.tsx'));
+    expect(code).not.toMatch(/localStorage|sessionStorage|console\.|indexedDB/);
+    expect(stripComments(read('lib/api.ts'))).toMatch(/issueInvitePassword[\s\S]{0,200}\/invite\/password`, \{method: 'POST'\}/);
+  });
+
+  it('the provider console offers a password change and the temporary-password banner', () => {
+    const shell = stripComments(read('components/provider/ProviderShell.tsx'));
+    expect(shell).toMatch(/password_temporary/);
+    expect(shell).toMatch(/ChangePasswordDialog/);
+    expect(stripComments(read('lib/provider/api.ts'))).toMatch(/'\/auth\/me\/password'/);
+  });
+});

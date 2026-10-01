@@ -24,6 +24,7 @@ const BASE = ENV_BASE ?? 'http://localhost:3001';
 export const PV_CSRF_COOKIE = 'bravo_pv_csrf';
 export const PV_EXPIRES_KEY = 'bravo_pv_access_expires_at';
 export const PV_IDLE_KEY = 'bravo_pv_idle_logout';
+export const PV_PW_CHANGED_KEY = 'bravo_pv_password_changed';
 const ORG_KEY = 'bravo_pv_org';
 
 /* ── Selected agency ─────────────────────────────────────────────────── */
@@ -130,7 +131,8 @@ export interface ConsoleOrg {
   department: string | null;
 }
 export interface ConsoleContext {
-  user: {id: string; display_name: string | null};
+  /** password_temporary: first password issued by Bravo Secure HQ, not yet changed. */
+  user: {id: string; display_name: string | null; password_temporary?: boolean};
   orgs: ConsoleOrg[];
 }
 
@@ -277,6 +279,10 @@ export const pvAuth = {
       {userId, code, deviceId: deviceId(), platform: 'web', ...(challengeId ? {challengeId} : {})}),
   sessionRefresh: () => send<{expiresIn: number}>('POST', '/auth/session/refresh'),
   context: () => pv<ConsoleContext>('/org/console/context', {noBoot: true}),
+  /** Change the password. The server then signs out EVERY session of this
+   *  account (that is the point of changing it), so the caller goes to login. */
+  changePassword: (currentPassword: string, newPassword: string) =>
+    pv<{ok: true}>('/auth/me/password', {method: 'POST', body: JSON.stringify({currentPassword, newPassword}), noBoot: true}),
   /** Revoke this browser's session, then drop every client-side signal. */
   async signOut(): Promise<void> {
     try {

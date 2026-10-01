@@ -11,6 +11,7 @@ import Link from 'next/link';
 import {useEffect, useState} from 'react';
 import {ApiError, opsApi, useAgencies, type AppAccountType, type CreateAppUserResult} from '@/lib/api';
 import {routes} from '@/lib/routes';
+import {IssuePassword} from './IssuePassword';
 
 const TYPES: {id: AppAccountType; label: string; hint: string}[] = [
   {id: 'individual', label: 'Individual client', hint: 'Books Lite / Executive protection; can take Secure Pro later.'},
@@ -86,6 +87,8 @@ export function AddUserModal({onClose, onCreated}: {onClose: () => void; onCreat
                   <span className="font-mono">{phone.trim()}</span>.</>}
             </p>
             <p className="text-t3">Until they sign up the account cannot log in. You can resend the invite from their page.</p>
+            <p className="text-t3">No SMS? Create their first sign-in password here and give it to them yourself:</p>
+            <IssuePassword userId={done.user_id} phone={phone.trim()} accountType={done.account_type}/>
           </div>
         ) : (
           <div className="space-y-4 px-5 py-4">

@@ -52,6 +52,21 @@ because those app screens read the roster.
 - Sign-in is the same phone + password + authenticator flow as the ops
   console (`components/SignInFlow.tsx`).
 
+## First password for a new agency (no SMS)
+
+Accounts made under People → Add user are invites. With SMS off nobody gets
+the text, so a Super Admin creates the first password in the ops console:
+Add user → **Create sign-in password** on the "Account created" screen, or
+later on the user's page under Access → Invitation pending. The server makes
+the password and shows it once; the admin passes it on privately. It only
+works on a never-claimed invite (an account in use is never touched) and
+never on HQ admin accounts; every issue is audited
+(`user.invite.password_issued`, without the password).
+
+The password is temporary (`password_set_at` stays NULL). The provider console
+shows a banner until the owner changes it (top bar → Password); officers are
+made to change it by the app.
+
 ## Deploying
 
 1. DNS: `A provider.bravosecure.cloud → 31.97.126.211`.

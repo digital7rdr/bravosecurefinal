@@ -1,4 +1,4 @@
-import {Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Post, Req, UseGuards} from '@nestjs/common';
+import {Body, Controller, Get, Header, HttpCode, Param, ParseUUIDPipe, Post, Req, UseGuards} from '@nestjs/common';
 import type {Request} from 'express';
 import {IsEmail, IsIn, IsOptional, IsString, IsUUID, Matches, MaxLength, MinLength, ValidateIf} from 'class-validator';
 import {Throttle} from '@nestjs/throttler';
@@ -51,6 +51,20 @@ export class UserAdminController {
   @Get(':id/invite')
   invite(@Param('id', ParseUUIDPipe) id: string) {
     return this.users.inviteStatus(id);
+  }
+
+  /**
+   * First sign-in password for a pending invite (SMS off / not received).
+   * Shown to the admin ONCE; never stored in clear, never in the audit row.
+   */
+  @Post(':id/invite/password')
+  @HttpCode(200)
+  @Header('Cache-Control', 'no-store')
+  @Throttle({default: {limit: 10, ttl: 60_000}})
+  async issuePassword(@Param('id', ParseUUIDPipe) id: string, @Req() req: OpsReq) {
+    const out = await this.users.issueInvitePassword(req.admin, id);
+    await this.audit.recordAdmin(req.admin, 'user.invite.password_issued', 'user', id, {account_type: out.account_type});
+    return out;
   }
 
   @Post(':id/invite/resend')

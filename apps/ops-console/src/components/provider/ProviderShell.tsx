@@ -23,6 +23,7 @@ import {
 } from '@/lib/provider/api';
 import {PROVIDER_NAV, navActive, type NavIcon} from '@/lib/provider/nav';
 import {pvRoutes} from '@/lib/provider/routes';
+import {ChangePasswordDialog} from './ChangePassword';
 
 const REFRESH_LEAD_SEC = 60;
 const IDLE_TIMEOUT_MS = 15 * 60 * 1000;
@@ -91,6 +92,7 @@ export function ProviderShell({children}: {children: ReactNode}) {
   const [hasSession, setHasSession] = useState<boolean | null>(null);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  const [pwOpen, setPwOpen] = useState(false);
 
   useEffect(() => {
     const ok = !!readPvCsrf();
@@ -236,11 +238,21 @@ export function ProviderShell({children}: {children: ReactNode}) {
               <div className="pv-user-name">{name}</div>
               <div className="pv-user-role">{value.isOwner ? 'Owner' : 'Manager'}</div>
             </div>
-            <button onClick={signOut} title="Sign out" className="pv-signout">Sign out</button>
+            <button onClick={() => setPwOpen(true)} title="Change password" className="pv-signout">Password</button>
+            <button onClick={signOut} title="Sign out" className="pv-signout" style={{marginLeft: 6}}>Sign out</button>
           </div>
         </header>
 
-        <main className="main-area" key={value.orgId}>{children}</main>
+        <main className="main-area" key={value.orgId}>
+          {context.user.password_temporary && (
+            <div className="pv-banner" role="status">
+              <span>You are signed in with a temporary password from Bravo Secure. Choose your own now.</span>
+              <button className="btn btn-sm btn-pri" onClick={() => setPwOpen(true)}>Change password</button>
+            </div>
+          )}
+          {children}
+        </main>
+        <ChangePasswordDialog open={pwOpen} temporary={!!context.user.password_temporary} onClose={() => setPwOpen(false)}/>
       </div>
     </Ctx.Provider>
   );

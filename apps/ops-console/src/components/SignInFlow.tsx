@@ -30,6 +30,8 @@ export interface SignInFlowProps {
   /** "operator" / "service provider" — used in the first step's hint. */
   accountNoun: string;
   brand?: AuthBrand;
+  /** One-shot sessionStorage flags → a notice above the form (read and cleared). */
+  notices?: Array<{key: string; text: string}>;
   /** Runs after a successful verify; a returned string is shown as the error. */
   afterSignIn?: () => Promise<string | null>;
 }
@@ -80,7 +82,7 @@ function CopyButton({text, label}: {text: string; label: string}) {
 }
 
 export function SignInFlow({
-  api, csrfCookie, expiresKey, idleKey, homeHref, accountNoun, brand, afterSignIn,
+  api, csrfCookie, expiresKey, idleKey, homeHref, accountNoun, brand, afterSignIn, notices,
 }: SignInFlowProps) {
   const router = useRouter();
   const [phone,    setPhone]    = useState('');
@@ -93,6 +95,7 @@ export function SignInFlow({
   const [busy,     setBusy]     = useState(false);
   const [err,      setErr]      = useState<string | null>(null);
   const [idleNote, setIdleNote] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
   // OC-17 — the Shell has stamped this flag on idle logout since audit 4.1,
   // but nothing ever read it: operators were silently dumped at /login with
@@ -103,6 +106,13 @@ export function SignInFlow({
       window.sessionStorage.removeItem(idleKey);
       setIdleNote(true);
     }
+    for (const n of notices ?? []) {
+      if (window.sessionStorage.getItem(n.key) === '1') {
+        window.sessionStorage.removeItem(n.key);
+        setNotice(n.text);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- read once on mount
   }, [idleKey]);
 
   // Audit fix 0.4 — token is in an httpOnly cookie now; we can't probe
@@ -186,6 +196,12 @@ export function SignInFlow({
       {idleNote && !step && (
         <div style={{marginBottom:16}}>
           <Note>You were signed out after 15 minutes of inactivity. Sign in to continue.</Note>
+        </div>
+      )}
+
+      {notice && !step && (
+        <div style={{marginBottom:16}}>
+          <Note>{notice}</Note>
         </div>
       )}
 
