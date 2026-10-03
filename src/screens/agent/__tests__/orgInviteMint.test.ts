@@ -77,7 +77,11 @@ describe('B-812 — the roster has an invitation-code door', () => {
 
   it('server: mint/list/revoke sit on OrgController (OrgManagerGuard); the joiner\'s controller still only redeems', () => {
     const org = code(ORG_CTRL);
-    expect(org).toMatch(/@UseGuards\(JwtAuthGuard, OrgManagerGuard\)/);
+    // 2026-10-01 — CsrfGuard joined the stack for the provider web console
+    // (cookie sessions); OrgManagerGuard still gates every route, and the
+    // invite routes additionally need the owner's "Officer roster" grant.
+    expect(org).toMatch(/@UseGuards\(JwtAuthGuard, CsrfGuard, OrgManagerGuard\)/);
+    expect(org).toMatch(/@OrgModules\('roster'\)\s*@Post\('invites'\)/);
     expect(org).toMatch(/@Post\('invites'\)/);
     expect(org).toMatch(/@Get\('invites'\)/);
     expect(org).toMatch(/@Post\('invites\/:code\/revoke'\)/);
