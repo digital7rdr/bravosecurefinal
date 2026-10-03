@@ -121,7 +121,7 @@ export function actionKey(prefix: string): string {
 
 export type ModuleKey =
   | 'jobs' | 'portal' | 'compliance' | 'roster' | 'orgChart' | 'dept' | 'earn'
-  | 'msg' | 'intel' | 'region';
+  | 'msg' | 'intel' | 'region' | 'fleet' | 'pro';
 
 export interface ConsoleOrg {
   org_id: string;
@@ -268,6 +268,61 @@ export interface MissionEscrow {
   gross_credits: number; to_provider_credits: number | null; platform_fee_credits: number | null;
 }
 
+
+/* ── Phase 2: vehicles, Secure Pro, statement (2026-10-03) ─────────────── */
+
+export interface OrgVehicle {
+  id: string;
+  call_sign: string;
+  make_model: string;
+  plate: string;
+  colour: string | null;
+  armored: boolean;
+  armor_grade: string | null;
+  capacity: number;
+  region_code: string | null;
+  review_status: 'pending' | 'verified' | 'rejected';
+  review_note: string | null;
+  reviewed_at: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+  /** Short code of the open mission it is on, if any. */
+  on_mission: string | null;
+}
+export type VehicleInput = Partial<Pick<OrgVehicle,
+  'call_sign' | 'make_model' | 'plate' | 'colour' | 'armored' | 'armor_grade' | 'capacity' | 'region_code' | 'active'>>;
+
+export interface ProAssignment {
+  id: string;
+  application_id: string;
+  member_name: string | null;
+  coverage_area: string | null;
+  officer_user_id: string;
+  officer_name: string | null;
+  officer_call_sign: string | null;
+  starts_on: string;
+  ends_on: string;
+  status: 'ASSIGNED' | 'COMPLETED' | 'CANCELLED';
+  authorized: boolean;
+  on_today: boolean;
+  dates_in_range: string[];
+  note: string | null;
+}
+
+export interface StatementTotals {jobs: number; gross_credits: number; fee_credits: number; net_credits: number; pending_credits: number}
+export interface Statement {
+  from: string;
+  to: string;
+  totals: StatementTotals;
+  rows: Array<{
+    booking_id: string; short_code: string | null; service: string; task_type: string | null;
+    region_label: string; job_date: string; settled_at: string | null; hold_status: string;
+    gross_credits: number; platform_fee_credits: number | null; to_provider_credits: number | null;
+  }>;
+  months: Array<StatementTotals & {month: string}>;
+}
+
 /* ── Endpoints ───────────────────────────────────────────────────────── */
 
 export const pvAuth = {
@@ -330,6 +385,19 @@ export const pvApi = {
     send<{ok: true; permitted_modules: string[]}>('PATCH', `/org/managers/${id}/permissions`, {modules}),
 
   earnings:       () => get<OrgEarnings>('/org/earnings'),
+
+  vehicles:       () => get<{vehicles: OrgVehicle[]}>('/org/fleet/vehicles'),
+  createVehicle:  (dto: VehicleInput) => send<{vehicle: OrgVehicle}>('POST', '/org/fleet/vehicles', dto),
+  updateVehicle:  (id: string, dto: VehicleInput) => send<{vehicle: OrgVehicle}>('PATCH', `/org/fleet/vehicles/${id}`, dto),
+  missionVehicles: (missionId: string) => get<{vehicles: OrgVehicle[]}>(`/org/fleet/missions/${missionId}`),
+  assignVehicle:  (missionId: string, vehicleId: string) =>
+    send<{ok: true}>('POST', `/org/fleet/missions/${missionId}/vehicles`, {vehicle_id: vehicleId}),
+  releaseVehicle: (missionId: string, vehicleId: string) =>
+    send<{ok: true}>('POST', `/org/fleet/missions/${missionId}/vehicles/${vehicleId}/release`, {}),
+
+  proAssignments: (scope: 'current' | 'past') => get<{assignments: ProAssignment[]}>(`/org/pro/assignments?scope=${scope}`),
+  statement:      (from: string, to: string) =>
+    get<Statement>(`/org/statement?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
 };
 
 /* ── SWR hooks ───────────────────────────────────────────────────────── */
@@ -351,3 +419,10 @@ export const usePvManagers = (org: string | null, on = true) => useOrgSWR(on ? '
 export const usePvEarnings = (org: string | null, on = true) => useOrgSWR(on ? 'earnings' : null, org, pvApi.earnings, {refreshInterval: 60_000});
 export const usePvLive     = (org: string | null, missionId: string | null) =>
   useOrgSWR(missionId ? `live:${missionId}` : null, org, () => pvApi.missionLive(missionId as string), {refreshInterval: 5_000});
+export const usePvVehicles = (org: string | null, on = true) => useOrgSWR(on ? 'vehicles' : null, org, pvApi.vehicles, {refreshInterval: 30_000});
+export const usePvMissionVehicles = (org: string | null, missionId: string | null) =>
+  useOrgSWR(missionId ? `mission-vehicles:${missionId}` : null, org, () => pvApi.missionVehicles(missionId as string), {refreshInterval: 30_000});
+export const usePvPro = (org: string | null, scope: 'current' | 'past', on = true) =>
+  useOrgSWR(on ? `pro:${scope}` : null, org, () => pvApi.proAssignments(scope), {refreshInterval: 60_000});
+export const usePvStatement = (org: string | null, from: string, to: string, on = true) =>
+  useOrgSWR(on ? `statement:${from}:${to}` : null, org, () => pvApi.statement(from, to), {refreshInterval: 0});

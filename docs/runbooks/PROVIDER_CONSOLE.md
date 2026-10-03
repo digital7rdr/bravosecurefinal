@@ -1,9 +1,10 @@
 # Service Provider Console (Phase 1, 2026-10-01)
 
 Web console for security agencies at **https://provider.bravosecure.cloud**.
-Phase 1 covers Lite and Executive work: offers, jobs, crew, live tracking,
-officers, managers and earnings. Vehicles, Secure Pro assignments and payout
-statements are Phase 2 and need new provider APIs.
+Phase 1 (2026-10-01): Lite and Executive work — offers, jobs, crew, live
+tracking, officers, managers, earnings. Phase 2 (2026-10-03): the agency's own
+vehicles (HQ-verified), its officers' Secure Pro assignments, and a payout
+statement with a 12-month view and CSV download.
 
 ## Who can sign in
 
@@ -31,7 +32,10 @@ screens. The owner always has everything.
 | Jobs, crew, dispatch, live, complete | Missions | `/org/missions*`, `/org/bookings/:id/crew` |
 | Payment on a job | Missions or Earnings | `/org/bookings/:id/escrow` |
 | Officers, invitations | Officer roster | `/org/cpos*`, `/org/invites*` |
-| Earnings | Earnings | `/org/earnings` |
+| Earnings, statement, CSV | Earnings | `/org/earnings`, `/org/statement` |
+| Vehicles (add, edit, retire) | Vehicles | `/org/fleet/vehicles` |
+| Vehicles on a mission | Missions | `/org/fleet/missions/:id…` |
+| Secure Pro | Secure Pro | `/org/pro/assignments` |
 | Managers | owner only | `/org/managers*` |
 
 `GET /org/cpos` also admits Departmental, Org chart, Messenger and Compliance,
@@ -67,6 +71,22 @@ The password is temporary (`password_set_at` stays NULL). The provider console
 shows a banner until the owner changes it (top bar → Password); officers are
 made to change it by the app.
 
+## Vehicles (Phase 2)
+
+Agencies add and edit their own vehicles (`org_vehicles`); each starts **In
+review**. HQ verifies or rejects it in the ops console under People →
+Provider Vehicles (Supervisor rank and above, operations domain, audited as
+`agency.vehicle.verified|rejected`). Only a verified, active vehicle can be put
+on a mission, and one vehicle can be on one open mission at a time. Changing a
+vehicle's plate, make/model or armour sends it back to review and takes it off
+any open mission; so does a rejection or retiring it.
+
+## Secure Pro (Phase 2)
+
+Read-only. HQ still schedules Pro duty in the ops console; the agency sees
+which of its officers protect which member, where and on which dates. The
+mission code is never sent to the agency.
+
 ## Deploying
 
 1. DNS: `A provider.bravosecure.cloud → 31.97.126.211`.
@@ -77,8 +97,11 @@ made to change it by the app.
    ```
 3. Caddy: add the `provider.bravosecure.cloud` block from
    `deploy/production/Caddyfile`, then `caddy validate` and `systemctl reload caddy`.
-4. Rebuild auth-service and ops-console with `deploy.sh`.
-5. If the Mapbox token is URL-restricted, add the provider origin to it.
+4. Apply the new database migration (Phase 2: `20261003100000_provider_fleet.sql`):
+   `bash /opt/bravo/deploy/production/migrate.sh` (lists what is pending,
+   asks for `APPLY`; touches no secrets or containers).
+5. Rebuild auth-service and ops-console with `deploy.sh`.
+6. If the Mapbox token is URL-restricted, add the provider origin to it.
 
 Without step 2 the console loads but every API call fails CORS; the ops
 console is unaffected either way.

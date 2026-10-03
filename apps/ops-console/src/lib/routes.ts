@@ -85,6 +85,8 @@ export const routes = {
     agent: (id: string) => `/people/agents/${id}`,
     agencies: '/people/agencies',
     agency: (id: string) => `/people/agencies/${id}`,
+    /** 2026-10-03 — HQ review of agency-owned vehicles (provider console). */
+    providerVehicles: '/people/provider-vehicles',
     compliance: '/people/compliance',
     users: '/people/users',
     user: (id: string) => `/people/users/${id}`,

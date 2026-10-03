@@ -123,3 +123,28 @@ describe('ops-issued sign-in passwords', () => {
     expect(stripComments(read('lib/provider/api.ts'))).toMatch(/'\/auth\/me\/password'/);
   });
 });
+
+describe('Phase 2 — vehicles, Secure Pro, statement', () => {
+  it('the rail offers Secure Pro and Vehicles behind their own modules', () => {
+    const items = PROVIDER_NAV.flatMap(g => g.items);
+    expect(items.find(i => i.label === 'Secure Pro')?.modules).toEqual(['pro']);
+    expect(items.find(i => i.label === 'Vehicles')?.modules).toEqual(['fleet']);
+    expect(CONSOLE_MODULES).toEqual(expect.arrayContaining(['pro', 'fleet']));
+  });
+
+  it('the Pro page never renders a mission code', () => {
+    expect(stripComments(read('app/provider/(app)/pro/page.tsx'))).not.toMatch(/mission_code/);
+    expect(stripComments(read('lib/provider/api.ts'))).not.toMatch(/mission_code/);
+  });
+
+  it('the statement CSV goes through the escaping helper', () => {
+    const page = stripComments(read('app/provider/(app)/earnings/page.tsx'));
+    expect(page).toMatch(/import \{downloadCsv\} from '@\/lib\/csv'/);
+    expect(page).not.toMatch(/new Blob|text\/csv/);
+  });
+
+  it('vehicle errors read as sentences', () => {
+    expect(errorText({body: {message: 'vehicle_not_verified'}})).toMatch(/not verified/);
+    expect(errorText({body: {message: 'vehicle_busy'}})).toMatch(/another mission/);
+  });
+});

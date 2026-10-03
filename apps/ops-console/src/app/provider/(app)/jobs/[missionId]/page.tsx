@@ -12,6 +12,7 @@ import {decodePolyline} from '@/lib/polyline';
 import {pvApi, usePvLive, usePvMissions} from '@/lib/provider/api';
 import {credits, serviceLabel, when} from '@/lib/provider/labels';
 import {pvRoutes} from '@/lib/provider/routes';
+import {MissionVehicles} from '@/components/provider/MissionVehicles';
 
 const num = (v: string | number | null | undefined) => {
   const n = typeof v === 'string' ? Number(v) : v;
@@ -107,6 +108,8 @@ export default function ProviderMission() {
                 </ul>
               )}
             </PvCard>
+
+            <MissionVehicles orgId={orgId} missionId={missionId} status={status}/>
 
             <PvCard title="Checkpoints" pad={false}>
               {!live ? <Empty>Loading…</Empty> : live.waypoints.length === 0 ? <Empty>No checkpoints yet.</Empty> : (

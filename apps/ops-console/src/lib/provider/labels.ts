@@ -60,10 +60,12 @@ export const MODULE_LABEL: Record<ModuleKey, string> = {
   msg: 'Messenger',
   intel: 'Bravo Feed',
   region: 'Region',
+  fleet: 'Vehicles',
+  pro: 'Secure Pro',
 };
 
 /** The modules this console uses, in the order the permissions screen lists them. */
-export const CONSOLE_MODULES: ModuleKey[] = ['jobs', 'portal', 'roster', 'earn'];
+export const CONSOLE_MODULES: ModuleKey[] = ['jobs', 'portal', 'pro', 'roster', 'fleet', 'earn'];
 
 export function credits(n: number | null | undefined): string {
   if (n === null || n === undefined || !Number.isFinite(n)) return '—';
@@ -92,6 +94,13 @@ export function errorText(e: unknown): string {
     offer_not_available: 'This offer is no longer available. Another agency took it or it expired.',
     only_org_owner_can_change_permissions: 'Only the agency owner can change manager permissions.',
     org_owner_only: 'Only the agency owner can do this.',
+    vehicle_not_verified: 'Bravo Secure has not verified this vehicle yet.',
+    vehicle_busy: 'This vehicle is already on another mission.',
+    vehicle_inactive: 'This vehicle is retired. Reactivate it first.',
+    mission_not_open: 'This mission has ended, so vehicles can no longer change.',
+    plate_taken: 'Your agency already has a vehicle with this plate.',
+    call_sign_taken: 'Your agency already uses this call sign for a vehicle.',
+    range_max_366_days: 'Choose a period of one year or less.',
     csrf_token_invalid: 'Your session is out of date. Reload the page and try again.',
   };
   if (map[raw]) return map[raw];

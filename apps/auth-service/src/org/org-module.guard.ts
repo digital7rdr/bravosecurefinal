@@ -42,7 +42,7 @@ export const ORG_OWNER_ONLY = '__owner__';
 /** The module keys the owner can grant (mirror of OrgCpoService.MANAGER_MODULES). */
 export type OrgModuleKey =
   | 'jobs' | 'portal' | 'compliance' | 'roster' | 'orgChart' | 'dept' | 'earn'
-  | 'msg' | 'intel' | 'region';
+  | 'msg' | 'intel' | 'region' | 'fleet' | 'pro';
 
 /** Admit owners, and managers granted at least one of `keys`. */
 export const OrgModules = (...keys: OrgModuleKey[]) =>

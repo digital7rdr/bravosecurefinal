@@ -10,6 +10,8 @@ export const pvRoutes = {
   assign: (bookingId: string) => `/jobs?assign=${encodeURIComponent(bookingId)}`,
   mission: (missionId: string) => `/jobs/${encodeURIComponent(missionId)}`,
   crew: '/crew',
+  vehicles: '/vehicles',
+  pro: '/pro',
   managers: '/managers',
   earnings: '/earnings',
 } as const;

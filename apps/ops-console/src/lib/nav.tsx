@@ -153,6 +153,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {label: 'Clients', href: routes.people.clients, icon: iconPerson, minRole: 'SUPERVISOR'},
       {label: 'Agents (CPOs)', href: routes.people.agents, icon: iconPeople},
       {label: 'Provider Agencies', href: routes.people.agencies, icon: iconBuilding},
+      {label: 'Provider Vehicles', href: routes.people.providerVehicles, icon: iconBadgeCheck, minRole: 'SUPERVISOR'},
       {label: 'Compliance', href: routes.people.compliance, icon: iconBadgeCheck},
       {label: 'All Users', href: routes.people.users, icon: iconDoc, minRole: 'SUPERVISOR'},
     ],

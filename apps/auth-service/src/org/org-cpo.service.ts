@@ -950,6 +950,9 @@ export class OrgCpoService {
   static readonly MANAGER_MODULES = [
     'jobs', 'portal', 'compliance', 'roster', 'orgChart', 'dept', 'earn',
     'msg', 'intel', 'region',
+    // 2026-10-03 — provider console Phase 2: the agency's own vehicles, and
+    // its officers' Secure Pro assignments.
+    'fleet', 'pro',
   ] as const;
 
   /**

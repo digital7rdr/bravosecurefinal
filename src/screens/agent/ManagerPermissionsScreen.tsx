@@ -48,6 +48,10 @@ const MODULES: Array<{key: string; label: string; sub: string; icon: React.Compo
   {key: 'msg',        label: 'Messenger',     sub: 'Secure comms · end-to-end encrypted',  icon: 'message-text-outline'},
   {key: 'intel',      label: 'Bravo Feed',    sub: 'Security news · threat alerts',        icon: 'newspaper-variant-outline'},
   {key: 'region',     label: 'Region',        sub: 'Dispatch region & coverage',           icon: 'map-marker-radius-outline'},
+  // 2026-10-03 — provider console (web) modules. No app dashboard row yet; the
+  // switch lives here too so the owner can grant them from either place.
+  {key: 'fleet',      label: 'Vehicles',      sub: 'Agency fleet · provider console',      icon: 'car-multiple'},
+  {key: 'pro',        label: 'Secure Pro',    sub: 'Officers on Pro duty · provider console', icon: 'shield-star-outline'},
 ];
 
 function initials(name: string | null): string {

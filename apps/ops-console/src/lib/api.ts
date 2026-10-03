@@ -71,6 +71,13 @@ export interface UserModuleView {
     groupEnabled: boolean | null; override: boolean | null; enabled: boolean | null;
   }[];
 }
+export interface ProviderVehicleRow {
+  id: string; org_user_id: string; org_name: string | null;
+  call_sign: string; make_model: string; plate: string; colour: string | null;
+  armored: boolean; armor_grade: string | null; capacity: number; region_code: string | null;
+  review_status: 'pending' | 'verified' | 'rejected'; review_note: string | null; reviewed_at: string | null;
+  active: boolean; created_at: string; updated_at: string; on_mission: string | null;
+}
 export interface InviteStatus {
   pending: boolean;
   invited_at: string | null;
@@ -1298,6 +1305,13 @@ export const opsApi = {
   createAppUser: (body: CreateAppUserBody) =>
     fetchJson<CreateAppUserResult>(`/ops/users`, {method: 'POST', body: JSON.stringify(body)}),
   userInvite: (userId: string) => fetchJson<InviteStatus>(`/ops/users/${encodeURIComponent(userId)}/invite`),
+  /** 2026-10-03 — agency vehicles awaiting / after HQ review. */
+  providerVehicles: (status: 'pending' | 'verified' | 'rejected' | 'all') =>
+    fetchJson<{vehicles: ProviderVehicleRow[]}>(`/ops/agencies/vehicles?status=${status}`),
+  reviewProviderVehicle: (id: string, decision: 'verified' | 'rejected', note?: string) =>
+    fetchJson<{vehicle: ProviderVehicleRow}>(`/ops/agencies/vehicles/${encodeURIComponent(id)}/review`, {
+      method: 'POST', body: JSON.stringify({decision, ...(note ? {note} : {})}),
+    }),
   /** First sign-in password for a pending invite; returned ONCE (2026-10-01). */
   issueInvitePassword: (userId: string) =>
     fetchJson<{user_id: string; password: string; account_type: AppAccountType}>(

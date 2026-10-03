@@ -6,6 +6,7 @@ import {OrgModuleGuard, ORG_MODULES_KEY, ORG_OWNER_ONLY} from './org-module.guar
 import {OrgController} from './org.controller';
 import {DispatchController} from '../dispatch/dispatch.controller';
 import {DispatchJobsController} from '../dispatch/dispatch-jobs.controller';
+import {OrgProviderController} from './org-provider.controller';
 import {OrgCpoService} from './org-cpo.service';
 import {CsrfGuard} from '../common/guards/csrf.guard';
 import {JwtAuthGuard} from '../common/guards/jwt-auth.guard';
@@ -86,7 +87,7 @@ describe('provider route gating (binding)', () => {
   });
 
   it('every gated route also binds OrgModuleGuard (metadata alone gates nothing)', () => {
-    for (const cls of [OrgController, DispatchController, DispatchJobsController]) {
+    for (const cls of [OrgController, DispatchController, DispatchJobsController, OrgProviderController]) {
       for (const h of handlers(cls)) {
         if (modulesOf(h.fn)) expect(guardsOf(h.fn)).toContain(OrgModuleGuard.name);
       }
@@ -95,9 +96,17 @@ describe('provider route gating (binding)', () => {
 
   it('only real module keys are used', () => {
     const known = new Set<string>([...OrgCpoService.MANAGER_MODULES, ORG_OWNER_ONLY]);
-    for (const cls of [OrgController, DispatchController, DispatchJobsController]) {
+    for (const cls of [OrgController, DispatchController, DispatchJobsController, OrgProviderController]) {
       for (const h of handlers(cls)) for (const k of modulesOf(h.fn) ?? []) expect(known.has(k)).toBe(true);
     }
+  });
+
+  it('every Phase 2 route names its modules', () => {
+    expect(handlers(OrgProviderController).filter(h => !modulesOf(h.fn)).map(h => h.name)).toEqual([]);
+    expect(modulesOf(OrgProviderController.prototype.createVehicle)).toEqual(['fleet']);
+    expect(modulesOf(OrgProviderController.prototype.assignVehicle)).toEqual(['jobs']);
+    expect(modulesOf(OrgProviderController.prototype.proAssignments)).toEqual(['pro']);
+    expect(modulesOf(OrgProviderController.prototype.statement)).toEqual(['earn']);
   });
 
   it('money and permission routes are pinned', () => {
@@ -108,7 +117,7 @@ describe('provider route gating (binding)', () => {
   });
 
   it('cookie sessions need CSRF on every provider controller (Jwt → Csrf → OrgManager)', () => {
-    for (const cls of [OrgController, DispatchController, DispatchJobsController]) {
+    for (const cls of [OrgController, DispatchController, DispatchJobsController, OrgProviderController]) {
       const g = guardsOf(cls);
       expect(g.slice(0, 3)).toEqual([JwtAuthGuard.name, CsrfGuard.name, OrgManagerGuard.name]);
     }
