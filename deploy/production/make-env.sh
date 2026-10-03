@@ -101,12 +101,16 @@ REDIS_URL=redis://:${REDIS_PW}@redis:6379
 # The ops-console origin. An EMPTY value yields origin:false in main.ts — CORS
 # off entirely, which the browser reports as a bare "Failed to fetch". In
 # production an empty value refuses to boot instead.
-CORS_ALLOWED_ORIGINS=https://ops.bravosecure.cloud,https://provider.bravosecure.cloud
+CORS_ALLOWED_ORIGINS=https://ops.bravosecure.cloud,https://provider.bravosecure.cloud,https://web.bravosecure.cloud
 
 # The service provider console. Requests from this origin read and write their
 # own session cookies (bravo_pv_*) instead of the ops console's (bravo_ops_*),
 # so a provider and an HQ operator never share or overwrite a session.
 PROVIDER_CONSOLE_ORIGINS=https://provider.bravosecure.cloud
+
+# The Bravo Web App (Messenger + booking). Its own session cookies (bravo_web_*);
+# mutating calls from a web cookie session must carry the CSRF header.
+WEB_APP_ORIGINS=https://web.bravosecure.cloud
 
 # Parent domain so a cookie set by auth. is delivered to ops.. This is the
 # whole reason both live under bravosecure.cloud.
@@ -183,10 +187,10 @@ NODE_ENV=production
 PORT=3100
 
 # Browser origins allowed to call the relay (REST + WebSocket): the ops
-# console AND the service provider console, which both run the encrypted
+# console, the service provider console and the Bravo Web App, which all run the encrypted
 # messenger in the browser. Empty = localhost only, i.e. the web messenger
 # fails CORS in production (the app is not affected: it is not a browser).
-CORS_ORIGINS=https://ops.bravosecure.cloud,https://provider.bravosecure.cloud
+CORS_ORIGINS=https://ops.bravosecure.cloud,https://provider.bravosecure.cloud,https://web.bravosecure.cloud
 
 # MUST be byte-identical to .env.auth or every relay request 401s.
 JWT_ACCESS_SECRET=${JWT_ACCESS}

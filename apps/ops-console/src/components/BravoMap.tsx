@@ -102,6 +102,11 @@ interface Props {
    * The position never leaves the browser.
    */
   followUser?: boolean;
+  /**
+   * Called with the clicked point ([lng, lat]) — the Bravo Web App's pick-up
+   * picker. Omit it and clicks do nothing, as before.
+   */
+  onPick?: (lng: number, lat: number) => void;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -130,9 +135,12 @@ export function BravoMap({
   alternativeRoutes,
   styleId: styleIdProp,
   followUser = false,
+  onPick,
   className,
   style,
 }: Props) {
+  const onPickRef = useRef(onPick);
+  useEffect(() => { onPickRef.current = onPick; }, [onPick]);
   // Controlled (page owns the toggle, e.g. live/[id]) vs uncontrolled
   // (map renders its own cycler so the light/streets/satellite options
   // exist on every console map).
@@ -200,6 +208,7 @@ export function BravoMap({
     mapRef.current = map;
     // Any manual pan stops "follow me" until the location button is pressed.
     map.on('dragstart', () => { followRef.current = false; });
+    map.on('click', e => { onPickRef.current?.(e.lngLat.lng, e.lngLat.lat); });
     // Capture the (stable-for-lifetime) marker map for the cleanup closure
     // so the ref isn't read at teardown time (react-hooks/exhaustive-deps).
     const markersAtMount = markersById.current;

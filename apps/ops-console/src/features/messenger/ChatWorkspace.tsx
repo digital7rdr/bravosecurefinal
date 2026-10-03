@@ -49,6 +49,10 @@ export interface ChatDirectory {
   seenKey: string;
   /** Heading of the chat list. */
   title?: string;
+  /** "No one found" for a query (e.g. explain that a full number is needed). */
+  noResultsText?: (q: string) => string;
+  /** Shown when there are no chats yet. */
+  emptyText?: string;
 }
 
 const ROLE_LABEL: Record<string, string> = {
@@ -201,8 +205,7 @@ function UnlockedChat() {
         <div className="chat-list-scroll">
           {listed.length === 0 && (
             <div className="chat-list-empty">
-              No chats yet. Search for a client, agent or agency above to start one. Messages they
-              send you from the app appear here.
+              {dir.emptyText ?? 'No chats yet. Search for a client, agent or agency above to start one. Messages they send you from the app appear here.'}
             </div>
           )}
           {listed.map(t => (
@@ -246,7 +249,7 @@ function PeopleSearch({onPick, selfId}: {onPick: (u: ChatPerson) => void; selfId
         <div className="chat-search-results">
           {isLoading && <div className="chat-search-note">Searching…</div>}
           {error && <div className="chat-search-note">{dir.searchError ? dir.searchError(error) : 'Search failed.'}</div>}
-          {!isLoading && !error && results.length === 0 && <div className="chat-search-note">No one found.</div>}
+          {!isLoading && !error && results.length === 0 && <div className="chat-search-note">{dir.noResultsText ? dir.noResultsText(debounced) : 'No one found.'}</div>}
           {results.map(u => (
             <button key={u.id} type="button" className="chat-search-row" onClick={() => { onPick(u); setQ(''); }}>
               <span className="chat-avatar sm">{initials(u.name)}</span>

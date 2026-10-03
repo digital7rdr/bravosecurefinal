@@ -63,6 +63,17 @@ provider.bravosecure.cloud {
 	reverse_proxy localhost:3002
 }
 
+# Bravo Web App (2026-10-03): Messenger and online booking for every Bravo
+# account. Same ops-console container again (served when the host is web.*);
+# its own session cookies (bravo_web_*) need WEB_APP_ORIGINS and a
+# CORS_ALLOWED_ORIGINS entry in .env.auth, and a CORS_ORIGINS entry in
+# .env.messenger.
+web.bravosecure.cloud {
+	import security
+	encode zstd gzip
+	reverse_proxy localhost:3002
+}
+
 media.bravosecure.cloud {
 	import security
 	# Attachments are already AES-256-CBC encrypted client-side before upload;

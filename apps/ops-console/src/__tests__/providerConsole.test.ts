@@ -47,7 +47,8 @@ describe('provider host routing', () => {
   it('the middleware gates the provider host on the PROVIDER cookie and 404s /provider on the ops host', () => {
     const mw = stripComments(read('middleware.ts'));
     expect(mw).toMatch(/isProviderHost\(req\.headers\.get\('host'\)\)/);
-    expect(mw).toMatch(/req\.cookies\.has\('bravo_pv_token'\)/);
+    expect(mw).toMatch(/cookie: 'bravo_pv_token'/);
+    expect(mw).toMatch(/req\.cookies\.has\(o\.cookie\)/);
     // the ops-host 404 for internal provider paths comes BEFORE the ops cookie gate
     expect(mw.indexOf('isInternalProviderPath(pathname)')).toBeLessThan(mw.indexOf("req.cookies.has('bravo_ops_token')"));
   });
@@ -167,7 +168,7 @@ describe('provider Messages — same encrypted chat as the ops console', () => {
   });
 
   it('the vault belongs to the provider user on the provider host, and sign-out wipes it', () => {
-    expect(stripComments(read('components/messenger/MessengerProvider.tsx'))).toMatch(/onProvider \? \(pvCtx && pvCtx\.orgs\.length > 0 \? pvCtx\.user\.id : null\)/);
+    expect(stripComments(read('components/messenger/MessengerProvider.tsx'))).toMatch(/host === 'provider' \? \(pvCtx && pvCtx\.orgs\.length > 0 \? pvCtx\.user\.id : null\)/);
     expect(stripComments(read('components/provider/ProviderShell.tsx'))).toMatch(/wipeMessenger\(\)/);
   });
 

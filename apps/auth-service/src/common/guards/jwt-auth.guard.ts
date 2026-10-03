@@ -1,4 +1,4 @@
-import {Injectable, CanActivate, ExecutionContext, UnauthorizedException} from '@nestjs/common';
+import {Injectable, CanActivate, ExecutionContext, ForbiddenException, UnauthorizedException} from '@nestjs/common';
 import type {Request} from 'express';
 import {JwtService} from '../../auth/jwt.service';
 import {RedisService} from '../../redis/redis.service';
@@ -31,8 +31,11 @@ export class JwtAuthGuard implements CanActivate {
     if (header?.startsWith('Bearer ')) {
       token = header.slice(7);
     } else {
-      const cookieName = sessionCookiesFor(req).token;
-      if (req.cookies?.[cookieName]) token = req.cookies[cookieName];
+      const names = sessionCookiesFor(req);
+      if (req.cookies?.[names.token]) {
+        token = req.cookies[names.token];
+        if (names.console === 'web') assertWebCsrf(req, names.csrf);
+      }
     }
     if (!token) throw new UnauthorizedException('missing_token');
 
@@ -49,5 +52,16 @@ export class JwtAuthGuard implements CanActivate {
 
     req.user = claims;
     return true;
+  }
+}
+
+/** Double-submit check for a web-app cookie session (see the class comment). */
+function assertWebCsrf(req: Request & {cookies?: Record<string, string>}, csrfCookie: string): void {
+  const method = (req.method || 'GET').toUpperCase();
+  if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') return;
+  const cookie = req.cookies?.[csrfCookie];
+  const sent = req.headers['x-csrf-token'];
+  if (typeof cookie !== 'string' || !cookie || typeof sent !== 'string' || !sent || cookie !== sent) {
+    throw new ForbiddenException('csrf_token_invalid');
   }
 }

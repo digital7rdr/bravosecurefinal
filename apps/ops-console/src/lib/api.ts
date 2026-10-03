@@ -16,7 +16,7 @@ import type {OpsUserLocation} from './userLocation';
 import {routes} from '@/lib/routes';
 import {usePathname} from 'next/navigation';
 import {isPublicPath} from './publicRoutes';
-import {isProviderHost, readSessionCsrf, sessionCsrfCookieName} from './provider/host';
+import {isProviderHost, isWebHost, readSessionCsrf, sessionCsrfCookieName} from './provider/host';
 import {pollMs} from './pollCadence';
 
 // Audit fix 4.1 — fail loudly if API base URL is missing in prod. Defaulting
@@ -2667,7 +2667,9 @@ export function useOpsMe() {
   const consecutiveSessionLoss = useRef(0);
   // The provider console (provider.* host) shares the root layout, and so the
   // MessengerProvider that calls this hook. It has no ops session: never ask.
-  const onProviderHost = typeof window !== 'undefined' && isProviderHost(window.location.host);
+  // Same for the Bravo Web App (web.* host).
+  const onProviderHost = typeof window !== 'undefined'
+    && (isProviderHost(window.location.host) || isWebHost(window.location.host));
   return useSWR<OpsMe>(
     isPublicPath(pathname) || onProviderHost ? null : 'me',
     async () => {

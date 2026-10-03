@@ -28,14 +28,41 @@ export function toInternalProviderPath(pathname: string): string {
   return pathname === '/' ? PROVIDER_PREFIX : `${PROVIDER_PREFIX}${pathname}`;
 }
 
+/* ── Bravo Web App (web.* host, 2026-10-03) ─────────────────────────────
+ *
+ *   web.bravosecure.cloud → Messenger + online booking for every Bravo account
+ *
+ * Same scheme as the provider console: clean paths ("/bookings") are rewritten
+ * to the internal "/web" route group, which is never served directly.
+ */
+export const WEB_PREFIX = '/web';
+
+/** Paths on the web app host that need no session. */
+export const WEB_PUBLIC_PATHS = ['/login'] as const;
+
+export function isWebHost(host: string | null | undefined): boolean {
+  const h = (host ?? '').split(':')[0].trim().toLowerCase();
+  return h.startsWith('web.');
+}
+
+export function isInternalWebPath(pathname: string): boolean {
+  return pathname === WEB_PREFIX || pathname.startsWith(`${WEB_PREFIX}/`);
+}
+
+/** "/" → "/web", "/bookings/x" → "/web/bookings/x". */
+export function toInternalWebPath(pathname: string): string {
+  return pathname === '/' ? WEB_PREFIX : `${WEB_PREFIX}${pathname}`;
+}
+
 /**
  * The JS-readable CSRF cookie of the console this page runs in. Shared code
  * (the messenger runtime, the ops API client) calls the auth-service from
  * BOTH consoles; the server picks the session by Origin, so the double-submit
  * header must echo that same console's cookie.
  */
-export function sessionCsrfCookieName(): 'bravo_pv_csrf' | 'bravo_ops_csrf' {
+export function sessionCsrfCookieName(): 'bravo_pv_csrf' | 'bravo_web_csrf' | 'bravo_ops_csrf' {
   if (typeof window !== 'undefined' && isProviderHost(window.location.host)) return 'bravo_pv_csrf';
+  if (typeof window !== 'undefined' && isWebHost(window.location.host)) return 'bravo_web_csrf';
   return 'bravo_ops_csrf';
 }
 

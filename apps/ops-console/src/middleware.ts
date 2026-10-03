@@ -2,6 +2,7 @@ import {NextResponse, type NextRequest} from 'next/server';
 import {isPublicAsset, isPublicPath} from '@/lib/publicRoutes';
 import {
   PROVIDER_PUBLIC_PATHS, isInternalProviderPath, isProviderHost, toInternalProviderPath,
+  WEB_PUBLIC_PATHS, isInternalWebPath, isWebHost, toInternalWebPath,
 } from '@/lib/provider/host';
 
 /**
@@ -152,8 +153,15 @@ export function middleware(req: NextRequest): NextResponse {
   if (isProviderHost(req.headers.get('host'))) {
     return providerGate(req, nonce);
   }
-  // The provider pages are never served on the ops address.
-  if (isInternalProviderPath(pathname)) {
+  // Bravo Web App (web.* host): Messenger + booking, own session cookie.
+  if (isWebHost(req.headers.get('host'))) {
+    return hostGate(req, nonce, {
+      isInternal: p => isInternalProviderPath(p) || isInternalWebPath(p),
+      publicPaths: WEB_PUBLIC_PATHS, cookie: 'bravo_web_token', toInternal: toInternalWebPath,
+    });
+  }
+  // The provider and web app pages are never served on the ops address.
+  if (isInternalProviderPath(pathname) || isInternalWebPath(pathname)) {
     return applySecurityHeaders(new NextResponse('Not found', {status: 404}), nonce);
   }
 
@@ -195,12 +203,25 @@ export function middleware(req: NextRequest): NextResponse {
  * every API call.
  */
 function providerGate(req: NextRequest, nonce: string): NextResponse {
+  return hostGate(req, nonce, {
+    isInternal: p => isInternalProviderPath(p) || isInternalWebPath(p),
+    publicPaths: PROVIDER_PUBLIC_PATHS, cookie: 'bravo_pv_token', toInternal: toInternalProviderPath,
+  });
+}
+
+/** The gate both extra hosts share: 404 internal paths, cookie presence, rewrite. */
+function hostGate(req: NextRequest, nonce: string, o: {
+  isInternal: (p: string) => boolean;
+  publicPaths: readonly string[];
+  cookie: string;
+  toInternal: (p: string) => string;
+}): NextResponse {
   const {pathname} = req.nextUrl;
-  if (isInternalProviderPath(pathname)) {
+  if (o.isInternal(pathname)) {
     return applySecurityHeaders(new NextResponse('Not found', {status: 404}), nonce);
   }
-  const isPublic = (PROVIDER_PUBLIC_PATHS as readonly string[]).includes(pathname);
-  if (!isPublic && !req.cookies.has('bravo_pv_token')) {
+  const isPublic = o.publicPaths.includes(pathname);
+  if (!isPublic && !req.cookies.has(o.cookie)) {
     const loginUrl = req.nextUrl.clone();
     loginUrl.pathname = '/login';
     loginUrl.search = '';
@@ -208,7 +229,7 @@ function providerGate(req: NextRequest, nonce: string): NextResponse {
     return applySecurityHeaders(NextResponse.redirect(loginUrl), nonce);
   }
   const target = req.nextUrl.clone();
-  target.pathname = toInternalProviderPath(pathname);
+  target.pathname = o.toInternal(pathname);
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set('x-nonce', nonce);
   return applySecurityHeaders(NextResponse.rewrite(target, {request: {headers: requestHeaders}}), nonce);

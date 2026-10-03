@@ -9,6 +9,8 @@
  * therefore gets its own cookies, and the request's Origin header picks which
  * set a request reads and writes.
  *
+ * A third set, `bravo_web_*`, belongs to the Bravo Web App (WEB_APP_ORIGINS).
+ *
  * Both consoles call the API cross-origin with `credentials: 'include'`, so
  * the browser sends Origin on every request, GETs included. A request with
  * no Origin, or with any origin not listed in PROVIDER_CONSOLE_ORIGINS, uses
@@ -20,7 +22,7 @@
  * would only make the server read a cookie that client could send anyway.
  */
 export interface SessionCookieNames {
-  console: 'ops' | 'provider';
+  console: 'ops' | 'provider' | 'web';
   token: string;
   csrf: string;
   refresh: string;
@@ -40,14 +42,35 @@ export const PROVIDER_SESSION_COOKIES: SessionCookieNames = Object.freeze({
   refresh: 'bravo_pv_refresh',
 });
 
-/** Exact origins of the provider console, e.g. "https://provider.bravosecure.cloud". */
-export function providerConsoleOrigins(env: NodeJS.ProcessEnv = process.env): Set<string> {
+/**
+ * The Bravo Web App (web.bravosecure.cloud, 2026-10-03): Messenger and online
+ * booking for every Bravo account. Its own session too, so a client using the
+ * web app and an operator using a console in the same browser stay separate.
+ */
+export const WEB_SESSION_COOKIES: SessionCookieNames = Object.freeze({
+  console: 'web',
+  token:   'bravo_web_token',
+  csrf:    'bravo_web_csrf',
+  refresh: 'bravo_web_refresh',
+});
+
+function originSet(raw: string | undefined): Set<string> {
   return new Set(
-    (env.PROVIDER_CONSOLE_ORIGINS ?? '')
+    (raw ?? '')
       .split(',')
       .map(s => s.trim().replace(/\/+$/, '').toLowerCase())
       .filter(Boolean),
   );
+}
+
+/** Exact origins of the Bravo Web App, e.g. "https://web.bravosecure.cloud". */
+export function webAppOrigins(env: NodeJS.ProcessEnv = process.env): Set<string> {
+  return originSet(env.WEB_APP_ORIGINS);
+}
+
+/** Exact origins of the provider console, e.g. "https://provider.bravosecure.cloud". */
+export function providerConsoleOrigins(env: NodeJS.ProcessEnv = process.env): Set<string> {
+  return originSet(env.PROVIDER_CONSOLE_ORIGINS);
 }
 
 function originOf(req: {headers?: Record<string, unknown>} | undefined): string | null {
@@ -62,5 +85,6 @@ export function sessionCookiesFor(
 ): SessionCookieNames {
   const origin = originOf(req);
   if (origin && providerConsoleOrigins(env).has(origin)) return PROVIDER_SESSION_COOKIES;
+  if (origin && webAppOrigins(env).has(origin)) return WEB_SESSION_COOKIES;
   return OPS_SESSION_COOKIES;
 }

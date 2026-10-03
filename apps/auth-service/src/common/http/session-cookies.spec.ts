@@ -1,5 +1,6 @@
 import {
-  OPS_SESSION_COOKIES, PROVIDER_SESSION_COOKIES, providerConsoleOrigins, sessionCookiesFor,
+  OPS_SESSION_COOKIES, PROVIDER_SESSION_COOKIES, WEB_SESSION_COOKIES, providerConsoleOrigins, sessionCookiesFor,
+  webAppOrigins,
 } from './session-cookies';
 
 const env = {PROVIDER_CONSOLE_ORIGINS: 'https://provider.bravosecure.cloud, http://localhost:3005/'} as NodeJS.ProcessEnv;
@@ -33,5 +34,14 @@ describe('session cookie names per console', () => {
       expect(ops).not.toContain(n);
     }
     expect(OPS_SESSION_COOKIES).toEqual({console: 'ops', token: 'bravo_ops_token', csrf: 'bravo_ops_csrf', refresh: 'bravo_ops_refresh'});
+  });
+
+  it('uses the web app names only for a listed web origin', () => {
+    const both = {...env, WEB_APP_ORIGINS: 'https://web.bravosecure.cloud'} as NodeJS.ProcessEnv;
+    expect(sessionCookiesFor(req('https://web.bravosecure.cloud/'), both)).toBe(WEB_SESSION_COOKIES);
+    expect(sessionCookiesFor(req('https://provider.bravosecure.cloud'), both)).toBe(PROVIDER_SESSION_COOKIES);
+    expect(sessionCookiesFor(req('https://web.bravosecure.cloud'), env)).toBe(OPS_SESSION_COOKIES);
+    expect(webAppOrigins({} as NodeJS.ProcessEnv).size).toBe(0);
+    expect(WEB_SESSION_COOKIES).toEqual({console: 'web', token: 'bravo_web_token', csrf: 'bravo_web_csrf', refresh: 'bravo_web_refresh'});
   });
 });

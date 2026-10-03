@@ -21,7 +21,8 @@ import dynamic from 'next/dynamic';
 import type {MessengerRuntime, DecryptedMessage, PresenceState} from '@/lib/messenger/runtime';
 import useSWR from 'swr';
 import {useOpsMe} from '@/lib/api';
-import {isProviderHost} from '@/lib/provider/host';
+import {isProviderHost, isWebHost} from '@/lib/provider/host';
+import {webAuth} from '@/lib/web/api';
 import {pvAuth} from '@/lib/provider/api';
 
 // OP-18 — this provider is mounted in the root layout, so anything it imports
@@ -70,12 +71,23 @@ export function MessengerProvider({children}: {children: ReactNode}) {
   // signed-in provider user, read from the console context (same SWR key as
   // ProviderShell, so it is one request). Decided after mount so server and
   // client render the same tree.
-  const [onProvider, setOnProvider] = useState(false);
-  useEffect(() => { setOnProvider(isProviderHost(window.location.host)); }, []);
-  const pvSignedIn = onProvider && typeof document !== 'undefined' && /(?:^|;\s*)bravo_pv_csrf=/.test(document.cookie)
-    && !window.location.pathname.startsWith('/login');
+  //
+  // Same for the Bravo Web App (web.* host): the vault belongs to the signed-in
+  // Bravo account, read from GET /auth/me (the WebShell's SWR key).
+  const [host, setHost] = useState<'ops' | 'provider' | 'web'>('ops');
+  useEffect(() => {
+    const h = window.location.host;
+    setHost(isProviderHost(h) ? 'provider' : isWebHost(h) ? 'web' : 'ops');
+  }, []);
+  const onProvider = host === 'provider';
+  const offLogin = typeof window !== 'undefined' && !window.location.pathname.startsWith('/login');
+  const pvSignedIn = onProvider && typeof document !== 'undefined' && /(?:^|;\s*)bravo_pv_csrf=/.test(document.cookie) && offLogin;
+  const webSignedIn = host === 'web' && typeof document !== 'undefined' && /(?:^|;\s*)bravo_web_csrf=/.test(document.cookie) && offLogin;
   const {data: pvCtx} = useSWR(pvSignedIn ? ['pv', 'context'] : null, pvAuth.context, {refreshInterval: 120_000});
-  const userId = onProvider ? (pvCtx && pvCtx.orgs.length > 0 ? pvCtx.user.id : null) : (me?.admin.user_id ?? null);
+  const {data: webMe} = useSWR(webSignedIn ? ['web', 'me'] : null, webAuth.me, {refreshInterval: 120_000});
+  const userId = host === 'provider' ? (pvCtx && pvCtx.orgs.length > 0 ? pvCtx.user.id : null)
+    : host === 'web' ? (webMe?.user.id ?? null)
+    : (me?.admin.user_id ?? null);
 
   const [state, setState] = useState<State>('absent');
   const [error, setError] = useState<string | null>(null);

@@ -1,8 +1,9 @@
 import type { NextConfig } from 'next';
 import { REDIRECTS } from './src/lib/routes';
 
-/** Host names served as the provider console (see src/lib/provider/host.ts). */
-const PROVIDER_HOST_PATTERN = 'provider\\..*';
+/** Host names served as the provider console or the Bravo Web App
+ *  (see src/lib/provider/host.ts): neither uses the ops legacy redirects. */
+const PROVIDER_HOST_PATTERN = '(?:provider|web)\\..*';
 
 // Audit fix 0.6 — security headers (CSP w/ per-request nonce, HSTS,
 // X-Frame-Options, Referrer-Policy, Permissions-Policy) now live in
@@ -25,7 +26,8 @@ const nextConfig: NextConfig = {
   //
   // The legacy paths belong to the ops console only. On the service provider
   // host (provider.*) "/jobs" is the provider's own Jobs page, and a redirect
-  // runs before the middleware could route it, so it is skipped there.
+  // runs before the middleware could route it, so it is skipped there. The
+  // same holds for the Bravo Web App host (web.*, "/bookings").
   async redirects() {
     return REDIRECTS.map(r => ({
       ...r,
