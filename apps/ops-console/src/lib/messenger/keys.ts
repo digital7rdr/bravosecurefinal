@@ -12,6 +12,8 @@
 // silently pointing crypto key exchange at localhost. NOT a throw: this is
 // module-load code reachable from the root layout, so throwing would crash
 // the whole console rather than just degrade the messenger.
+import {readSessionCsrf} from '../provider/host';
+
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? (() => {
   if (process.env.NODE_ENV === 'production' && typeof console !== 'undefined') {
     console.error('[keys] NEXT_PUBLIC_API_BASE_URL not set in a production build — falling back to localhost:3001.');
@@ -19,11 +21,8 @@ const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? (() => {
   return 'http://localhost:3001';
 })();
 
-function readCsrfToken(): string | null {
-  if (typeof document === 'undefined') return null;
-  const m = /(?:^|;\s*)bravo_ops_csrf=([^;]+)/.exec(document.cookie);
-  return m ? decodeURIComponent(m[1]) : null;
-}
+// The console this page runs in (ops or service provider) decides the cookie.
+const readCsrfToken = readSessionCsrf;
 
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const csrf = readCsrfToken();

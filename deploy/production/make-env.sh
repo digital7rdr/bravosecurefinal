@@ -182,6 +182,12 @@ cat > .env.messenger <<EOF
 NODE_ENV=production
 PORT=3100
 
+# Browser origins allowed to call the relay (REST + WebSocket): the ops
+# console AND the service provider console, which both run the encrypted
+# messenger in the browser. Empty = localhost only, i.e. the web messenger
+# fails CORS in production (the app is not affected: it is not a browser).
+CORS_ORIGINS=https://ops.bravosecure.cloud,https://provider.bravosecure.cloud
+
 # MUST be byte-identical to .env.auth or every relay request 401s.
 JWT_ACCESS_SECRET=${JWT_ACCESS}
 JWT_ACTION_SECRET=${JWT_ACTION}

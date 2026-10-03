@@ -24,6 +24,7 @@ import {
 import {PROVIDER_NAV, navActive, type NavIcon} from '@/lib/provider/nav';
 import {pvRoutes} from '@/lib/provider/routes';
 import {ChangePasswordDialog} from './ChangePassword';
+import {useMessenger} from '@/components/messenger/MessengerProvider';
 
 const REFRESH_LEAD_SEC = 60;
 const IDLE_TIMEOUT_MS = 15 * 60 * 1000;
@@ -54,6 +55,7 @@ const ICONS: Record<NavIcon, ReactNode> = {
   shield:   <svg {...ic}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
   people:   <svg {...ic}><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.8c1.7.8 2.7 2.5 3 5.2"/></svg>,
   star:     <svg {...ic}><path d="m12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>,
+  chat:     <svg {...ic}><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>,
   car:      <svg {...ic}><path d="M5 17h14M6 17v2M18 17v2M3 13l2-6h14l2 6v4H3z"/><circle cx="7.5" cy="13.5" r="1"/><circle cx="16.5" cy="13.5" r="1"/></svg>,
   key:      <svg {...ic}><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/><path d="m17 3 1.5 1.5L21 2"/></svg>,
   chart:    <svg {...ic}><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg>,
@@ -116,10 +118,14 @@ export function ProviderShell({children}: {children: ReactNode}) {
     setCurrentOrg(chosen.org_id);
   }, [context, orgId]);
 
+  const {wipe: wipeMessenger} = useMessenger();
   const signOut = useCallback(() => {
+    // Same teardown as the ops console: the encrypted vault (keys, history)
+    // is deleted from this browser so the next person to sign in starts clean.
+    void wipeMessenger().catch(() => { /* sign-out always proceeds */ });
     void mutate(() => true, undefined, {revalidate: false});
     void pvAuth.signOut().finally(() => window.location.replace(pvRoutes.login));
-  }, [mutate]);
+  }, [mutate, wipeMessenger]);
 
   // Silent refresh ahead of the access-cookie expiry.
   useEffect(() => {

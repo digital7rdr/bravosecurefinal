@@ -10,11 +10,15 @@
  * Text only for now. Media, voice notes, calls, reactions, edits and deletes
  * are shown/handled on the mobile app; an inbound attachment appears here as
  * a placeholder line.
+ *
+ * 2026-10-03 — the people directory is pluggable (ChatDirectory) so the
+ * service provider console reuses this exact chat with ITS roster: the ops
+ * console searches every app user, a provider sees only its own officers.
  */
 
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import useSWR from 'swr';
-import {opsDataApi, type OpsUserRow} from '@/lib/api';
+import {opsDataApi} from '@/lib/api';
 import {
   useMessenger, usePresence, useTyping, useReadReceipts,
 } from '@/components/messenger/MessengerProvider';
@@ -24,18 +28,57 @@ const DIRECT = 'direct:';
 const peerOf = (cid: string) => (cid.startsWith(DIRECT) ? cid.slice(DIRECT.length) : null);
 const slotOf = (uid: string) => `${DIRECT}${uid}`;
 
-const SEEN_KEY = 'bravo_ops_chat_seen_v1';
-function readSeen(): Record<string, number> {
-  try { return JSON.parse(window.localStorage.getItem(SEEN_KEY) ?? '{}') as Record<string, number>; }
-  catch { return {}; }
+/** One person the chat can show: a thread title and a one-line subtitle. */
+export interface ChatPerson {
+  id: string;
+  name: string;
+  subtitle: string;
 }
-function writeSeen(v: Record<string, number>) {
-  try { window.localStorage.setItem(SEEN_KEY, JSON.stringify(v)); } catch { /* private mode */ }
+
+/** Where the chat finds people. */
+export interface ChatDirectory {
+  /** Matches for the "New chat" search (min 2 characters). */
+  search: (q: string) => Promise<ChatPerson[]>;
+  /** One person, for a thread whose peer was never in a search result. */
+  get: (id: string) => Promise<ChatPerson | null>;
+  /** Placeholder of the search box. */
+  searchPlaceholder: string;
+  /** Turns a search failure into a sentence. */
+  searchError?: (e: unknown) => string;
+  /** localStorage key for "last seen" per thread (one per console). */
+  seenKey: string;
+  /** Heading of the chat list. */
+  title?: string;
 }
 
 const ROLE_LABEL: Record<string, string> = {
   individual: 'Client', agent: 'CPO agent', service_provider: 'Provider agency',
 };
+
+/** The ops console's directory: every app user, Operation/Super Admin search. */
+export const OPS_CHAT_DIRECTORY: ChatDirectory = {
+  search: async q => (await opsDataApi.listUsers({q, limit: 8}))
+    .filter(u => !u.deleted_at)
+    .map(u => ({id: u.id, name: u.display_name ?? u.phone_e164 ?? 'Unnamed',
+      subtitle: `${ROLE_LABEL[u.role] ?? u.role} · ${u.phone_e164 ?? u.email ?? '—'}`})),
+  get: async id => {
+    const u = (await opsDataApi.getUser(id)).user;
+    return u ? {id: u.id, name: u.display_name ?? u.phone_e164 ?? 'Bravo user', subtitle: ROLE_LABEL[u.role] ?? u.role} : null;
+  },
+  searchPlaceholder: 'New chat — search name, phone or email',
+  searchError: e => (/403|forbidden|domain/i.test(String((e as Error)?.message)) ? 'Searching people needs Operation Admin or Super Admin.' : 'Search failed.'),
+  seenKey: 'bravo_ops_chat_seen_v1',
+};
+
+const DirectoryCtx = createContext<ChatDirectory>(OPS_CHAT_DIRECTORY);
+
+function readSeenFrom(key: string): Record<string, number> {
+  try { return JSON.parse(window.localStorage.getItem(key) ?? '{}') as Record<string, number>; }
+  catch { return {}; }
+}
+function writeSeenTo(key: string, v: Record<string, number>) {
+  try { window.localStorage.setItem(key, JSON.stringify(v)); } catch { /* private mode */ }
+}
 
 function initials(name: string) {
   const p = name.trim().split(/\s+/).filter(Boolean);
@@ -61,14 +104,15 @@ function sendError(e: unknown): string {
   return `Not delivered: ${msg || 'unknown error'}.`;
 }
 
-function usePeerProfile(userId: string | null, cache: Map<string, OpsUserRow>) {
+function usePeerProfile(userId: string | null, cache: Map<string, ChatPerson>) {
+  const dir = useContext(DirectoryCtx);
   const cached = userId ? cache.get(userId) : undefined;
-  const {data} = useSWR(userId && !cached ? ['chat-peer', userId] : null,
-    () => opsDataApi.getUser(userId!).then(d => d.user), {revalidateOnFocus: false, shouldRetryOnError: false});
+  const {data} = useSWR(userId && !cached ? ['chat-peer', dir.seenKey, userId] : null,
+    () => dir.get(userId!), {revalidateOnFocus: false, shouldRetryOnError: false});
   return cached ?? data ?? null;
 }
 
-export function ChatWorkspace() {
+export function ChatWorkspace({directory = OPS_CHAT_DIRECTORY}: {directory?: ChatDirectory} = {}) {
   const messenger = useMessenger();
   const {state, runtime} = messenger;
 
@@ -94,18 +138,21 @@ export function ChatWorkspace() {
       </div>
     );
   }
-  return <UnlockedChat />;
+  return <DirectoryCtx.Provider value={directory}><UnlockedChat /></DirectoryCtx.Provider>;
 }
 
 function UnlockedChat() {
   const {runtime, userId: selfId} = useMessenger();
+  const dir = useContext(DirectoryCtx);
+  const readSeen = useCallback(() => readSeenFrom(dir.seenKey), [dir.seenKey]);
+  const writeSeen = useCallback((v: Record<string, number>) => writeSeenTo(dir.seenKey, v), [dir.seenKey]);
   const [threads, setThreads] = useState<ConversationSummary[]>([]);
   const [active, setActive] = useState<string | null>(null);
   const [seen, setSeen] = useState<Record<string, number>>({});
-  const directory = useRef(new Map<string, OpsUserRow>());
+  const directory = useRef(new Map<string, ChatPerson>());
   const [, bump] = useState(0);
 
-  useEffect(() => { setSeen(readSeen()); }, []);
+  useEffect(() => { setSeen(readSeen()); }, [readSeen]);
 
   const reloadThreads = useCallback(() => {
     if (!runtime) return;
@@ -125,7 +172,7 @@ function UnlockedChat() {
     const next = {...readSeen(), [cid]: Date.now()};
     writeSeen(next); setSeen(next);
   };
-  const startWith = (u: OpsUserRow) => {
+  const startWith = (u: ChatPerson) => {
     directory.current.set(u.id, u);
     bump(n => n + 1);
     openThread(slotOf(u.id));
@@ -137,7 +184,7 @@ function UnlockedChat() {
     if (!active || !activeLast) return;
     const next = {...readSeen(), [active]: Date.now()};
     writeSeen(next); setSeen(next);
-  }, [active, activeLast]);
+  }, [active, activeLast, readSeen, writeSeen]);
 
   const peerIds = useMemo(() => threads.map(t => peerOf(t.conversationId)!).filter(Boolean), [threads]);
   const presence = usePresence(peerIds);
@@ -150,7 +197,7 @@ function UnlockedChat() {
     <div className="chat-shell card">
       <aside className="chat-list">
         <PeopleSearch onPick={startWith} selfId={selfId} />
-        <div className="chat-list-head">Chats</div>
+        <div className="chat-list-head">{dir.title ?? 'Chats'}</div>
         <div className="chat-list-scroll">
           {listed.length === 0 && (
             <div className="chat-list-empty">
@@ -183,30 +230,29 @@ function UnlockedChat() {
   );
 }
 
-function PeopleSearch({onPick, selfId}: {onPick: (u: OpsUserRow) => void; selfId: string | null}) {
+function PeopleSearch({onPick, selfId}: {onPick: (u: ChatPerson) => void; selfId: string | null}) {
+  const dir = useContext(DirectoryCtx);
   const [q, setQ] = useState('');
   const [debounced, setDebounced] = useState('');
   useEffect(() => { const t = setTimeout(() => setDebounced(q.trim()), 250); return () => clearTimeout(t); }, [q]);
-  const {data, error, isLoading} = useSWR(debounced.length >= 2 ? ['chat-search', debounced] : null,
-    () => opsDataApi.listUsers({q: debounced, limit: 8}), {revalidateOnFocus: false, shouldRetryOnError: false});
-  const results = (data ?? []).filter(u => u.id !== selfId && !u.deleted_at);
+  const {data, error, isLoading} = useSWR(debounced.length >= 2 ? ['chat-search', dir.seenKey, debounced] : null,
+    () => dir.search(debounced), {revalidateOnFocus: false, shouldRetryOnError: false});
+  const results = (data ?? []).filter(u => u.id !== selfId);
   return (
     <div className="chat-search">
-      <input value={q} onChange={e => setQ(e.target.value)} placeholder="New chat — search name, phone or email"
+      <input value={q} onChange={e => setQ(e.target.value)} placeholder={dir.searchPlaceholder}
         aria-label="Search people to message" />
       {debounced.length >= 2 && (
         <div className="chat-search-results">
           {isLoading && <div className="chat-search-note">Searching…</div>}
-          {error && <div className="chat-search-note">
-            {/403|forbidden|domain/i.test(String((error as Error).message)) ? 'Searching people needs Operation Admin or Super Admin.' : 'Search failed.'}
-          </div>}
+          {error && <div className="chat-search-note">{dir.searchError ? dir.searchError(error) : 'Search failed.'}</div>}
           {!isLoading && !error && results.length === 0 && <div className="chat-search-note">No one found.</div>}
           {results.map(u => (
             <button key={u.id} type="button" className="chat-search-row" onClick={() => { onPick(u); setQ(''); }}>
-              <span className="chat-avatar sm">{initials(u.display_name ?? u.phone_e164 ?? '?')}</span>
+              <span className="chat-avatar sm">{initials(u.name)}</span>
               <span style={{minWidth: 0}}>
-                <span className="chat-name">{u.display_name ?? 'Unnamed'}</span>
-                <span className="chat-sub">{ROLE_LABEL[u.role] ?? u.role} · {u.phone_e164 ?? u.email ?? '—'}</span>
+                <span className="chat-name">{u.name}</span>
+                <span className="chat-sub">{u.subtitle}</span>
               </span>
             </button>
           ))}
@@ -218,10 +264,10 @@ function PeopleSearch({onPick, selfId}: {onPick: (u: OpsUserRow) => void; selfId
 
 function ThreadRow({t, active, unread, online, directory, onOpen}: {
   t: ConversationSummary; active: boolean; unread: boolean; online?: string;
-  directory: Map<string, OpsUserRow>; onOpen: () => void;
+  directory: Map<string, ChatPerson>; onOpen: () => void;
 }) {
   const peer = usePeerProfile(peerOf(t.conversationId), directory);
-  const name = peer?.display_name ?? peer?.phone_e164 ?? 'Bravo user';
+  const name = peer?.name ?? 'Bravo user';
   return (
     <button type="button" className={`chat-row${active ? ' on' : ''}`} onClick={onOpen}>
       <span className="chat-avatar">
@@ -244,11 +290,11 @@ function ThreadRow({t, active, unread, online, directory, onOpen}: {
   );
 }
 
-function Thread({conversationId, directory}: {conversationId: string; directory: Map<string, OpsUserRow>}) {
+function Thread({conversationId, directory}: {conversationId: string; directory: Map<string, ChatPerson>}) {
   const {runtime} = useMessenger();
   const peerId = peerOf(conversationId)!;
   const peer = usePeerProfile(peerId, directory);
-  const name = peer?.display_name ?? peer?.phone_e164 ?? 'Bravo user';
+  const name = peer?.name ?? 'Bravo user';
   const presence = usePresence([peerId]).get(peerId);
   const typing = useTyping([peerId]).has(peerId);
   const readIds = useReadReceipts();
@@ -309,7 +355,7 @@ function Thread({conversationId, directory}: {conversationId: string; directory:
 
   const status = typing ? 'typing…'
     : presence?.state === 'online' || presence?.state === 'active' ? 'online'
-    : presence?.lastSeenMs ? `last seen ${timeLabel(presence.lastSeenMs)}` : (ROLE_LABEL[peer?.role ?? ''] ?? '');
+    : presence?.lastSeenMs ? `last seen ${timeLabel(presence.lastSeenMs)}` : (peer?.subtitle ?? '');
 
   let lastDay = '';
   return (

@@ -16,7 +16,7 @@ import type {OpsUserLocation} from './userLocation';
 import {routes} from '@/lib/routes';
 import {usePathname} from 'next/navigation';
 import {isPublicPath} from './publicRoutes';
-import {isProviderHost} from './provider/host';
+import {isProviderHost, readSessionCsrf, sessionCsrfCookieName} from './provider/host';
 import {pollMs} from './pollCadence';
 
 // Audit fix 4.1 — fail loudly if API base URL is missing in prod. Defaulting
@@ -114,9 +114,9 @@ export class ApiError extends Error {
 // out of `document.cookie` and echo it as `X-CSRF-Token` so the
 // backend's CsrfGuard can pair them (double-submit pattern).
 function readCsrfToken(): string | null {
-  if (typeof document === 'undefined') return null;
-  const m = /(?:^|;\s*)bravo_ops_csrf=([^;]+)/.exec(document.cookie);
-  return m ? decodeURIComponent(m[1]) : null;
+  // 2026-10-03 — on the provider host (shared messenger code) the session is
+  // the provider console's, so echo bravo_pv_csrf; everywhere else bravo_ops_csrf.
+  return readSessionCsrf();
 }
 
 /**
@@ -416,7 +416,7 @@ function expireCsrfCookie(): void {
   }
   for (const d of domains) {
     document.cookie =
-      `bravo_ops_csrf=; expires=${past}; max-age=0; path=/` + (d ? `; domain=${d}` : '');
+      `${sessionCsrfCookieName()}=; expires=${past}; max-age=0; path=/` + (d ? `; domain=${d}` : '');
   }
 }
 

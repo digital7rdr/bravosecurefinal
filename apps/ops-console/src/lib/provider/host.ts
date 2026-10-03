@@ -27,3 +27,21 @@ export function isInternalProviderPath(pathname: string): boolean {
 export function toInternalProviderPath(pathname: string): string {
   return pathname === '/' ? PROVIDER_PREFIX : `${PROVIDER_PREFIX}${pathname}`;
 }
+
+/**
+ * The JS-readable CSRF cookie of the console this page runs in. Shared code
+ * (the messenger runtime, the ops API client) calls the auth-service from
+ * BOTH consoles; the server picks the session by Origin, so the double-submit
+ * header must echo that same console's cookie.
+ */
+export function sessionCsrfCookieName(): 'bravo_pv_csrf' | 'bravo_ops_csrf' {
+  if (typeof window !== 'undefined' && isProviderHost(window.location.host)) return 'bravo_pv_csrf';
+  return 'bravo_ops_csrf';
+}
+
+export function readSessionCsrf(): string | null {
+  if (typeof document === 'undefined') return null;
+  const name = sessionCsrfCookieName();
+  const m = new RegExp(`(?:^|;\\s*)${name}=([^;]+)`).exec(document.cookie);
+  return m ? decodeURIComponent(m[1]) : null;
+}

@@ -10,13 +10,16 @@ import {pvApi, usePvManagers, type ModuleKey} from '@/lib/provider/api';
 import {CONSOLE_MODULES, MODULE_LABEL, errorText} from '@/lib/provider/labels';
 import {pvRoutes} from '@/lib/provider/routes';
 
-const APP_ONLY: ModuleKey[] = ['compliance', 'orgChart', 'dept', 'msg', 'intel', 'region'];
+const APP_ONLY: ModuleKey[] = ['compliance', 'orgChart', 'dept', 'intel', 'region'];
 
 const HELP: Partial<Record<ModuleKey, string>> = {
   jobs: 'Crew, dispatch, track and complete jobs; answer offers',
   portal: 'Answer offers and claim open jobs',
   roster: 'Add, invite and suspend officers',
   earn: 'See job values, fees and payouts',
+  msg: 'Encrypted chat with officers, here and in the app',
+  fleet: 'Add, edit and retire agency vehicles',
+  pro: 'See officers on Secure Pro duty',
 };
 
 export default function ProviderManagers() {
@@ -90,7 +93,7 @@ export default function ProviderManagers() {
           )}
       </PvCard>
       <p className="pv-hint" style={{marginTop: 12}}>
-        Org chart, departmental, messenger, Bravo Feed, compliance and region are set in the app under Manager Permissions.
+        Org chart, departmental, Bravo Feed, compliance and region are set in the app under Manager Permissions. Messenger covers chat in the app and here.
       </p>
     </PvPage>
   );

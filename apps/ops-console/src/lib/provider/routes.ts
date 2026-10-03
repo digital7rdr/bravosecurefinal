@@ -12,6 +12,7 @@ export const pvRoutes = {
   crew: '/crew',
   vehicles: '/vehicles',
   pro: '/pro',
+  messages: '/messages',
   managers: '/managers',
   earnings: '/earnings',
 } as const;

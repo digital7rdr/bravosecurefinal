@@ -65,7 +65,7 @@ export const MODULE_LABEL: Record<ModuleKey, string> = {
 };
 
 /** The modules this console uses, in the order the permissions screen lists them. */
-export const CONSOLE_MODULES: ModuleKey[] = ['jobs', 'portal', 'pro', 'roster', 'fleet', 'earn'];
+export const CONSOLE_MODULES: ModuleKey[] = ['jobs', 'portal', 'pro', 'roster', 'fleet', 'msg', 'earn'];
 
 export function credits(n: number | null | undefined): string {
   if (n === null || n === undefined || !Number.isFinite(n)) return '—';

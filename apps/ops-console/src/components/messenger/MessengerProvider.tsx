@@ -19,7 +19,10 @@ import {
 } from 'react';
 import dynamic from 'next/dynamic';
 import type {MessengerRuntime, DecryptedMessage, PresenceState} from '@/lib/messenger/runtime';
+import useSWR from 'swr';
 import {useOpsMe} from '@/lib/api';
+import {isProviderHost} from '@/lib/provider/host';
+import {pvAuth} from '@/lib/provider/api';
 
 // OP-18 — this provider is mounted in the root layout, so anything it imports
 // statically ships on EVERY route including /login. The runtime (libsignal,
@@ -62,7 +65,17 @@ const MessengerCtx = createContext<Ctx | null>(null);
 
 export function MessengerProvider({children}: {children: ReactNode}) {
   const {data: me} = useOpsMe();
-  const userId = me?.admin.user_id ?? null;
+  // 2026-10-03 — the service provider console (provider.* host) uses the same
+  // encrypted messenger. There is no ops admin there: the vault belongs to the
+  // signed-in provider user, read from the console context (same SWR key as
+  // ProviderShell, so it is one request). Decided after mount so server and
+  // client render the same tree.
+  const [onProvider, setOnProvider] = useState(false);
+  useEffect(() => { setOnProvider(isProviderHost(window.location.host)); }, []);
+  const pvSignedIn = onProvider && typeof document !== 'undefined' && /(?:^|;\s*)bravo_pv_csrf=/.test(document.cookie)
+    && !window.location.pathname.startsWith('/login');
+  const {data: pvCtx} = useSWR(pvSignedIn ? ['pv', 'context'] : null, pvAuth.context, {refreshInterval: 120_000});
+  const userId = onProvider ? (pvCtx && pvCtx.orgs.length > 0 ? pvCtx.user.id : null) : (me?.admin.user_id ?? null);
 
   const [state, setState] = useState<State>('absent');
   const [error, setError] = useState<string | null>(null);

@@ -148,3 +148,32 @@ describe('Phase 2 — vehicles, Secure Pro, statement', () => {
     expect(errorText({body: {message: 'vehicle_busy'}})).toMatch(/another mission/);
   });
 });
+
+describe('provider Messages — same encrypted chat as the ops console', () => {
+  it('reuses ChatWorkspace with the agency roster, never the ops user directory', () => {
+    const page = stripComments(read('app/provider/(app)/messages/page.tsx'));
+    expect(page).toMatch(/<ChatWorkspace directory=\{directory\}\/>/);
+    expect(page).toMatch(/pvApi\.roster\(\)/);
+    expect(page).not.toMatch(/opsDataApi|listUsers/);
+    expect(PROVIDER_NAV.flatMap(g => g.items).find(i => i.label === 'Messages')?.modules).toEqual(['msg', 'roster']);
+  });
+
+  it('shared messenger code echoes the CSRF cookie of the console it runs in', () => {
+    expect(stripComments(read('lib/messenger/keys.ts'))).toMatch(/readSessionCsrf/);
+    expect(stripComments(read('lib/messenger/keys.ts'))).not.toMatch(/bravo_ops_csrf/);
+    expect(stripComments(read('lib/api.ts'))).toMatch(/return readSessionCsrf\(\)/);
+    const host = stripComments(read('lib/provider/host.ts'));
+    expect(host).toMatch(/isProviderHost\(window\.location\.host\)\) return 'bravo_pv_csrf'/);
+  });
+
+  it('the vault belongs to the provider user on the provider host, and sign-out wipes it', () => {
+    expect(stripComments(read('components/messenger/MessengerProvider.tsx'))).toMatch(/onProvider \? \(pvCtx && pvCtx\.orgs\.length > 0 \? pvCtx\.user\.id : null\)/);
+    expect(stripComments(read('components/provider/ProviderShell.tsx'))).toMatch(/wipeMessenger\(\)/);
+  });
+
+  it('the ops chat keeps its own directory and seen-key', () => {
+    const chat = stripComments(read('features/messenger/ChatWorkspace.tsx'));
+    expect(chat).toMatch(/seenKey: 'bravo_ops_chat_seen_v1'/);
+    expect(chat).toMatch(/directory = OPS_CHAT_DIRECTORY/);
+  });
+});
