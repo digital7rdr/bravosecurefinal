@@ -24,6 +24,7 @@ export ANDROID_HOME="$HOME/Library/Android/sdk"
 export PATH="$PATH:$ANDROID_HOME/platform-tools:$JAVA_HOME/bin"
 "$JAVA_HOME/bin/java" -version && node -v        # 17.x/21.x, Node ≥ 20
 export MAPBOX_DOWNLOADS_TOKEN="sk.…"             # Mapbox SDK download token (secret) — shell only, never a file in git
+export RNMAPBOX_MAPS_DOWNLOAD_TOKEN="$MAPBOX_DOWNLOADS_TOKEN"   # what android/build.gradle reads (the sync restores the tracked gradle.properties, which must not hold it)
 ```
 
 ## 2. Values that only exist on the VPS → `.env.production.local`
