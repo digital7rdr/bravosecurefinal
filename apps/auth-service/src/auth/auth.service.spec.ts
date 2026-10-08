@@ -136,6 +136,8 @@ describe('AuthService', () => {
       const result = await service.registerVerify(dto as any, '1.2.3.4');
       expect(mockOtp.check).toHaveBeenCalledWith(dto.phoneE164, dto.code);
       expect(mockPw.hash).toHaveBeenCalledWith(dto.password);
+      // SMS mode issues the session here (TOTP mode returns the enrolment step instead).
+      if (!('accessToken' in result)) {throw new Error('expected a session');}
       expect(result.accessToken).toBe('tok');
     });
 

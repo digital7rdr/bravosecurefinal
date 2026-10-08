@@ -5,7 +5,7 @@
  * so the store keeps the id from login and falls back to it.
  */
 jest.mock('@services/api', () => ({
-  authApi: {login: jest.fn(), verify: jest.fn(), me: jest.fn()},
+  authApi: {login: jest.fn(), verify: jest.fn(), me: jest.fn(), registerVerify: jest.fn()},
   agentApi: {},
   getDeviceId: jest.fn(() => Promise.resolve('dev-1')),
   getDeviceIdentity: jest.fn(() => ({deviceModel: 'Pixel', deviceBrand: 'google', osVersion: '15', appVersion: '1.0.316'})),
@@ -20,15 +20,64 @@ jest.mock('@store/activitySync', () => ({
   stopActivitySync: jest.fn(),
 }));
 
+jest.mock('@store/pendingProvider', () => ({pendingProvider: {get: jest.fn(() => Promise.resolve(false))}}));
+
 import {useAuthStore} from '@store/authStore';
 import {authApi} from '@services/api';
 
 const login  = authApi.login  as jest.Mock;
 const verify = authApi.verify as jest.Mock;
+const registerVerify = authApi.registerVerify as jest.Mock;
+const me = authApi.me as jest.Mock;
 
 beforeEach(() => {
   jest.clearAllMocks();
-  useAuthStore.setState({pendingUserId: null, pendingPhone: null, pendingChallengeId: null, isLoading: false, error: null});
+  useAuthStore.setState({pendingUserId: null, pendingPhone: null, pendingChallengeId: null, pendingJustRegistered: false, justRegistered: false, isAuthenticated: false, isLoading: false, error: null});
+});
+
+describe('verifyRegister (sign-up step 2, TOTP-mode server — phone proven by SMS, authenticator next)', () => {
+  const p = {email: 'a@b.io', password: 'pass1234', fullName: 'A', phoneE164: '+971500000000', code: '123456'};
+  const ME = {user: {id: 'u1', email: 'a@b.io', display_name: 'A', role: 'individual', subscription_tier: 'lite'}};
+
+  it('returns the enrolment step, keeps the challenge, and does NOT authenticate yet', async () => {
+    const enrol = {uri: 'otpauth://totp/x', secret: 'SEED', backupCodes: ['A1B2C3D4']};
+    registerVerify.mockResolvedValue({userId: 'u1', otpSentTo: null, challengeId: 'ch-1', secondFactor: 'totp_enrol', enrol});
+    const next = await useAuthStore.getState().verifyRegister(p);
+    expect(next).toEqual({userId: 'u1', challengeId: 'ch-1', secondFactor: 'totp_enrol', enrol});
+    const st = useAuthStore.getState();
+    expect(st.isAuthenticated).toBe(false);
+    expect(st.pendingChallengeId).toBe('ch-1');
+    expect(st.pendingUserId).toBe('u1');
+    expect(st.pendingJustRegistered).toBe(true);
+  });
+
+  it('authenticator verify + completeAuth then finishes the sign-up with justRegistered raised', async () => {
+    registerVerify.mockResolvedValue({userId: 'u1', otpSentTo: null, challengeId: 'ch-1', secondFactor: 'totp_enrol', enrol: null});
+    verify.mockResolvedValue({user: ME.user, accessToken: 'a', refreshToken: 'r', expiresIn: 900});
+    me.mockResolvedValue(ME);
+    await useAuthStore.getState().verifyRegister(p);
+    await useAuthStore.getState().verifyOtp('u1', '654321');
+    expect(verify.mock.calls[0][0].challengeId).toBe('ch-1');
+    await useAuthStore.getState().completeAuth();
+    const st = useAuthStore.getState();
+    expect(st.isAuthenticated).toBe(true);
+    expect(st.justRegistered).toBe(true);
+    expect(st.pendingJustRegistered).toBe(false);
+  });
+
+  it('a plain login + completeAuth never raises justRegistered', async () => {
+    me.mockResolvedValue(ME);
+    await useAuthStore.getState().completeAuth();
+    expect(useAuthStore.getState().justRegistered).toBe(false);
+  });
+
+  it('SMS-mode server (tokens returned) → null, authenticated immediately as before', async () => {
+    registerVerify.mockResolvedValue({user: ME.user, accessToken: 'a', refreshToken: 'r', expiresIn: 900});
+    const next = await useAuthStore.getState().verifyRegister(p);
+    expect(next).toBeNull();
+    expect(useAuthStore.getState().isAuthenticated).toBe(true);
+    expect(useAuthStore.getState().justRegistered).toBe(true);
+  });
 });
 
 describe('login (TOTP mode)', () => {

@@ -119,6 +119,7 @@ describe('AuthService — SMS invite claim', () => {
       expect(mockDb.q.mock.calls.some(c => /INSERT INTO public\.users/.test(String(c[0])))).toBe(false);
       expect(sqls.length).toBeGreaterThanOrEqual(3);
       // The admin-provisioned role survives (agency / CPO invites stay agency / CPO).
+      if (!('user' in out)) {throw new Error('expected a session');}
       expect(out.user.role).toBe('service_provider');
       expect(mockAudit.emit).toHaveBeenCalledWith(expect.objectContaining({outcome: 'success', detail: 'invite_claimed'}));
     });
@@ -142,6 +143,7 @@ describe('AuthService — SMS invite claim', () => {
       const out = await service.registerVerify(verify as never, '1.1.1.1');
       expect(mockDb.q.mock.calls.some(c => /INSERT INTO public\.users/.test(String(c[0])))).toBe(true);
       expect(mockDb.q.mock.calls.some(c => /AS claimable/.test(String(c[0])))).toBe(false); // no extra lookup
+      if (!('user' in out)) {throw new Error('expected a session');}
       expect(out.user.id).toBe('brand-new');
     });
   });

@@ -128,6 +128,12 @@ JWT_ACTION_AUDIENCE=bravo-action
 # 'sms' and no Twilio, main.ts refuses to boot (devFlag() has already forced
 # the OTP dev-bypass off in production, so 'sms' would mean nobody can log in).
 AUTH_SECOND_FACTOR=totp
+# Sign-up phone proof in totp mode (2026-10-08). 'sms' (default): /auth/register
+# texts one Twilio Verify code; the account is created only after it checks out,
+# then the authenticator is enrolled. Needs Twilio (Integrations → Twilio in the
+# ops console, or TWILIO_* below) — without it SIGN-UP fails, login still works.
+# 'none' skips the SMS and creates the account from the password step alone.
+REGISTER_PHONE_PROOF=sms
 
 # TOTP is the login second factor here — no SMS provider. 64 hex = AES-256 for
 # sealing TOTP seeds at rest; production fails closed without it.

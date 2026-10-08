@@ -116,6 +116,16 @@ export default () => ({
     // forces the OTP dev-bypass off there, so 'sms' without Twilio means
     // nobody can log in (main.ts refuses to start in that state).
     secondFactor: (process.env['AUTH_SECOND_FACTOR'] ?? 'sms') === 'totp' ? 'totp' as const : 'sms' as const,
+    // 2026-10-08 — what proves a NEW account's phone number in 'totp' mode
+    // (REGISTER_PHONE_PROOF). In 'sms' mode the login OTP itself proves it.
+    //   'sms'  (default) — /auth/register texts a one-time code (Twilio, or
+    //          OTP_DEV_BYPASS locally); /auth/register/verify checks it, creates
+    //          the account with kyc_status 'approved' and hands back the
+    //          authenticator enrolment for /auth/verify. Twilio missing →
+    //          registration fails loudly (login is unaffected).
+    //   'none' — the pre-2026-10-08 behaviour: the account is created from the
+    //          password step alone (kyc 'pending'); nothing proves the phone.
+    registerPhoneProof: process.env['REGISTER_PHONE_PROOF'] === 'none' ? 'none' as const : 'sms' as const,
   },
 
   otp: {

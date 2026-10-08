@@ -398,6 +398,10 @@ export interface TotpEnrolment {
 
 export type SecondFactor = 'sms' | 'totp' | 'totp_enrol';
 
+export type RegisterVerifyResult =
+  | {user: ApiUser; accessToken: string; refreshToken: string; expiresIn: number}
+  | {userId: string; otpSentTo: null; challengeId: string; secondFactor: 'totp' | 'totp_enrol'; enrol: TotpEnrolment | null};
+
 export interface LoginStartResult {
   userId: string | null;
   otpSentTo: string | null;
@@ -438,17 +442,25 @@ export const authApi = {
     return res.data;
   },
 
-  /** Step 2: verify the OTP and create the user atomically. Returns tokens. */
+  /**
+   * Step 2: verify the SMS code and create the user atomically.
+   *   - SMS-mode server: returns the session (tokens persisted here).
+   *   - TOTP-mode server (production, 2026-10-08): the code proved the phone;
+   *     the account now exists and the response is the authenticator
+   *     enrolment step {userId, challengeId, secondFactor: 'totp_enrol',
+   *     enrol} — NO tokens. The caller finishes with authApi.verify() exactly
+   *     like a first login.
+   */
   registerVerify: async (dto: {
     email: string; password: string; displayName: string;
     phoneE164: string;
     code: string; deviceId: string; platform: string;
     deviceModel?: string; deviceBrand?: string; osVersion?: string; appVersion?: string;
   }) => {
-    const res = await authHttp.post<{
-      user: ApiUser; accessToken: string; refreshToken: string; expiresIn: number;
-    }>('/auth/register/verify', dto);
-    await tokenStore.set(res.data.accessToken, res.data.refreshToken);
+    const res = await authHttp.post<RegisterVerifyResult>('/auth/register/verify', dto);
+    if ('accessToken' in res.data) {
+      await tokenStore.set(res.data.accessToken, res.data.refreshToken);
+    }
     return res.data;
   },
 

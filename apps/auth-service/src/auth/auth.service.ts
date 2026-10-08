@@ -61,6 +61,10 @@ export class AuthService {
   private get secondFactor(): 'sms' | 'totp' {
     return this.config.get<'sms' | 'totp'>('auth.secondFactor') ?? 'sms';
   }
+  /** TOTP mode only — whether sign-up texts a code to prove the phone first. */
+  private get registerPhoneProof(): 'sms' | 'none' {
+    return this.config.get<'sms' | 'none'>('auth.registerPhoneProof') ?? 'sms';
+  }
 
   /**
    * TOTP mode — open a login challenge for a user who has passed the
@@ -217,7 +221,17 @@ export class AuthService {
 
   // ── register (step 1: dup-check + send OTP only — NO user row created) ────
   async register(dto: RegisterDto, ip: string) {
-    if (this.secondFactor === 'totp') return this.registerTotp(dto, ip);
+    if (this.secondFactor === 'totp') {
+      if (this.registerPhoneProof === 'none') return this.registerTotp(dto, ip);
+      // 2026-10-08 — prove the phone BEFORE the account exists, exactly like
+      // the SMS path: same conflict rules as registerTotp (so a number that
+      // would be refused there is refused before any SMS is spent), one
+      // Twilio code, no row yet. registerVerify checks the code and only then
+      // runs registerTotp, which creates the row and issues the enrolment.
+      await this.assertTotpRegistrable(dto, ip);
+      await this.sendRegisterOtp(dto.phoneE164, ip);
+      return {userId: null, otpSentTo: dto.phoneE164, challengeId: null, secondFactor: 'sms' as const, enrol: null};
+    }
 
     const existing = await this.db.qOne(
       `SELECT id FROM public.users WHERE (email=$1 OR phone_e164=$2) AND deleted_at IS NULL`,
@@ -230,8 +244,15 @@ export class AuthService {
       throw new ConflictException('already_exists');
     }
 
+    await this.sendRegisterOtp(dto.phoneE164, ip);
+    // Same shape as the TOTP branch so clients read ONE contract per endpoint.
+    return {userId: null, otpSentTo: dto.phoneE164, challengeId: null, secondFactor: 'sms' as const, enrol: null};
+  }
+
+  /** Text a registration code, mapping Twilio's failure codes to client-readable errors. */
+  private async sendRegisterOtp(phoneE164: string, ip: string): Promise<void> {
     try {
-      await this.otp.send(dto.phoneE164, '');
+      await this.otp.send(phoneE164, '');
     } catch (err) {
       // Surface Twilio rate-limit (60203: "Max send attempts reached") as 429
       const twilioErr = err as {code?: number; status?: number; message?: string};
@@ -259,10 +280,28 @@ export class AuthService {
       console.error('[register] Twilio send failed:', err);
       throw err;
     }
-
     await this.audit.emit({event_type:'auth.register', user_id:null, device_id:null, ip, outcome:'success', detail:'otp_sent'});
-    // Same shape as the TOTP branch so clients read ONE contract per endpoint.
-    return {userId: null, otpSentTo: dto.phoneE164, challengeId: null, secondFactor: 'sms' as const, enrol: null};
+  }
+
+  /**
+   * TOTP mode — the conflict rules of registerTotp, evaluated without
+   * writing anything. Mirrors that method exactly (claimable invite → ok;
+   * abandoned unverified enrolment → ok; anything else → already_exists) so
+   * the SMS is never sent to a number whose sign-up would be refused.
+   */
+  private async assertTotpRegistrable(dto: RegisterDto, ip: string): Promise<void> {
+    const existing = await this.db.qOne<{id: string}>(
+      `SELECT id FROM public.users WHERE (email=$1 OR phone_e164=$2) AND deleted_at IS NULL`,
+      [dto.email, dto.phoneE164],
+    );
+    if (!existing) return;
+    if (await this.claimableInvite(dto.email, dto.phoneE164)) return;
+    const status = await this.totp.status(existing.id);
+    const everSignedIn = await this.db.qOne<{n: number}>(
+      `SELECT count(*)::int AS n FROM auth_devices WHERE user_id=$1`, [existing.id]);
+    if (status === 'pending' && (everSignedIn?.n ?? 0) === 0) return;
+    await this.audit.emit({event_type:'auth.register', user_id:null, device_id:null, ip, outcome:'failure', detail:'already_exists'});
+    throw new ConflictException('already_exists');
   }
 
   // ── register, TOTP mode ───────────────────────────────────────────────────
@@ -284,7 +323,7 @@ export class AuthService {
   //     accounts enrol their authenticator by logging in with their password.
   //     Resetting them here would let anyone who knows a phone number take
   //     over the account.
-  private async registerTotp(dto: RegisterDto, ip: string) {
+  private async registerTotp(dto: RegisterDto, ip: string, phoneProven = false) {
     const existing = await this.db.qOne<{id: string}>(
       `SELECT id FROM public.users WHERE (email=$1 OR phone_e164=$2) AND deleted_at IS NULL`,
       [dto.email, dto.phoneE164],
@@ -326,11 +365,13 @@ export class AuthService {
         userId = existing.id;
       }
     } else {
+      // kyc 'approved' = "phone proven" (the SMS path's meaning); with no
+      // proof it stays 'pending' until verify() flips it on the first code.
       const [inserted] = await this.db.q<{id: string}>(
         `INSERT INTO public.users
            (id,email,phone_e164,display_name,role,subscription_tier,password_hash,kyc_status)
-         VALUES (gen_random_uuid(),$1,$2,$3,'individual','lite',$4,'pending') RETURNING id`,
-        [dto.email, dto.phoneE164, dto.displayName, pwHash],
+         VALUES (gen_random_uuid(),$1,$2,$3,'individual','lite',$4,$5) RETURNING id`,
+        [dto.email, dto.phoneE164, dto.displayName, pwHash, phoneProven ? 'approved' : 'pending'],
       );
       userId = inserted.id;
     }
@@ -342,16 +383,32 @@ export class AuthService {
     if (!user) throw new NotFoundException('user_not_found');
 
     const step = await this.totpSecondStep(user, ip);
-    await this.audit.emit({event_type:'auth.register', user_id:user.id, device_id:null, ip, outcome:'success', detail});
+    await this.audit.emit({event_type:'auth.register', user_id:user.id, device_id:null, ip, outcome:'success', detail: phoneProven ? `${detail}_phone_proven` : detail});
     return {userId: user.id, otpSentTo: null, ...step};
   }
 
   // ── register (step 2: Twilio approves → create user + issue session) ──────
   async registerVerify(dto: RegisterVerifyDto, ip: string) {
+    if (this.secondFactor === 'totp' && this.registerPhoneProof === 'sms') {
+      // 2026-10-08 — the SMS code from register() proves the phone; only then
+      // is the account created (kyc 'approved') and the authenticator
+      // enrolment issued. NO tokens here: the client takes the returned
+      // {userId, challengeId, secondFactor: 'totp_enrol', enrol} to
+      // /auth/verify with its first authenticator code, exactly like a
+      // first login. Re-running the conflict check closes the window between
+      // register() and now (someone else may have claimed the number).
+      const approved = await this.otp.check(dto.phoneE164, dto.code);
+      if (!approved) {
+        await this.audit.emit({event_type:'auth.register', user_id:null, device_id:dto.deviceId, ip, outcome:'failure', detail:'otp_invalid'});
+        throw new BadRequestException('otp_invalid');
+      }
+      await this.assertTotpRegistrable(dto, ip);
+      return this.registerTotp(dto, ip, true);
+    }
     if (this.secondFactor === 'totp') {
-      // The user already exists (created by registerTotp); this is just the
-      // code step. Resolve the id from the phone and run the same path as
-      // login → verify. New clients should call /auth/verify directly.
+      // REGISTER_PHONE_PROOF=none — the user already exists (created by
+      // registerTotp); this is just the code step. Resolve the id from the
+      // phone and run the same path as login → verify.
       const u = await this.db.qOne<{id: string}>(
         `SELECT id FROM public.users WHERE phone_e164=$1 AND deleted_at IS NULL`, [dto.phoneE164]);
       if (!u) throw new BadRequestException('otp_invalid');

@@ -103,8 +103,8 @@ android {
         applicationId 'com.bravosecure.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 375
-        versionName "1.0.317"
+        versionCode 376
+        versionName "1.0.318"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }

@@ -195,9 +195,20 @@ export default function OTPVerificationScreen({navigation, route}: Props) {
           navigation.goBack();
           return;
         }
-        // Creates the user AND issues tokens atomically on the server.
-        await verifyRegister({email, password, fullName, phoneE164: phone, role, tier, code});
-        // verifyRegister flips isAuthenticated — RootNavigator swaps to Main (Dashboard) automatically.
+        // SMS-mode server: creates the user AND issues tokens atomically —
+        // verifyRegister flips isAuthenticated and RootNavigator swaps to Main.
+        // TOTP-mode server (production): the code proved the phone and the
+        // account exists; the authenticator must be set up before a session
+        // is issued — hand the enrolment to the authenticator screen.
+        const next = await verifyRegister({email, password, fullName, phoneE164: phone, role, tier, code});
+        if (next) {
+          navigation.replace('OtpVerify', {
+            userId: next.userId,
+            challengeId: next.challengeId,
+            secondFactor: next.secondFactor,
+            enrol: next.enrol,
+          });
+        }
       } else {
         if (!pendingUserId) {throw new Error('No pending login');}
         await verifyOtp(pendingUserId, code);

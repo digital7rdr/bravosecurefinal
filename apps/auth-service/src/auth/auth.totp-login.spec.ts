@@ -24,9 +24,12 @@ import {TotpChallengeService} from '../common/services/totp-challenge.service';
  *     unauthenticated route too);
  *   • wrong codes burn the challenge's attempt budget and the third one
  *     retires it;
- *   • registration creates the account up front with kyc 'pending' and
- *     verify() flips it to 'approved'; an abandoned enrolment may re-register,
- *     a completed one may not.
+ *   • registration (REGISTER_PHONE_PROOF=none) creates the account up front
+ *     with kyc 'pending' and verify() flips it to 'approved'; an abandoned
+ *     enrolment may re-register, a completed one may not;
+ *   • registration (REGISTER_PHONE_PROOF=sms, the 2026-10-08 default) texts a
+ *     code first, creates nothing until the code checks out, then creates the
+ *     account with kyc 'approved' and returns the enrolment — never a session.
  */
 const mockDb    = {q: jest.fn(), qOne: jest.fn()};
 const mockRedis = {
@@ -209,15 +212,18 @@ describe('AuthService — AUTH_SECOND_FACTOR=totp', () => {
   });
 
   // ── register ─────────────────────────────────────────────────────────────
-  describe('register', () => {
+  describe('register (REGISTER_PHONE_PROOF=none — account from the password step alone)', () => {
     const dto = {email: USER.email, password: 'pass1234', displayName: 'A', phoneE164: USER.phone_e164};
+    beforeEach(() => {
+      mockConfig.get.mockImplementation((key: string) => (key === 'auth.registerPhoneProof' ? 'none' : CONFIG[key]));
+    });
 
     it('new account → created with kyc pending, enrolment returned, no SMS', async () => {
       mockDb.qOne.mockResolvedValueOnce(null).mockResolvedValueOnce(USER);   // existence check, then reload
       mockDb.q.mockResolvedValueOnce([{id: USER.id}]).mockResolvedValueOnce([{id: CHALLENGE}]);
       const out = await service.register(dto, '1.1.1.1');
       const insert = mockDb.q.mock.calls.find(c => String(c[0]).includes('INSERT INTO public.users'));
-      expect(String(insert?.[0])).toContain("'pending'");
+      expect(insert?.[1]?.[4]).toBe('pending');   // kyc_status parameter — nothing proved the phone
       expect(out.secondFactor).toBe('totp_enrol');
       expect(out.challengeId).toBe(CHALLENGE);
       expect(out.enrol).toEqual(ENROL);
@@ -277,6 +283,75 @@ describe('AuthService — AUTH_SECOND_FACTOR=totp', () => {
       expect(out.userId).toBe('inv-1');
       expect(out.secondFactor).toBe('totp_enrol');
       expect(mockAudit.emit).toHaveBeenCalledWith(expect.objectContaining({detail: 'invite_claimed'}));
+    });
+  });
+
+  // ── register, phone proof (default since 2026-10-08) ─────────────────────
+  describe('register (REGISTER_PHONE_PROOF=sms — one SMS proves the phone, then the authenticator)', () => {
+    const dto = {email: USER.email, password: 'pass1234', displayName: 'A', phoneE164: USER.phone_e164};
+    const verifyDto = {...dto, code: '123456', deviceId: 'dev-1', platform: 'android'};
+
+    it('step 1: new number → SMS sent, NO user row, no enrolment, sms-shaped response', async () => {
+      mockDb.qOne.mockResolvedValueOnce(null);          // existence check
+      mockOtp.send.mockResolvedValueOnce(undefined);
+      const out = await service.register(dto, '1.1.1.1');
+      expect(mockOtp.send).toHaveBeenCalledWith(USER.phone_e164, '');
+      expect(mockDb.q.mock.calls.some(c => String(c[0]).includes('INSERT INTO public.users'))).toBe(false);
+      expect(mockTotp.enrol).not.toHaveBeenCalled();
+      expect(out).toEqual({userId: null, otpSentTo: USER.phone_e164, challengeId: null, secondFactor: 'sms', enrol: null});
+    });
+
+    it('step 1: a number that would be refused (verified seed) is refused BEFORE any SMS is spent', async () => {
+      mockDb.qOne.mockResolvedValueOnce({id: USER.id});
+      mockTotp.status.mockResolvedValueOnce('verified');
+      await expect(service.register(dto, '1.1.1.1')).rejects.toBeInstanceOf(ConflictException);
+      expect(mockOtp.send).not.toHaveBeenCalled();
+    });
+
+    it('step 1: Twilio rate limit (60203) surfaces as 429 otp_rate_limited', async () => {
+      mockDb.qOne.mockResolvedValueOnce(null);
+      mockOtp.send.mockRejectedValueOnce(Object.assign(new Error('Max send attempts reached'), {code: 60203}));
+      await expect(service.register(dto, '1.1.1.1')).rejects.toMatchObject({status: 429});
+    });
+
+    it('step 2: correct code → account created with kyc APPROVED, enrolment + challenge returned, NO session', async () => {
+      mockOtp.check.mockResolvedValueOnce(true);
+      mockDb.qOne
+        .mockResolvedValueOnce(null)                      // re-check (assertTotpRegistrable): still free
+        .mockResolvedValueOnce(null)                      // registerTotp's own existence check
+        .mockResolvedValueOnce(USER);                     // reload
+      mockDb.q.mockResolvedValueOnce([{id: USER.id}]).mockResolvedValueOnce([{id: CHALLENGE}]);
+      const out = await service.registerVerify(verifyDto as never, '1.1.1.1');
+      expect(mockOtp.check).toHaveBeenCalledWith(USER.phone_e164, '123456');
+      const insert = mockDb.q.mock.calls.find(c => String(c[0]).includes('INSERT INTO public.users'));
+      expect(insert?.[1]).toEqual([USER.email, USER.phone_e164, 'A', '$argon2id$new', 'approved']);
+      expect(out).toMatchObject({userId: USER.id, challengeId: CHALLENGE, secondFactor: 'totp_enrol', enrol: ENROL});
+      expect('accessToken' in out).toBe(false);
+      expect(mockJwt.signAccessToken).not.toHaveBeenCalled();
+      expect(mockAudit.emit).toHaveBeenCalledWith(expect.objectContaining({outcome: 'success', detail: 'totp_enrol_issued_phone_proven'}));
+    });
+
+    it('step 2: wrong code → otp_invalid, nothing created, no enrolment', async () => {
+      mockOtp.check.mockResolvedValueOnce(false);
+      await expect(service.registerVerify(verifyDto as never, '1.1.1.1')).rejects.toBeInstanceOf(BadRequestException);
+      expect(mockDb.q.mock.calls.some(c => String(c[0]).includes('INSERT INTO public.users'))).toBe(false);
+      expect(mockTotp.enrol).not.toHaveBeenCalled();
+    });
+
+    it('step 2: number claimed by someone else between the two steps → already_exists even with a good code', async () => {
+      mockOtp.check.mockResolvedValueOnce(true);
+      mockDb.qOne.mockResolvedValueOnce({id: 'other'}).mockResolvedValueOnce({n: 3});
+      mockTotp.status.mockResolvedValueOnce('verified');
+      await expect(service.registerVerify(verifyDto as never, '1.1.1.1')).rejects.toBeInstanceOf(ConflictException);
+      expect(mockDb.q.mock.calls.some(c => String(c[0]).includes('INSERT INTO public.users'))).toBe(false);
+    });
+
+    it('login is untouched: password → challenge/enrolment, never an SMS', async () => {
+      mockDb.qOne.mockResolvedValueOnce(USER_WITH_PW);
+      mockPw.verify.mockResolvedValueOnce(true);
+      const out = await service.login({email: USER.email, password: 'pw'}, '1.1.1.1');
+      expect(out.secondFactor).toBe('totp_enrol');
+      expect(mockOtp.send).not.toHaveBeenCalled();
     });
   });
 });

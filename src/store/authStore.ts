@@ -409,6 +409,8 @@ interface AuthState {
   pendingPhone: string | null;
   /** TOTP mode — the challenge /auth/login opened; /auth/verify must echo it. */
   pendingChallengeId: string | null;
+  /** TOTP-mode sign-up: set between register/verify and the authenticator verify so completeAuth raises justRegistered. */
+  pendingJustRegistered: boolean;
   /** B-867 — true from registerVerify until the identity step is passed or
    *  skipped; drives the ROOT identity gate. In-memory only (the boot snapshot
    *  carries `user`, never this), so a relaunch never replays the step. */
@@ -423,11 +425,17 @@ interface AuthActions {
     role?: 'individual' | 'corporate' | 'agent'; tier?: 'lite' | 'pro' | 'enterprise';
   }) => Promise<{phone: string}>;
   /** Step 2 of registration — verifies OTP AND creates the user atomically. */
+  /**
+   * Sign-up step 2. Resolves to null when the server issued the session
+   * (SMS mode — isAuthenticated flips here), or to the authenticator
+   * enrolment step (TOTP mode) that the caller must take to OtpVerify;
+   * completeAuth() after that verify finishes the sign-up.
+   */
   verifyRegister: (p: {
     email: string; password: string; fullName: string; phoneE164: string;
     role?: 'individual' | 'corporate' | 'agent'; tier?: 'lite' | 'pro' | 'enterprise';
     code: string;
-  }) => Promise<void>;
+  }) => Promise<{userId: string; challengeId: string; secondFactor: 'totp' | 'totp_enrol'; enrol: TotpEnrolment | null} | null>;
   login: (p: {email?: string; phoneE164?: string; password: string}) =>
     Promise<{
       userId: string | null; phone: string | null; devOtpCode?: string;
@@ -505,6 +513,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
     pendingUserId: null,
     pendingPhone: null,
     pendingChallengeId: null,
+    pendingJustRegistered: false,
     justRegistered: false,
 
     initialize: async () => {
@@ -646,6 +655,19 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           code, deviceId, platform: DEVICE_PLATFORM,
           ...getDeviceIdentity(),
         });
+        if (!('accessToken' in resp)) {
+          // TOTP-mode server: phone proven, account created, authenticator
+          // still to enrol. Remember that this is a fresh sign-up so
+          // completeAuth() (after /auth/verify) can raise justRegistered the
+          // way the SMS path does below.
+          set(s => {
+            s.pendingUserId = resp.userId;
+            s.pendingChallengeId = resp.challengeId;
+            s.pendingPhone = null;
+            s.pendingJustRegistered = true;
+          });
+          return {userId: resp.userId, challengeId: resp.challengeId, secondFactor: resp.secondFactor, enrol: resp.enrol};
+        }
         // B-867 — a brand-new account has no document yet; carry that as a FACT
         // (not undefined) so the registration identity step shows without
         // waiting for /auth/me. Role is the server's authoritative value.
@@ -665,6 +687,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           s.pendingUserId = null;
           s.pendingPhone = null;
         });
+        return null;
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : 'Verification failed';
         set(s => { s.error = msg; });
@@ -728,8 +751,14 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         // comment says why) — dropping it here left a member's Workspace Hub
         // tile empty until the first recheck tick (toUser defaults it false).
         const {user, account_kind, is_org_manager, permitted_modules, managed_org, org, must_set_password, membership_status, suspension, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required} = await authApi.me();
+        // TOTP-mode sign-up lands here (register/verify → OtpVerify → verify →
+        // completeAuth); same justRegistered rule as the SMS path in verifyRegister.
+        const fromSignup = get().pendingJustRegistered;
+        const isProvider = fromSignup ? await pendingProvider.get().catch(() => false) : false;
         set(s => {
           s.user = toUser(user, {account_kind, is_org_manager, permitted_modules, managed_org, membership_status, suspension, org, must_set_password, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required});
+          if (fromSignup) {s.justRegistered = user.role === 'individual' && !isProvider;}
+          s.pendingJustRegistered = false;
           s.isAuthenticated = true;
           s.sessionUnverified = false;
           s.pendingUserId = null;

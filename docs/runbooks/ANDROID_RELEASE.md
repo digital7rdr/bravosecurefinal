@@ -1,6 +1,6 @@
 # Android release — production APK for ops.bravosecure.cloud (2026-10-08)
 
-Builds `com.bravosecure.app` **1.0.317 (versionCode 375)** on a Mac against the
+Builds `com.bravosecure.app` **1.0.318 (versionCode 376)** on a Mac against the
 Hostinger VPS (`auth.` / `relay.` / `api.bravosecure.cloud`). Companion to
 `docs/handover/01a_LOCAL_APK_BUILD_GUIDE.md` (the general build reference) and
 `deploy/production/README.md` §6 (server side).
@@ -10,6 +10,7 @@ Hostinger VPS (`auth.` / `relay.` / `api.bravosecure.cloud`). Companion to
 | Area          | Change                                                                                                                                                                                                                                                                                                                                                                                    |
 | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Sign-in       | One field accepts **email or phone (+country code)**; phone is sent as `phoneE164`, the same way the web app signs in.                                                                                                                                                                                                                                                                    |
+| Sign-up       | Production proves the phone with **one Twilio Verify SMS** (`REGISTER_PHONE_PROOF=sms`), then the account is created and the **authenticator is enrolled** on the same screens as first login. Twilio credentials go in the ops console (Config → Integrations → Twilio: Account SID, Auth Token, Verify Service SID). Login never sends SMS.                                             |
 | Second factor | Production runs `AUTH_SECOND_FACTOR=totp`. The app now carries `challengeId` from `/auth/login` to `/auth/verify`, shows a **6-digit authenticator** step, and on an account's **first** sign-in shows the one-time enrolment (open-in-authenticator link, manual key, backup codes). A **backup code** can be used instead. SMS mode (staging / `OTP_DEV_BYPASS`) still works unchanged. |
 | Errors        | `/auth/verify` failures are explained (`expired`, `attempts left`, `locked`, …) instead of "Request failed with status code 400".                                                                                                                                                                                                                                                         |
 | Endpoints     | `.env.production` → bravosecure.cloud. App-link host `ops.bravosecure.cloud`. Staging URLs survive only in the explicit `*:staging` scripts.                                                                                                                                                                                                                                              |
@@ -88,13 +89,16 @@ restore them, but you would also lose any local experiments).
 APK=android/app/build/outputs/apk/release/app-release.apk
 unzip -p "$APK" assets/index.android.bundle | grep -c 'auth.bravosecure.cloud'      # ≥ 1
 unzip -p "$APK" assets/index.android.bundle | grep -c '94-136-184-52'               # 0
-"$ANDROID_HOME/build-tools/"*/aapt dump badging "$APK" | grep -E "package:|versionCode"   # 1.0.317 / 375
+"$ANDROID_HOME/build-tools/"*/aapt dump badging "$APK" | grep -E "package:|versionCode"   # 1.0.318 / 376
 adb install -r "$APK"
 ```
 
 On the phone (needs the VPS deployment live and an account issued from the ops
 console with a first sign-in password):
 
+0. Sign up as a new client: phone → SMS code arrives (Twilio) → "Set up your
+   authenticator" → code → signed in; the ops console shows the user with
+   kyc `approved` (phone proven).
 1. Sign in with **phone (+971…) or email** + password.
 2. First time: "Set up your authenticator" → _Open in authenticator app_ (or copy
    the key into Google/Microsoft Authenticator) → save the backup codes → enter
