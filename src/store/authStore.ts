@@ -4,7 +4,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Platform} from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
-import {authApi, agentApi, getDeviceId, getDeviceIdentity, tokenStore, subscriptionApi, type ApiUser} from '@services/api';
+import {authApi, agentApi, getDeviceId, getDeviceIdentity, tokenStore, subscriptionApi, type ApiUser, type SecondFactor, type TotpEnrolment} from '@services/api';
 import {decodeAccessTokenClaims, minimalUserFromClaims} from '@services/jwtClaims';
 import type {AccountKind, User, UserRole} from '@appTypes/index';
 import {setUser as setObservabilityUser} from '@modules/observability';
@@ -407,6 +407,8 @@ interface AuthState {
   error: string | null;
   pendingUserId: string | null;     // set between register/login and OTP verify
   pendingPhone: string | null;
+  /** TOTP mode — the challenge /auth/login opened; /auth/verify must echo it. */
+  pendingChallengeId: string | null;
   /** B-867 — true from registerVerify until the identity step is passed or
    *  skipped; drives the ROOT identity gate. In-memory only (the boot snapshot
    *  carries `user`, never this), so a relaunch never replays the step. */
@@ -427,8 +429,16 @@ interface AuthActions {
     code: string;
   }) => Promise<void>;
   login: (p: {email?: string; phoneE164?: string; password: string}) =>
-    Promise<{userId: string | null; phone: string | null; devOtpCode?: string}>;
-  verifyOtp: (userId: string, code: string) => Promise<void>;
+    Promise<{
+      userId: string | null; phone: string | null; devOtpCode?: string;
+      challengeId: string | null; secondFactor: SecondFactor | null; enrol: TotpEnrolment | null;
+    }>;
+  /**
+   * Second step of sign-in. `challengeId` is required when the server runs
+   * AUTH_SECOND_FACTOR=totp; when omitted the one /auth/login stored
+   * (`pendingChallengeId`) is used, so the SMS-era call sites keep working.
+   */
+  verifyOtp: (userId: string, code: string, challengeId?: string | null) => Promise<void>;
   completeAuth: () => Promise<void>;
   /**
    * Sign in with biometric if a previous session's refresh token is
@@ -484,7 +494,7 @@ interface AuthActions {
 }
 
 export const useAuthStore = create<AuthState & AuthActions>()(
-  immer(set => ({
+  immer((set, get) => ({
     user: null,
     isAuthenticated: false,
     isLoading: false,
@@ -494,6 +504,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
     error: null,
     pendingUserId: null,
     pendingPhone: null,
+    pendingChallengeId: null,
     justRegistered: false,
 
     initialize: async () => {
@@ -667,8 +678,19 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       set(s => { s.isLoading = true; s.error = null; });
       try {
         const res = await authApi.login({email, phoneE164, password});
-        set(s => { s.pendingUserId = res.userId; s.pendingPhone = res.otpSentTo; });
-        return {userId: res.userId, phone: res.otpSentTo, devOtpCode: res.devOtpCode};
+        set(s => {
+          s.pendingUserId = res.userId;
+          s.pendingPhone = res.otpSentTo;
+          s.pendingChallengeId = res.challengeId ?? null;
+        });
+        return {
+          userId: res.userId,
+          phone: res.otpSentTo,
+          devOtpCode: res.devOtpCode ?? undefined,
+          challengeId: res.challengeId ?? null,
+          secondFactor: res.secondFactor ?? (res.userId ? 'sms' : null),
+          enrol: res.enrol ?? null,
+        };
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : 'Sign in failed';
         set(s => { s.error = msg; });
@@ -678,14 +700,17 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       }
     },
 
-    verifyOtp: async (userId, code) => {
+    verifyOtp: async (userId, code, challengeId) => {
       set(s => { s.isLoading = true; s.error = null; });
       try {
         const deviceId = await getDeviceId();
+        const challenge = challengeId ?? get().pendingChallengeId ?? undefined;
         await authApi.verify({
           userId, code, deviceId, platform: DEVICE_PLATFORM,
+          ...(challenge ? {challengeId: challenge} : {}),
           ...getDeviceIdentity(),
         });
+        set(s => { s.pendingChallengeId = null; });
         // Tokens persisted inside authApi.verify — don't flip isAuthenticated
         // yet; let the success screen call completeAuth.
       } catch (e: unknown) {

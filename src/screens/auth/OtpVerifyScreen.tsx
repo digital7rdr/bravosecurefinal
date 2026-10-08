@@ -8,7 +8,10 @@ import {
   ActivityIndicator,
   ScrollView,
   Animated,
+  TextInput,
+  Linking,
 } from 'react-native';
+import axios from 'axios';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {LinearGradient} from 'expo-linear-gradient';
 import Svg, {Path, Rect, Circle} from 'react-native-svg';
@@ -21,6 +24,43 @@ import {goBackOnce} from '@navigation/tapGuard';
 type Props = AuthScreenProps<'OtpVerify'>;
 
 const OTP_LENGTH = 6;
+// TotpChallengeService.check(): a backup code is exactly 8 alphanumerics (case-insensitive).
+const BACKUP_CODE_RE = /^[A-Za-z0-9]{8}$/;
+
+/**
+ * Turn an /auth/verify failure into something a person can act on. Nest
+ * sends either `{message: 'otp_expired'}` (string code) or
+ * `{error: 'otp_invalid', attemptsLeft}` (object body) — both land here as
+ * an AxiosError whose own `.message` is just "Request failed with status
+ * code 400", which is what this screen used to show.
+ */
+export function describeVerifyError(e: unknown, totp: boolean): string {
+  const generic = totp ? 'That code didn\'t work. Check your authenticator app and try again.' : 'Invalid code. Please try again.';
+  if (!axios.isAxiosError(e)) {return e instanceof Error && e.message ? e.message : generic;}
+  if (!e.response) {return 'No connection. Check your network and try again.';}
+  const body = e.response.data as {message?: string | string[]; error?: string; attemptsLeft?: number} | undefined;
+  // Nest's string form is {statusCode, message: 'otp_expired', error: 'Bad Request'};
+  // its object form is {error: 'otp_invalid', attemptsLeft}. Take whichever
+  // field actually looks like a snake_case code.
+  const candidates = [body?.error, Array.isArray(body?.message) ? body?.message[0] : body?.message];
+  const code = candidates.find((c): c is string => typeof c === 'string' && /^[a-z0-9_]+$/.test(c)) ?? '';
+  const left = typeof body?.attemptsLeft === 'number' ? ` ${body.attemptsLeft} ${body.attemptsLeft === 1 ? 'attempt' : 'attempts'} left.` : '';
+  switch (code) {
+    case 'otp_invalid':        return generic + left;
+    case 'otp_expired':        return 'This sign-in has expired. Go back and sign in again.';
+    case 'otp_already_used':
+    case 'no_pending_otp':
+    case 'challenge_required': return 'This sign-in is no longer valid. Go back and sign in again.';
+    case 'otp_max_attempts':   return 'Too many attempts. Go back and sign in again.';
+    case 'totp_not_setup':     return 'Authenticator not set up yet. Go back, sign in again and finish the setup.';
+    case 'totp_locked':        return 'Too many wrong codes — this account is temporarily locked. Try again later.';
+    case 'user_not_found':     return 'This account is no longer available.';
+    default:
+      if (e.response.status === 429) {return 'Too many attempts. Wait a moment and try again.';}
+      if (e.response.status >= 500)  {return 'The server is unavailable right now. Try again shortly.';}
+      return generic;
+  }
+}
 
 // ── Design tokens (Bravo handoff — obsidian / platinum-cobalt) ──────────
 // Why: same tokens as the sibling Login / OTPVerification screens so the
@@ -80,6 +120,14 @@ function IcBackspace({c}: {c: string}) {
     </Svg>
   );
 }
+function IcCopy({c}: {c: string}) {
+  return (
+    <Svg width={15} height={15} viewBox="0 0 24 24" fill="none">
+      <Rect x={8} y={8} width={12} height={12} rx={2.2} stroke={c} strokeWidth={1.7} />
+      <Path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8" stroke={c} strokeWidth={1.7} strokeLinecap="round" />
+    </Svg>
+  );
+}
 function IcAlert({c}: {c: string}) {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
@@ -132,21 +180,54 @@ function Key({label, icon, onPress, accessibilityLabel}: {
 }
 
 /**
- * IDN-12/28 — LOGIN OTP entry. Reached only when /auth/login did NOT
- * return a devOtpCode (live Twilio delivery). Verifies via the same
- * verifyOtp store action the staging auto-verify path uses.
+ * IDN-12/28 — LOGIN second step. Reached only when /auth/login did NOT
+ * return a devOtpCode. Verifies via the same verifyOtp store action the
+ * staging auto-verify path uses.
+ *
+ * Three modes, from route.params.secondFactor (set by LoginScreen from the
+ * /auth/login response):
+ *   - 'sms'        legacy / staging — a Twilio code was texted to phoneHint.
+ *   - 'totp'       production (AUTH_SECOND_FACTOR=totp) — a 6-digit code
+ *                  from the authenticator app, or an 8-char backup code.
+ *   - 'totp_enrol' first authenticator sign-in — `enrol` carries the
+ *                  otpauth URI / seed / backup codes, shown ONCE above the
+ *                  code entry; the code typed from the freshly added
+ *                  authenticator completes enrolment on the server.
+ * TOTP verifies carry `challengeId`, which binds this step to the password
+ * step (a leaked user id plus a live code is not a login).
  *
  * No Resend here: auth-service has no login-OTP resend endpoint —
- * re-submitting credentials on the login screen issues a fresh code,
- * which is what the "Back to sign in" link is for.
+ * re-submitting credentials on the login screen issues a fresh code /
+ * challenge, which is what the "Back to sign in" link is for.
  */
 export default function OtpVerifyScreen({navigation, route}: Props) {
-  const {userId, phoneHint} = route.params;
+  const {userId, phoneHint, challengeId, enrol} = route.params;
+  const secondFactor = route.params.secondFactor ?? 'sms';
+  const totp = secondFactor !== 'sms';
+  const enrolling = secondFactor === 'totp_enrol' && !!enrol;
   const insets = useSafeAreaInsets();
   const [code, setCode] = useState('');
+  const [useBackup, setUseBackup] = useState(false);
+  const [backupCode, setBackupCode] = useState('');
+  const [copied, setCopied] = useState<'secret' | 'codes' | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const {verifyOtp, completeAuth, isLoading} = useAuthStore();
+
+  const copy = async (what: 'secret' | 'codes') => {
+    if (!enrol) {return;}
+    await Clipboard.setStringAsync(what === 'secret' ? enrol.secret : enrol.backupCodes.join('\n'));
+    setCopied(what);
+    setTimeout(() => setCopied(c => (c === what ? null : c)), 1800);
+  };
+  const openAuthenticator = async () => {
+    if (!enrol) {return;}
+    try {
+      await Linking.openURL(enrol.uri);
+    } catch {
+      setErrorMsg('No authenticator app could open the link. Add the key manually instead.');
+    }
+  };
 
   // Blinking caret — steps(1) on/off, like the mock's CSS keyframe
   const caret = useRef(new Animated.Value(1)).current;
@@ -181,20 +262,23 @@ export default function OtpVerifyScreen({navigation, route}: Props) {
     }
   };
 
+  const submitCode = useBackup ? backupCode.trim().toUpperCase() : code;
+  const isComplete = useBackup ? BACKUP_CODE_RE.test(submitCode) : code.length === OTP_LENGTH;
+
   const handleVerify = async () => {
-    if (code.length < OTP_LENGTH || busy) {return;}
+    if (!isComplete || busy) {return;}
     setBusy(true);
     setErrorMsg(null);
     try {
-      await verifyOtp(userId, code);
+      await verifyOtp(userId, submitCode, challengeId);
       await completeAuth();
       // RootNavigator swaps to Main once isAuthenticated flips.
     } catch (e: unknown) {
-      // Surface the server's message (wrong code / expired / too many
-      // attempts) inline; clear the cells so the retry starts fresh.
-      const msg = e instanceof Error ? e.message : 'Invalid code. Please try again.';
-      setErrorMsg(typeof msg === 'string' ? msg : 'Invalid code. Please try again.');
+      // Surface the server's reason (wrong code / expired / too many
+      // attempts) inline; clear the entry so the retry starts fresh.
+      setErrorMsg(describeVerifyError(e, totp));
       setCode('');
+      setBackupCode('');
     } finally {
       setBusy(false);
     }
@@ -203,9 +287,9 @@ export default function OtpVerifyScreen({navigation, route}: Props) {
   const maskedPhone = phoneHint
     ? phoneHint.replace(/(\+\d{3})\d+(\d{4})/, '$1 ** *** $2')
     : null;
-  const isComplete = code.length === OTP_LENGTH;
   const activeIdx = code.length;
   const verifying = isLoading || busy;
+  const title = enrolling ? 'Set up your authenticator' : totp ? 'Authenticator code' : 'Two-factor check';
 
   return (
     <View style={s.root}>
@@ -247,20 +331,73 @@ export default function OtpVerifyScreen({navigation, route}: Props) {
           />
           <IcLockTile c="#3BA6FF" />
         </View>
-        <Text style={s.title}>Two-factor check</Text>
-        <Text style={s.subtitle}>
-          Enter the {OTP_LENGTH}-digit code we sent to{' '}
-          {maskedPhone
-            ? <Text style={s.phone}>{maskedPhone}</Text>
-            : 'your registered phone number'}
-        </Text>
+        <Text style={s.title}>{title}</Text>
+        {totp ? (
+          <Text style={s.subtitle}>
+            {enrolling
+              ? 'Add Bravo Secure to an authenticator app (Google Authenticator, Microsoft Authenticator, Authy…), then enter the 6-digit code it shows.'
+              : useBackup
+                ? 'Enter one of the backup codes you saved when you set up your authenticator.'
+                : 'Enter the 6-digit code from your authenticator app.'}
+          </Text>
+        ) : (
+          <Text style={s.subtitle}>
+            Enter the {OTP_LENGTH}-digit code we sent to{' '}
+            {maskedPhone
+              ? <Text style={s.phone}>{maskedPhone}</Text>
+              : 'your registered phone number'}
+          </Text>
+        )}
 
-        {/* ── OTP cells ── */}
-        <View style={s.otpRow}>
-          {Array.from({length: OTP_LENGTH}).map((_, i) => (
-            <OtpCell key={i} value={code[i] ?? ''} active={i === activeIdx} caret={caret} />
-          ))}
-        </View>
+        {/* ── One-time enrolment card (first authenticator sign-in) ── */}
+        {enrolling && enrol ? (
+          <View style={s.enrolCard} testID="totp-enrol-card">
+            <TouchableOpacity style={s.enrolBtn} onPress={() => { void openAuthenticator(); }} activeOpacity={0.85} accessibilityRole="button">
+              <Text style={s.enrolBtnText}>Open in authenticator app</Text>
+            </TouchableOpacity>
+            <Text style={s.enrolLabel}>Or add this key manually</Text>
+            <View style={s.secretRow}>
+              <Text style={s.secret} selectable>{enrol.secret.replace(/(.{4})/g, '$1 ').trim()}</Text>
+              <TouchableOpacity style={s.copyBtn} onPress={() => { void copy('secret'); }} accessibilityRole="button" accessibilityLabel="Copy key">
+                <IcCopy c={T.accent} />
+                <Text style={s.copyText}>{copied === 'secret' ? 'Copied' : 'Copy'}</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={s.enrolLabel}>Backup codes — shown only once, save them now</Text>
+            <View style={s.codesGrid}>
+              {enrol.backupCodes.map(c => <Text key={c} style={s.backupCode} selectable>{c}</Text>)}
+            </View>
+            <TouchableOpacity style={s.copyBtnWide} onPress={() => { void copy('codes'); }} accessibilityRole="button" accessibilityLabel="Copy backup codes">
+              <IcCopy c={T.accent} />
+              <Text style={s.copyText}>{copied === 'codes' ? 'Copied' : 'Copy backup codes'}</Text>
+            </TouchableOpacity>
+            <Text style={s.enrolHint}>Each backup code signs you in once if you lose the authenticator.</Text>
+          </View>
+        ) : null}
+
+        {/* ── Code entry: 6 cells (SMS / authenticator) or backup-code field ── */}
+        {useBackup ? (
+          <TextInput
+            testID="backup-code-input"
+            style={s.backupInput}
+            value={backupCode}
+            onChangeText={t => { setErrorMsg(null); setBackupCode(t.replace(/[^A-Za-z0-9]/g, '').slice(0, 8)); }}
+            placeholder="Backup code"
+            placeholderTextColor={T.textMute}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            autoFocus
+            maxLength={8}
+            returnKeyType="done"
+            onSubmitEditing={() => { void handleVerify(); }}
+          />
+        ) : (
+          <View style={s.otpRow}>
+            {Array.from({length: OTP_LENGTH}).map((_, i) => (
+              <OtpCell key={i} value={code[i] ?? ''} active={i === activeIdx} caret={caret} />
+            ))}
+          </View>
+        )}
 
         {/* ── Server error (wrong / expired / attempts) ── */}
         {errorMsg ? (
@@ -270,9 +407,22 @@ export default function OtpVerifyScreen({navigation, route}: Props) {
           </View>
         ) : null}
 
-        {/* ── Back to sign in (re-signing in issues a fresh code) ── */}
+        {/* ── Backup-code toggle (enrolled authenticator only) ── */}
+        {totp && !enrolling ? (
+          <View style={s.resendRow}>
+            <Text style={s.resendHint}>{useBackup ? 'Have your authenticator?' : 'Lost your authenticator?'}</Text>
+            <TouchableOpacity
+              onPress={() => { setErrorMsg(null); setCode(''); setBackupCode(''); setUseBackup(b => !b); }}
+              activeOpacity={0.7}
+              testID="toggle-backup-code">
+              <Text style={s.resendActive}>{useBackup ? 'Use authenticator code' : 'Use a backup code'}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {/* ── Back to sign in (re-signing in issues a fresh code / challenge) ── */}
         <View style={s.resendRow}>
-          <Text style={s.resendHint}>Didn't get the code?</Text>
+          <Text style={s.resendHint}>{totp ? 'Something wrong?' : "Didn't get the code?"}</Text>
           <TouchableOpacity onPress={() => goBackOnce(navigation)} activeOpacity={0.7}>
             <Text style={s.resendActive}>Back to sign in</Text>
           </TouchableOpacity>
@@ -309,7 +459,8 @@ export default function OtpVerifyScreen({navigation, route}: Props) {
         </TouchableOpacity>
       </View>
 
-      {/* ── Custom in-app numeric keypad ── */}
+      {/* ── Custom in-app numeric keypad (hidden while typing a backup code) ── */}
+      {useBackup ? <View style={{height: insets.bottom + 12}} /> : (
       <View style={[s.keypad, {paddingBottom: insets.bottom + 22}]}>
         <LinearGradient
           colors={['rgba(10,31,63,0)', 'rgba(10,31,63,0.6)', 'rgba(9,11,16,0.92)']}
@@ -331,6 +482,7 @@ export default function OtpVerifyScreen({navigation, route}: Props) {
           <Key icon={<IcBackspace c={T.danger} />} onPress={backspace} accessibilityLabel="Delete digit" />
         </View>
       </View>
+      )}
     </View>
   );
 }
@@ -380,6 +532,34 @@ const s = StyleSheet.create(scaleTextStyles({
   cellDigit: {fontSize: 27, fontWeight: '700', color: T.text, letterSpacing: -0.5},
   cellCaret: {width: 2, height: 28, borderRadius: 2, backgroundColor: T.accent},
   cellDot: {width: 7, height: 7, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.10)'},
+
+  // Authenticator enrolment card (first TOTP sign-in)
+  enrolCard: {
+    marginTop: 22, borderRadius: 16, padding: 16,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderWidth: 1, borderColor: T.hair2,
+  },
+  enrolBtn: {
+    height: 46, borderRadius: 13, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(30,136,255,0.16)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)',
+  },
+  enrolBtnText: {fontSize: 14.5, fontWeight: '700', color: '#3BA6FF', letterSpacing: 0.1},
+  enrolLabel: {fontSize: 12, fontWeight: '600', color: T.textMute, marginTop: 16, marginBottom: 8, letterSpacing: 0.4, textTransform: 'uppercase'},
+  secretRow: {flexDirection: 'row', alignItems: 'center', gap: 10},
+  secret: {flex: 1, fontFamily: 'monospace', fontSize: 15, color: T.text, letterSpacing: 1},
+  copyBtn: {flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 6, paddingHorizontal: 10, borderRadius: 9, backgroundColor: 'rgba(30,136,255,0.10)'},
+  copyBtnWide: {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 10, paddingVertical: 9, borderRadius: 10, backgroundColor: 'rgba(30,136,255,0.10)'},
+  copyText: {fontSize: 12.5, fontWeight: '700', color: T.accent},
+  codesGrid: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
+  backupCode: {fontFamily: 'monospace', fontSize: 14, color: T.text, letterSpacing: 0.8, width: '47%', paddingVertical: 6, paddingHorizontal: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.04)', textAlign: 'center'},
+  enrolHint: {fontSize: 12, color: T.textMute, marginTop: 10, lineHeight: 17},
+
+  // Backup-code text field (replaces the cells + keypad)
+  backupInput: {
+    marginTop: 28, minHeight: 60, borderRadius: 16, paddingHorizontal: 18,
+    fontFamily: 'monospace', fontSize: 22, letterSpacing: 2, color: T.text,
+    backgroundColor: 'rgba(255,255,255,0.022)', borderWidth: 1.5, borderColor: T.accent,
+  },
 
   // Error box — same pattern as LoginScreen
   errorBox: {

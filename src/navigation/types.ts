@@ -30,9 +30,18 @@ export type AuthStackParamList = {
     role?: 'individual' | 'corporate' | 'agent';
     tier?: 'lite' | 'pro' | 'enterprise';
   };
-  // IDN-12/28 — login OTP entry when /auth/login returns no devOtpCode
-  // (live Twilio delivery). userId comes from the login response.
-  OtpVerify: {userId: string; phoneHint?: string};
+  // IDN-12/28 — login second step when /auth/login returns no devOtpCode.
+  // userId comes from the login response. SMS mode: the code was texted to
+  // phoneHint. TOTP mode (AUTH_SECOND_FACTOR=totp, production): challengeId
+  // must be echoed to /auth/verify; 'totp_enrol' carries the one-time
+  // authenticator enrolment (otpauth URI, seed, backup codes) to show first.
+  OtpVerify: {
+    userId: string;
+    phoneHint?: string;
+    challengeId?: string | null;
+    secondFactor?: 'sms' | 'totp' | 'totp_enrol';
+    enrol?: {uri: string; secret: string; backupCodes: string[]} | null;
+  };
   RoleSelection: undefined;
   ProfileCompletion: undefined;
   HomeSelection: undefined;

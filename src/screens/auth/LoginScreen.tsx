@@ -137,8 +137,8 @@ function Field({
   keyboardType?: 'email-address' | 'default' | 'visible-password';
   autoCapitalize?: 'none' | 'sentences';
   autoCorrect?: boolean;
-  autoComplete?: 'email' | 'password';
-  textContentType?: 'emailAddress' | 'password';
+  autoComplete?: 'email' | 'username' | 'password';
+  textContentType?: 'emailAddress' | 'username' | 'password';
   returnKeyType?: 'next' | 'done';
   onSubmitEditing?: () => void;
   hasError?: boolean;
@@ -230,6 +230,28 @@ function Field({
   );
 }
 
+/**
+ * Sign-in accepts the account's email OR phone number in one field (the web
+ * app signs in by phone; older mobile accounts were created by email).
+ * Returns the /auth/login discriminator, or null when the text is neither.
+ *
+ * Phone: anything that is only digits / spaces / dashes / brackets after an
+ * optional leading "+" — normalised to E.164 (`+` + digits). A number with
+ * no "+" is rejected: the server matches `phone_e164` exactly, so guessing
+ * a country code would just produce "invalid credentials".
+ */
+export function parseLoginIdentifier(raw: string): {email: string} | {phoneE164: string} | null {
+  const text = raw.trim();
+  if (!text) {return null;}
+  if (/^\+[\d\s().-]+$/.test(text)) {
+    const digits = text.replace(/\D/g, '');
+    return digits.length >= 7 && digits.length <= 15 ? {phoneE164: `+${digits}`} : null;
+  }
+  if (/^[\d\s().-]+$/.test(text)) {return null;} // phone without country code
+  const lower = text.toLowerCase();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lower) ? {email: lower} : null;
+}
+
 export default function LoginScreen({navigation}: Props) {
   const insets = useSafeAreaInsets();
   // B-84 / KB-17 — KAV had no Android behavior and there was no scroll
@@ -288,10 +310,14 @@ export default function LoginScreen({navigation}: Props) {
   };
 
   const handleSubmit = async () => {
-    const trimmedEmail = email.trim().toLowerCase();
+    const identifier = parseLoginIdentifier(email);
     const trimmedPassword = password.trim();
-    if (!trimmedEmail || !trimmedPassword) {
-      setErrorMsg('Enter your email and password.');
+    if (!identifier || !trimmedPassword) {
+      setErrorMsg(
+        identifier === null && email.trim()
+          ? 'Enter a valid email address or phone number (with country code, e.g. +971…).'
+          : 'Enter your email or phone number, and your password.',
+      );
       return;
     }
     setErrorMsg(null);
@@ -299,22 +325,28 @@ export default function LoginScreen({navigation}: Props) {
       // M1A — logging into an EXISTING account is not the signup funnel: a
       // stale tier pick from an abandoned signup must not paywall this user.
       void pendingTier.clear();
-      const res = await login({email: trimmedEmail, password: trimmedPassword});
+      const res = await login({...identifier, password: trimmedPassword});
       if (!res.userId) {
-        setErrorMsg('Invalid email or password.');
+        setErrorMsg('Invalid email, phone number or password.');
         return;
       }
-      // Staging (OTP_DEV_BYPASS) returns devOtpCode — auto-verify so dev/QA
-      // logins land on the Dashboard directly, exactly as before.
+      // Staging (OTP_DEV_BYPASS, SMS mode only) returns devOtpCode —
+      // auto-verify so dev/QA logins land on the Dashboard directly.
       if (res.devOtpCode) {
-        await verifyOtp(res.userId, res.devOtpCode);
+        await verifyOtp(res.userId, res.devOtpCode, res.challengeId);
         await completeAuth();
         // RootNavigator flips to Main → Dashboard once isAuthenticated + role are set.
         return;
       }
-      // IDN-12/28 — live Twilio OTP: no code comes back, the user must
-      // type the one sent to their phone.
-      navigation.navigate('OtpVerify', {userId: res.userId, phoneHint: res.phone ?? undefined});
+      // Second step: SMS code (legacy) or authenticator code (production,
+      // AUTH_SECOND_FACTOR=totp — first sign-in also enrols the authenticator).
+      navigation.navigate('OtpVerify', {
+        userId: res.userId,
+        phoneHint: res.phone ?? undefined,
+        challengeId: res.challengeId,
+        secondFactor: res.secondFactor ?? 'sms',
+        enrol: res.enrol,
+      });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Sign in failed. Please try again.';
       setErrorMsg(msg);
@@ -366,7 +398,7 @@ export default function LoginScreen({navigation}: Props) {
           <View style={styles.form}>
             <Field
               Icon={IcMail}
-              label="Email address"
+              label="Email or phone number"
               value={email}
               onChangeText={handleEmailChange}
               focused={focus === 'email'}
@@ -375,8 +407,8 @@ export default function LoginScreen({navigation}: Props) {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
-              autoComplete="email"
-              textContentType="emailAddress"
+              autoComplete="username"
+              textContentType="username"
               returnKeyType="next"
               onSubmitEditing={() => pwRef.current?.focus()}
               hasError={!!errorMsg}

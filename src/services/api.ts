@@ -386,6 +386,27 @@ export function getDeviceIdentity(): {
   };
 }
 
+/** Authenticator enrolment payload — shown exactly once; only hashes are stored server-side. */
+export interface TotpEnrolment {
+  /** otpauth:// URI — open in / render as a QR for authenticator apps. */
+  uri: string;
+  /** Base32 seed for manual entry. */
+  secret: string;
+  /** One-time recovery codes (8-char alphanumeric). */
+  backupCodes: string[];
+}
+
+export type SecondFactor = 'sms' | 'totp' | 'totp_enrol';
+
+export interface LoginStartResult {
+  userId: string | null;
+  otpSentTo: string | null;
+  devOtpCode?: string | null;
+  challengeId?: string | null;
+  secondFactor?: SecondFactor | null;
+  enrol?: TotpEnrolment | null;
+}
+
 export interface ApiUser {
   id: string;
   email: string;
@@ -431,15 +452,28 @@ export const authApi = {
     return res.data;
   },
 
+  /**
+   * Step 1 of sign-in. The server answers 200 whether or not the credentials
+   * matched (no account enumeration) — `userId: null` is the failure signal.
+   *
+   * Second factor depends on the server's AUTH_SECOND_FACTOR:
+   *   - 'sms'  (legacy / staging): `otpSentTo` is set, `devOtpCode` only under
+   *            OTP_DEV_BYPASS; `challengeId` is null.
+   *   - 'totp' (production, 2026-09-29 decision): `challengeId` binds the
+   *            password step to the upcoming /auth/verify; `secondFactor` is
+   *            'totp' when an authenticator is already enrolled, or
+   *            'totp_enrol' with `enrol` (otpauth URI, seed, backup codes)
+   *            when this is the account's first authenticator sign-in.
+   */
   login: async (dto: {email?: string; phoneE164?: string; password: string}) => {
-    const res = await authHttp.post<{
-      userId: string | null; otpSentTo: string | null; devOtpCode?: string;
-    }>('/auth/login', dto);
+    const res = await authHttp.post<LoginStartResult>('/auth/login', dto);
     return res.data;
   },
 
   verify: async (dto: {
     userId: string; code: string; deviceId: string; platform: string;
+    /** TOTP mode — the id /auth/login returned. Required there, ignored in SMS mode. */
+    challengeId?: string | null;
     deviceModel?: string; deviceBrand?: string; osVersion?: string; appVersion?: string;
   }) => {
     const res = await authHttp.post<{

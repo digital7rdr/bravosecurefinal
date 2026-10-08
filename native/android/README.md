@@ -33,25 +33,38 @@ This mirrors what `native/ios/` has always done for the Swift/ObjC side
 | `MainActivity.kt`, `MainApplication.kt`                                                                             | Template-derived; kept as a reference snapshot, since the plugin patches the regenerated copy |
 | `AndroidManifest.reference.xml`                                                                                     | Snapshot of the manifest the services are declared in                                         |
 
-## Keeping the two copies in sync — READ THIS
+## Keeping the two copies in sync — `scripts/android-sync-native.sh`
 
-There is currently **no automatic copy step**. `plugins/withBravoAndroidPackages.js`
-_registers_ the packages in the regenerated `MainApplication.kt`; it does not
-create the module sources. So today:
+Since 2026-10-08 the copy step exists, and the nine hand-maintained
+**non-Kotlin** files live here too, under `overlay/` at their `android/`-relative
+paths (`build.gradle`, `gradle.properties`, `app/build.gradle` — signing config +
+`versionCode`/`versionName` —, `app/proguard-rules.pro`, `app/google-services.json`,
+`app/src/main/AndroidManifest.xml` — the foreground-service declarations and the
+`ops.bravosecure.cloud` app link —, `res/values/colors.xml`, `res/values/styles.xml`,
+`res/drawable/ic_stat_bravo.xml`). Before this, none of them was in git and a fresh
+clone could not build the shipped app.
 
-- Edit native Android code in `android/…`, then copy the changed file here
-  before committing, **or** edit here and copy into `android/…`.
-- After any `expo prebuild --clean`, restore these files into
-  `android/app/src/main/java/com/bravosecure/app/` before building.
+```bash
+bash scripts/android-sync-native.sh            # native/android → android/   (after any prebuild)
+bash scripts/android-sync-native.sh --check    # exit 1 when android/ drifted (run before committing)
+bash scripts/android-sync-native.sh --reverse  # android/ → native/android  (after editing in android/)
+```
 
-The durable fix is a config plugin that copies `native/android/**` into the
-generated tree at prebuild, exactly as the iOS plugins do for `native/ios/`.
-That is not wired yet — it needs a real prebuild to validate, which is why
-this README exists instead of a silent half-fix.
+Rules:
 
-Two suites already scan the generated paths and will stay red in CI until
-that copy step lands, because CI checks out a tree with no `android/` and
-runs no prebuild:
+- Edit here **or** in `android/`, then run `--reverse` / `sync` so both match, and
+  commit `native/android/`. `--check` is the guard.
+- After `npx expo prebuild --platform android` (with or without `--clean`), run the
+  sync before building: prebuild regenerates `app/build.gradle` and the manifest
+  from Expo's templates and would otherwise drop the signing block and the
+  services. `docs/runbooks/ANDROID_RELEASE.md` is the full build procedure.
+- A new native file goes in here first; `android/` is still gitignored.
+
+`AndroidManifest.reference.xml` is kept as a readable snapshot; `overlay/app/src/
+main/AndroidManifest.xml` is the copy that is actually applied.
+
+Two suites scan the generated paths and stay red in CI until CI runs a prebuild +
+sync (CI checks out a tree with no `android/`):
 
 - `src/modules/messenger/__tests__/frameCryptorParity.test.ts` (5 tests)
 - `src/modules/messenger/__tests__/receiveHoldWiring.test.ts` (1 test)

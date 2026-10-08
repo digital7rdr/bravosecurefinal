@@ -170,7 +170,7 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="https" android:host="ops.94-136-184-52.sslip.io" android:pathPrefix="/r/"/>
+        <data android:scheme="https" android:host="ops.bravosecure.cloud" android:pathPrefix="/r/"/>
       </intent-filter>
     </activity>
     <!-- Call foreground service. The phoneCall+microphone+camera type tags tell

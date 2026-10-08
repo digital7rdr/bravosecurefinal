@@ -2,7 +2,7 @@
   "expo": {
     "name": "Bravo Secure",
     "slug": "bravo-secure",
-    "version": "1.0.316",
+    "version": "1.0.317",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "icon": "./assets/icon.png",
@@ -64,7 +64,7 @@
           "data": [
             {
               "scheme": "https",
-              "host": "ops.94-136-184-52.sslip.io",
+              "host": "ops.bravosecure.cloud",
               "pathPrefix": "/r/"
             }
           ],

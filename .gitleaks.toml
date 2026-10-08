@@ -29,6 +29,7 @@ useDefault = true
 description = "Known-safe locations: public Firebase/Supabase client keys, env templates, API docs"
 paths = [
     '''android/app/google-services\.json''',
+    '''native/android/overlay/app/google-services\.json''',
     '''ios/.*GoogleService-Info\.plist''',
     '''package\.json''',
     '''package-lock\.json''',
