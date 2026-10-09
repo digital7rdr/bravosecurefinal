@@ -423,7 +423,7 @@ interface AuthActions {
   register: (p: {
     email: string; password: string; fullName: string; phoneE164: string;
     role?: 'individual' | 'corporate' | 'agent'; tier?: 'lite' | 'pro' | 'enterprise';
-  }) => Promise<{phone: string}>;
+  }) => Promise<{phone: string; devOtpCode?: string}>;
   /** Step 2 of registration — verifies OTP AND creates the user atomically. */
   /**
    * Sign-up step 2. Resolves to null when the server issued the session
@@ -631,7 +631,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         });
         // No user row yet — we only track the pending phone for the OTP screen.
         set(s => { s.pendingUserId = null; s.pendingPhone = res.otpSentTo; });
-        return {phone: res.otpSentTo};
+        return {phone: res.otpSentTo, devOtpCode: res.devOtpCode ?? undefined};
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : 'Registration failed';
         set(s => { s.error = msg; });

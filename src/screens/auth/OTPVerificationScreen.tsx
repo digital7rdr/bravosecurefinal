@@ -143,10 +143,14 @@ function Key({label, icon, onPress, accessibilityLabel}: {
 }
 
 export default function OTPVerificationScreen({navigation, route}: Props) {
-  const {phone, mode, email, password, fullName, role, tier} = route.params;
+  const {phone, mode, email, password, fullName, role, tier, devOtpCode} = route.params;
   const isRegister = mode === 'register';
   const insets = useSafeAreaInsets();
-  const [code, setCode] = useState('');
+  // Stub phone proof (server REGISTER_PHONE_PROOF=stub, testing only): the
+  // code came back in the register response — pre-fill it so the tester just
+  // taps Verify, and say on screen that nothing was texted.
+  const stubMode = !!devOtpCode;
+  const [code, setCode] = useState(devOtpCode ?? '');
   const [countdown, setCountdown] = useState(RESEND_SECONDS);
   const [canResend, setCanResend] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -345,10 +349,17 @@ export default function OTPVerificationScreen({navigation, route}: Props) {
           <IcLockTile c="#3BA6FF" />
         </View>
         <Text style={s.title}>Verify your number</Text>
-        <Text style={s.subtitle}>
-          Enter the {OTP_LENGTH}-digit code we sent to{' '}
-          <Text style={s.phone}>{maskedPhone}</Text>
-        </Text>
+        {stubMode ? (
+          <Text style={s.subtitle} testID="otp-stub-notice">
+            <Text style={s.phone}>Test mode</Text> — no SMS was sent to{' '}
+            <Text style={s.phone}>{maskedPhone}</Text>. The server returned the code and it has been filled in for you; tap Verify to continue.
+          </Text>
+        ) : (
+          <Text style={s.subtitle}>
+            Enter the {OTP_LENGTH}-digit code we sent to{' '}
+            <Text style={s.phone}>{maskedPhone}</Text>
+          </Text>
+        )}
 
         {/* ── OTP cells ── */}
         <View style={s.otpRow}>

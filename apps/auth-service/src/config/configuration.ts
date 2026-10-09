@@ -125,7 +125,13 @@ export default () => ({
     //          registration fails loudly (login is unaffected).
     //   'none' — the pre-2026-10-08 behaviour: the account is created from the
     //          password step alone (kyc 'pending'); nothing proves the phone.
-    registerPhoneProof: process.env['REGISTER_PHONE_PROOF'] === 'none' ? 'none' as const : 'sms' as const,
+    //   'stub' — TESTING ONLY (owner decision 2026-10-09, until Twilio is
+    //          connected): the code is generated and stored exactly as in
+    //          'sms' but NOT texted — it is returned to the caller as
+    //          `devOtpCode`, so the app can fill it in. Proves nothing; the
+    //          whole flow (screens, challenge, kyc) is exercised. main.ts
+    //          warns on every boot while this is set.
+    registerPhoneProof: (['none', 'stub'] as const).find(v => v === process.env['REGISTER_PHONE_PROOF']) ?? 'sms' as const,
   },
 
   otp: {

@@ -61,9 +61,9 @@ export class AuthService {
   private get secondFactor(): 'sms' | 'totp' {
     return this.config.get<'sms' | 'totp'>('auth.secondFactor') ?? 'sms';
   }
-  /** TOTP mode only — whether sign-up texts a code to prove the phone first. */
-  private get registerPhoneProof(): 'sms' | 'none' {
-    return this.config.get<'sms' | 'none'>('auth.registerPhoneProof') ?? 'sms';
+  /** TOTP mode only — how sign-up proves the phone: 'sms' (Twilio), 'stub' (code returned, testing), 'none'. */
+  private get registerPhoneProof(): 'sms' | 'stub' | 'none' {
+    return this.config.get<'sms' | 'stub' | 'none'>('auth.registerPhoneProof') ?? 'sms';
   }
 
   /**
@@ -229,6 +229,11 @@ export class AuthService {
       // Twilio code, no row yet. registerVerify checks the code and only then
       // runs registerTotp, which creates the row and issues the enrolment.
       await this.assertTotpRegistrable(dto, ip);
+      if (this.registerPhoneProof === 'stub') {
+        const devOtpCode = await this.otp.issueStub(dto.phoneE164);
+        await this.audit.emit({event_type:'auth.register', user_id:null, device_id:null, ip, outcome:'success', detail:'otp_stub_issued'});
+        return {userId: null, otpSentTo: dto.phoneE164, devOtpCode, challengeId: null, secondFactor: 'sms' as const, enrol: null};
+      }
       await this.sendRegisterOtp(dto.phoneE164, ip);
       return {userId: null, otpSentTo: dto.phoneE164, challengeId: null, secondFactor: 'sms' as const, enrol: null};
     }
@@ -389,7 +394,7 @@ export class AuthService {
 
   // ── register (step 2: Twilio approves → create user + issue session) ──────
   async registerVerify(dto: RegisterVerifyDto, ip: string) {
-    if (this.secondFactor === 'totp' && this.registerPhoneProof === 'sms') {
+    if (this.secondFactor === 'totp' && this.registerPhoneProof !== 'none') {
       // 2026-10-08 — the SMS code from register() proves the phone; only then
       // is the account created (kyc 'approved') and the authenticator
       // enrolment issued. NO tokens here: the client takes the returned

@@ -166,6 +166,28 @@ describe('OtpService', () => {
     });
   });
 
+  // ── REGISTER_PHONE_PROOF=stub (2026-10-09, testing until Twilio is connected) ──
+  describe('issueStub', () => {
+    it('stores a code like SMS mode, sends NOTHING, returns it; check() verifies and consumes it once', async () => {
+      const svc = await build(makeConfig({}));            // no Twilio at all
+      const code = await svc.issueStub('+971501234567');
+      expect(code).toMatch(/^\d{6}$/);
+      expect(mockCreate).not.toHaveBeenCalled();
+      const rec = mockRedis.codes.get('+971501234567')!;
+      expect(rec.h).toMatch(/^[0-9a-f]{64}$/);
+      expect(JSON.stringify(rec)).not.toContain(`"${code}"`);
+      await expect(svc.check('+971501234567', code)).resolves.toBe(true);
+      await expect(svc.check('+971501234567', code)).resolves.toBe(false);
+    });
+
+    it('respects the per-number send cap', async () => {
+      const svc = await build(makeConfig({'otp.maxSendsPerHour': 2}));
+      mockRedis.incrOtpSends.mockResolvedValueOnce(3);
+      await expect(svc.issueStub('+971501234567')).rejects.toMatchObject({status: 429});
+      expect(mockRedis.storeOtpCode).not.toHaveBeenCalled();
+    });
+  });
+
   // ── Twilio SMS with a server-held code ────────────────────────────────────
   describe('Twilio SMS mode', () => {
     it('sends a generated code (not the empty caller argument) and verifies it once', async () => {

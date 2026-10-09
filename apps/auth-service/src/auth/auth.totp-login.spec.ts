@@ -39,7 +39,7 @@ const mockRedis = {
 };
 const mockAudit = {emit: jest.fn()};
 const mockPw    = {hash: jest.fn(), verify: jest.fn()};
-const mockOtp   = {generate: jest.fn(), hash: jest.fn(), send: jest.fn(), check: jest.fn()};
+const mockOtp   = {generate: jest.fn(), hash: jest.fn(), send: jest.fn(), check: jest.fn(), issueStub: jest.fn()};
 const mockJwt   = {signAccessToken: jest.fn(), newRefreshToken: jest.fn(), refreshTokenHash: jest.fn(), ttlToSeconds: jest.fn()};
 const mockTotp  = {status: jest.fn(), enrol: jest.fn(), check: jest.fn()};
 const CONFIG: Record<string, unknown> = {
@@ -352,6 +352,40 @@ describe('AuthService — AUTH_SECOND_FACTOR=totp', () => {
       const out = await service.login({email: USER.email, password: 'pw'}, '1.1.1.1');
       expect(out.secondFactor).toBe('totp_enrol');
       expect(mockOtp.send).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── register, stub proof (testing until Twilio is connected, 2026-10-09) ─
+  describe('register (REGISTER_PHONE_PROOF=stub — code returned, nothing sent)', () => {
+    const dto = {email: USER.email, password: 'pass1234', displayName: 'A', phoneE164: USER.phone_e164};
+    beforeEach(() => {
+      mockConfig.get.mockImplementation((key: string) => (key === 'auth.registerPhoneProof' ? 'stub' : CONFIG[key]));
+    });
+
+    it('step 1: returns the code as devOtpCode, sends nothing, creates nothing', async () => {
+      mockDb.qOne.mockResolvedValueOnce(null);
+      mockOtp.issueStub.mockResolvedValueOnce('424242');
+      const out = await service.register(dto, '1.1.1.1');
+      expect(out).toEqual({userId: null, otpSentTo: USER.phone_e164, devOtpCode: '424242', challengeId: null, secondFactor: 'sms', enrol: null});
+      expect(mockOtp.send).not.toHaveBeenCalled();
+      expect(mockDb.q.mock.calls.some(c => String(c[0]).includes('INSERT INTO public.users'))).toBe(false);
+    });
+
+    it('step 1: the conflict rules still apply before a stub code is issued', async () => {
+      mockDb.qOne.mockResolvedValueOnce({id: USER.id});
+      mockTotp.status.mockResolvedValueOnce('verified');
+      await expect(service.register(dto, '1.1.1.1')).rejects.toBeInstanceOf(ConflictException);
+      expect(mockOtp.issueStub).not.toHaveBeenCalled();
+    });
+
+    it('step 2: the stub code goes through the same check → account + enrolment, no session', async () => {
+      mockOtp.check.mockResolvedValueOnce(true);
+      mockDb.qOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null).mockResolvedValueOnce(USER);
+      mockDb.q.mockResolvedValueOnce([{id: USER.id}]).mockResolvedValueOnce([{id: CHALLENGE}]);
+      const out = await service.registerVerify({...dto, code: '424242', deviceId: 'd', platform: 'android'} as never, '1.1.1.1');
+      expect(mockOtp.check).toHaveBeenCalledWith(USER.phone_e164, '424242');
+      expect(out).toMatchObject({userId: USER.id, challengeId: CHALLENGE, secondFactor: 'totp_enrol'});
+      expect('accessToken' in out).toBe(false);
     });
   });
 });

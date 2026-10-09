@@ -438,7 +438,9 @@ export const authApi = {
     // on the unauthenticated registration surface (forbidNonWhitelisted),
     // so sending them 400s under STRICT_VALIDATION. Role/tier are
     // server-defaulted ('individual'/'lite').
-    const res = await authHttp.post<{otpSentTo: string}>('/auth/register', dto);
+    // devOtpCode: only when the server runs REGISTER_PHONE_PROOF=stub (testing —
+    // the code is handed back instead of texted). Absent in SMS mode.
+    const res = await authHttp.post<{otpSentTo: string; devOtpCode?: string | null}>('/auth/register', dto);
     return res.data;
   },
 

@@ -133,7 +133,10 @@ AUTH_SECOND_FACTOR=totp
 # then the authenticator is enrolled. Needs Twilio (Integrations → Twilio in the
 # ops console, or TWILIO_* below) — without it SIGN-UP fails, login still works.
 # 'none' skips the SMS and creates the account from the password step alone.
-REGISTER_PHONE_PROOF=sms
+# 'stub' = TESTING ONLY (owner decision 2026-10-09): the code is generated and
+# checked like 'sms' but returned in the /auth/register response instead of
+# texted — phones are NOT verified. Switch to 'sms' when Twilio is connected.
+REGISTER_PHONE_PROOF=stub
 
 # TOTP is the login second factor here — no SMS provider. 64 hex = AES-256 for
 # sealing TOTP seeds at rest; production fails closed without it.

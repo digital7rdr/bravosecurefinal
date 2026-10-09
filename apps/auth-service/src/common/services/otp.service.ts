@@ -122,6 +122,23 @@ export class OtpService {
   }
 
   /**
+   * REGISTER_PHONE_PROOF=stub — store a code the way SMS mode does (same
+   * HMAC, TTL, send cap and check path) but hand it back instead of texting
+   * it. Nothing is sent. check() then verifies and consumes it normally.
+   */
+  async issueStub(to: string): Promise<string> {
+    const destination = OtpService.normalize(to);
+    const maxPerHour = this.config.get<number>('otp.maxSendsPerHour') ?? 5;
+    let sends = 0;
+    try { sends = await this.redis.incrOtpSends(destination); } catch { /* same leniency as send() */ }
+    if (sends > maxPerHour) {throw new HttpException('otp_send_rate_limited', HttpStatus.TOO_MANY_REQUESTS);}
+    const code = this.generate();
+    await this.redis.storeOtpCode(destination, {h: this.codeMac(destination, code)}, this.ttlMinutes() * 60);
+    this.logger.warn(`[stub] registration code issued for ${destination.slice(0, 4)}… — REGISTER_PHONE_PROOF=stub, nothing was sent`);
+    return code;
+  }
+
+  /**
    * Check a user-submitted code. A server-held code (SMS mode) is checked
    * locally and consumed on success; otherwise Twilio Verify, when configured,
    * owns the check. No pending code anywhere → false.

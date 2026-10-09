@@ -29,6 +29,9 @@ export type AuthStackParamList = {
     // register(), so the value must flow through rather than be narrowed away.
     role?: 'individual' | 'corporate' | 'agent';
     tier?: 'lite' | 'pro' | 'enterprise';
+    // Server in REGISTER_PHONE_PROOF=stub (testing): the code was returned,
+    // not texted — pre-fill it and say so on screen.
+    devOtpCode?: string;
   };
   // IDN-12/28 — login second step when /auth/login returns no devOtpCode.
   // userId comes from the login response. SMS mode: the code was texted to

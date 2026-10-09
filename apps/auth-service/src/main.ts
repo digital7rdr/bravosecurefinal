@@ -205,6 +205,13 @@ async function bootstrap(): Promise<void> {
     }
   }
   console.log(`[auth-service] second factor: ${secondFactor}`);
+  if (process.env.REGISTER_PHONE_PROOF === 'stub') {
+    console.warn('[auth-service] ########################################################################');
+    console.warn('[auth-service] REGISTER_PHONE_PROOF=stub — sign-up phone codes are NOT sent; the code is');
+    console.warn('[auth-service] returned in the /auth/register response. Phone numbers are NOT verified.');
+    console.warn('[auth-service] TESTING ONLY. Set REGISTER_PHONE_PROOF=sms (Twilio) before go-live.');
+    console.warn('[auth-service] ########################################################################');
+  }
 
   const port = process.env['PORT'] ?? 3001;
   await app.listen(port, '0.0.0.0');

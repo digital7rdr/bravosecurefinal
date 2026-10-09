@@ -422,7 +422,7 @@ export default function RegisterScreen({navigation, route}: Props) {
     }
     const fullPhone = dialCode.dial + phone;
     try {
-      await register({
+      const started = await register({
         email: email.trim(),
         password,
         fullName: fullName.trim(),
@@ -438,6 +438,7 @@ export default function RegisterScreen({navigation, route}: Props) {
         fullName: fullName.trim(),
         role,
         tier,
+        devOtpCode: started.devOtpCode,
       });
     } catch (e: unknown) {
       const err = e as {response?: {status?: number; data?: {message?: unknown}}; message?: string};
