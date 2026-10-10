@@ -2,7 +2,7 @@
   "expo": {
     "name": "Bravo Secure",
     "slug": "bravo-secure",
-    "version": "1.0.322",
+    "version": "1.0.323",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "icon": "./assets/icon.png",

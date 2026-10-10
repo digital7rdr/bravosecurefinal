@@ -3,21 +3,22 @@
  * (individual ProfileScreen, CPO "Me" tab, service-provider/agent profile).
  *
  * One code path so all roles behave identically: pick (library or camera) →
- * native square crop (allowsEditing + aspect 1:1) → upload to the public
- * `avatars` Supabase bucket → persist the URL via `setAvatar`. Removing clears
- * `avatar_url`. The picker returns base64 which we hand to userService.uploadAvatar.
+ * native square crop (allowsEditing + aspect 1:1) → downscale to a ~256 px JPEG
+ * data URI (avatarDataUri.ts) → persist it via `setAvatar` (PATCH /auth/me).
+ * Removing clears `avatar_url`. 2026-10-11: replaced the Supabase Storage upload,
+ * whose signing edge function never existed on the fresh install.
  */
 import {useCallback, useState} from 'react';
 import {Alert} from '@utils/alert';
 import * as ImagePicker from 'expo-image-picker';
 import {useAuthStore} from '@store/authStore';
-import {userService} from '@/services/supabase';
+import {toAvatarDataUri} from './avatarDataUri';
 
 const CROP_OPTS = {
   allowsEditing: true,
   aspect: [1, 1] as [number, number],
-  quality: 0.7,
-  base64: true,
+  // Full quality out of the cropper; avatarDataUri does the one lossy step.
+  quality: 1,
 } as const;
 
 export interface AvatarPicker {
@@ -36,13 +37,18 @@ export function useAvatarPicker(): AvatarPicker {
 
   const applyAsset = useCallback(
     async (asset: ImagePicker.ImagePickerAsset) => {
-      if (!asset.base64 || !userId) {return;}
+      if (!asset.uri || !userId) {return;}
       setBusy(true);
       try {
-        const url = await userService.uploadAvatar(userId, asset.base64, asset.mimeType ?? 'image/jpeg');
-        await setAvatar(url);
-      } catch {
-        Alert.alert('Could not update photo', 'Please try again.');
+        await setAvatar(await toAvatarDataUri(asset.uri));
+      } catch (e) {
+        // Name the cause (status / code) so a failure is diagnosable from a
+        // screenshot — the generic text hid the missing edge function for weeks.
+        const err = e as {response?: {status?: number; data?: {message?: unknown}}; message?: string};
+        const status = err?.response?.status;
+        const code = typeof err?.response?.data?.message === 'string' ? err.response.data.message : err?.message;
+        console.warn('[avatar] save failed', status ?? 'no-response', code);
+        Alert.alert('Could not update photo', `Please try again.${status ? `\n\n(Server: ${status}${code ? ` · ${code}` : ''})` : code ? `\n\n(${code})` : ''}`);
       } finally {
         setBusy(false);
       }

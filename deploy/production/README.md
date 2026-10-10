@@ -231,12 +231,9 @@ EXPO_PUBLIC_SENDER_CERT_PUBLIC_KEY_B64=<printed by make-env.sh>
 
 ## 7. What is deliberately inert
 
-- **Profile-photo upload.** The mobile app calls a Supabase Edge Function,
-  `avatar-upload-url`, whose source was never in this repo — it existed only on
-  the old hosted project. Until it is recreated under `supabase/functions/`
-  (verify the Bravo JWT via `/auth/me`, return a service-role signed upload
-  URL scoped to that user's path), avatar upload fails with
-  `avatar_upload_url_failed`. Everything else on the profile works.
+- **Profile-photo upload** — fixed 2026-10-11 (app 1.0.323): the app no longer
+  calls the never-deployed `avatar-upload-url` edge function; it saves a ~256 px
+  JPEG data URI through `PATCH /auth/me` (`src/modules/profile/avatarDataUri.ts`).
 - **Error tracking.** `SENTRY_DSN` is blank; auth-service warns at boot that
   dispatch-SLO and money-drift alerts are silent. Stand up GlitchTip and fill
   the DSN when ready — nothing fails closed without it.

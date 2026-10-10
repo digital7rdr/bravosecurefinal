@@ -1,8 +1,6 @@
 import {createClient} from '@supabase/supabase-js';
-import {decode as decodeBase64} from 'base64-arraybuffer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {SUPABASE_URL, SUPABASE_ANON_KEY} from '@utils/constants';
-import {tokenVault} from '@services/tokenVault';
 
 const url = SUPABASE_URL || 'https://placeholder.supabase.co';
 const key = SUPABASE_ANON_KEY || 'placeholder-key';
@@ -34,38 +32,6 @@ export const userService = {
   updateProfile: (userId: string, updates: Record<string, unknown>) =>
     supabase.from('users').update(updates).eq('id', userId),
 
-  /**
-   * Upload a profile photo to the public `avatars` bucket and return a
-   * cache-busted public URL (stored verbatim in `users.avatar_url`).
-   *
-   * DC-21 — the app no longer writes to storage with the anon key (which let
-   * anyone with the extractable key overwrite any avatar). Instead it asks the
-   * `avatar-upload-url` edge function for a service-role signed upload URL
-   * scoped to THIS user's own path (the function verifies the Bravo JWT via
-   * /auth/me), then uploads against that one-shot token. `base64` is the raw
-   * image data (no data-URI prefix); we decode to bytes because RN's
-   * `fetch(uri).blob()` is unreliable for local file URIs. The `?v=` suffix
-   * forces <Image> to refetch after a re-upload to the same path.
-   */
-  uploadAvatar: async (userId: string, base64: string, mime: string): Promise<string> => {
-    const ext = mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : 'jpg';
-    const token = await tokenVault.getAccess();
-    const {data: signed, error: signErr} = await supabase.functions.invoke<{
-      path: string; token: string; publicUrl: string;
-    }>('avatar-upload-url', {
-      body: {ext},
-      headers: token ? {Authorization: `Bearer ${token}`} : undefined,
-    });
-    if (signErr || !signed) {throw signErr ?? new Error('avatar_upload_url_failed');}
-    const {error} = await supabase.storage
-      .from('avatars')
-      .uploadToSignedUrl(signed.path, signed.token, decodeBase64(base64), {
-        contentType: mime,
-        upsert: true,
-      });
-    if (error) {throw error;}
-    return `${signed.publicUrl}?v=${Date.now()}`;
-  },
 };
 
 // ─── Realtime ─────────────────────────────────────────────────────────────────

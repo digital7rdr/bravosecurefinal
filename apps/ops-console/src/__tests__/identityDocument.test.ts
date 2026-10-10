@@ -4,6 +4,8 @@
  * never as "missing" (which would tell an operator a client skipped a step
  * the API never described) and never throw.
  */
+import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
 import {docTypeLabel, identityPill, resolveIdentityDocument} from '../lib/identityDocument';
 
 describe('resolveIdentityDocument', () => {
@@ -48,10 +50,8 @@ describe('identityPill / docTypeLabel', () => {
  * explicit click through the audited route, and nothing is prefetched or polled.
  */
 describe('IdentityDocumentCard — earlier uploads', () => {
-  const fs = require('node:fs') as typeof import('node:fs');
-  const path = require('node:path') as typeof import('node:path');
-  const card = fs.readFileSync(path.join(__dirname, '..', 'features', 'people', 'IdentityDocumentCard.tsx'), 'utf8');
-  const api = fs.readFileSync(path.join(__dirname, '..', 'lib', 'api.ts'), 'utf8');
+  const card = readFileSync(join(__dirname, '..', 'features', 'people', 'IdentityDocumentCard.tsx'), 'utf8');
+  const api = readFileSync(join(__dirname, '..', 'lib', 'api.ts'), 'utf8');
 
   it('renders the history only for a reveal-capable operator', () => {
     expect(card).toMatch(/\{canReveal \? <EarlierUploads userId=\{userId\} Card=\{Card\} \/> : null\}/);
