@@ -146,6 +146,24 @@ export class OpsDataController {
     return this.identity.readForOps(req.admin, id);
   }
 
+  // 2026-10-10 — earlier (replaced) documents. The list is facts only (type,
+  // dates, sides, views); opening one is the same audited, SUPERVISOR+ read.
+  @Get('users/:id/identity-document/versions')
+  @RequireRoles('SUPERVISOR', 'ADMIN')
+  listUserIdentityDocumentVersions(@Param('id', ParseUUIDPipe) id: string) {
+    return this.identity.listVersionsForOps(id);
+  }
+
+  @Get('users/:id/identity-document/versions/:versionId')
+  @RequireRoles('SUPERVISOR', 'ADMIN')
+  getUserIdentityDocumentVersion(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('versionId', ParseUUIDPipe) versionId: string,
+    @Req() req: OpsReq,
+  ) {
+    return this.identity.readVersionForOps(req.admin, id, versionId);
+  }
+
   // ─── B-836 — the linked-members roster, managed from the console ──────────
   //
   // Same service methods the holder's own app calls, with the holder id taken

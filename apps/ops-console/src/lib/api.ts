@@ -2894,6 +2894,20 @@ export interface OpsIdentityDocumentRead {
   images: Array<{side: 'front' | 'back'; mime: string; data_url: string}>;
 }
 
+/** 2026-10-10 — an earlier (replaced) identity document: facts only. */
+export interface OpsIdentityDocumentVersion {
+  id: string;
+  doc_type: 'national_id' | 'passport';
+  submitted_at: string;
+  superseded_at: string;
+  has_back: boolean;
+  view_count: number;
+}
+export interface OpsIdentityDocumentVersionRead extends OpsIdentityDocumentRead {
+  id: string;
+  superseded_at: string;
+}
+
 /** SK-07/IS-03 — one row of a holder's roster, as the console sees it. */
 export interface OpsFamilyRow {
   id: string;
@@ -3110,6 +3124,12 @@ export const opsDataApi = {
   // B-867 — deliberately unkeyed and never polled: each call is its own audit
   // event on the server (identity_document.view), exactly like auditPiiReveal.
   getUserIdentityDocument: (id: string) => fetchJson<OpsIdentityDocumentRead>(`/ops/users/${id}/identity-document`),
+  // 2026-10-10 — earlier uploads. The list is facts only (no audit row); opening
+  // one is its own audited identity_document.view, so it is never prefetched.
+  listUserIdentityDocumentVersions: (id: string) =>
+    fetchJson<OpsIdentityDocumentVersion[]>(`/ops/users/${id}/identity-document/versions`),
+  getUserIdentityDocumentVersion: (id: string, versionId: string) =>
+    fetchJson<OpsIdentityDocumentVersionRead>(`/ops/users/${id}/identity-document/versions/${versionId}`),
   // B-835/B-836 — the roster read is paged + searchable; every mutation below
   // is @RequireRoles('SUPERVISOR','ADMIN') and audited server-side.
   //

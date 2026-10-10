@@ -495,6 +495,8 @@ export class OpsDataService {
     // fires on its own: erase the sealed ID / passport explicitly. The read route
     // also refuses a deleted user, so a failed delete here is not a disclosure.
     await this.db.q(`DELETE FROM public.identity_documents WHERE user_id = $1`, [userId]);
+    // 2026-10-10 — and every earlier (replaced) version of it.
+    await this.db.q(`DELETE FROM public.identity_document_versions WHERE user_id = $1`, [userId]);
     const revoked = await this.revokeAllDevices(userId);
     // E2E-39 — erasure is the STRONGEST of the three account actions, so it must
     // not be the one that leaves a stale gate. It is also the only one the cache

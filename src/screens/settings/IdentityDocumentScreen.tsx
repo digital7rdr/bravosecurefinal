@@ -222,7 +222,12 @@ export default function IdentityDocumentScreen({onDone}: Props) {
         onDone();
         return;
       }
-      Alert.alert('Identity submitted', `Your ${docLabel(docType).toLowerCase()} is on file. You can now book Secure services.`);
+      Alert.alert(
+        'Identity submitted',
+        submitted
+          ? `Your ${docLabel(docType).toLowerCase()} is now the document on file. Your earlier upload is kept for Bravo operations.`
+          : `Your ${docLabel(docType).toLowerCase()} is on file. You can now book Secure services.`,
+      );
     } catch (e) {
       const err = e as {response?: {status?: number; data?: {message?: unknown}}};
       const body = err?.response?.data;
@@ -245,7 +250,7 @@ export default function IdentityDocumentScreen({onDone}: Props) {
       submitRef.current = false;
       setSubmitting(false);
     }
-  }, [front, back, docType, wantsBack, onDone, markIdentitySubmitted]);
+  }, [front, back, docType, wantsBack, onDone, markIdentitySubmitted, submitted]);
 
   return (
     <View style={[s.root, {paddingTop: insets.top}]}>
@@ -292,6 +297,9 @@ export default function IdentityDocumentScreen({onDone}: Props) {
                 {facts?.submitted_at ? ` · submitted ${fmtDate(facts.submitted_at)}` : ''}
               </Text>
               <Text style={s.doneNote}>Secure bookings are open for this account.</Text>
+              {/* 2026-10-10 — replacements no longer overwrite: say so, so a
+                  single "on file" card does not read as a lost upload. */}
+              <Text style={s.doneHistory}>The latest upload is shown. Earlier uploads stay on file for Bravo operations.</Text>
             </View>
             {!replacing ? (
               <TouchableOpacity style={s.replaceBtn} onPress={() => setReplacing(true)} activeOpacity={0.8} accessibilityRole="button">
@@ -346,6 +354,7 @@ export default function IdentityDocumentScreen({onDone}: Props) {
               <Text style={s.noteText}>
                 Sealed on Bravo's servers and opened only by Bravo operations to verify a booking. Nothing is
                 kept on this phone, and it is never shared with a protection team.
+                {submitted ? ' Your current document stays on file as an earlier upload.' : ''}
               </Text>
             </View>
           </>
@@ -425,6 +434,7 @@ const s = StyleSheet.create(scaleTextStyles({
   doneTitle: {fontFamily: UI.fSemi, fontSize: 14.5, color: UI.text},
   doneSub: {fontFamily: UI.fSans, fontSize: 12, color: UI.textDim, marginTop: 2},
   doneNote: {fontFamily: UI.fSans, fontSize: 11.5, color: UI.signal, marginTop: 4},
+  doneHistory: {fontFamily: UI.fSans, fontSize: 11, color: UI.textMute, marginTop: 6, lineHeight: 15},
   replaceBtn: {paddingHorizontal: 12, paddingVertical: 8, borderRadius: 100, backgroundColor: 'rgba(30,136,255,0.08)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.34)'},
   replaceText: {fontFamily: UI.fSemi, fontSize: 12, color: UI.accentSoft},
 

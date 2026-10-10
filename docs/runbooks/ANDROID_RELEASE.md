@@ -1,6 +1,6 @@
 # Android release — production APK for ops.bravosecure.cloud (2026-10-08)
 
-Builds `com.bravosecure.app` **1.0.321 (versionCode 379)** on a Mac against the
+Builds `com.bravosecure.app` **1.0.322 (versionCode 380)** on a Mac against the
 Hostinger VPS (`auth.` / `relay.` / `api.bravosecure.cloud`). Companion to
 `docs/handover/01a_LOCAL_APK_BUILD_GUIDE.md` (the general build reference) and
 `deploy/production/README.md` §6 (server side).
@@ -89,7 +89,7 @@ restore them, but you would also lose any local experiments).
 APK=android/app/build/outputs/apk/release/app-release.apk
 unzip -p "$APK" assets/index.android.bundle | grep -c 'auth.bravosecure.cloud'      # ≥ 1
 unzip -p "$APK" assets/index.android.bundle | grep -c '94-136-184-52'               # 0
-"$ANDROID_HOME/build-tools/"*/aapt dump badging "$APK" | grep -E "package:|versionCode"   # 1.0.321 / 379
+"$ANDROID_HOME/build-tools/"*/aapt dump badging "$APK" | grep -E "package:|versionCode"   # 1.0.322 / 380
 adb install -r "$APK"
 ```
 

@@ -98,18 +98,29 @@ describe('identityGate', () => {
   });
 });
 
-function mkService(opts: {row?: Record<string, unknown> | null} = {}) {
-  const calls: Array<{sql: string; params?: unknown[]}> = [];
-  const db = {
-    q: jest.fn().mockImplementation((sql: string, params?: unknown[]) => { calls.push({sql, params}); return Promise.resolve([]); }),
+function mkService(opts: {row?: Record<string, unknown> | null; version?: Record<string, unknown> | null; versions?: Record<string, unknown>[]} = {}) {
+  const calls: Array<{sql: string; params?: unknown[]; tx?: boolean}> = [];
+  let inTx = false;
+  const db: {q: jest.Mock; qOne: jest.Mock; withTransaction: jest.Mock} = {
+    q: jest.fn().mockImplementation((sql: string, params?: unknown[]) => {
+      calls.push({sql, params, tx: inTx});
+      if (/FROM public\.identity_document_versions v/.test(sql)) return Promise.resolve(opts.versions ?? []);
+      return Promise.resolve([]);
+    }),
     qOne: jest.fn().mockImplementation((sql: string, params?: unknown[]) => {
-      calls.push({sql, params});
+      calls.push({sql, params, tx: inTx});
+      if (/FROM public\.identity_document_versions v/.test(sql)) return Promise.resolve(opts.version ?? undefined);
       if (/FROM public\.identity_documents d/.test(sql)) return Promise.resolve(opts.row ?? undefined);
       // The status read after a submit (identityGate's FACTS_SQL).
       if (/LEFT JOIN public\.identity_documents d/.test(sql)) {
         return Promise.resolve({gated: true, has_doc: true, doc_type: 'national_id', submitted_at: '2026-09-12T10:00:00.000Z', has_back: true});
       }
       return Promise.resolve(undefined);
+    }),
+    // The tx handle exposes the same q/qOne surface (DatabaseService.withTransaction).
+    withTransaction: jest.fn().mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
+      inTx = true;
+      try { return await fn(db); } finally { inTx = false; }
     }),
   };
   const audit = {recordAdmin: jest.fn().mockResolvedValue(undefined)};
@@ -284,5 +295,96 @@ describe('wiring', () => {
     const b = body(src('ops/ops-data.service.ts'), /async getUserDetail\(userId: string\)/);
     expect(b).toMatch(/resolveIdentityDocument\(this\.db, userId\)/);
     expect(b).not.toMatch(/front_sealed|data_url/);
+  });
+});
+
+describe('identity document history (2026-10-10 — keep every upload)', () => {
+  it('submit archives the outgoing active row, THEN upserts — all inside one transaction, serialised per user', async () => {
+    const {svc, db, calls} = mkService();
+    await svc.submit(USER, 'passport', JPEG, undefined);
+    expect(db.withTransaction).toHaveBeenCalledTimes(1);
+    const lock = calls.findIndex(c => /pg_advisory_xact_lock/.test(c.sql));
+    const archive = calls.findIndex(c => /INSERT INTO public\.identity_document_versions/.test(c.sql));
+    const upsert = calls.findIndex(c => /INSERT INTO public\.identity_documents\b/.test(c.sql) && !/versions/.test(c.sql));
+    expect(lock).toBeGreaterThanOrEqual(0);
+    expect(lock).toBeLessThan(archive);
+    expect(archive).toBeLessThan(upsert);
+    expect([calls[lock], calls[archive], calls[upsert]].every(c => c.tx)).toBe(true);
+    // The archive copies the sealed bytes as they are, from the CURRENT row of THIS user.
+    expect(calls[archive].sql).toMatch(/SELECT user_id, doc_type, front_mime, front_bytes_len, front_sealed, back_mime, back_bytes_len, back_sealed,\s+submitted_at, view_count, last_viewed_at\s+FROM public\.identity_documents\s+WHERE user_id = \$1/);
+    expect(calls[archive].params).toEqual([USER]);
+    // A fresh active row starts its own view count.
+    expect(calls[upsert].sql).toMatch(/view_count = 0, last_viewed_at = NULL/);
+  });
+
+  it('validation failures write nothing — no transaction, no archive', async () => {
+    const {svc, db} = mkService();
+    await expect(svc.submit(USER, 'passport', JPEG, PNG)).rejects.toMatchObject({message: 'passport_has_no_back'});
+    expect(db.withTransaction).not.toHaveBeenCalled();
+  });
+
+  it('an archived blob still opens with the owner + side AAD (the bytes move unchanged)', () => {
+    const key = deriveIdentityKey(ROOT);
+    const sealed = sealIdentityImage(JPEG, key, USER, 'front');
+    const archived = Buffer.from(sealed);
+    expect(openIdentityImage(archived, key, USER, 'front').equals(JPEG)).toBe(true);
+  });
+
+  it('listVersionsForOps returns facts only, newest first, for a live account', async () => {
+    const {svc, calls, audit} = mkService({versions: [
+      {id: 'v2', doc_type: 'passport', submitted_at: '2026-10-09T10:00:00Z', superseded_at: '2026-10-10T10:00:00Z', has_back: false, view_count: 1},
+      {id: 'v1', doc_type: 'national_id', submitted_at: '2026-10-01T10:00:00Z', superseded_at: '2026-10-09T10:00:00Z', has_back: true, view_count: 0},
+    ]});
+    const out = await svc.listVersionsForOps(USER);
+    expect(out.map(v => v.id)).toEqual(['v2', 'v1']);
+    expect(out[1]).toEqual({id: 'v1', doc_type: 'national_id', submitted_at: '2026-10-01T10:00:00.000Z', superseded_at: '2026-10-09T10:00:00.000Z', has_back: true, view_count: 0});
+    expect(JSON.stringify(out)).not.toMatch(/sealed|data:/);
+    const sql = calls.find(c => /identity_document_versions v/.test(c.sql))!.sql;
+    expect(sql).toMatch(/JOIN public\.users u ON u\.id = v\.user_id AND u\.deleted_at IS NULL/);
+    expect(sql).toMatch(/ORDER BY v\.superseded_at DESC/);
+    expect(audit.recordAdmin).not.toHaveBeenCalled();
+  });
+
+  it('readVersionForOps 404s for an unknown / other user\'s version and audits nothing', async () => {
+    const {svc, audit, calls} = mkService({version: null});
+    await expect(svc.readVersionForOps(ADMIN, USER, 'v9')).rejects.toBeInstanceOf(NotFoundException);
+    expect(audit.recordAdmin).not.toHaveBeenCalled();
+    expect(calls.find(c => /identity_document_versions v/.test(c.sql))!.sql).toMatch(/WHERE v\.id = \$1 AND v\.user_id = \$2/);
+  });
+
+  it('readVersionForOps audits FIRST (with the version id), then opens both sides and bumps that version\'s counter', async () => {
+    const key = deriveIdentityKey(ROOT);
+    const {svc, audit, calls} = mkService({version: {
+      id: 'v1', doc_type: 'national_id', front_mime: 'image/jpeg', front_sealed: sealIdentityImage(JPEG, key, USER, 'front'),
+      back_mime: 'image/png', back_sealed: sealIdentityImage(PNG, key, USER, 'back'),
+      submitted_at: '2026-10-01T10:00:00Z', superseded_at: '2026-10-09T10:00:00Z', view_count: 0,
+    }});
+    const out = await svc.readVersionForOps(ADMIN, USER, 'v1');
+    expect(audit.recordAdmin).toHaveBeenCalledWith(ADMIN, 'identity_document.view', 'pii', USER, {doc_type: 'national_id', sides: 2, version_id: 'v1'});
+    expect(out.images.map(i => i.data_url)).toEqual([
+      `data:image/jpeg;base64,${JPEG.toString('base64')}`,
+      `data:image/png;base64,${PNG.toString('base64')}`,
+    ]);
+    expect(out).toMatchObject({id: 'v1', superseded_at: '2026-10-09T10:00:00.000Z', view_count: 1});
+    expect(calls.some(c => /UPDATE public\.identity_document_versions SET view_count = view_count \+ 1/.test(c.sql) && (c.params as unknown[])[0] === 'v1')).toBe(true);
+  });
+
+  it('readVersionForOps is fail-closed: a failed audit opens nothing and bumps nothing', async () => {
+    const key = deriveIdentityKey(ROOT);
+    const {svc, audit, calls} = mkService({version: {
+      id: 'v1', doc_type: 'passport', front_mime: 'image/jpeg', front_sealed: sealIdentityImage(JPEG, key, USER, 'front'),
+      back_mime: null, back_sealed: null, submitted_at: '2026-10-01T10:00:00Z', superseded_at: '2026-10-09T10:00:00Z', view_count: 0,
+    }});
+    audit.recordAdmin.mockRejectedValueOnce(new Error('audit insert failed'));
+    await expect(svc.readVersionForOps(ADMIN, USER, 'v1')).rejects.toThrow(/audit insert failed/);
+    expect(calls.some(c => /UPDATE public\.identity_document_versions/.test(c.sql))).toBe(false);
+  });
+
+  it('erasure deletes the history too; the version routes are SUPERVISOR+ under the ops user path', () => {
+    const erase = body(src('ops/ops-data.service.ts'), /async eraseUser\(adminId: string, userId: string, reason: string\)/);
+    expect(erase).toMatch(/DELETE FROM public\.identity_document_versions WHERE user_id = \$1/);
+    const ctl = src('ops/ops-data.controller.ts');
+    expect(ctl).toMatch(/@Get\('users\/:id\/identity-document\/versions'\)\s+@RequireRoles\('SUPERVISOR', 'ADMIN'\)/);
+    expect(ctl).toMatch(/@Get\('users\/:id\/identity-document\/versions\/:versionId'\)\s+@RequireRoles\('SUPERVISOR', 'ADMIN'\)/);
   });
 });
