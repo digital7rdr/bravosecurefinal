@@ -9,7 +9,7 @@
  * optional post-sign-in check.
  */
 
-import {useState, useEffect} from 'react';
+import {useState, useEffect, type ReactNode} from 'react';
 import {useRouter} from 'next/navigation';
 import {ApiError, type LoginStartResult} from '@/lib/api';
 import QRCode from 'qrcode';
@@ -34,6 +34,8 @@ export interface SignInFlowProps {
   notices?: Array<{key: string; text: string}>;
   /** Runs after a successful verify; a returned string is shown as the error. */
   afterSignIn?: () => Promise<string | null>;
+  /** Shown under the first step's form (the home site's "Create an account"). */
+  footer?: ReactNode;
 }
 
 /** "+971 50-123 4567" → "+971501234567": the API takes E.164 without separators. */
@@ -82,7 +84,7 @@ function CopyButton({text, label}: {text: string; label: string}) {
 }
 
 export function SignInFlow({
-  api, csrfCookie, expiresKey, idleKey, homeHref, accountNoun, brand, afterSignIn, notices,
+  api, csrfCookie, expiresKey, idleKey, homeHref, accountNoun, brand, afterSignIn, notices, footer,
 }: SignInFlowProps) {
   const router = useRouter();
   const [phone,    setPhone]    = useState('');
@@ -189,7 +191,9 @@ export function SignInFlow({
   const description = !step ? `Use the phone number and password of your ${accountNoun} account.`
     : enrolling ? 'Your account needs an authenticator app before it can sign in. This takes about a minute.'
     : step.secondFactor === 'totp' ? 'Enter the 6-digit code from your authenticator app, or one of your backup codes.'
-    : <>We sent a code to <b style={{color:'var(--tx-1)'}}>{step.otpSentTo ?? normalisePhone(phone)}</b>.</>;
+    : step.secondFactor === 'email'
+      ? <>We emailed a code to <b style={{color:'var(--tx-1)'}}>{step.otpSentTo}</b>.</>
+      : <>We sent a code to <b style={{color:'var(--tx-1)'}}>{step.otpSentTo ?? normalisePhone(phone)}</b>.</>;
 
   return (
     <AuthLayout subtitle={title} description={description} wide={enrolling} brand={brand}>
@@ -219,6 +223,7 @@ export function SignInFlow({
           {/* Audit fix 0.1 — public admin self-registration removed. New
               admins are added by an existing ADMIN via an invite flow
               (see auth.controller.ts admin-register/verify). */}
+          {footer}
         </form>
       )}
 

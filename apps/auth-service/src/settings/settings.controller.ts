@@ -2,7 +2,7 @@ import {
   BadRequestException, Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Req, UseGuards,
 } from '@nestjs/common';
 import type {Request} from 'express';
-import {IsString, Length, Matches} from 'class-validator';
+import {IsEmail, IsString, Length, Matches} from 'class-validator';
 import {JwtAuthGuard} from '../common/guards/jwt-auth.guard';
 import {CsrfGuard} from '../common/guards/csrf.guard';
 import {Throttle} from '@nestjs/throttler';
@@ -38,6 +38,17 @@ class SmsTestDto {
  * Registered in OpsModule (its guard chain + OpsAuditService), so the path is
  * /ops/settings alongside the rest of the console API.
  */
+class EmailTestDto {
+  @IsEmail() @Length(3, 254)
+  to!: string;
+}
+
+/** Never log a full address: "jo***@example.com". */
+function maskEmail(e: string): string {
+  const [local, domain] = e.split('@');
+  return `${(local ?? '').slice(0, 2)}***@${domain ?? ''}`;
+}
+
 @Controller('ops/settings')
 // Same per-USER ops rate as every other /ops controller (ops-throttle.binding.spec).
 @Throttle(OPS_THROTTLE)
@@ -109,6 +120,28 @@ export class SettingsController {
     }
     await this.audit.recordAdmin(req.admin, 'integration.sms.test', 'system', 'twilio.sms', {
       ok, to: maskPhone(dto.to),
+    });
+    return {ok, error};
+  }
+
+  /**
+   * Send one test email with the saved SMTP settings, so an admin can confirm
+   * delivery after changing them. Audited with the address masked.
+   */
+  @Post('email/test')
+  @HttpCode(200)
+  async testEmail(@Body() dto: EmailTestDto, @Req() req: OpsReq) {
+    let ok = false;
+    let error: string | null = null;
+    try {
+      await this.messaging.sendEmail(dto.to, 'Bravo Secure: test email',
+        'Test message from the Bravo Secure ops console. Email delivery is working.');
+      ok = true;
+    } catch (e) {
+      error = (e as Error).message.slice(0, 300);
+    }
+    await this.audit.recordAdmin(req.admin, 'integration.email.test', 'system', 'email.smtp', {
+      ok, to: maskEmail(dto.to),
     });
     return {ok, error};
   }

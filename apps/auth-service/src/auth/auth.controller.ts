@@ -87,7 +87,7 @@ function refreshCookieOptions(maxAgeSec: number): CookieOptions {
 
 // The cookie NAMES depend on which web console made the request (ops or
 // service provider), chosen from the Origin header: see session-cookies.ts.
-function setSessionCookies(
+export function setSessionCookies(
   res: Response,
   names: SessionCookieNames,
   accessToken: string,
@@ -105,7 +105,7 @@ function setSessionCookies(
   return csrfToken;
 }
 
-function clearSessionCookies(res: Response, names: SessionCookieNames): void {
+export function clearSessionCookies(res: Response, names: SessionCookieNames): void {
   const dom = COOKIE_DOMAIN ? {domain: COOKIE_DOMAIN} : {};
   res.clearCookie(names.token,   {path: '/', ...dom});
   res.clearCookie(names.csrf,    {path: '/', ...dom});
@@ -163,7 +163,10 @@ export class AuthController {
   @Post('login')
   @HttpCode(200)
   async login(@Body() dto: LoginDto, @Req() req: Request) {
-    return this.auth.login(dto, ip(req));
+    // A browser sign-in from the ops console (adaptive mode: staff must use an
+    // authenticator). Apps send no Origin and are never treated as the console.
+    const staffConsole = !!req.headers?.['origin'] && sessionCookiesFor(req).console === 'ops';
+    return this.auth.login(dto, ip(req), {staffConsole});
   }
 
   // Audit fix 0.4 — also issue cookies on verify (browser session).

@@ -30,10 +30,15 @@ export class RedisIoAdapter extends IoAdapter {
     /**
      * Audit Transport P0-4 — CORS allowlist mirroring HTTP CORS.
      * Empty array means dev mode (localhost-only reflect). Explicit
-     * entries here are the only browser origins allowed to open a WS.
-     * Mobile clients (no Origin header on the upgrade request) are
-     * always allowed — the JWT handshake middleware is the auth gate
-     * for non-browser callers.
+     * entries here are the only origins allowed to open a WS.
+     * 2026-10-10 — the React Native app DOES send an Origin on the
+     * upgrade: RN's WebSocket module derives it from the socket URL
+     * (`wss://relay.example` → `https://relay.example`). engine.io
+     * applies this callback to upgrades too and a rejection is a silent
+     * 400 (MIDDLEWARE_FAILURE) — so the relay's own public origin MUST
+     * be in CORS_ORIGINS or no phone can connect. Callers with no Origin
+     * at all (server-to-server) are allowed; the JWT handshake
+     * middleware is the auth gate for every non-browser caller.
      */
     private readonly allowedOrigins: string[] = [],
     /**

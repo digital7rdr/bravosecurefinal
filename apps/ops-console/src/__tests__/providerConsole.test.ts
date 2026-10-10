@@ -41,7 +41,7 @@ describe('provider host routing', () => {
     expect(isInternalProviderPath('/provider')).toBe(true);
     expect(isInternalProviderPath('/provider/jobs')).toBe(true);
     expect(isInternalProviderPath('/providers')).toBe(false);
-    expect(PROVIDER_PUBLIC_PATHS).toEqual(['/login']);
+    expect(PROVIDER_PUBLIC_PATHS).toEqual(['/login', '/sso']);
   });
 
   it('the middleware gates the provider host on the PROVIDER cookie and 404s /provider on the ops host', () => {

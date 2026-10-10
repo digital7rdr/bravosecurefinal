@@ -207,6 +207,12 @@ export function canManageModules(role: AdminRole | undefined): boolean {
   return hasRole(role, 'ADMIN');
 }
 
+/** 2026-10-10 — the tiles on the Bravo Secure home site. Backend:
+ *  /ops/platform-apps is @RequireRoles('SUPER_ADMIN') → rank 3. */
+export function canManagePlatformApps(role: AdminRole | undefined): boolean {
+  return hasRole(role, 'ADMIN');
+}
+
 export function canManageAdmins(role: AdminRole | undefined): boolean {
   return hasRole(role, 'ADMIN');
 }

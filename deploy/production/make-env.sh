@@ -101,7 +101,7 @@ REDIS_URL=redis://:${REDIS_PW}@redis:6379
 # The ops-console origin. An EMPTY value yields origin:false in main.ts — CORS
 # off entirely, which the browser reports as a bare "Failed to fetch". In
 # production an empty value refuses to boot instead.
-CORS_ALLOWED_ORIGINS=https://ops.bravosecure.cloud,https://provider.bravosecure.cloud,https://web.bravosecure.cloud
+CORS_ALLOWED_ORIGINS=https://ops.bravosecure.cloud,https://provider.bravosecure.cloud,https://web.bravosecure.cloud,https://bravosecure.cloud
 
 # The service provider console. Requests from this origin read and write their
 # own session cookies (bravo_pv_*) instead of the ops console's (bravo_ops_*),
@@ -111,6 +111,10 @@ PROVIDER_CONSOLE_ORIGINS=https://provider.bravosecure.cloud
 # The Bravo Web App (Messenger + booking). Its own session cookies (bravo_web_*);
 # mutating calls from a web cookie session must carry the CSRF header.
 WEB_APP_ORIGINS=https://web.bravosecure.cloud
+
+# The Bravo Secure home site (sign-in, registration, app launcher). Its own
+# session cookies (bravo_hub_*); apps are opened by single sign-on hand-off.
+HUB_ORIGINS=https://bravosecure.cloud
 
 # Parent domain so a cookie set by auth. is delivered to ops.. This is the
 # whole reason both live under bravosecure.cloud.
@@ -124,9 +128,13 @@ JWT_ISSUER=auth-service
 JWT_AUDIENCE=bravo-api
 JWT_ACTION_AUDIENCE=bravo-action
 
-# Login second factor. 'totp' = authenticator app, no SMS provider. With
-# 'sms' and no Twilio, main.ts refuses to boot (devFlag() has already forced
-# the OTP dev-bypass off in production, so 'sms' would mean nobody can log in).
+# Login second factor.
+#   adaptive (2026-10-10, home site): authenticator when the account has one —
+#            always for HQ staff — otherwise a code by SMS (Twilio) or email
+#            (SMTP), both set under Integrations in the ops console.
+#   totp:    authenticator app for everyone, no SMS provider needed.
+# With 'sms' and no Twilio, main.ts refuses to boot. A fresh install starts on
+# totp; switch to adaptive once Twilio and Email work (docs/runbooks/HOME_SITE.md).
 AUTH_SECOND_FACTOR=totp
 # Sign-up phone proof in totp mode (2026-10-08). 'sms' (default): /auth/register
 # texts one Twilio Verify code; the account is created only after it checks out,
@@ -201,11 +209,16 @@ cat > .env.messenger <<EOF
 NODE_ENV=production
 PORT=3100
 
-# Browser origins allowed to call the relay (REST + WebSocket): the ops
-# console, the service provider console and the Bravo Web App, which all run the encrypted
-# messenger in the browser. Empty = localhost only, i.e. the web messenger
-# fails CORS in production (the app is not affected: it is not a browser).
-CORS_ORIGINS=https://ops.bravosecure.cloud,https://provider.bravosecure.cloud,https://web.bravosecure.cloud
+# Origins allowed to call the relay (REST + WebSocket): the ops console, the
+# service provider console and the Bravo Web App (browser messenger), AND the
+# relay's OWN origin. React Native's WebSocket (Android OkHttp module and iOS)
+# adds `Origin: https://relay.bravosecure.cloud` — derived from the socket URL —
+# to every upgrade, and engine.io runs this allowlist on upgrades: without the
+# relay origin every phone socket is refused with a bare 400 (MIDDLEWARE_FAILURE,
+# nothing logged), so presence, real-time delivery and calls all fail while
+# HTTP sends still work (2026-10-10 incident). No browser page is served from
+# relay., so listing it grants no browser anything.
+CORS_ORIGINS=https://ops.bravosecure.cloud,https://provider.bravosecure.cloud,https://web.bravosecure.cloud,https://relay.bravosecure.cloud
 
 # MUST be byte-identical to .env.auth or every relay request 401s.
 JWT_ACCESS_SECRET=${JWT_ACCESS}

@@ -204,6 +204,7 @@ export function IntegrationsCard() {
               );
             })}
             {cat.id === 'twilio' && <SmsTestPanel />}
+            {cat.id === 'email' && <EmailTestPanel />}
           </div>
         );
       })}
@@ -251,6 +252,49 @@ function SmsTestPanel() {
         <input className="modal-input" style={{flex: '1 1 220px', marginTop: 0, fontFamily: 'var(--font-mono)'}}
           type="tel" inputMode="tel" autoComplete="off" aria-label="Test phone number"
           placeholder="+971501234567" value={to} onChange={e => setTo(e.target.value)} />
+        <button type="submit" className="btn btn-sm btn-pri" disabled={busy}>{busy ? 'SENDING…' : 'SEND TEST'}</button>
+      </form>
+      {result && (
+        <div className={result.ok ? 'cfg-meta' : 'modal-err'} style={result.ok ? {marginTop: 8, color: 'var(--ok)'} : undefined}>
+          {result.text}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Send one real email with the saved SMTP settings (2026-10-10), to confirm
+ * delivery after changing them. Audited server-side with the address masked.
+ */
+function EmailTestPanel() {
+  const [to, setTo] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ok: boolean; text: string} | null>(null);
+
+  async function send() {
+    const addr = to.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(addr)) {setResult({ok: false, text: 'Enter a valid email address.'}); return;}
+    setBusy(true); setResult(null);
+    try {
+      const r = await opsApi.testEmail(addr);
+      setResult(r.ok ? {ok: true, text: 'Sent. Check the inbox (and the spam folder).'} : {ok: false, text: `Not sent: ${r.error ?? 'unknown error'}`});
+    } catch (e) {
+      setResult({ok: false, text: e instanceof ApiError ? e.message : 'Could not send the test'});
+    } finally {setBusy(false);}
+  }
+
+  return (
+    <div style={{padding: '12px 16px'}}>
+      <div className="cfg-name">Send a test email</div>
+      <div className="cfg-meta" style={{marginTop: 4}}>
+        Uses the SMTP values saved above. Each test is written to the audit log with the address masked.
+      </div>
+      <form style={{display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap'}}
+        onSubmit={e => { e.preventDefault(); void send(); }}>
+        <input className="modal-input" style={{flex: '1 1 220px', marginTop: 0}}
+          type="email" autoComplete="off" aria-label="Test email address"
+          placeholder="you@example.com" value={to} onChange={e => setTo(e.target.value)} />
         <button type="submit" className="btn btn-sm btn-pri" disabled={busy}>{busy ? 'SENDING…' : 'SEND TEST'}</button>
       </form>
       {result && (

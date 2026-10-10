@@ -4,14 +4,14 @@ Self-hosted. No Twilio, no Stripe, no hosted Supabase, no cloud object store.
 The two third-party pieces that remain are **Firebase FCM** (the only reliable
 killed-app wake path on stock Android) and **Mapbox tiles**.
 
-| Concern | Self-hosted with |
-| --- | --- |
-| Database, PostgREST, auth roles, storage | Supabase (AGPL), `/opt/supabase` |
-| Object storage for attachments | MinIO, S3-compatible drop-in |
-| TLS | Caddy + Let's Encrypt |
-| TURN/STUN | coturn |
-| Error tracking | GlitchTip (Sentry-wire-compatible) |
-| Login second factor | TOTP (RFC 6238) — no SMS provider |
+| Concern                                  | Self-hosted with                   |
+| ---------------------------------------- | ---------------------------------- |
+| Database, PostgREST, auth roles, storage | Supabase (AGPL), `/opt/supabase`   |
+| Object storage for attachments           | MinIO, S3-compatible drop-in       |
+| TLS                                      | Caddy + Let's Encrypt              |
+| TURN/STUN                                | coturn                             |
+| Error tracking                           | GlitchTip (Sentry-wire-compatible) |
+| Login second factor                      | TOTP (RFC 6238) — no SMS provider  |
 
 ## What changed on 2026-09-28
 
@@ -30,7 +30,7 @@ killed-app wake path on stock Android) and **Mapbox tiles**.
 - **Migrations** are still applied by `setup-supabase.sh` into
   `_bravo_migrations`; re-run it after deploying a revision with new files.
 - **TOTP registration is hardened** — re-registering an existing phone only
-  resets an *unfinished* TOTP sign-up (unverified seed, never signed in).
+  resets an _unfinished_ TOTP sign-up (unverified seed, never signed in).
   Password accounts without a seed (e.g. users migrated from the SMS era)
   must sign in with their password; that first sign-in enrols the app.
 
@@ -111,7 +111,7 @@ Two things it does that the upstream defaults get wrong on a public box:
   can't carry a host prefix) and refuses to
   continue if anything is still on `0.0.0.0`.
 - **The example keys are demo keys.** `ANON_KEY`/`SERVICE_ROLE_KEY` are HS256
-  JWTs that must be signed by *your* `JWT_SECRET`; the script mints them.
+  JWTs that must be signed by _your_ `JWT_SECRET`; the script mints them.
 
 An existing `/opt/supabase/.env` is never regenerated — that would rotate
 `JWT_SECRET` and invalidate every anon key already compiled into a client.
@@ -260,6 +260,15 @@ TURN is the one thing curl cannot prove. Use `trickle-ice` with the
 credentials from `GET /webrtc/turn-credentials` and confirm a **relay**
 candidate appears — host and srflx candidates appearing is not evidence TURN
 works.
+
+### Phones stuck on "Reconnecting…" / everyone shows Offline / calls fail
+
+The app's WebSocket is being refused. Check `docker logs bravo-msgr | grep -c 'ws open'`
+— zero while people are using the app means the upgrade never reaches the gateway.
+The usual cause is `CORS_ORIGINS` in `.env.messenger` missing
+`https://relay.bravosecure.cloud`: React Native sends that as the `Origin` of every
+socket and engine.io refuses unlisted origins with a silent 400. Add it, then
+`docker compose -f docker-compose.prod.yml up -d --force-recreate messenger-service`.
 
 ## 9. Backups
 

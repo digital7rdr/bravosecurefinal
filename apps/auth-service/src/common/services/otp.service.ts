@@ -31,6 +31,16 @@ export class OtpService {
     private readonly messaging: MessagingService,
   ) {}
 
+  /** Can a code be texted right now (Twilio Verify or SMS configured)? */
+  smsReady(): boolean {
+    return this.config.get<boolean>('otp.devBypass') === true || this.messaging.otpMode() !== null;
+  }
+
+  /** Can a code be emailed right now (SMTP configured)? */
+  emailReady(): boolean {
+    return this.config.get<boolean>('otp.devBypass') === true || this.messaging.isEmailReady();
+  }
+
   generate(): string {
     const len = this.config.get<number>('otp.length') ?? 6;
     const max = 10 ** len;
@@ -122,6 +132,44 @@ export class OtpService {
   }
 
   /**
+   * Email a fresh code to `email` (2026-10-10 — home-site sign-up and the
+   * sign-in fallback). Always server-held: an HMAC of the code bound to the
+   * address sits in Redis for the OTP TTL, and check(email, code) consumes it.
+   * Same per-destination hourly cap as SMS.
+   */
+  async sendEmail(email: string): Promise<void> {
+    if (this.config.get<boolean>('otp.devBypass') || this.config.get<boolean>('otp.devReturnCode')) {
+      return;
+    }
+    const destination = OtpService.normalize(email);
+    const maxPerHour = this.config.get<number>('otp.maxSendsPerHour') ?? 5;
+    let sends = 0;
+    try {
+      sends = await this.redis.incrOtpSends(destination);
+    } catch (e) {
+      this.logger.warn(`otp send-cap check skipped (redis unavailable): ${(e as Error).message}`);
+    }
+    if (sends > maxPerHour) {
+      throw new HttpException('otp_send_rate_limited', HttpStatus.TOO_MANY_REQUESTS);
+    }
+    if (!this.messaging.isEmailReady()) {
+      throw new Error('Email not configured (Integrations → Email)');
+    }
+    const code = this.generate();
+    const ttl = this.ttlMinutes();
+    await this.redis.storeOtpCode(destination, {h: this.codeMac(destination, code)}, ttl * 60);
+    await this.messaging.sendEmail(
+      email,
+      `Your Bravo Secure code: ${code}`,
+      `Your Bravo Secure verification code is ${code}.\n\nIt is valid for ${ttl} minutes. If you did not ask for it, ignore this email: nobody can use your address without this code.\n\nBravo Secure`,
+      `<div style="font-family:Arial,sans-serif;color:#0b1730"><p>Your Bravo Secure verification code is</p>`
+        + `<p style="font-size:28px;font-weight:700;letter-spacing:6px;margin:12px 0">${code}</p>`
+        + `<p>It is valid for ${ttl} minutes. If you did not ask for it, ignore this email: nobody can use your address without this code.</p>`
+        + `<p style="color:#5a6b8c">Bravo Secure</p></div>`,
+    );
+  }
+
+  /**
    * REGISTER_PHONE_PROOF=stub — store a code the way SMS mode does (same
    * HMAC, TTL, send cap and check path) but hand it back instead of texting
    * it. Nothing is sent. check() then verifies and consumes it normally.
@@ -164,6 +212,9 @@ export class OtpService {
       return this.redis.consumeOtpCode(destination);
     }
 
+    // An emailed code is always server-held: no live code means no match
+    // (never ask Twilio Verify about an email address).
+    if (destination.includes('@')) {return false;}
     return this.messaging.checkVerify(to, code);
   }
 }

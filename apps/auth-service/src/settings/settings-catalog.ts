@@ -12,7 +12,7 @@
  */
 import type {ConfigService} from '@nestjs/config';
 
-export type SettingCategory = 'stripe' | 'twilio' | 'mapbox' | 'biometric';
+export type SettingCategory = 'stripe' | 'twilio' | 'email' | 'mapbox' | 'biometric';
 
 export interface SettingDef {
   key: string;
@@ -72,6 +72,27 @@ export const SETTINGS_CATALOG: readonly SettingDef[] = [
    ],
    envFallback: () => env('TWILIO_OTP_MODE')},
 
+  // ── Email (SMTP) — verification codes for sign-up and the sign-in fallback ──
+  {key: 'email.smtpHost', category: 'email', label: 'SMTP server', secret: false,
+   placeholder: 'smtp.hostinger.com', help: 'The outgoing mail server of your email provider.',
+   envFallback: () => env('SMTP_HOST')},
+  {key: 'email.smtpPort', category: 'email', label: 'SMTP port', secret: false,
+   placeholder: '465', help: '465 for SSL/TLS, 587 for STARTTLS.',
+   envFallback: () => env('SMTP_PORT')},
+  {key: 'email.smtpSecurity', category: 'email', label: 'Connection security', secret: false,
+   options: [
+     {value: 'tls', label: 'SSL/TLS (usually port 465)'},
+     {value: 'starttls', label: 'STARTTLS (usually port 587)'},
+   ],
+   envFallback: () => env('SMTP_SECURITY')},
+  {key: 'email.smtpUser', category: 'email', label: 'SMTP username', secret: false,
+   placeholder: 'no-reply@bravosecure.cloud', envFallback: () => env('SMTP_USER')},
+  {key: 'email.smtpPassword', category: 'email', label: 'SMTP password', secret: true,
+   envFallback: () => env('SMTP_PASSWORD')},
+  {key: 'email.from', category: 'email', label: 'From address', secret: false,
+   placeholder: 'Bravo Secure <no-reply@bravosecure.cloud>', help: 'Sender shown on verification emails. Must be allowed by the SMTP account.',
+   envFallback: () => env('MAIL_FROM')},
+
   // ── Mapbox (server token: directions + geocoding + VBG) ─────────────────────
   {key: 'mapbox.serverToken', category: 'mapbox', label: 'Server access token', secret: true,
    placeholder: 'sk.… or pk.…', help: 'Used server-side for Directions, geocoding and VBG. Separate from the app tile token.',
@@ -88,6 +109,7 @@ export const CATALOG_BY_KEY: ReadonlyMap<string, SettingDef> =
 export const CATALOG_CATEGORIES: readonly {id: SettingCategory; label: string}[] = [
   {id: 'stripe', label: 'Stripe'},
   {id: 'twilio', label: 'Twilio'},
+  {id: 'email', label: 'Email (SMTP)'},
   {id: 'mapbox', label: 'Mapbox'},
   {id: 'biometric', label: 'Biometric'},
 ];

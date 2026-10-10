@@ -43,7 +43,7 @@ describe('web host routing', () => {
     expect(toInternalWebPath('/bookings/x')).toBe('/web/bookings/x');
     expect(isInternalWebPath('/web/book')).toBe(true);
     expect(isInternalWebPath('/webhooks')).toBe(false);
-    expect(WEB_PUBLIC_PATHS).toEqual(['/login']);
+    expect(WEB_PUBLIC_PATHS).toEqual(['/login', '/sso']);
   });
 
   it('the middleware gates the web host on the WEB cookie and 404s /web elsewhere', () => {

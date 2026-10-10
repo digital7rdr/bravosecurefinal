@@ -3,6 +3,7 @@ import {isPublicAsset, isPublicPath} from '@/lib/publicRoutes';
 import {
   PROVIDER_PUBLIC_PATHS, isInternalProviderPath, isProviderHost, toInternalProviderPath,
   WEB_PUBLIC_PATHS, isInternalWebPath, isWebHost, toInternalWebPath,
+  HUB_PUBLIC_PATHS, isInternalHubPath, isHubHost, toInternalHubPath,
 } from '@/lib/provider/host';
 
 /**
@@ -156,12 +157,20 @@ export function middleware(req: NextRequest): NextResponse {
   // Bravo Web App (web.* host): Messenger + booking, own session cookie.
   if (isWebHost(req.headers.get('host'))) {
     return hostGate(req, nonce, {
-      isInternal: p => isInternalProviderPath(p) || isInternalWebPath(p),
+      isInternal: isInternalAppPath,
       publicPaths: WEB_PUBLIC_PATHS, cookie: 'bravo_web_token', toInternal: toInternalWebPath,
     });
   }
-  // The provider and web app pages are never served on the ops address.
-  if (isInternalProviderPath(pathname) || isInternalWebPath(pathname)) {
+  // Bravo Secure home site (bravosecure.cloud): sign-in, registration and
+  // the app launcher, own session cookie.
+  if (isHubHost(req.headers.get('host'))) {
+    return hostGate(req, nonce, {
+      isInternal: isInternalAppPath,
+      publicPaths: HUB_PUBLIC_PATHS, cookie: 'bravo_hub_token', toInternal: toInternalHubPath,
+    });
+  }
+  // The provider, web app and home site pages are never served on the ops address.
+  if (isInternalAppPath(pathname)) {
     return applySecurityHeaders(new NextResponse('Not found', {status: 404}), nonce);
   }
 
@@ -204,12 +213,17 @@ export function middleware(req: NextRequest): NextResponse {
  */
 function providerGate(req: NextRequest, nonce: string): NextResponse {
   return hostGate(req, nonce, {
-    isInternal: p => isInternalProviderPath(p) || isInternalWebPath(p),
+    isInternal: isInternalAppPath,
     publicPaths: PROVIDER_PUBLIC_PATHS, cookie: 'bravo_pv_token', toInternal: toInternalProviderPath,
   });
 }
 
-/** The gate both extra hosts share: 404 internal paths, cookie presence, rewrite. */
+/** Route groups of the other hosts: never served directly on any host. */
+function isInternalAppPath(p: string): boolean {
+  return isInternalProviderPath(p) || isInternalWebPath(p) || isInternalHubPath(p);
+}
+
+/** The gate the extra hosts share: 404 internal paths, cookie presence, rewrite. */
 function hostGate(req: NextRequest, nonce: string, o: {
   isInternal: (p: string) => boolean;
   publicPaths: readonly string[];

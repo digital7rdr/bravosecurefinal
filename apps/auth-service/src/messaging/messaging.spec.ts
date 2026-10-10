@@ -37,7 +37,8 @@ describe('settings catalog — Twilio only', () => {
   it('no WhatsApp / Unifonic settings remain', () => {
     const keys = [...CATALOG_BY_KEY.keys()];
     expect(keys.filter(k => /whatsapp|unifonic|^messaging\./.test(k))).toEqual([]);
-    expect(CATALOG_CATEGORIES.map(c => c.id)).toEqual(['stripe', 'twilio', 'mapbox', 'biometric']);
+    // 2026-10-10 — Email (SMTP) added for sign-up and sign-in codes.
+    expect(CATALOG_CATEGORIES.map(c => c.id)).toEqual(['stripe', 'twilio', 'email', 'mapbox', 'biometric']);
   });
 });
 

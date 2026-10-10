@@ -130,6 +130,7 @@ export const routes = {
     admins: '/internal/admins',
     audit: '/internal/audit',
     console: '/internal/console',
+    apps: '/internal/apps',
   },
 } as const;
 
