@@ -1733,6 +1733,9 @@ textarea.pv-input { resize: vertical; }
   opacity: .85; mask-image: radial-gradient(ellipse at 50% 30%, #000 45%, transparent 78%);
   -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 45%, transparent 78%); }
 .hub-page > :not(.hub-bg) { position: relative; z-index: 1; }
+/* The account menu (Security & authenticator, Sign out) drops down over the
+   tiles: the header must stack above <main>, which comes later in the page. */
+.hub-page > .hub-header { z-index: 20; }
 .hub-splash { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
 .hub-header { display: flex; align-items: center; justify-content: space-between; padding: 26px 48px 0; gap: 16px; }
 .hub-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }

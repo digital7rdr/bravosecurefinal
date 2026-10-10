@@ -20,6 +20,7 @@ import {scaleTextStyles} from '@utils/scaling';
 import {useAuthStore} from '@store/authStore';
 import type {AuthScreenProps} from '@navigation/types';
 import {goBackOnce} from '@navigation/tapGuard';
+import {QrCode} from '@components/QrCode';
 
 type Props = AuthScreenProps<'OtpVerify'>;
 
@@ -352,6 +353,10 @@ export default function OtpVerifyScreen({navigation, route}: Props) {
         {/* ── One-time enrolment card (first authenticator sign-in) ── */}
         {enrolling && enrol ? (
           <View style={s.enrolCard} testID="totp-enrol-card">
+            <Text style={[s.enrolLabel, s.enrolLabelFirst]}>Scan with an authenticator app</Text>
+            <QrCode value={enrol.uri} />
+            <Text style={s.enrolHint}>Authenticator on another phone or tablet? Scan this code. On this phone, use the button below.</Text>
+            <View style={s.enrolGap} />
             <TouchableOpacity style={s.enrolBtn} onPress={() => { void openAuthenticator(); }} activeOpacity={0.85} accessibilityRole="button">
               <Text style={s.enrolBtnText}>Open in authenticator app</Text>
             </TouchableOpacity>
@@ -553,6 +558,8 @@ const s = StyleSheet.create(scaleTextStyles({
   codesGrid: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
   backupCode: {fontFamily: 'monospace', fontSize: 14, color: T.text, letterSpacing: 0.8, width: '47%', paddingVertical: 6, paddingHorizontal: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.04)', textAlign: 'center'},
   enrolHint: {fontSize: 12, color: T.textMute, marginTop: 10, lineHeight: 17},
+  enrolLabelFirst: {marginTop: 0, textAlign: 'center'},
+  enrolGap: {height: 14},
 
   // Backup-code text field (replaces the cells + keypad)
   backupInput: {
