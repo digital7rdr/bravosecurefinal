@@ -221,7 +221,15 @@ export default function IdentityDocumentScreen({onDone}: Props) {
         raw.endsWith('_too_large') || err?.response?.status === 413 ? 'That photo is too large. Take it again a little further from the document.' :
         raw.endsWith('_not_an_image') ? 'That file is not a photo. Choose a JPEG or PNG image.' :
         'Could not upload your document. Check your connection and try again.';
-      Alert.alert('Upload failed', msg);
+      // 2026-10-10 — a generic message hid a server-side refusal during the
+      // production smoke test. Name what the server said (status + error
+      // code — never the photo) so a failed upload is diagnosable from a
+      // screenshot. No response at all = genuinely a network/timeout problem.
+      const status = err?.response?.status;
+      const reason = raw || (Array.isArray(body?.message) ? String((body?.message as unknown[])[0] ?? '') : '');
+      const detail = status ? `\n\n(Server: ${status}${reason ? ` · ${reason}` : ''})` : '\n\n(No response from the server.)';
+      console.warn('[identity] upload failed', status ?? 'no-response', reason || (e as Error)?.message);
+      Alert.alert('Upload failed', msg + detail);
     } finally {
       submitRef.current = false;
       setSubmitting(false);
