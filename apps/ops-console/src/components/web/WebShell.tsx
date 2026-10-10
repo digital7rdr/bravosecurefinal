@@ -17,6 +17,7 @@ import {useSWRConfig} from 'swr';
 import {
   webAuth, readWebCsrf, useWebMe, useBalance, canBook, WEB_EXPIRES_KEY, WEB_IDLE_KEY, type WebMe,
 } from '@/lib/web/api';
+import {HomeSiteLink} from '@/components/HomeSiteLink';
 import {WEB_NAV, webNavActive, type WebNavIcon} from '@/lib/web/nav';
 import {webRoutes} from '@/lib/web/routes';
 import {useMessenger} from '@/components/messenger/MessengerProvider';
@@ -175,6 +176,7 @@ export function WebShell({children}: {children: ReactNode}) {
             <span className="pv-org-name">{client ? 'Messenger & booking' : 'Messenger'}</span>
           </div>
           <div style={{flex: 1}}/>
+          <HomeSiteLink/>
           {client && (
             <Link href={webRoutes.account} className="web-balance" title="Your Bravo credits">
               <span className="pv-hint">Credits</span>

@@ -7,7 +7,7 @@ import {JwtAuthGuard} from '../common/guards/jwt-auth.guard';
 import {CsrfGuard} from '../common/guards/csrf.guard';
 import {AdminGuard, RequireRoles, type AdminContext} from './admin.guard';
 import {AdminInvitesService} from './admin-invites.service';
-import {CreateAdminAccountDto, CreateAdminInviteDto, SetAdminActiveDto, SetAdminRoleDto} from './dto/ops.dto';
+import {CreateAdminAccountDto, CreateAdminInviteDto, SetAdminActiveDto, SetAdminRoleDto, UpdateAdminDto} from './dto/ops.dto';
 import {Throttle} from '@nestjs/throttler';
 import {UserThrottlerGuard} from '../common/guards/user-throttler.guard';
 import {OPS_THROTTLE} from './ops-throttle';
@@ -41,6 +41,17 @@ export class OpsAdminsController {
   @Post()
   createAccount(@Body() dto: CreateAdminAccountDto, @Req() req: OpsReq) {
     return this.invites.createAccount(req.admin, dto);
+  }
+
+  /** 2026-10-10 — edit name, call sign, region, email, login phone. */
+  @Patch(':userId')
+  @HttpCode(200)
+  update(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Body() dto: UpdateAdminDto,
+    @Req() req: OpsReq,
+  ) {
+    return this.invites.updateAdmin(req.admin, userId, dto);
   }
 
   @Patch(':userId/role')

@@ -5,11 +5,12 @@ import Link from 'next/link';
 import {useParams, useRouter} from 'next/navigation';
 import {Redacted} from '@/components/Redacted';
 import {ConfirmReasonModal} from '@/components/ConfirmReasonModal';
+import {EditDetailsModal} from '@/components/EditDetailsModal';
 import {CopyId} from '@/components/CopyId';
-import {ApiError, opsDataApi, resolveUserLocation, useOpsMe, useOpsUserDetail, useUserFamily, type OpsUserDetail} from '@/lib/api';
+import {ApiError, opsApi, opsDataApi, resolveUserLocation, useOpsMe, useOpsUserDetail, useUserFamily, type OpsUserDetail} from '@/lib/api';
 import {formatDateTimeUtc} from '@/lib/datetime';
 import {deviceLabel, roleLabel, since} from '@/lib/format';
-import {canForceFundMembersOff, canManageFamily, canManageModules, canMintProviderInvite, hasRole, roleDomains, type AdminRole} from '@/lib/rbac';
+import {canCreateUsers, canForceFundMembersOff, canManageFamily, canManageModules, canMintProviderInvite, hasRole, roleDomains, type AdminRole} from '@/lib/rbac';
 import {UserAccessCard} from './UserAccessCard';
 import {ProviderInvitesCard} from './ProviderInvitesCard';
 import {IdentityDocumentCard} from './IdentityDocumentCard';
@@ -179,6 +180,9 @@ export function UserDetail() {
   // IS-15 — validated confirm modals replace the window.prompt flows.
   const [suspendOpen, setSuspendOpen] = useState(false);
   const [eraseOpen, setEraseOpen] = useState(false);
+  // 2026-10-10 — edit name / email / login phone (Super Admin).
+  const [editOpen, setEditOpen] = useState(false);
+  const canEdit = canCreateUsers(role);
 
   async function revoke(rowId: string) {
     if (busyDevice) return;
@@ -277,6 +281,12 @@ export function UserDetail() {
             <p className="text-sm text-t3">User record, wallet, sessions and recent bookings.</p>
           </div>
           <div className="flex items-center gap-2">
+            {canEdit && !user.deleted_at && (
+              <button onClick={() => setEditOpen(true)}
+                className="rounded-md border border-act/40 px-3 py-1.5 text-xs font-semibold text-acc hover:bg-act/10">
+                EDIT DETAILS
+              </button>
+            )}
             {canRevoke && !user.deleted_at && (
               user.suspended_at ? (
                 <button onClick={restore} disabled={acctBusy}
@@ -564,6 +574,18 @@ export function UserDetail() {
         )}
       </div>
 
+      <EditDetailsModal
+        open={editOpen}
+        title={`Edit ${user.display_name ?? 'user'}`}
+        subtitle="Leave email or phone empty to keep the current one. A new phone is this person's new sign-in number; a new email or phone counts as unverified until they receive a code on it. Audited."
+        fields={[
+          {key: 'display_name', label: 'Name', initial: user.display_name ?? ''},
+          {key: 'email', label: 'New email', initial: '', type: 'email', placeholder: 'Leave empty to keep the current email'},
+          {key: 'phone_e164', label: 'New sign-in phone', initial: '', type: 'tel', placeholder: '+971 50 123 4567', hint: 'With the country code. Leave empty to keep the current number.'},
+        ]}
+        onSave={async patch => { await opsApi.updateUserProfile(user.id, patch); await mutate(); }}
+        onClose={() => setEditOpen(false)}
+      />
       <ConfirmReasonModal
         open={suspendOpen}
         title="Suspend this account?"

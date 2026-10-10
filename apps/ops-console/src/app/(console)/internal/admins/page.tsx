@@ -3,6 +3,7 @@
 import {useState} from 'react';
 import useSWR from 'swr';
 import {opsApi, useOpsMe, type AdminAccountRow, type AdminInviteRow} from '@/lib/api';
+import {EditDetailsModal} from '@/components/EditDetailsModal';
 import {
   ADMIN_LEVELS, LEGACY_ROLES, ROLE_LABEL, ROLE_SCOPE,
   canCreateAdminAccount, canManageAdmins, isSuperAdmin, type AdminRole,
@@ -114,6 +115,9 @@ export default function AdminsPage() {
     } finally { setAcBusy(false); }
   }
 
+  // ── Edit an admin's details (2026-10-10) ──
+  const [editing, setEditing] = useState<AdminAccountRow | null>(null);
+
   // ── Invite lane (RS-09) ──
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -224,7 +228,7 @@ export default function AdminsPage() {
                       <th className="px-3 py-2">Call Sign</th><th className="px-3 py-2">Name</th>
                       <th className="px-3 py-2">Email</th><th className="px-3 py-2">Level</th>
                       <th className="px-3 py-2">Region</th><th className="px-3 py-2">Active</th>
-                      <th className="px-3 py-2">Last Active</th><th className="px-3 py-2">Change Level</th>
+                      <th className="px-3 py-2">Last Active</th><th className="px-3 py-2">Manage</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-bd2">
@@ -249,6 +253,10 @@ export default function AdminsPage() {
                             >
                               <RoleOptions />
                             </select>
+                            <button type="button" onClick={() => setEditing(a)}
+                              className="rounded border border-bd1 px-2 py-1 text-[11px] font-semibold text-t2 hover:bg-s1">
+                              EDIT
+                            </button>
                             {a.user_id !== me?.admin.user_id && (
                               <button
                                 type="button"
@@ -404,6 +412,20 @@ export default function AdminsPage() {
           </>
         )}
       </div>
+      <EditDetailsModal
+        open={editing !== null}
+        title={editing ? `Edit ${editing.call_sign}` : 'Edit admin'}
+        subtitle="Leave email or phone empty to keep the current one. A new phone becomes this admin's sign-in number. Audited."
+        fields={editing ? [
+          {key: 'display_name', label: 'Name', initial: editing.display_name},
+          {key: 'call_sign', label: 'Call sign', initial: editing.call_sign},
+          {key: 'region', label: 'Region', initial: editing.region, upper: true, hint: 'Two-letter country code, for example AE.'},
+          {key: 'email', label: 'New email', initial: '', type: 'email', placeholder: editing.email ? `Current: ${editing.email}` : 'No email yet'},
+          {key: 'phone_e164', label: 'New sign-in phone', initial: '', type: 'tel', placeholder: '+971 50 123 4567', hint: 'With the country code. Leave empty to keep the current number.'},
+        ] : []}
+        onSave={async patch => { if (editing) { await opsApi.updateAdmin(editing.user_id, patch); await mutateAdmins(); } }}
+        onClose={() => setEditing(null)}
+      />
     </>
   );
 }

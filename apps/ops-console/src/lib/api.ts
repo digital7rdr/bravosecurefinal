@@ -1426,6 +1426,16 @@ export const opsApi = {
     fetchJson<{role: string}>(`/ops/admins/${userId}/role`, {
       method: 'PATCH', body: JSON.stringify({role}),
     }),
+  // 2026-10-10 — edit a console account's name, call sign, region, email, login phone.
+  updateAdmin: (userId: string, patch: {display_name?: string; call_sign?: string; region?: string; email?: string; phone_e164?: string}) =>
+    fetchJson<{ok: true; changed: string[]}>(`/ops/admins/${userId}`, {
+      method: 'PATCH', body: JSON.stringify(patch),
+    }),
+  // 2026-10-10 — edit any user's name, email, login phone (SUPER_ADMIN).
+  updateUserProfile: (userId: string, patch: {display_name?: string; email?: string; phone_e164?: string}) =>
+    fetchJson<{ok: true; changed: string[]}>(`/ops/users/${userId}/profile`, {
+      method: 'PATCH', body: JSON.stringify(patch),
+    }),
   // OC-09 — offboard/reinstate an operator (sets admin_users.active).
   setAdminActive: (userId: string, active: boolean) =>
     fetchJson<{active: boolean}>(`/ops/admins/${userId}/active`, {

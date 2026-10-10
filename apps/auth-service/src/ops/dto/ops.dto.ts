@@ -417,3 +417,13 @@ export class AcceptAdminInviteDto {
   @IsOptional() @IsString() @MinLength(2) @MaxLength(80)
   display_name?: string;
 }
+
+
+/** 2026-10-10 — edit a console account's details (Internal → Admins). */
+export class UpdateAdminDto {
+  @IsOptional() @IsString() @MinLength(2) @MaxLength(120) display_name?: string;
+  @IsOptional() @IsString() @Matches(/^[A-Za-z0-9][A-Za-z0-9_-]{1,23}$/, {message: 'call sign: 2-24 letters, digits, - or _'}) call_sign?: string;
+  @IsOptional() @IsString() @Matches(/^[A-Z]{2,8}$/, {message: 'region: 2-8 capital letters, e.g. AE'}) region?: string;
+  @IsOptional() @IsEmail() @MaxLength(254) email?: string;
+  @IsOptional() @Matches(/^\+\d{6,15}$/, {message: 'phone must be E.164, e.g. +971501234567'}) phone_e164?: string;
+}
