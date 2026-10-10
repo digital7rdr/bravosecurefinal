@@ -330,6 +330,12 @@ export default function LoginScreen({navigation}: Props) {
         setErrorMsg('Invalid email, phone number or password.');
         return;
       }
+      // MOBILE_SECOND_FACTOR=none (2026-10-10): the password step issued the
+      // session — no code, no authenticator. Load the profile and go.
+      if (res.secondFactor === 'none') {
+        await completeAuth();
+        return;
+      }
       // Staging (OTP_DEV_BYPASS, SMS mode only) returns devOtpCode —
       // auto-verify so dev/QA logins land on the Dashboard directly.
       if (res.devOtpCode) {

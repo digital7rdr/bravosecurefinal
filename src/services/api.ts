@@ -396,7 +396,12 @@ export interface TotpEnrolment {
   backupCodes: string[];
 }
 
-export type SecondFactor = 'sms' | 'totp' | 'totp_enrol';
+/**
+ * 'none' — server MOBILE_SECOND_FACTOR=none (2026-10-10): the phone app gets
+ * its session straight from the password step; the response then also carries
+ * `user` + tokens (LoginSessionResult).
+ */
+export type SecondFactor = 'sms' | 'totp' | 'totp_enrol' | 'none';
 
 export type RegisterVerifyResult =
   | {user: ApiUser; accessToken: string; refreshToken: string; expiresIn: number}
@@ -410,6 +415,9 @@ export interface LoginStartResult {
   secondFactor?: SecondFactor | null;
   enrol?: TotpEnrolment | null;
 }
+export type LoginSessionResult = LoginStartResult & {
+  secondFactor: 'none'; user: ApiUser; accessToken: string; refreshToken: string; expiresIn: number;
+};
 
 export interface ApiUser {
   id: string;
@@ -479,8 +487,17 @@ export const authApi = {
    *            'totp_enrol' with `enrol` (otpauth URI, seed, backup codes)
    *            when this is the account's first authenticator sign-in.
    */
-  login: async (dto: {email?: string; phoneE164?: string; password: string}) => {
-    const res = await authHttp.post<LoginStartResult>('/auth/login', dto);
+  login: async (dto: {
+    email?: string; phoneE164?: string; password: string;
+    // 2026-10-10 — the phone app identifies itself so a MOBILE_SECOND_FACTOR=none
+    // server can issue the session here. Older servers ignore these.
+    deviceId?: string; platform?: string;
+    deviceModel?: string; deviceBrand?: string; osVersion?: string; appVersion?: string;
+  }) => {
+    const res = await authHttp.post<LoginStartResult | LoginSessionResult>('/auth/login', dto);
+    if ('accessToken' in res.data && res.data.accessToken) {
+      await tokenStore.set(res.data.accessToken, res.data.refreshToken);
+    }
     return res.data;
   },
 

@@ -137,6 +137,12 @@ AUTH_SECOND_FACTOR=totp
 # checked like 'sms' but returned in the /auth/register response instead of
 # texted — phones are NOT verified. Switch to 'sms' when Twilio is connected.
 REGISTER_PHONE_PROOF=stub
+# Phone-app second factor (owner decision 2026-10-10): 'none' = ios/android
+# sign in with password only (session issued by /auth/login) and sign up with
+# phone code only; the ops console / web app keep the authenticator. The
+# app's optional Biometric Lock protects the device. 'totp' = authenticator
+# on the phone as well.
+MOBILE_SECOND_FACTOR=none
 
 # TOTP is the login second factor here — no SMS provider. 64 hex = AES-256 for
 # sealing TOTP seeds at rest; production fails closed without it.

@@ -116,10 +116,10 @@ describe('AuthService — AUTH_SECOND_FACTOR=totp', () => {
       mockPw.verify.mockResolvedValueOnce(true);
       mockTotp.status.mockResolvedValueOnce('none');
       const out = await service.login({phoneE164: USER.phone_e164, password: 'ok'}, '1.1.1.1');
-      expect(out.userId).toBe(USER.id);
-      expect(out.challengeId).toBe(CHALLENGE);
-      expect(out.secondFactor).toBe('totp_enrol');
-      expect(out.enrol).toEqual(ENROL);
+      expect(out).toMatchObject({userId: USER.id});
+      expect(out).toMatchObject({challengeId: CHALLENGE});
+      expect(out).toMatchObject({secondFactor: 'totp_enrol'});
+      expect(out).toMatchObject({enrol: ENROL});
       expect(out.otpSentTo).toBeNull();
       expect(mockTotp.enrol).toHaveBeenCalledWith(USER.id, USER.email, null, '1.1.1.1');
       expect(mockOtp.send).not.toHaveBeenCalled();
@@ -133,7 +133,7 @@ describe('AuthService — AUTH_SECOND_FACTOR=totp', () => {
       mockPw.verify.mockResolvedValueOnce(true);
       mockTotp.status.mockResolvedValueOnce('verified');
       const out = await service.login({phoneE164: USER.phone_e164, password: 'ok'}, '1.1.1.1');
-      expect(out.secondFactor).toBe('totp');
+      expect(out).toMatchObject({secondFactor: 'totp'});
       expect(out.enrol).toBeNull();
       expect(mockTotp.enrol).not.toHaveBeenCalled();
     });
@@ -143,7 +143,7 @@ describe('AuthService — AUTH_SECOND_FACTOR=totp', () => {
       mockPw.verify.mockResolvedValueOnce(true);
       mockTotp.status.mockResolvedValueOnce('pending');
       const out = await service.login({phoneE164: USER.phone_e164, password: 'ok'}, '1.1.1.1');
-      expect(out.secondFactor).toBe('totp_enrol');
+      expect(out).toMatchObject({secondFactor: 'totp_enrol'});
       expect(mockTotp.enrol).toHaveBeenCalledTimes(1);
     });
   });
@@ -224,9 +224,9 @@ describe('AuthService — AUTH_SECOND_FACTOR=totp', () => {
       const out = await service.register(dto, '1.1.1.1');
       const insert = mockDb.q.mock.calls.find(c => String(c[0]).includes('INSERT INTO public.users'));
       expect(insert?.[1]?.[4]).toBe('pending');   // kyc_status parameter — nothing proved the phone
-      expect(out.secondFactor).toBe('totp_enrol');
-      expect(out.challengeId).toBe(CHALLENGE);
-      expect(out.enrol).toEqual(ENROL);
+      expect(out).toMatchObject({secondFactor: 'totp_enrol'});
+      expect(out).toMatchObject({challengeId: CHALLENGE});
+      expect(out).toMatchObject({enrol: ENROL});
       expect(mockOtp.send).not.toHaveBeenCalled();
     });
 
@@ -246,7 +246,7 @@ describe('AuthService — AUTH_SECOND_FACTOR=totp', () => {
       const out = await service.register(dto, '1.1.1.1');
       const upd = mockDb.q.mock.calls.find(c => String(c[0]).includes('UPDATE public.users SET password_hash'));
       expect(upd?.[1]).toEqual([USER.id, '$argon2id$new', 'A']);
-      expect(out.secondFactor).toBe('totp_enrol');
+      expect(out).toMatchObject({secondFactor: 'totp_enrol'});
     });
 
     // 2026-09-28 merge hardening: the production branch reset ANY account
@@ -280,8 +280,8 @@ describe('AuthService — AUTH_SECOND_FACTOR=totp', () => {
       const out = await service.register(dto, '1.1.1.1');
       const claim = mockDb.qOne.mock.calls.find(c => String(c[0]).includes('invite_expires_at = NULL'));
       expect(claim?.[1]).toEqual(['inv-1', '$argon2id$new', 'A']);
-      expect(out.userId).toBe('inv-1');
-      expect(out.secondFactor).toBe('totp_enrol');
+      expect(out).toMatchObject({userId: 'inv-1'});
+      expect(out).toMatchObject({secondFactor: 'totp_enrol'});
       expect(mockAudit.emit).toHaveBeenCalledWith(expect.objectContaining({detail: 'invite_claimed'}));
     });
   });
@@ -350,7 +350,7 @@ describe('AuthService — AUTH_SECOND_FACTOR=totp', () => {
       mockDb.qOne.mockResolvedValueOnce(USER_WITH_PW);
       mockPw.verify.mockResolvedValueOnce(true);
       const out = await service.login({email: USER.email, password: 'pw'}, '1.1.1.1');
-      expect(out.secondFactor).toBe('totp_enrol');
+      expect(out).toMatchObject({secondFactor: 'totp_enrol'});
       expect(mockOtp.send).not.toHaveBeenCalled();
     });
   });
@@ -385,6 +385,75 @@ describe('AuthService — AUTH_SECOND_FACTOR=totp', () => {
       const out = await service.registerVerify({...dto, code: '424242', deviceId: 'd', platform: 'android'} as never, '1.1.1.1');
       expect(mockOtp.check).toHaveBeenCalledWith(USER.phone_e164, '424242');
       expect(out).toMatchObject({userId: USER.id, challengeId: CHALLENGE, secondFactor: 'totp_enrol'});
+      expect('accessToken' in out).toBe(false);
+    });
+  });
+
+  // ── MOBILE_SECOND_FACTOR=none (owner decision 2026-10-10) ────────────────
+  describe('MOBILE_SECOND_FACTOR=none — phone app gets a session from the password step; web keeps TOTP', () => {
+    beforeEach(() => {
+      mockConfig.get.mockImplementation((key: string) =>
+        key === 'auth.mobileSecondFactor' ? 'none' : key === 'auth.registerPhoneProof' ? 'stub' : CONFIG[key]);
+      mockRedis.isJtiValid.mockResolvedValue(true);
+    });
+    const mobile = {platform: 'android', deviceId: 'dev-1', deviceModel: 'Pixel'};
+
+    it('login from android with a deviceId → session, secondFactor none, no challenge, no enrolment', async () => {
+      mockDb.qOne.mockResolvedValueOnce(USER_WITH_PW).mockResolvedValue(null);
+      mockDb.q.mockResolvedValue([]);
+      mockPw.verify.mockResolvedValueOnce(true);
+      const out = await service.login({email: USER.email, password: 'pw', ...mobile}, '1.1.1.1');
+      expect(out).toMatchObject({userId: USER.id, secondFactor: 'none', challengeId: null, enrol: null, accessToken: 'tok', refreshToken: 'ref'});
+      expect(mockTotp.enrol).not.toHaveBeenCalled();
+      expect(mockOtp.send).not.toHaveBeenCalled();
+      expect(mockAudit.emit).toHaveBeenCalledWith(expect.objectContaining({event_type: 'auth.login', outcome: 'success', detail: 'password_only_mobile'}));
+    });
+
+    it('wrong password from android → the same null shape, no session', async () => {
+      mockDb.qOne.mockResolvedValueOnce(USER_WITH_PW);
+      mockPw.verify.mockResolvedValueOnce(false);
+      const out = await service.login({email: USER.email, password: 'nope', ...mobile}, '1.1.1.1');
+      expect(out).toEqual({userId: null, otpSentTo: null, devOtpCode: null, challengeId: null, secondFactor: null, enrol: null});
+      expect(mockJwt.signAccessToken).not.toHaveBeenCalled();
+    });
+
+    it('login from the web (no platform) still gets the authenticator step', async () => {
+      mockDb.qOne.mockResolvedValueOnce(USER_WITH_PW);
+      mockPw.verify.mockResolvedValueOnce(true);
+      mockTotp.status.mockResolvedValueOnce('verified');
+      const out = await service.login({email: USER.email, password: 'pw'}, '1.1.1.1');
+      expect(out).toMatchObject({secondFactor: 'totp', challengeId: CHALLENGE});
+      expect('accessToken' in out).toBe(false);
+    });
+
+    it('login from android WITHOUT a deviceId (old build) still gets the authenticator step', async () => {
+      mockDb.qOne.mockResolvedValueOnce(USER_WITH_PW);
+      mockPw.verify.mockResolvedValueOnce(true);
+      mockTotp.status.mockResolvedValueOnce('verified');
+      const out = await service.login({email: USER.email, password: 'pw', platform: 'android'}, '1.1.1.1');
+      expect(out).toMatchObject({secondFactor: 'totp'});
+    });
+
+    it('sign-up from android: phone code → account (kyc approved) → session, no enrolment', async () => {
+      mockOtp.check.mockResolvedValueOnce(true);
+      mockDb.qOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null).mockResolvedValueOnce(USER).mockResolvedValue(null);
+      mockDb.q.mockResolvedValueOnce([{id: USER.id}]).mockResolvedValue([]);
+      const dto = {email: USER.email, password: 'pass1234', displayName: 'A', phoneE164: USER.phone_e164, code: '424242', ...mobile};
+      const out = await service.registerVerify(dto as never, '1.1.1.1');
+      const insert = mockDb.q.mock.calls.find(c => String(c[0]).includes('INSERT INTO public.users'));
+      expect(insert?.[1]?.[4]).toBe('approved');
+      expect(out).toMatchObject({accessToken: 'tok', user: USER});
+      expect(mockTotp.enrol).not.toHaveBeenCalled();
+      expect(mockAudit.emit).toHaveBeenCalledWith(expect.objectContaining({detail: 'account_created_phone_proven_no_2fa'}));
+    });
+
+    it('sign-up from the web (platform web) still gets the enrolment step', async () => {
+      mockOtp.check.mockResolvedValueOnce(true);
+      mockDb.qOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null).mockResolvedValueOnce(USER);
+      mockDb.q.mockResolvedValueOnce([{id: USER.id}]).mockResolvedValueOnce([{id: CHALLENGE}]);
+      const dto = {email: USER.email, password: 'pass1234', displayName: 'A', phoneE164: USER.phone_e164, code: '424242', deviceId: 'web-1', platform: 'web'};
+      const out = await service.registerVerify(dto as never, '1.1.1.1');
+      expect(out).toMatchObject({secondFactor: 'totp_enrol', challengeId: CHALLENGE});
       expect('accessToken' in out).toBe(false);
     });
   });

@@ -61,6 +61,11 @@ export class AuthService {
   private get secondFactor(): 'sms' | 'totp' {
     return this.config.get<'sms' | 'totp'>('auth.secondFactor') ?? 'sms';
   }
+  /** TOTP mode: does an ios/android client skip the authenticator (MOBILE_SECOND_FACTOR=none)? */
+  private mobileSkipsSecondFactor(platform?: string): boolean {
+    return (this.config.get<'totp' | 'none'>('auth.mobileSecondFactor') ?? 'totp') === 'none'
+      && (platform === 'ios' || platform === 'android');
+  }
   /** TOTP mode only — how sign-up proves the phone: 'sms' (Twilio), 'stub' (code returned, testing), 'none'. */
   private get registerPhoneProof(): 'sms' | 'stub' | 'none' {
     return this.config.get<'sms' | 'stub' | 'none'>('auth.registerPhoneProof') ?? 'sms';
@@ -328,7 +333,14 @@ export class AuthService {
   //     accounts enrol their authenticator by logging in with their password.
   //     Resetting them here would let anyone who knows a phone number take
   //     over the account.
-  private async registerTotp(dto: RegisterDto, ip: string, phoneProven = false) {
+  private async registerTotp(
+    dto: RegisterDto,
+    ip: string,
+    phoneProven = false,
+    // MOBILE_SECOND_FACTOR=none + ios/android: no authenticator — issue the
+    // session right here (the SMS-mode shape) instead of an enrolment step.
+    session?: {deviceId: string; platform: string; identity: DeviceIdentity},
+  ) {
     const existing = await this.db.qOne<{id: string}>(
       `SELECT id FROM public.users WHERE (email=$1 OR phone_e164=$2) AND deleted_at IS NULL`,
       [dto.email, dto.phoneE164],
@@ -387,6 +399,11 @@ export class AuthService {
     );
     if (!user) throw new NotFoundException('user_not_found');
 
+    if (session) {
+      const issued = await this.issueSession(user, session.deviceId, session.platform, true, session.identity);
+      await this.audit.emit({event_type:'auth.register', user_id:user.id, device_id:session.deviceId, ip, outcome:'success', detail: `${detail.replace('totp_enrol_issued', 'account_created')}_phone_proven_no_2fa`});
+      return {user, ...issued};
+    }
     const step = await this.totpSecondStep(user, ip);
     await this.audit.emit({event_type:'auth.register', user_id:user.id, device_id:null, ip, outcome:'success', detail: phoneProven ? `${detail}_phone_proven` : detail});
     return {userId: user.id, otpSentTo: null, ...step};
@@ -408,7 +425,10 @@ export class AuthService {
         throw new BadRequestException('otp_invalid');
       }
       await this.assertTotpRegistrable(dto, ip);
-      return this.registerTotp(dto, ip, true);
+      const noSecondFactor = this.mobileSkipsSecondFactor(dto.platform)
+        ? {deviceId: dto.deviceId, platform: dto.platform, identity: dto}
+        : undefined;
+      return this.registerTotp(dto, ip, true, noSecondFactor);
     }
     if (this.secondFactor === 'totp') {
       // REGISTER_PHONE_PROOF=none — the user already exists (created by
@@ -537,6 +557,15 @@ export class AuthService {
     }
 
     if (this.secondFactor === 'totp') {
+      if (this.mobileSkipsSecondFactor(dto.platform) && dto.deviceId) {
+        // Phone app, MOBILE_SECOND_FACTOR=none: the password step is the
+        // login. Same session issue as verify() (fresh login → evicts the
+        // other devices of this platform) and the same no-enumeration shape
+        // above for a wrong password.
+        const session = await this.issueSession(user!, dto.deviceId, dto.platform!, true, dto);
+        await this.audit.emit({event_type:'auth.login', user_id:user!.id, device_id:dto.deviceId, ip, outcome:'success', detail:'password_only_mobile'});
+        return {userId: user!.id, otpSentTo: null, devOtpCode: null, challengeId: null, secondFactor: 'none' as const, enrol: null, user: user!, ...session};
+      }
       const step = await this.totpSecondStep(user!, ip);
       await this.audit.emit({event_type:'auth.login', user_id:user!.id, device_id:null, ip, outcome:'success', detail:step.secondFactor});
       return {userId: user!.id, otpSentTo: null, devOtpCode: null, ...step};

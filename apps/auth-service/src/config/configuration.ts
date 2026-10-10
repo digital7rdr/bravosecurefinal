@@ -132,6 +132,15 @@ export default () => ({
     //          whole flow (screens, challenge, kyc) is exercised. main.ts
     //          warns on every boot while this is set.
     registerPhoneProof: (['none', 'stub'] as const).find(v => v === process.env['REGISTER_PHONE_PROOF']) ?? 'sms' as const,
+    // 2026-10-10 (owner decision) — second factor for the PHONE APP when
+    // AUTH_SECOND_FACTOR=totp. 'totp' (default): same authenticator as the
+    // web. 'none': ios/android sessions are issued straight from the
+    // password step (/auth/login with deviceId+platform) and, at sign-up,
+    // straight after the phone code — no authenticator on the phone. The
+    // ops console / web app (platform 'web' or absent) keep the authenticator.
+    // The phone itself is the possession factor there; the app's optional
+    // Biometric Lock covers the device.
+    mobileSecondFactor: process.env['MOBILE_SECOND_FACTOR'] === 'none' ? 'none' as const : 'totp' as const,
   },
 
   otp: {

@@ -700,7 +700,11 @@ export const useAuthStore = create<AuthState & AuthActions>()(
     login: async ({email, phoneE164, password}) => {
       set(s => { s.isLoading = true; s.error = null; });
       try {
-        const res = await authApi.login({email, phoneE164, password});
+        const deviceId = await getDeviceId();
+        const res = await authApi.login({
+          email, phoneE164, password,
+          deviceId, platform: DEVICE_PLATFORM, ...getDeviceIdentity(),
+        });
         set(s => {
           s.pendingUserId = res.userId;
           s.pendingPhone = res.otpSentTo;
@@ -711,6 +715,8 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           phone: res.otpSentTo,
           devOtpCode: res.devOtpCode ?? undefined,
           challengeId: res.challengeId ?? null,
+          // 'none' = the server already issued the session (tokens persisted in
+          // authApi.login); the caller finishes with completeAuth().
           secondFactor: res.secondFactor ?? (res.userId ? 'sms' : null),
           enrol: res.enrol ?? null,
         };

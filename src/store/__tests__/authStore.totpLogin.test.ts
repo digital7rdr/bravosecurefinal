@@ -87,7 +87,7 @@ describe('login (TOTP mode)', () => {
 
     const res = await useAuthStore.getState().login({phoneE164: '+971500000000', password: 'pw'});
 
-    expect(login).toHaveBeenCalledWith({phoneE164: '+971500000000', password: 'pw'});
+    expect(login).toHaveBeenCalledWith(expect.objectContaining({phoneE164: '+971500000000', password: 'pw', deviceId: 'dev-1', platform: expect.any(String), deviceModel: 'Pixel'}));
     expect(res).toEqual({userId: 'u1', phone: null, devOtpCode: undefined, challengeId: 'ch-1', secondFactor: 'totp_enrol', enrol});
     expect(useAuthStore.getState().pendingChallengeId).toBe('ch-1');
     expect(useAuthStore.getState().pendingUserId).toBe('u1');
@@ -137,4 +137,19 @@ describe('verifyOtp', () => {
     await expect(useAuthStore.getState().verifyOtp('u1', '000000')).rejects.toThrow('otp_invalid');
     expect(useAuthStore.getState().pendingChallengeId).toBe('ch-1');
   });
+
+describe('login (MOBILE_SECOND_FACTOR=none server — session from the password step)', () => {
+  const ME = {user: {id: 'u1', email: 'a@b.io', display_name: 'A', role: 'individual', subscription_tier: 'lite'}};
+  it("returns secondFactor 'none' and completeAuth signs in without any code", async () => {
+    login.mockResolvedValue({userId: 'u1', otpSentTo: null, devOtpCode: null, challengeId: null, secondFactor: 'none', enrol: null, user: ME.user, accessToken: 'a', refreshToken: 'r', expiresIn: 900});
+    me.mockResolvedValue(ME);
+    const res = await useAuthStore.getState().login({phoneE164: '+971500000000', password: 'pw'});
+    expect(res.secondFactor).toBe('none');
+    expect(res.challengeId).toBeNull();
+    expect(verify).not.toHaveBeenCalled();
+    await useAuthStore.getState().completeAuth();
+    expect(useAuthStore.getState().isAuthenticated).toBe(true);
+    expect(useAuthStore.getState().justRegistered).toBe(false);
+  });
+});
 });
