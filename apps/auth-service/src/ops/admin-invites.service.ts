@@ -6,6 +6,7 @@ import {DatabaseService, type Tx} from '../database/database.service';
 import {PasswordService} from '../common/services/password.service';
 import {AuthService} from '../auth/auth.service';
 import {OpsAuditService} from './ops-audit.service';
+import {applyIdentityEdit} from '../pro-management/identity-edit';
 import {isSuperAdmin, type AdminContext, type AdminRole} from './admin.guard';
 
 const INVITE_TTL_HOURS = 24;
@@ -331,6 +332,53 @@ export class AdminInvitesService {
          LEFT JOIN public.users u ON u.id = au.user_id
         ORDER BY au.created_at ASC`,
     );
+  }
+
+  /**
+   * 2026-10-10 — edit a console account: name, call sign, region (admin_users)
+   * and email / login phone (public.users, kept in step by applyIdentityEdit).
+   * One transaction; a taken call sign / email / phone is a 409.
+   */
+  async updateAdmin(
+    admin: AdminContext, targetUserId: string,
+    patch: {display_name?: string; call_sign?: string; region?: string; email?: string; phone_e164?: string},
+  ): Promise<{ok: true; changed: string[]}> {
+    const result = await this.db.withTransaction(async tx => {
+      const cur = await tx.qOne<{call_sign: string; region: string}>(
+        `SELECT call_sign, region FROM admin_users WHERE user_id = $1 FOR UPDATE`, [targetUserId]);
+      if (!cur) throw new NotFoundException('admin_not_found');
+      const audit: Record<string, {from: unknown; to: unknown}> = {};
+      const changed: string[] = [];
+      const callSign = patch.call_sign?.trim();
+      if (callSign && callSign !== cur.call_sign) {
+        const clash = await tx.qOne(`SELECT 1 FROM admin_users WHERE lower(call_sign) = lower($1) AND user_id <> $2`, [callSign, targetUserId]);
+        if (clash) throw new ConflictException('call_sign_taken');
+        await tx.q(`UPDATE admin_users SET call_sign = $2 WHERE user_id = $1`, [targetUserId, callSign]);
+        audit.call_sign = {from: cur.call_sign, to: callSign};
+        changed.push('call_sign');
+      }
+      if (patch.region && patch.region !== cur.region) {
+        await tx.q(`UPDATE admin_users SET region = $2 WHERE user_id = $1`, [targetUserId, patch.region]);
+        audit.region = {from: cur.region, to: patch.region};
+        changed.push('region');
+      }
+      const ident = await applyIdentityEdit(tx, targetUserId,
+        {display_name: patch.display_name, email: patch.email, phone_e164: patch.phone_e164});
+      // Accounts that predate the users link carry their name only on admin_users.
+      if (patch.display_name && !ident.changed.includes('display_name')) {
+        const r = await tx.qOne<{display_name: string}>(`SELECT display_name FROM admin_users WHERE user_id = $1`, [targetUserId]);
+        if (r && r.display_name !== patch.display_name.trim()) {
+          await tx.q(`UPDATE admin_users SET display_name = $2 WHERE user_id = $1`, [targetUserId, patch.display_name.trim()]);
+          audit.display_name = {from: r.display_name, to: patch.display_name.trim()};
+          changed.push('display_name');
+        }
+      }
+      return {changed: [...changed, ...ident.changed], audit: {...audit, ...ident.audit}};
+    });
+    if (result.changed.length) {
+      await this.audit.recordAdmin(admin, 'admin.profile.update', 'user', targetUserId, {changed: result.audit});
+    }
+    return {ok: true, changed: result.changed};
   }
 
   async setAdminRole(
