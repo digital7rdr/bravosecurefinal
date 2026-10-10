@@ -4,6 +4,7 @@ import {OTP_MODES, type OtpMode} from './messaging.types';
 import {
   checkTwilioVerify, sendTwilioSms, startTwilioVerify, type TwilioConfig,
 } from './providers/twilio';
+import {sendSmtpMail, type SmtpConfig} from './providers/smtp';
 
 /**
  * Twilio credentials and OTP mode, resolved from the Integrations settings
@@ -54,6 +55,29 @@ export class MessagingService {
     if (this.isVerifyReady()) {return 'verify';}
     if (this.isSmsReady()) {return 'sms';}
     return null;
+  }
+
+  /** SMTP settings (Integrations → Email), or null while any required one is missing. */
+  private smtpConfig(): SmtpConfig | null {
+    const host = this.s('email.smtpHost');
+    const user = this.s('email.smtpUser');
+    const password = this.s('email.smtpPassword');
+    const from = this.s('email.from') || user;
+    if (!host || !user || !password || !from) {return null;}
+    const security = this.s('email.smtpSecurity');
+    const port = Number(this.s('email.smtpPort')) || (security === 'starttls' ? 587 : 465);
+    const secure = security ? security === 'tls' : port === 465;
+    return {host, port, secure, user, password, from};
+  }
+
+  isEmailReady(): boolean {
+    return this.smtpConfig() !== null;
+  }
+
+  async sendEmail(to: string, subject: string, text: string, html?: string): Promise<{messageId?: string}> {
+    const cfg = this.smtpConfig();
+    if (!cfg) {throw new Error('Email not configured (SMTP server, username, password and From address are required — Integrations → Email)');}
+    return sendSmtpMail(cfg, {to, subject, text, html});
   }
 
   async sendSms(to: string, body: string): Promise<{messageId?: string}> {

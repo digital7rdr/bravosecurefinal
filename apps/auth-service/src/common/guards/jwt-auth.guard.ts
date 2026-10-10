@@ -34,7 +34,7 @@ export class JwtAuthGuard implements CanActivate {
       const names = sessionCookiesFor(req);
       if (req.cookies?.[names.token]) {
         token = req.cookies[names.token];
-        if (names.console === 'web') assertWebCsrf(req, names.csrf);
+        if (names.console === 'web' || names.console === 'hub') assertWebCsrf(req, names.csrf);
       }
     }
     if (!token) throw new UnauthorizedException('missing_token');

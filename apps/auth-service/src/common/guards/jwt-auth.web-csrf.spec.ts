@@ -54,4 +54,17 @@ describe('JwtAuthGuard — web app CSRF', () => {
     const ops = {method: 'POST', headers: {origin: 'https://ops.bravosecure.cloud'}, cookies: {bravo_ops_token: 'tok'}};
     await expect(guard.canActivate(ctx(ops))).resolves.toBe(true);
   });
+
+  it('the home site (bravo_hub_*) gets the same CSRF rule', async () => {
+    const before = process.env.HUB_ORIGINS;
+    process.env.HUB_ORIGINS = 'https://bravosecure.cloud';
+    try {
+      const req = (h: Record<string, string>) => ({method: 'POST', headers: {origin: 'https://bravosecure.cloud', ...h},
+        cookies: {bravo_hub_token: 'tok', bravo_hub_csrf: 'c-h'}});
+      await expect(guard.canActivate(ctx(req({})))).rejects.toThrow('csrf_token_invalid');
+      await expect(guard.canActivate(ctx(req({'x-csrf-token': 'c-h'})))).resolves.toBe(true);
+    } finally {
+      process.env.HUB_ORIGINS = before;
+    }
+  });
 });

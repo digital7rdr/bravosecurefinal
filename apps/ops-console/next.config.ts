@@ -1,9 +1,10 @@
 import type { NextConfig } from 'next';
 import { REDIRECTS } from './src/lib/routes';
 
-/** Host names served as the provider console or the Bravo Web App
- *  (see src/lib/provider/host.ts): neither uses the ops legacy redirects. */
-const PROVIDER_HOST_PATTERN = '(?:provider|web)\\..*';
+/** Host names served as the provider console, the Bravo Web App or the home
+ *  site — the bare domain and www/hub (see src/lib/provider/host.ts): none of
+ *  them uses the ops legacy redirects. */
+const PROVIDER_HOST_PATTERN = '(?:(?:provider|web|hub|www)\\..*|[^.:]+\\.[^.:]+(?::\\d+)?)';
 
 // Audit fix 0.6 — security headers (CSP w/ per-request nonce, HSTS,
 // X-Frame-Options, Referrer-Policy, Permissions-Policy) now live in

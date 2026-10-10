@@ -115,7 +115,9 @@ export default () => ({
     // Production with no Twilio credentials MUST run 'totp' — devFlag()
     // forces the OTP dev-bypass off there, so 'sms' without Twilio means
     // nobody can log in (main.ts refuses to start in that state).
-    secondFactor: (process.env['AUTH_SECOND_FACTOR'] ?? 'sms') === 'totp' ? 'totp' as const : 'sms' as const,
+    // 'sms' | 'totp' | 'adaptive' (2026-10-10): adaptive = authenticator for
+    // accounts that set one up (staff must), a texted or emailed code otherwise.
+    secondFactor: secondFactorMode(process.env['AUTH_SECOND_FACTOR']),
     // 2026-10-08 — what proves a NEW account's phone number in 'totp' mode
     // (REGISTER_PHONE_PROOF). In 'sms' mode the login OTP itself proves it.
     //   'sms'  (default) — /auth/register texts a one-time code (Twilio, or
@@ -406,3 +408,11 @@ export default () => ({
     ZA: parseFloat(process.env['TAX_PCT_ZA'] ?? '0'),
   },
 });
+
+export type SecondFactorMode = 'sms' | 'totp' | 'adaptive';
+
+/** Unknown or unset → 'sms', the historical default. */
+export function secondFactorMode(raw: string | undefined): SecondFactorMode {
+  const v = (raw ?? 'sms').trim().toLowerCase();
+  return v === 'totp' || v === 'adaptive' ? v : 'sms';
+}

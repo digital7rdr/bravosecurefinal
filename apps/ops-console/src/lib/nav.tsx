@@ -206,6 +206,7 @@ export const NAV_GROUPS: NavGroup[] = [
       {label: 'Admins', href: routes.internal.admins, icon: iconAdminKey, minRole: 'ADMIN'},
       {label: 'Audit Log', href: routes.internal.audit, icon: iconDoc, minRole: 'SUPERVISOR'},
       {label: 'Console', href: routes.internal.console, icon: iconTerminal},
+      {label: 'Apps', href: routes.internal.apps, icon: iconAdminKey, minRole: 'ADMIN'},
     ],
   },
 ];

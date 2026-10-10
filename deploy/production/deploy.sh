@@ -26,8 +26,14 @@ grep -q 'PASTE_' .env .env.auth .env.messenger && die "unfilled PASTE_* placehol
 case " ${SERVICES[*]} " in
   *" messenger-service "*) [[ -f secrets/firebase-service-account.json ]] || die "secrets/firebase-service-account.json missing (FCM push — only messenger-service mounts it)";;
 esac
-grep -qE '^AUTH_SECOND_FACTOR=totp' .env.auth || die ".env.auth must set AUTH_SECOND_FACTOR=totp — no Twilio here, and production refuses 'sms' without it"
-ok "second factor: totp"
+# totp = authenticator for everyone; adaptive (2026-10-10) = authenticator when
+# set up (always for staff), otherwise a code by SMS (Twilio) or email (SMTP),
+# both configured under Integrations in the ops console.
+SECOND_FACTOR="$(grep -E '^AUTH_SECOND_FACTOR=' .env.auth | tail -1 | cut -d= -f2-)"
+case "$SECOND_FACTOR" in
+  totp|adaptive) ok "second factor: $SECOND_FACTOR";;
+  *) die ".env.auth must set AUTH_SECOND_FACTOR=totp or adaptive — production refuses 'sms' unless Twilio is configured";;
+esac
 
 # 2026-09-28 — keys added after the first install. Appended ONLY when absent
 # (never rotated): an existing box keeps every secret it already has.

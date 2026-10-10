@@ -4,6 +4,7 @@ import {ValidationPipe}       from '@nestjs/common';
 import type {NestExpressApplication} from '@nestjs/platform-express';
 import {AppModule}            from './app.module';
 import {MessagingService}     from './messaging/messaging.service';
+import {secondFactorMode}     from './config/configuration';
 import {join}                 from 'node:path';
 import {mkdirSync}            from 'node:fs';
 
@@ -197,7 +198,10 @@ async function bootstrap(): Promise<void> {
   // die at otp.send(). Refuse to start instead. init() first so the settings
   // snapshot is warm and Twilio keys saved in the ops console count too
   // (listen() would run the same init anyway).
-  const secondFactor = process.env.AUTH_SECOND_FACTOR === 'totp' ? 'totp' : 'sms';
+  // 'adaptive' does not refuse: accounts with an authenticator (and all staff)
+  // never need Twilio, and the rest fall back to an emailed code; the login
+  // path answers second_factor_unavailable when neither can be delivered.
+  const secondFactor = secondFactorMode(process.env.AUTH_SECOND_FACTOR);
   if (process.env.NODE_ENV === 'production' && secondFactor === 'sms') {
     await app.init();
     if (!app.get(MessagingService).otpMode()) {

@@ -22,7 +22,7 @@
  * would only make the server read a cookie that client could send anyway.
  */
 export interface SessionCookieNames {
-  console: 'ops' | 'provider' | 'web';
+  console: 'ops' | 'provider' | 'web' | 'hub';
   token: string;
   csrf: string;
   refresh: string;
@@ -53,6 +53,23 @@ export const WEB_SESSION_COOKIES: SessionCookieNames = Object.freeze({
   csrf:    'bravo_web_csrf',
   refresh: 'bravo_web_refresh',
 });
+
+/**
+ * The Bravo Secure home (bravosecure.cloud, 2026-10-10): sign-in, registration
+ * and the app launcher. Its session only opens the launcher; each app gets
+ * its OWN session through the single sign-on hand-off (/auth/sso/exchange).
+ */
+export const HUB_SESSION_COOKIES: SessionCookieNames = Object.freeze({
+  console: 'hub',
+  token:   'bravo_hub_token',
+  csrf:    'bravo_hub_csrf',
+  refresh: 'bravo_hub_refresh',
+});
+
+/** Exact origins of the home site, e.g. "https://bravosecure.cloud". */
+export function hubOrigins(env: NodeJS.ProcessEnv = process.env): Set<string> {
+  return originSet(env.HUB_ORIGINS);
+}
 
 function originSet(raw: string | undefined): Set<string> {
   return new Set(
@@ -86,5 +103,6 @@ export function sessionCookiesFor(
   const origin = originOf(req);
   if (origin && providerConsoleOrigins(env).has(origin)) return PROVIDER_SESSION_COOKIES;
   if (origin && webAppOrigins(env).has(origin)) return WEB_SESSION_COOKIES;
+  if (origin && hubOrigins(env).has(origin)) return HUB_SESSION_COOKIES;
   return OPS_SESSION_COOKIES;
 }

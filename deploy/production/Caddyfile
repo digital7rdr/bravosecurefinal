@@ -74,6 +74,20 @@ web.bravosecure.cloud {
 	reverse_proxy localhost:3002
 }
 
+# Bravo Secure home site (2026-10-10): sign-in, registration and the app
+# launcher at the bare domain. Same ops-console container (served when the
+# host is the bare domain). Its session cookies (bravo_hub_*) need HUB_ORIGINS
+# and a CORS_ALLOWED_ORIGINS entry in .env.auth. www redirects to it.
+bravosecure.cloud {
+	import security
+	encode zstd gzip
+	reverse_proxy localhost:3002
+}
+
+www.bravosecure.cloud {
+	redir https://bravosecure.cloud{uri} permanent
+}
+
 media.bravosecure.cloud {
 	import security
 	# Attachments are already AES-256-CBC encrypted client-side before upload;

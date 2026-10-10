@@ -12,7 +12,7 @@
 export const PROVIDER_PREFIX = '/provider';
 
 /** Paths on the provider host that need no session. */
-export const PROVIDER_PUBLIC_PATHS = ['/login'] as const;
+export const PROVIDER_PUBLIC_PATHS = ['/login', '/sso'] as const;
 
 export function isProviderHost(host: string | null | undefined): boolean {
   const h = (host ?? '').split(':')[0].trim().toLowerCase();
@@ -38,7 +38,7 @@ export function toInternalProviderPath(pathname: string): string {
 export const WEB_PREFIX = '/web';
 
 /** Paths on the web app host that need no session. */
-export const WEB_PUBLIC_PATHS = ['/login'] as const;
+export const WEB_PUBLIC_PATHS = ['/login', '/sso'] as const;
 
 export function isWebHost(host: string | null | undefined): boolean {
   const h = (host ?? '').split(':')[0].trim().toLowerCase();
@@ -54,15 +54,44 @@ export function toInternalWebPath(pathname: string): string {
   return pathname === '/' ? WEB_PREFIX : `${WEB_PREFIX}${pathname}`;
 }
 
+/* ── Bravo Secure home site (bravosecure.cloud, 2026-10-10) ─────────────
+ *
+ *   bravosecure.cloud / www.bravosecure.cloud → sign-in, registration and the
+ *   app launcher (single sign-on into the other hosts). hub.* is the same
+ *   site for local testing (hub.localhost).
+ */
+export const HUB_PREFIX = '/hub';
+
+/** Paths on the home site that need no session. */
+export const HUB_PUBLIC_PATHS = ['/login', '/register'] as const;
+
+export function isHubHost(host: string | null | undefined): boolean {
+  const h = (host ?? '').split(':')[0].trim().toLowerCase();
+  if (h.startsWith('www.') || h.startsWith('hub.')) return true;
+  // The bare domain: exactly two labels and not a *.localhost test name.
+  const labels = h.split('.');
+  return labels.length === 2 && labels.every(Boolean) && labels[1] !== 'localhost';
+}
+
+export function isInternalHubPath(pathname: string): boolean {
+  return pathname === HUB_PREFIX || pathname.startsWith(`${HUB_PREFIX}/`);
+}
+
+/** "/" → "/hub", "/register" → "/hub/register". */
+export function toInternalHubPath(pathname: string): string {
+  return pathname === '/' ? HUB_PREFIX : `${HUB_PREFIX}${pathname}`;
+}
+
 /**
  * The JS-readable CSRF cookie of the console this page runs in. Shared code
  * (the messenger runtime, the ops API client) calls the auth-service from
  * BOTH consoles; the server picks the session by Origin, so the double-submit
  * header must echo that same console's cookie.
  */
-export function sessionCsrfCookieName(): 'bravo_pv_csrf' | 'bravo_web_csrf' | 'bravo_ops_csrf' {
+export function sessionCsrfCookieName(): 'bravo_pv_csrf' | 'bravo_web_csrf' | 'bravo_hub_csrf' | 'bravo_ops_csrf' {
   if (typeof window !== 'undefined' && isProviderHost(window.location.host)) return 'bravo_pv_csrf';
   if (typeof window !== 'undefined' && isWebHost(window.location.host)) return 'bravo_web_csrf';
+  if (typeof window !== 'undefined' && isHubHost(window.location.host)) return 'bravo_hub_csrf';
   return 'bravo_ops_csrf';
 }
 

@@ -57,8 +57,15 @@ export class VaultPinService {
     private readonly config:   ConfigService,
   ) {}
 
-  private get secondFactor(): 'sms' | 'totp' {
-    return this.config.get<'sms' | 'totp'>('auth.secondFactor') ?? 'sms';
+  private get secondFactor(): 'sms' | 'totp' | 'adaptive' {
+    return this.config.get<'sms' | 'totp' | 'adaptive'>('auth.secondFactor') ?? 'sms';
+  }
+
+  /** Adaptive mode: the authenticator when the user has one, else a texted code. */
+  private async usesTotp(userId: string): Promise<boolean> {
+    if (this.secondFactor === 'totp') return true;
+    if (this.secondFactor === 'adaptive') return (await this.totp.status(userId)) === 'verified';
+    return false;
   }
 
   async status(userId: string): Promise<{exists: boolean}> {
@@ -127,7 +134,7 @@ export class VaultPinService {
       await this.recordFailure(userId, deviceId, ip, 'auth.vault_pin.reset', 'wrong_password');
       throw new ForbiddenException('reset_denied');
     }
-    if (this.secondFactor === 'totp') {
+    if (await this.usesTotp(userId)) {
       // No SMS to send: the client shows the authenticator code box directly.
       // A user with no verified seed cannot reset this way — they never
       // finished enrolment, so there is no second factor to reset against.
@@ -151,7 +158,7 @@ export class VaultPinService {
       'SELECT phone_e164 FROM public.users WHERE id = $1 AND deleted_at IS NULL', [userId],
     );
     let ok: boolean;
-    if (this.secondFactor === 'totp') {
+    if (await this.usesTotp(userId)) {
       // The controller's guard has already established `userId` from the
       // access token and the row above proved the account is live.
       try { await this.totp.check(userId, dto.code, deviceId, ip); ok = true; }

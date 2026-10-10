@@ -8,7 +8,9 @@
  */
 // /r is the referral-link landing (2026-09-05): a shared code opens it on a
 // phone that has no ops session and, usually, no app yet.
-export const PUBLIC_PATHS = ['/login', '/accept-invite', '/r'] as const;
+// /sso (2026-10-10) is the landing page of the single sign-on hand-off from
+// the Bravo Secure home site: it has no session yet by definition.
+export const PUBLIC_PATHS = ['/login', '/accept-invite', '/r', '/sso'] as const;
 
 /**
  * Brand/icon files in `public/` that must be servable WITHOUT a session.
@@ -37,6 +39,9 @@ export const PUBLIC_ASSETS: readonly string[] = [
   '/bravo-logo-light.svg',
   '/bravo-mark.svg',
   '/bravo-mark-light.svg',
+  // 2026-10-10 — background of the Bravo Secure home site (dotted world map
+  // drawn from Natural Earth land, public domain via the world-atlas package).
+  '/hub-world.svg',
 ] as const;
 
 export function isPublicAsset(pathname: string | null | undefined): boolean {

@@ -16,7 +16,7 @@ import type {OpsUserLocation} from './userLocation';
 import {routes} from '@/lib/routes';
 import {usePathname} from 'next/navigation';
 import {isPublicPath} from './publicRoutes';
-import {isProviderHost, isWebHost, readSessionCsrf, sessionCsrfCookieName} from './provider/host';
+import {isHubHost, isProviderHost, isWebHost, readSessionCsrf, sessionCsrfCookieName} from './provider/host';
 import {pollMs} from './pollCadence';
 
 // Audit fix 4.1 — fail loudly if API base URL is missing in prod. Defaulting
@@ -218,7 +218,7 @@ export interface LoginStartResult {
   userId:       string | null;
   otpSentTo:    string | null;
   challengeId:  string | null;
-  secondFactor: 'sms' | 'totp' | 'totp_enrol' | null;
+  secondFactor: 'sms' | 'email' | 'totp' | 'totp_enrol' | null;
   enrol:        TotpEnrolment | null;
 }
 
@@ -881,6 +881,23 @@ export interface DispatchAreasResponse {
   }>;
 }
 
+/** A tile on the Bravo Secure home site (ops → Internal → Apps). */
+export interface PlatformApp {
+  key: string;
+  name: string;
+  tagline: string;
+  icon: string;
+  sort: number;
+  active: boolean;
+  url: string | null;
+  agency_url: string | null;
+  allowed_audiences: string[];
+  requires_totp: boolean;
+  updated_at: string;
+  updated_by: string | null;
+}
+export interface PlatformAppsResponse {apps: PlatformApp[]; audiences: string[]; icons: string[]}
+
 export const opsApi = {
   // E2E-43 — `noBoot`: this is the only endpoint the console polls purely to
   // re-check identity, so a single 401 here must not navigate the operator
@@ -1282,6 +1299,17 @@ export const opsApi = {
   clearIntegrationSetting: (key: string) =>
     fetchJson<{ok: true; setting: IntegrationSetting | null}>(`/ops/settings/${encodeURIComponent(key)}`, {
       method: 'DELETE',
+    }),
+  /** One test email with the saved SMTP settings (2026-10-10). */
+  testEmail: (to: string) =>
+    fetchJson<{ok: boolean; error: string | null}>(`/ops/settings/email/test`, {
+      method: 'POST', body: JSON.stringify({to}),
+    }),
+  // 2026-10-10 — the tiles on the Bravo Secure home site. SUPER_ADMIN only.
+  platformApps: () => fetchJson<PlatformAppsResponse>(`/ops/platform-apps`),
+  updatePlatformApp: (key: string, patch: Partial<Omit<PlatformApp, 'key' | 'updated_at' | 'updated_by'>>) =>
+    fetchJson<{app: PlatformApp}>(`/ops/platform-apps/${encodeURIComponent(key)}`, {
+      method: 'PATCH', body: JSON.stringify(patch),
     }),
   /** One test SMS with the saved Twilio credentials. */
   testSms: (to: string) =>
@@ -2668,8 +2696,9 @@ export function useOpsMe() {
   // The provider console (provider.* host) shares the root layout, and so the
   // MessengerProvider that calls this hook. It has no ops session: never ask.
   // Same for the Bravo Web App (web.* host).
+  // And the Bravo Secure home site (bravosecure.cloud).
   const onProviderHost = typeof window !== 'undefined'
-    && (isProviderHost(window.location.host) || isWebHost(window.location.host));
+    && (isProviderHost(window.location.host) || isWebHost(window.location.host) || isHubHost(window.location.host));
   return useSWR<OpsMe>(
     isPublicPath(pathname) || onProviderHost ? null : 'me',
     async () => {

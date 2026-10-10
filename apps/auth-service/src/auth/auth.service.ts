@@ -1,4 +1,5 @@
-import {Injectable, ConflictException, UnauthorizedException, NotFoundException, BadRequestException, HttpException, HttpStatus} from '@nestjs/common';
+import {Injectable, ConflictException, UnauthorizedException, NotFoundException, BadRequestException, HttpException, HttpStatus, ServiceUnavailableException} from '@nestjs/common';
+import type {SecondFactorMode} from '../config/configuration';
 import {ConfigService} from '@nestjs/config';
 import {DatabaseService} from '../database/database.service';
 import {RedisService}    from '../redis/redis.service';
@@ -58,12 +59,121 @@ export class AuthService {
   // ── Second factor (AUTH_SECOND_FACTOR) ────────────────────────────────────
   // Ported 2026-09-28 from the bravosecure.cloud production branch. 'sms' is
   // the Twilio code path below; 'totp' is an authenticator app, no SMS needed.
-  private get secondFactor(): 'sms' | 'totp' {
-    return this.config.get<'sms' | 'totp'>('auth.secondFactor') ?? 'sms';
+  private get secondFactor(): SecondFactorMode {
+    return this.config.get<SecondFactorMode>('auth.secondFactor') ?? 'sms';
+  }
+  /**
+   * App registration in 'adaptive' mode works exactly as in 'totp' mode
+   * (phone proof → account → authenticator enrolment): the Android release
+   * built on 2026-10-08 speaks that flow. The home site has its own
+   * registration (hub/signup.service.ts) where the authenticator is optional.
+   */
+  private get registersLikeTotp(): boolean {
+    return this.secondFactor === 'totp' || this.secondFactor === 'adaptive';
   }
   /** TOTP mode only — how sign-up proves the phone: 'sms' (Twilio), 'stub' (code returned, testing), 'none'. */
   private get registerPhoneProof(): 'sms' | 'stub' | 'none' {
     return this.config.get<'sms' | 'stub' | 'none'>('auth.registerPhoneProof') ?? 'sms';
+  }
+
+  // ── Adaptive second factor (AUTH_SECOND_FACTOR=adaptive, 2026-10-10) ──────
+  //
+  // The authenticator is optional for members of the public and required for
+  // staff:
+  //   * a confirmed authenticator           → authenticator code (as 'totp');
+  //   * HQ staff (an active admin_users row), or a sign-in started from the
+  //     ops console                         → must set one up ('totp_enrol');
+  //   * everyone else                       → a one-time code by SMS to their
+  //     phone, or, when SMS is not configured, by email to a VERIFIED address.
+  // Nothing deliverable → 503 second_factor_unavailable (never a silent
+  // password-only sign-in).
+  private async isStaff(userId: string): Promise<boolean> {
+    const row = await this.db.qOne<{n: number}>(
+      `SELECT count(*)::int AS n FROM admin_users WHERE user_id=$1 AND active = TRUE`, [userId]);
+    return (row?.n ?? 0) > 0;
+  }
+
+  private static maskPhone(p: string): string {
+    return p.length > 6 ? `${p.slice(0, 4)}•••${p.slice(-2)}` : '•••';
+  }
+
+  private static maskEmail(e: string): string {
+    const [local, domain] = e.split('@');
+    return `${(local ?? '').slice(0, 2)}•••@${domain ?? ''}`;
+  }
+
+  private async adaptiveSecondStep(user: UserRow, ip: string, staffConsole: boolean): Promise<{
+    challengeId: string | null;
+    secondFactor: 'totp' | 'totp_enrol' | 'sms' | 'email';
+    enrol: TotpEnrolment | null;
+    otpSentTo: string | null;
+  }> {
+    const status = await this.totp.status(user.id);
+    if (status === 'verified' || staffConsole || await this.isStaff(user.id)) {
+      return {...(await this.totpSecondStep(user, ip)), otpSentTo: null};
+    }
+    const contact = await this.db.qOne<{email_verified_at: Date | null}>(
+      `SELECT email_verified_at FROM public.users WHERE id=$1`, [user.id]);
+    const channel: 'phone' | 'email' | null =
+      user.phone_e164 && this.otp.smsReady() ? 'phone'
+      : user.email && contact?.email_verified_at && this.otp.emailReady() ? 'email'
+      : null;
+    if (!channel) {
+      await this.audit.emit({event_type:'auth.login', user_id:user.id, device_id:null, ip, outcome:'failure', detail:'second_factor_unavailable'});
+      throw new ServiceUnavailableException({
+        error: 'second_factor_unavailable',
+        message: 'Sign-in codes cannot be sent right now. Try again later or contact Bravo Secure.',
+      });
+    }
+    const expiresAt = new Date(Date.now() + (this.config.get<number>('otp.ttlMinutes') ?? 10) * 60_000);
+    await this.db.q(
+      `INSERT INTO auth_otps (user_id,channel,code_hash,expires_at) VALUES ($1,$2,$3,$4)`,
+      [user.id, channel, channel === 'phone' ? 'TWILIO_VERIFY' : 'EMAIL', expiresAt],
+    );
+    if (channel === 'phone') {
+      await this.otp.send(user.phone_e164!, '');
+      return {challengeId: null, secondFactor: 'sms', enrol: null, otpSentTo: AuthService.maskPhone(user.phone_e164!)};
+    }
+    await this.otp.sendEmail(user.email);
+    return {challengeId: null, secondFactor: 'email', enrol: null, otpSentTo: AuthService.maskEmail(user.email)};
+  }
+
+  /** Adaptive mode, code half: the latest phone/email code for this user. */
+  private async verifyAdaptiveCode(user: UserRow, dto: VerifyDto, ip: string) {
+    const maxAttempts = this.config.get<number>('otp.maxAttempts') ?? 3;
+    const otp = await this.db.qOne<{id: string; channel: 'phone' | 'email'; expires_at: Date; used_at: Date | null; attempt_count: number}>(
+      `SELECT id,channel,expires_at,used_at,attempt_count FROM auth_otps
+        WHERE user_id=$1 AND channel IN ('phone','email') ORDER BY created_at DESC LIMIT 1`,
+      [user.id],
+    );
+    if (!otp)                                  throw new BadRequestException('no_pending_otp');
+    if (otp.used_at)                           throw new BadRequestException('otp_already_used');
+    if (new Date(otp.expires_at) < new Date()) throw new BadRequestException('otp_expired');
+    if (otp.attempt_count >= maxAttempts)      throw new BadRequestException('otp_max_attempts');
+    const destination = otp.channel === 'email' ? user.email : user.phone_e164;
+    const approved = destination ? await this.otp.check(destination, dto.code) : false;
+    if (!approved) {
+      const next = otp.attempt_count + 1;
+      if (next >= maxAttempts) {
+        await this.db.q(`UPDATE auth_otps SET attempt_count=$1,used_at=now() WHERE id=$2`, [next, otp.id]);
+        await this.audit.emit({event_type:'auth.verify', user_id:user.id, device_id:dto.deviceId, ip, outcome:'failure', detail:'otp_max_attempts_reached'});
+        throw new BadRequestException('otp_max_attempts');
+      }
+      await this.db.q(`UPDATE auth_otps SET attempt_count=$1 WHERE id=$2`, [next, otp.id]);
+      await this.audit.emit({event_type:'auth.verify', user_id:user.id, device_id:dto.deviceId, ip, outcome:'failure', detail:'otp_invalid'});
+      throw new BadRequestException({error:'otp_invalid', attemptsLeft: maxAttempts - next});
+    }
+    await this.db.q(`UPDATE auth_otps SET used_at=now() WHERE id=$1`, [otp.id]);
+    // The code proved the channel it went to.
+    await this.db.q(
+      otp.channel === 'email'
+        ? `UPDATE public.users SET email_verified_at=COALESCE(email_verified_at, now()), kyc_status=CASE WHEN kyc_status='pending' THEN 'approved' ELSE kyc_status END WHERE id=$1`
+        : `UPDATE public.users SET phone_verified_at=COALESCE(phone_verified_at, now()), kyc_status=CASE WHEN kyc_status='pending' THEN 'approved' ELSE kyc_status END WHERE id=$1`,
+      [user.id],
+    );
+    const session = await this.issueSession(user, dto.deviceId, dto.platform, true, dto);
+    await this.audit.emit({event_type:'auth.verify', user_id:user.id, device_id:dto.deviceId, ip, outcome:'success', detail:otp.channel});
+    return {user, ...session};
   }
 
   /**
@@ -221,7 +331,7 @@ export class AuthService {
 
   // ── register (step 1: dup-check + send OTP only — NO user row created) ────
   async register(dto: RegisterDto, ip: string) {
-    if (this.secondFactor === 'totp') {
+    if (this.registersLikeTotp) {
       if (this.registerPhoneProof === 'none') return this.registerTotp(dto, ip);
       // 2026-10-08 — prove the phone BEFORE the account exists, exactly like
       // the SMS path: same conflict rules as registerTotp (so a number that
@@ -394,7 +504,7 @@ export class AuthService {
 
   // ── register (step 2: Twilio approves → create user + issue session) ──────
   async registerVerify(dto: RegisterVerifyDto, ip: string) {
-    if (this.secondFactor === 'totp' && this.registerPhoneProof !== 'none') {
+    if (this.registersLikeTotp && this.registerPhoneProof !== 'none') {
       // 2026-10-08 — the SMS code from register() proves the phone; only then
       // is the account created (kyc 'approved') and the authenticator
       // enrolment issued. NO tokens here: the client takes the returned
@@ -410,7 +520,7 @@ export class AuthService {
       await this.assertTotpRegistrable(dto, ip);
       return this.registerTotp(dto, ip, true);
     }
-    if (this.secondFactor === 'totp') {
+    if (this.registersLikeTotp) {
       // REGISTER_PHONE_PROOF=none — the user already exists (created by
       // registerTotp); this is just the code step. Resolve the id from the
       // phone and run the same path as login → verify.
@@ -503,7 +613,7 @@ export class AuthService {
    * stays the existing already_exists conflict. Defensive on the result shape:
    * a caller that got no rows (or a bare mock) simply has no invite.
    */
-  private async claimableInvite(email: string, phone: string): Promise<string | null> {
+  async claimableInvite(email: string, phone: string): Promise<string | null> {
     const rows = await this.db.q<{id: string; phone_e164: string | null; claimable: boolean}>(
       `SELECT id, phone_e164,
               (invited_at IS NOT NULL AND password_hash IS NULL AND suspended_at IS NULL
@@ -519,7 +629,7 @@ export class AuthService {
   }
 
   // ── login (no account enumeration — always 200) ───────────────────────────
-  async login(dto: LoginDto, ip: string) {
+  async login(dto: LoginDto, ip: string, opts: {staffConsole?: boolean} = {}) {
     if (!dto.email && !dto.phoneE164) throw new BadRequestException('email_or_phone_required');
 
     const user = await this.db.qOne<UserRow & {password_hash: string | null}>(
@@ -540,6 +650,13 @@ export class AuthService {
       const step = await this.totpSecondStep(user!, ip);
       await this.audit.emit({event_type:'auth.login', user_id:user!.id, device_id:null, ip, outcome:'success', detail:step.secondFactor});
       return {userId: user!.id, otpSentTo: null, devOtpCode: null, ...step};
+    }
+
+    if (this.secondFactor === 'adaptive') {
+      const step = await this.adaptiveSecondStep(user!, ip, opts.staffConsole === true);
+      const devOtpCode = step.challengeId === null && this.config.get<boolean>('otp.devBypass') ? this.otp.generate() : null;
+      await this.audit.emit({event_type:'auth.login', user_id:user!.id, device_id:null, ip, outcome:'success', detail:step.secondFactor});
+      return {userId: user!.id, devOtpCode, ...step};
     }
 
     // Twilio Verify owns the OTP code; local row only tracks attempt_count/expiry.
@@ -570,6 +687,10 @@ export class AuthService {
     );
     if (!user) throw new NotFoundException('user_not_found');
     if (this.secondFactor === 'totp') return this.verifyTotp(user, dto, ip);
+    if (this.secondFactor === 'adaptive') {
+      // A challengeId is only ever handed out for the authenticator path.
+      return dto.challengeId ? this.verifyTotp(user, dto, ip) : this.verifyAdaptiveCode(user, dto, ip);
+    }
     if (!user.phone_e164) throw new BadRequestException('user_has_no_phone');
 
     const maxAttempts = this.config.get<number>('otp.maxAttempts') ?? 3;

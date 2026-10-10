@@ -107,6 +107,19 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return val;
   }
 
+  /**
+   * Read and delete in ONE command (GETDEL, Redis ≥ 6.2), so two concurrent
+   * callers can never both receive the value — single-use codes (SSO hand-off).
+   */
+  async takeOnce(key: string): Promise<string | null> {
+    return this.client.getdel(key);
+  }
+
+  /** Plain read (pending sign-ups). */
+  async get(key: string): Promise<string | null> {
+    return this.client.get(key);
+  }
+
   // ── P0-V2 — per-userId TOTP attempt counter / lockout ────────────────────
   // RFC 6238 §5.2 mandates throttling the verifier. The /auth/totp/verify
   // endpoint is unauthenticated by design (the TOTP code IS the second

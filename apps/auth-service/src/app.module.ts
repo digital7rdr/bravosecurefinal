@@ -23,6 +23,7 @@ import {WalletModule}        from './wallet/wallet.module';
 import {TelemetryModule}     from './telemetry/telemetry.module';
 import {AgentModule}         from './agents/agent.module';
 import {OrgModule}           from './org/org.module';
+import {HubModule}           from './hub/hub.module';
 import {AttendanceModule}    from './attendance/attendance.module';
 import {IncidentModule}      from './incident/incident.module';
 import {OpsModule}           from './ops/ops.module';
@@ -118,6 +119,7 @@ import {ObservabilityModule} from './observability/observability.module';
     TelemetryModule,
     AgentModule,
     OrgModule,
+    HubModule,
     AttendanceModule,
     OpsModule,
     OpsDeptChatModule,
