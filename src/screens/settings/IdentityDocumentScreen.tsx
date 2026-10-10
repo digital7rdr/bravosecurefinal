@@ -176,8 +176,19 @@ export default function IdentityDocumentScreen({onDone}: Props) {
     }
   }, [picking, front?.uri, back?.uri]);
 
-  // Whatever was picked but never sent goes with the screen.
-  useEffect(() => () => { void discard(front?.uri, back?.uri); }, [front?.uri, back?.uri]);
+  // Whatever was picked but never sent goes with the screen — on UNMOUNT only.
+  // 2026-10-10 bug: this was `useEffect(() => () => discard(front, back),
+  // [front?.uri, back?.uri])`. React runs a cleanup on every dependency
+  // change, with the PREVIOUS values — so picking the back photo deleted the
+  // front photo's file (and a retake deleted the other side). The thumbnail
+  // still rendered from memory, but submit could not read the file and the
+  // native request died before sending: "No response from the server" on
+  // every two-photo National ID, while one-photo passports worked. Retakes
+  // already discard the replaced copy in pick(); a ref carries the latest
+  // URIs to the unmount-only cleanup.
+  const pickedUris = useRef<{front?: string; back?: string}>({});
+  pickedUris.current = {front: front?.uri, back: back?.uri};
+  useEffect(() => () => { void discard(pickedUris.current.front, pickedUris.current.back); }, []);
 
   const choose = useCallback((side: Side) => {
     Alert.alert(
