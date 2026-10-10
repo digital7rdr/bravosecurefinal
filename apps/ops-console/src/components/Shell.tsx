@@ -13,6 +13,7 @@ import { useMessenger } from './messenger/MessengerProvider';
 import NotificationBell from './NotificationBell';
 import OpsNotifier from './OpsNotifier';
 import SosAlertBar from './SosAlertBar';
+import {HomeSiteLink} from './HomeSiteLink';
 
 // Audit fix 4.1 — refresh the access cookie this many seconds BEFORE it
 // expires so a long-running request doesn't race the rotation. 60s gives
@@ -389,6 +390,7 @@ export function Shell({ children }: { children: ReactNode }) {
         {/* DC-17 — the fake ⌘K search box promised a global search that never
             existed; removed until a real one ships. Spacer keeps the layout. */}
         <div style={{flex: 1}} />
+        <HomeSiteLink />
         <FreshnessPill />
         <UtcClock />
         {/* N-23/N-24 — real notification centre: a dropdown over the live

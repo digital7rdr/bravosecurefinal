@@ -24,6 +24,7 @@ import {
 import {PROVIDER_NAV, navActive, type NavIcon} from '@/lib/provider/nav';
 import {pvRoutes} from '@/lib/provider/routes';
 import {ChangePasswordDialog} from './ChangePassword';
+import {HomeSiteLink} from '@/components/HomeSiteLink';
 import {useMessenger} from '@/components/messenger/MessengerProvider';
 
 const REFRESH_LEAD_SEC = 60;
@@ -240,6 +241,7 @@ export function ProviderShell({children}: {children: ReactNode}) {
             {value.org.department && <span className="pill">{value.org.department}</span>}
           </div>
           <div style={{flex: 1}}/>
+          <HomeSiteLink/>
           <div className="topbar-admin" style={{cursor: 'default'}}>
             <div className="topbar-admin-av">{initials}</div>
             <div>
