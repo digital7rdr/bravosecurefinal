@@ -159,7 +159,9 @@ export class AuthController {
     throw new ForbiddenException('admin_self_registration_disabled');
   }
 
-  @Throttle({default: {limit: 5, ttl: 600_000}})
+  // 2026-10-11 — per network only a generous backstop; the real limit is
+  // per account and counts wrong passwords only (AuthService.login).
+  @Throttle({default: {limit: 60, ttl: 600_000}})
   @Post('login')
   @HttpCode(200)
   async login(@Body() dto: LoginDto, @Req() req: Request) {

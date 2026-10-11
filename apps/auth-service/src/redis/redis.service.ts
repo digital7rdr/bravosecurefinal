@@ -120,6 +120,29 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     return this.client.get(key);
   }
 
+  // ── 2026-10-11 — wrong-password counter per sign-in identifier ─────────────
+  // Only FAILED sign-ins count (a correct one clears it), keyed by the phone /
+  // email typed, so one person mistyping never blocks a whole office network.
+  private static readonly LOGIN_FAIL_PREFIX = 'login-fail:';
+
+  /** Current wrong-password count and seconds until it resets (0 when none). */
+  async loginFailures(id: string): Promise<{count: number; retryInSec: number}> {
+    const key = `${RedisService.LOGIN_FAIL_PREFIX}${id}`;
+    const [raw, ttl] = await Promise.all([this.client.get(key), this.client.ttl(key)]);
+    return {count: Number(raw ?? 0) || 0, retryInSec: ttl > 0 ? ttl : 0};
+  }
+
+  async incrLoginFailures(id: string, windowSeconds: number): Promise<number> {
+    const key = `${RedisService.LOGIN_FAIL_PREFIX}${id}`;
+    const n = await this.client.incr(key);
+    if (n === 1) await this.client.expire(key, windowSeconds);
+    return n;
+  }
+
+  async clearLoginFailures(id: string): Promise<void> {
+    await this.client.del(`${RedisService.LOGIN_FAIL_PREFIX}${id}`);
+  }
+
   // ── P0-V2 — per-userId TOTP attempt counter / lockout ────────────────────
   // RFC 6238 §5.2 mandates throttling the verifier. The /auth/totp/verify
   // endpoint is unauthenticated by design (the TOTP code IS the second

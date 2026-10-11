@@ -649,8 +649,29 @@ export class AuthService {
   }
 
   // ── login (no account enumeration — always 200) ───────────────────────────
+  // 2026-10-11 — sign-in limit: only WRONG passwords count, per phone/email
+  // typed (not per network), and a correct sign-in clears the count.
+  static readonly LOGIN_MAX_FAILURES = 10;
+  static readonly LOGIN_FAIL_WINDOW_SEC = 15 * 60;
+
+  /** Fail open: a Redis blip must never take sign-in down. */
+  private async loginFailGuard<T>(fn: () => Promise<T>, fallback: T): Promise<T> {
+    try { return await fn(); } catch { return fallback; }
+  }
+
   async login(dto: LoginDto, ip: string, opts: {staffConsole?: boolean} = {}) {
     if (!dto.email && !dto.phoneE164) throw new BadRequestException('email_or_phone_required');
+
+    const failKey = (dto.email ?? dto.phoneE164!).trim().toLowerCase();
+    const fails = await this.loginFailGuard(() => this.redis.loginFailures(failKey), {count: 0, retryInSec: 0});
+    if (fails.count >= AuthService.LOGIN_MAX_FAILURES) {
+      const minutes = Math.max(1, Math.ceil(fails.retryInSec / 60));
+      throw new HttpException({
+        error: 'login_locked',
+        message: `Too many wrong passwords for this account. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}, or use "Forgot your password?".`,
+        retryInSec: fails.retryInSec,
+      }, HttpStatus.TOO_MANY_REQUESTS);
+    }
 
     const user = await this.db.qOne<UserRow & {password_hash: string | null}>(
       dto.email
@@ -661,10 +682,12 @@ export class AuthService {
 
     const ok = user?.password_hash ? await this.password.verify(user.password_hash, dto.password) : false;
     if (!ok) {
+      await this.loginFailGuard(() => this.redis.incrLoginFailures(failKey, AuthService.LOGIN_FAIL_WINDOW_SEC), 0);
       await this.audit.emit({event_type:'auth.login', user_id:user?.id??null, device_id:null, ip, outcome:'failure', detail:'invalid_credentials'});
       // Same response shape whether account exists or not — prevent enumeration.
       return {userId: null, otpSentTo: null, devOtpCode: null, challengeId: null, secondFactor: null, enrol: null};
     }
+    await this.loginFailGuard(() => this.redis.clearLoginFailures(failKey), undefined);
 
     if (this.secondFactor === 'totp') {
       if (this.mobileSkipsSecondFactor(dto.platform) && dto.deviceId) {

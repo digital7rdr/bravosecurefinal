@@ -59,6 +59,8 @@ export function friendlyError(e: unknown): string {
       return 'This sign-in has expired. Go back and sign in again.';
     }
     if (code === 'otp_already_used') return 'That code was already used. Wait for the next code in your app.';
+    // 2026-10-11 — the server's own wording (e.g. login_locked says how many minutes).
+    if (code === 'login_locked' && typeof body.message === 'string') return body.message;
     if (e.status === 429) return 'Too many attempts. Wait a few minutes, then try again.';
     if (e.status >= 500) return 'The server had a problem. Try again in a moment.';
     return typeof code === 'string' && code ? code : 'Something went wrong. Try again.';
