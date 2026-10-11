@@ -212,7 +212,11 @@ export function UserDetail() {
       await fn();
       await mutate();
     } catch (e) {
-      setAcctErr((e as Error).message);
+      const m = (e as Error).message;
+      setAcctErr(/cannot_erase_self/.test(m) ? 'You cannot delete your own account.'
+        : /console_admin_target_requires_super/.test(m) ? 'Only a Super Admin can delete or suspend a console admin.'
+        : /cannot_lock_out_last_admin/.test(m) ? 'Refused: that is the last active Super Admin account.'
+        : m);
     } finally {
       setAcctBusy(false);
     }
@@ -231,7 +235,7 @@ export function UserDetail() {
   function confirmErase(reason: string) {
     // Erase keeps its double-confirm: validated reason first, then a final
     // irreversible-action gate.
-    if (!window.confirm('This cannot be undone. Erase this user now?')) return;
+    if (!window.confirm('This cannot be undone. Delete this account permanently now?')) return;
     setEraseOpen(false);
     void runAccountAction(() => opsDataApi.eraseUser(id, reason));
   }
@@ -317,10 +321,10 @@ export function UserDetail() {
                 </button>
               )
             )}
-            {canErase && !user.deleted_at && (
+            {canErase && !user.deleted_at && user.id !== me?.admin.user_id && (
               <button onClick={() => setEraseOpen(true)} disabled={acctBusy}
                 className="rounded-md border border-err/40 px-3 py-1.5 text-xs font-semibold text-err hover:bg-err/10 disabled:opacity-50">
-                ERASE
+                DELETE ACCOUNT
               </button>
             )}
             <Link href={routes.people.users} className="rounded-md border border-bd1 px-3 py-1.5 text-xs font-semibold text-t2 hover:bg-s1">
@@ -629,11 +633,11 @@ export function UserDetail() {
       />
       <ConfirmReasonModal
         open={eraseOpen}
-        title="Irreversible erasure"
-        description="Scrubs name / email / phone / avatar and permanently blocks login. Booking and wallet history is retained for audit. This cannot be undone."
-        reasonLabel="Erasure reason"
-        reasonPlaceholder="e.g. GDPR erasure request ref #…"
-        confirmLabel="ERASE USER"
+        title="Delete account permanently"
+        description="Super Admin only. Signs the person out everywhere and blocks sign-in for good; removes their name, email, phone, photo and ID documents (the email and phone can then be used for a new account). A console admin also loses console access. Booking, payment and audit history is kept. This cannot be undone."
+        reasonLabel="Reason (kept in the audit log)"
+        reasonPlaceholder="e.g. Customer asked to close the account, ticket #…"
+        confirmLabel="DELETE ACCOUNT"
         danger
         busy={acctBusy}
         onConfirm={confirmErase}

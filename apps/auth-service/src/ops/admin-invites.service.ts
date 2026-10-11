@@ -330,6 +330,7 @@ export class AdminInvitesService {
               au.active, au.last_active_at, au.created_at, u.email
          FROM admin_users au
          LEFT JOIN public.users u ON u.id = au.user_id
+        WHERE u.deleted_at IS NULL
         ORDER BY au.created_at ASC`,
     );
   }

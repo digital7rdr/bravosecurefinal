@@ -462,6 +462,8 @@ export class OpsDataController {
   @Post('users/:id/erase')
   @RequireRoles('ADMIN')
   async eraseUser(@Param('id', ParseUUIDPipe) id: string, @Body() dto: EraseUserDto, @Req() req: OpsReq) {
+    // 2026-10-11 — "Delete account" in the console: never your own account.
+    if (id === req.admin.user_id) throw new BadRequestException('cannot_erase_self');
     await this.data.assertConsoleAdminTarget(req.admin, id);
     const r = await this.data.eraseUser(req.admin.user_id, id, dto.reason);
     await this.audit.recordAdmin(req.admin, 'user.erase', 'user', id, {reason: dto.reason, revoked_sessions: r.revoked_sessions});

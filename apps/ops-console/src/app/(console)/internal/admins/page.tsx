@@ -2,7 +2,8 @@
 
 import {useState} from 'react';
 import useSWR from 'swr';
-import {opsApi, useOpsMe, type AdminAccountRow, type AdminInviteRow} from '@/lib/api';
+import {opsApi, opsDataApi, useOpsMe, type AdminAccountRow, type AdminInviteRow} from '@/lib/api';
+import {ConfirmReasonModal} from '@/components/ConfirmReasonModal';
 import {EditDetailsModal} from '@/components/EditDetailsModal';
 import {ResetPasswordModal} from '@/components/ResetPasswordModal';
 import {ResetAuthenticatorModal} from '@/components/ResetAuthenticatorModal';
@@ -121,6 +122,26 @@ export default function AdminsPage() {
   const [editing, setEditing] = useState<AdminAccountRow | null>(null);
   const [resetting, setResetting] = useState<AdminAccountRow | null>(null);
   const [totpFor, setTotpFor] = useState<AdminAccountRow | null>(null);
+  const [deleting, setDeleting] = useState<AdminAccountRow | null>(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+
+  // 2026-10-11 — delete a console admin's account for good (Super Admin).
+  async function confirmDelete(reason: string) {
+    const a = deleting;
+    if (!a || !window.confirm(`This cannot be undone. Delete ${a.call_sign}'s account permanently now?`)) return;
+    setDeleteBusy(true);
+    try {
+      await opsDataApi.eraseUser(a.user_id, reason);
+      setDeleting(null);
+      void mutateAdmins();
+    } catch (e) {
+      const m = (e as Error).message;
+      window.alert(/cannot_erase_self/.test(m) ? 'You cannot delete your own account.'
+        : /cannot_lock_out_last_admin/.test(m) ? 'Refused: that is the last active Super Admin account.'
+        : /console_admin_target_requires_super/.test(m) ? 'Only a Super Admin can delete a console admin.'
+        : m);
+    } finally { setDeleteBusy(false); }
+  }
 
   // ── Invite lane (RS-09) ──
   const [email, setEmail] = useState('');
@@ -271,6 +292,12 @@ export default function AdminsPage() {
                               <button type="button" onClick={() => setTotpFor(a)}
                                 className="whitespace-nowrap rounded border border-warn/30 px-2 py-1 text-[11px] font-semibold text-warn hover:bg-warn/10">
                                 AUTHENTICATOR
+                              </button>
+                            )}
+                            {isSuperAdmin(me?.admin.role) && a.user_id !== me?.admin.user_id && (
+                              <button type="button" onClick={() => setDeleting(a)}
+                                className="whitespace-nowrap rounded border border-err/40 px-2 py-1 text-[11px] font-semibold text-err hover:bg-err/10">
+                                DELETE
                               </button>
                             )}
                             {a.user_id !== me?.admin.user_id && (
@@ -428,6 +455,18 @@ export default function AdminsPage() {
           </>
         )}
       </div>
+      <ConfirmReasonModal
+        open={deleting !== null}
+        title={deleting ? `Delete ${deleting.call_sign} permanently` : 'Delete admin'}
+        description="Super Admin only. Removes their console access and signs them out everywhere, blocks sign-in for good and removes their name, email, phone, photo and ID documents. Audit history is kept. To only pause access, use DEACTIVATE instead. This cannot be undone."
+        reasonLabel="Reason (kept in the audit log)"
+        reasonPlaceholder="e.g. Left the company"
+        confirmLabel="DELETE ACCOUNT"
+        danger
+        busy={deleteBusy}
+        onConfirm={reason => void confirmDelete(reason)}
+        onCancel={() => setDeleting(null)}
+      />
       <ResetAuthenticatorModal
         open={totpFor !== null}
         userId={totpFor?.user_id ?? null}
