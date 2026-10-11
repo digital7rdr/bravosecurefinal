@@ -134,4 +134,7 @@ export const hubApi = {
   launch: (app: string) => post<{redirect: string}>('/hub/launch', {app}),
   totpStart: () => post<TotpSetup>('/hub/security/totp/start'),
   totpConfirm: (code: string) => post<{ok: true}>('/hub/security/totp/confirm', {code}),
+  // 2026-10-11 — signs out every device (the server clears this session's cookies too).
+  changePassword: (currentPassword: string, newPassword: string) =>
+    post<{ok: true}>('/auth/me/password', {currentPassword, newPassword}),
 };

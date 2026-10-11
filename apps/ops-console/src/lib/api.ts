@@ -1431,6 +1431,9 @@ export const opsApi = {
     fetchJson<{ok: true; changed: string[]}>(`/ops/admins/${userId}`, {
       method: 'PATCH', body: JSON.stringify(patch),
     }),
+  // 2026-10-11 — Super Admin: new temporary password (shown once), every device signed out.
+  resetUserPassword: (userId: string) =>
+    fetchJson<{password: string; sessions_revoked: number}>(`/ops/users/${userId}/password/reset`, {method: 'POST'}),
   // 2026-10-10 — edit any user's name, email, login phone (SUPER_ADMIN).
   updateUserProfile: (userId: string, patch: {display_name?: string; email?: string; phone_e164?: string}) =>
     fetchJson<{ok: true; changed: string[]}>(`/ops/users/${userId}/profile`, {

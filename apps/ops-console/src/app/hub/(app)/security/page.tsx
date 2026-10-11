@@ -3,14 +3,14 @@
 /**
  * Security (home site): set up the optional authenticator app. Once it is on,
  * every sign-in asks for its code instead of a texted one, and apps that
- * require it (Control Console) open.
+ * require it (Control Console) open. Also: change your password (2026-10-11).
  */
 import Link from 'next/link';
 import {useSearchParams} from 'next/navigation';
 import {Suspense, useEffect, useState} from 'react';
 import QRCode from 'qrcode';
 import {useHub} from '@/components/hub/HubShell';
-import {hubApi, ApiError, type TotpSetup} from '@/lib/hub/api';
+import {hubApi, ApiError, expireHubCsrf, HUB_EXPIRES_KEY, type TotpSetup} from '@/lib/hub/api';
 import {hubRoutes} from '@/lib/hub/routes';
 
 export default function SecurityPage() {
@@ -118,6 +118,69 @@ function Security() {
           <div className="auth-actions">
             <button type="button" className="btn btn-ghost" onClick={() => setSetup(null)}>Cancel</button>
             <button className="btn btn-pri" disabled={busy || !saved || code.replace(/[\s-]/g, '').length < 6}>{busy ? 'Checking…' : 'Turn on'}</button>
+          </div>
+        </form>
+      )}
+
+      <ChangePassword/>
+    </div>
+  );
+}
+
+/**
+ * Change password — also how someone given a temporary password by Bravo
+ * Secure (ops console → Reset password) replaces it with their own.
+ */
+function ChangePassword() {
+  const [open, setOpen] = useState(false);
+  const [cur, setCur] = useState('');
+  const [next, setNext] = useState('');
+  const [again, setAgain] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const valid = cur.length > 0 && next.length >= 10 && next === again && next !== cur;
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    if (!valid || busy) return;
+    setBusy(true); setErr(null);
+    try {
+      await hubApi.changePassword(cur, next);
+      expireHubCsrf();
+      try { window.sessionStorage.removeItem(HUB_EXPIRES_KEY); } catch { /* ignore */ }
+      window.location.replace(`${hubRoutes.login}?changed=1`);
+    } catch (ex) {
+      const b = (ex instanceof ApiError ? ex.body : null) as {message?: string} | null;
+      setErr(b?.message === 'current_password_invalid' ? 'The current password is not correct.'
+        : b?.message === 'new_password_must_differ' ? 'Choose a password different from the current one.'
+        : ex instanceof ApiError && ex.status === 429 ? 'Too many attempts. Wait a minute and try again.'
+        : 'Could not change the password. Try again.');
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="hub-pw">
+      <h2 className="hub-panel-sub">Password</h2>
+      {!open ? (
+        <>
+          <p className="hub-note">Change the password you sign in with. If Bravo Secure gave you a temporary password, replace it here.</p>
+          <button className="btn btn-ghost" onClick={() => setOpen(true)}>Change password</button>
+        </>
+      ) : (
+        <form onSubmit={save} className="hub-pw-form">
+          <input className="auth-input" type="password" autoComplete="current-password" placeholder="Current password"
+            aria-label="Current password" value={cur} onChange={e => setCur(e.target.value)}/>
+          <input className="auth-input" type="password" autoComplete="new-password" placeholder="New password (at least 10 characters)"
+            aria-label="New password" value={next} onChange={e => setNext(e.target.value)}/>
+          <input className="auth-input" type="password" autoComplete="new-password" placeholder="New password again"
+            aria-label="New password again" value={again} onChange={e => setAgain(e.target.value)}/>
+          {again.length > 0 && again !== next && <div className="auth-hint">The two new passwords do not match.</div>}
+          <p className="hub-note" style={{margin: 0}}>You will be signed out on every device, then sign in with the new password.</p>
+          {err && <div className="hub-err" role="alert">{err}</div>}
+          <div className="auth-actions">
+            <button type="button" className="btn btn-ghost" onClick={() => { setOpen(false); setErr(null); }}>Cancel</button>
+            <button className="btn btn-pri" disabled={busy || !valid}>{busy ? 'Saving…' : 'Change password'}</button>
           </div>
         </form>
       )}

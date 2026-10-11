@@ -1819,6 +1819,9 @@ textarea.pv-input { resize: vertical; }
 .hub-facts b.ok { color: #4ade80; }
 .hub-note { color: #c7d5f2; font-size: 14.5px; line-height: 1.6; margin: 0 0 16px; }
 .hub-setup .auth-steps { margin-bottom: 12px; }
+.hub-pw { margin-top: 26px; padding-top: 20px; border-top: 1px solid rgba(70,120,210,.25); }
+.hub-panel-sub { margin: 0 0 10px; font-size: 18px; font-weight: 700; color: #fff; }
+.hub-pw-form { display: flex; flex-direction: column; gap: 10px; max-width: 420px; }
 /* 2026-10-11 — the home page fits ONE screen on laptops and desktops: header,
    title and both rows of tiles are sized from the window HEIGHT, so nothing
    needs scrolling on a 13" laptop (≈ 560-700px of browser height) or larger. */

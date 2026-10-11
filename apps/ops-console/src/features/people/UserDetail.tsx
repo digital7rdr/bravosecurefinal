@@ -6,11 +6,12 @@ import {useParams, useRouter} from 'next/navigation';
 import {Redacted} from '@/components/Redacted';
 import {ConfirmReasonModal} from '@/components/ConfirmReasonModal';
 import {EditDetailsModal} from '@/components/EditDetailsModal';
+import {ResetPasswordModal} from '@/components/ResetPasswordModal';
 import {CopyId} from '@/components/CopyId';
 import {ApiError, opsApi, opsDataApi, resolveUserLocation, useOpsMe, useOpsUserDetail, useUserFamily, type OpsUserDetail} from '@/lib/api';
 import {formatDateTimeUtc} from '@/lib/datetime';
 import {deviceLabel, roleLabel, since} from '@/lib/format';
-import {canCreateUsers, canForceFundMembersOff, canManageFamily, canManageModules, canMintProviderInvite, hasRole, roleDomains, type AdminRole} from '@/lib/rbac';
+import {isSuperAdmin, canCreateUsers, canForceFundMembersOff, canManageFamily, canManageModules, canMintProviderInvite, hasRole, roleDomains, type AdminRole} from '@/lib/rbac';
 import {UserAccessCard} from './UserAccessCard';
 import {ProviderInvitesCard} from './ProviderInvitesCard';
 import {IdentityDocumentCard} from './IdentityDocumentCard';
@@ -183,6 +184,8 @@ export function UserDetail() {
   // 2026-10-10 — edit name / email / login phone (Super Admin).
   const [editOpen, setEditOpen] = useState(false);
   const canEdit = canCreateUsers(role);
+  const [resetOpen, setResetOpen] = useState(false);
+  const canResetPw = isSuperAdmin(role);
 
   async function revoke(rowId: string) {
     if (busyDevice) return;
@@ -285,6 +288,12 @@ export function UserDetail() {
               <button onClick={() => setEditOpen(true)}
                 className="rounded-md border border-act/40 px-3 py-1.5 text-xs font-semibold text-acc hover:bg-act/10">
                 EDIT DETAILS
+              </button>
+            )}
+            {canResetPw && !user.deleted_at && !user.suspended_at && user.id !== me?.admin.user_id && (
+              <button onClick={() => setResetOpen(true)}
+                className="rounded-md border border-warn/40 px-3 py-1.5 text-xs font-semibold text-warn hover:bg-warn/10">
+                RESET PASSWORD
               </button>
             )}
             {canRevoke && !user.deleted_at && (
@@ -574,6 +583,12 @@ export function UserDetail() {
         )}
       </div>
 
+      <ResetPasswordModal
+        open={resetOpen}
+        name={user.display_name ?? 'this user'}
+        onReset={() => opsApi.resetUserPassword(user.id)}
+        onClose={() => setResetOpen(false)}
+      />
       <EditDetailsModal
         open={editOpen}
         title={`Edit ${user.display_name ?? 'user'}`}

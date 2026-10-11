@@ -11,6 +11,9 @@ import {OPS_THROTTLE} from '../ops/ops-throttle';
 import {UserAdminService, type AppAccountType} from './user-admin.service';
 import {DatabaseService} from '../database/database.service';
 import {applyIdentityEdit} from './identity-edit';
+import {adminResetPassword} from './admin-password-reset';
+import {PasswordService} from '../common/services/password.service';
+import {AuthService} from '../auth/auth.service';
 
 type OpsReq = Request & {admin: AdminContext};
 
@@ -46,7 +49,25 @@ export class UserAdminController {
     private readonly audit: OpsAuditService,
     // Appended last (specs construct this controller positionally).
     private readonly db?: DatabaseService,
+    private readonly passwords?: PasswordService,
+    private readonly auth?: AuthService,
   ) {}
+
+  /**
+   * Reset a user's (or a console admin's) password (2026-10-11). The server
+   * makes a temporary password, shown to the Super Admin ONCE; every device
+   * of that person is signed out. Never stored in clear, never in the audit.
+   */
+  @Post(':id/password/reset')
+  @HttpCode(200)
+  @Header('Cache-Control', 'no-store')
+  @Throttle({default: {limit: 10, ttl: 60_000}})
+  async resetPassword(@Param('id', ParseUUIDPipe) id: string, @Req() req: OpsReq) {
+    const out = await adminResetPassword({db: this.db!, passwords: this.passwords!, auth: this.auth!}, req.admin, id);
+    await this.audit.recordAdmin(req.admin, 'user.password.reset', 'user', id,
+      {sessions_revoked: out.sessions_revoked, console_admin: out.console_admin});
+    return {password: out.password, sessions_revoked: out.sessions_revoked};
+  }
 
   /**
    * Edit a user's name, email or login phone (People → Users → user). The
