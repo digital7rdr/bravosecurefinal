@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import {opsApi, useOpsMe, type AdminAccountRow, type AdminInviteRow} from '@/lib/api';
 import {EditDetailsModal} from '@/components/EditDetailsModal';
 import {ResetPasswordModal} from '@/components/ResetPasswordModal';
+import {ResetAuthenticatorModal} from '@/components/ResetAuthenticatorModal';
 import {
   ADMIN_LEVELS, LEGACY_ROLES, ROLE_LABEL, ROLE_SCOPE,
   canCreateAdminAccount, canManageAdmins, isSuperAdmin, type AdminRole,
@@ -119,6 +120,7 @@ export default function AdminsPage() {
   // ── Edit an admin's details (2026-10-10) ──
   const [editing, setEditing] = useState<AdminAccountRow | null>(null);
   const [resetting, setResetting] = useState<AdminAccountRow | null>(null);
+  const [totpFor, setTotpFor] = useState<AdminAccountRow | null>(null);
 
   // ── Invite lane (RS-09) ──
   const [email, setEmail] = useState('');
@@ -263,6 +265,12 @@ export default function AdminsPage() {
                               <button type="button" onClick={() => setResetting(a)}
                                 className="whitespace-nowrap rounded border border-warn/30 px-2 py-1 text-[11px] font-semibold text-warn hover:bg-warn/10">
                                 RESET PASSWORD
+                              </button>
+                            )}
+                            {isSuperAdmin(me?.admin.role) && a.user_id !== me?.admin.user_id && (
+                              <button type="button" onClick={() => setTotpFor(a)}
+                                className="whitespace-nowrap rounded border border-warn/30 px-2 py-1 text-[11px] font-semibold text-warn hover:bg-warn/10">
+                                AUTHENTICATOR
                               </button>
                             )}
                             {a.user_id !== me?.admin.user_id && (
@@ -420,6 +428,12 @@ export default function AdminsPage() {
           </>
         )}
       </div>
+      <ResetAuthenticatorModal
+        open={totpFor !== null}
+        userId={totpFor?.user_id ?? null}
+        name={totpFor ? totpFor.call_sign : 'this admin'}
+        onClose={() => setTotpFor(null)}
+      />
       <ResetPasswordModal
         open={resetting !== null}
         name={resetting ? resetting.call_sign : 'this admin'}

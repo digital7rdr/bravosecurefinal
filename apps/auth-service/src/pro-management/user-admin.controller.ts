@@ -12,6 +12,8 @@ import {UserAdminService, type AppAccountType} from './user-admin.service';
 import {DatabaseService} from '../database/database.service';
 import {applyIdentityEdit} from './identity-edit';
 import {adminResetPassword} from './admin-password-reset';
+import {adminResetAuthenticator, authenticatorStatus} from './admin-totp-reset';
+import {RedisService} from '../redis/redis.service';
 import {PasswordService} from '../common/services/password.service';
 import {AuthService} from '../auth/auth.service';
 
@@ -51,7 +53,28 @@ export class UserAdminController {
     private readonly db?: DatabaseService,
     private readonly passwords?: PasswordService,
     private readonly auth?: AuthService,
+    private readonly redis?: RedisService,
   ) {}
+
+  /** Authenticator app: none / pending (set-up started, never finished) / verified. */
+  @Get(':id/authenticator')
+  authenticator(@Param('id', ParseUUIDPipe) id: string) {
+    return authenticatorStatus(this.db!, id);
+  }
+
+  /**
+   * Remove a person's authenticator (lost phone, or a set-up they never
+   * finished) and sign them out everywhere (2026-10-11). Audited.
+   */
+  @Post(':id/authenticator/reset')
+  @HttpCode(200)
+  @Throttle({default: {limit: 10, ttl: 60_000}})
+  async resetAuthenticator(@Param('id', ParseUUIDPipe) id: string, @Req() req: OpsReq) {
+    const out = await adminResetAuthenticator({db: this.db!, redis: this.redis!, auth: this.auth!}, req.admin, id);
+    await this.audit.recordAdmin(req.admin, 'user.totp.reset', 'user', id,
+      {previous: out.previous, sessions_revoked: out.sessions_revoked, console_admin: out.staff});
+    return out;
+  }
 
   /**
    * Reset a user's (or a console admin's) password (2026-10-11). The server

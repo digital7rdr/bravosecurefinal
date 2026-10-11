@@ -1431,6 +1431,10 @@ export const opsApi = {
     fetchJson<{ok: true; changed: string[]}>(`/ops/admins/${userId}`, {
       method: 'PATCH', body: JSON.stringify(patch),
     }),
+  // 2026-10-11 — authenticator app status / removal (Super Admin; reset signs out everywhere).
+  getUserAuthenticator: (userId: string) => fetchJson<AuthenticatorStatus>(`/ops/users/${userId}/authenticator`),
+  resetUserAuthenticator: (userId: string) =>
+    fetchJson<{previous: AuthenticatorStatus['status']; sessions_revoked: number; staff: boolean}>(`/ops/users/${userId}/authenticator/reset`, {method: 'POST'}),
   // 2026-10-11 — Super Admin: new temporary password (shown once), every device signed out.
   resetUserPassword: (userId: string) =>
     fetchJson<{password: string; sessions_revoked: number}>(`/ops/users/${userId}/password/reset`, {method: 'POST'}),
@@ -2907,6 +2911,12 @@ export interface OpsIdentityDocumentRead {
   images: Array<{side: 'front' | 'back'; mime: string; data_url: string}>;
 }
 
+/** 2026-10-11 — a person's authenticator app, as the ops console sees it. */
+export interface AuthenticatorStatus {
+  status: 'none' | 'pending' | 'verified';
+  verified_at: string | null;
+  staff: boolean;
+}
 /** 2026-10-10 — an earlier (replaced) identity document: facts only. */
 export interface OpsIdentityDocumentVersion {
   id: string;

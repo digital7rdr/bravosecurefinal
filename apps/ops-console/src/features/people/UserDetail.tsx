@@ -7,6 +7,7 @@ import {Redacted} from '@/components/Redacted';
 import {ConfirmReasonModal} from '@/components/ConfirmReasonModal';
 import {EditDetailsModal} from '@/components/EditDetailsModal';
 import {ResetPasswordModal} from '@/components/ResetPasswordModal';
+import {ResetAuthenticatorModal} from '@/components/ResetAuthenticatorModal';
 import {CopyId} from '@/components/CopyId';
 import {ApiError, opsApi, opsDataApi, resolveUserLocation, useOpsMe, useOpsUserDetail, useUserFamily, type OpsUserDetail} from '@/lib/api';
 import {formatDateTimeUtc} from '@/lib/datetime';
@@ -185,6 +186,7 @@ export function UserDetail() {
   const [editOpen, setEditOpen] = useState(false);
   const canEdit = canCreateUsers(role);
   const [resetOpen, setResetOpen] = useState(false);
+  const [totpOpen, setTotpOpen] = useState(false);
   const canResetPw = isSuperAdmin(role);
 
   async function revoke(rowId: string) {
@@ -294,6 +296,12 @@ export function UserDetail() {
               <button onClick={() => setResetOpen(true)}
                 className="rounded-md border border-warn/40 px-3 py-1.5 text-xs font-semibold text-warn hover:bg-warn/10">
                 RESET PASSWORD
+              </button>
+            )}
+            {canResetPw && !user.deleted_at && user.id !== me?.admin.user_id && (
+              <button onClick={() => setTotpOpen(true)}
+                className="rounded-md border border-warn/40 px-3 py-1.5 text-xs font-semibold text-warn hover:bg-warn/10">
+                AUTHENTICATOR
               </button>
             )}
             {canRevoke && !user.deleted_at && (
@@ -583,6 +591,12 @@ export function UserDetail() {
         )}
       </div>
 
+      <ResetAuthenticatorModal
+        open={totpOpen}
+        userId={user.id}
+        name={user.display_name ?? 'this user'}
+        onClose={() => setTotpOpen(false)}
+      />
       <ResetPasswordModal
         open={resetOpen}
         name={user.display_name ?? 'this user'}
