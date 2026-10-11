@@ -13,7 +13,7 @@ export type AuditEventType =
   // B-696 — vault PIN verifier lifecycle (set/replace, verify, OTP reset).
   | 'auth.vault_pin.set' | 'auth.vault_pin.verify' | 'auth.vault_pin.reset'
   // Audit P0-A5 — credential rotation.
-  | 'auth.password.changed' | 'auth.password.change_denied'
+  | 'auth.password.changed' | 'auth.password.change_denied' | 'auth.password.reset'
   // 2026-10-10 — single sign-on from the Bravo Secure home site.
   | 'auth.sso.launch' | 'auth.sso.exchange'
   // Audit fix 0.7 — client-raised SOS events.

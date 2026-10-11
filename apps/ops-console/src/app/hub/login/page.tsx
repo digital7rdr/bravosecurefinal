@@ -19,11 +19,14 @@ export default function HubLoginPage() {
       homeHref={hubRoutes.home}
       accountNoun="Bravo Secure"
       brand={HUB_BRAND}
-      footer={
+      footer={<>
+        <p className="auth-hint" style={{textAlign: 'center', margin: '4px 0 0'}}>
+          <Link href={hubRoutes.forgot} style={{color: 'var(--glow)', fontWeight: 600}}>Forgot your password?</Link>
+        </p>
         <p className="auth-hint" style={{textAlign: 'center', margin: '4px 0 0'}}>
           New to Bravo Secure? <Link href={hubRoutes.register} style={{color: 'var(--glow)', fontWeight: 600}}>Create an account</Link>
         </p>
-      }
+      </>}
     />
   );
 }

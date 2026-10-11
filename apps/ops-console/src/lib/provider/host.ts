@@ -63,7 +63,7 @@ export function toInternalWebPath(pathname: string): string {
 export const HUB_PREFIX = '/hub';
 
 /** Paths on the home site that need no session. */
-export const HUB_PUBLIC_PATHS = ['/login', '/register'] as const;
+export const HUB_PUBLIC_PATHS = ['/login', '/register', '/forgot'] as const;
 
 export function isHubHost(host: string | null | undefined): boolean {
   const h = (host ?? '').split(':')[0].trim().toLowerCase();

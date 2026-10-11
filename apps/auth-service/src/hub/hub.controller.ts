@@ -19,6 +19,7 @@ import {DatabaseService} from '../database/database.service';
 import {TotpChallengeService} from '../common/services/totp-challenge.service';
 import {HubService} from './hub.service';
 import {SignupService} from './signup.service';
+import {PasswordResetService} from './password-reset.service';
 
 const refreshTtlSec = (jwt: JwtService) => jwt.ttlToSeconds(process.env.JWT_REFRESH_TTL ?? '30d');
 
@@ -55,6 +56,17 @@ class ExchangeDto {
 
 class TotpConfirmDto {
   @Matches(/^[A-Za-z0-9]{6,10}$/) code!: string;
+}
+
+class ResetStartDto {
+  @IsString() @MinLength(5) @MaxLength(254) identifier!: string;
+}
+
+class ResetCompleteDto {
+  @IsString() @MaxLength(64) resetId!: string;
+  @Matches(/^\d{4,8}$/) code!: string;
+  @IsString() @MinLength(10) @MaxLength(128) newPassword!: string;
+  @IsOptional() @Matches(/^[A-Za-z0-9 -]{6,12}$/) totpCode?: string;
 }
 
 /* ── Registration (home site) ─────────────────────────────────────────── */
@@ -101,6 +113,32 @@ export class SignupController {
     const s = await this.auth.issueSession(out.user, dto.deviceId, 'web', false);
     setSessionCookies(res, names, s.accessToken, s.expiresIn, s.refreshToken, refreshTtlSec(this.jwt));
     return {done: true, signedIn: true, expiresIn: s.expiresIn};
+  }
+}
+
+/* ── Forgot password (home site, 2026-10-11) ─────────────────────────── */
+
+@Controller('auth/password/reset')
+export class PasswordResetController {
+  constructor(private readonly reset: PasswordResetService) {}
+
+  @Get('status')
+  status() {
+    return {available: this.reset.available()};
+  }
+
+  @Throttle({default: {limit: 5, ttl: 600_000}})
+  @Post('start')
+  @HttpCode(200)
+  start(@Body() dto: ResetStartDto, @Req() req: Request) {
+    return this.reset.start(dto.identifier, clientIp(req));
+  }
+
+  @Throttle({default: {limit: 12, ttl: 600_000}})
+  @Post('complete')
+  @HttpCode(200)
+  complete(@Body() dto: ResetCompleteDto, @Req() req: Request) {
+    return this.reset.complete(dto.resetId, {code: dto.code, newPassword: dto.newPassword, totpCode: dto.totpCode}, clientIp(req));
   }
 }
 

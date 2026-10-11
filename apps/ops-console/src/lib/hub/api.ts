@@ -121,6 +121,14 @@ export const hubSignup = {
       '/auth/signup/complete', {signupId, ...codes, deviceId: deviceId()}, {noBoot: true}),
 };
 
+// "Forgot your password?" (2026-10-11). The same answer whether or not an account matches.
+export const hubPasswordReset = {
+  status: () => hub<{available: boolean}>('/auth/password/reset/status', {noBoot: true}),
+  start: (identifier: string) => post<{resetId: string}>('/auth/password/reset/start', {identifier}, {noBoot: true}),
+  complete: (resetId: string, b: {code: string; newPassword: string; totpCode?: string}) =>
+    post<{done: true} | {done: false; needTotp: true}>('/auth/password/reset/complete', {resetId, ...b}, {noBoot: true}),
+};
+
 export const hubApi = {
   apps: () => hub<HubApps>('/hub/apps'),
   launch: (app: string) => post<{redirect: string}>('/hub/launch', {app}),

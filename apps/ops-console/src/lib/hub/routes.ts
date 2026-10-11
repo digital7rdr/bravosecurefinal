@@ -6,5 +6,6 @@ export const hubRoutes = {
   home: '/',
   login: '/login',
   register: '/register',
+  forgot: '/forgot',
   security: '/security',
 } as const;

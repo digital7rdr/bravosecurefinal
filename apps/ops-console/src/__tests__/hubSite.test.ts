@@ -35,7 +35,7 @@ describe('home site host routing', () => {
     expect(toInternalHubPath('/security')).toBe('/hub/security');
     expect(isInternalHubPath('/hub/security')).toBe(true);
     expect(isInternalHubPath('/hubs')).toBe(false);
-    expect(HUB_PUBLIC_PATHS).toEqual(['/login', '/register']);
+    expect(HUB_PUBLIC_PATHS).toEqual(['/login', '/register', '/forgot']);
   });
 
   it('the middleware gates the home site on its own cookie and 404s /hub on every other host', () => {

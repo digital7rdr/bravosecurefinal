@@ -4,7 +4,8 @@ import {OpsModule} from '../ops/ops.module';
 import {PasswordService} from '../common/services/password.service';
 import {HubService} from './hub.service';
 import {SignupService} from './signup.service';
-import {HubController, SignupController, SsoController} from './hub.controller';
+import {PasswordResetService} from './password-reset.service';
+import {HubController, PasswordResetController, SignupController, SsoController} from './hub.controller';
 import {OpsPlatformAppsController} from './ops-platform-apps.controller';
 
 /**
@@ -13,7 +14,7 @@ import {OpsPlatformAppsController} from './ops-platform-apps.controller';
  */
 @Module({
   imports:     [AuthModule, OpsModule],
-  controllers: [SignupController, HubController, SsoController, OpsPlatformAppsController],
-  providers:   [HubService, SignupService, PasswordService],
+  controllers: [SignupController, PasswordResetController, HubController, SsoController, OpsPlatformAppsController],
+  providers:   [HubService, SignupService, PasswordResetService, PasswordService],
 })
 export class HubModule {}
