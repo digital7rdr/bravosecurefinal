@@ -24,6 +24,9 @@ ENV_SETUP.md
 # /home/ubuntu/bravo/firebase-service-account.json (mounted into the
 # messenger-service container).
 *firebase-adminsdk*.json
+# Google Cloud key files are named <project-id>-<key-id>.json (e.g. bravo--prod-…)
+/bravo--prod-*.json
+/bravo-734da-*.json
 firebase-service-account.json
 apps/**/.env.*.local
 
