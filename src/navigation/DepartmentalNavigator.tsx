@@ -76,6 +76,7 @@ import VaultOTPVerifyScreen from '@screens/messenger/VaultOTPVerifyScreen';
 import FileVaultPurchaseScreen from '@screens/messenger/FileVaultPurchaseScreen';
 import MessengerSettingsScreen from '@screens/messenger/MessengerSettingsScreen';
 import BackupSetupScreen from '@screens/messenger/BackupSetupScreen';
+import LinkedDevicesScreen from '@screens/messenger/LinkedDevicesScreen';
 
 // Role resolution — prefers the server-resolved `is_org_manager` flag from
 // /auth/me, which mirrors OrgManagerGuard exactly (company account OR an active
@@ -286,6 +287,7 @@ function VaultTab() {
           both resolve here — 'MessengerHome' is this stack's FilesScreen root. */}
       <VaultStack.Screen name="MessengerSettings" component={MessengerSettingsScreen} />
       <VaultStack.Screen name="BackupSetup" component={BackupSetupScreen} />
+      <VaultStack.Screen name="LinkedDevices" component={LinkedDevicesScreen} />
     </VaultStack.Navigator>
   );
 }

@@ -329,6 +329,8 @@ export type MessengerStackParamList = {
   MessengerSettings: undefined;
   /** Backup setup — first-time prompt to enable encrypted chat backup. */
   BackupSetup: undefined;
+  /** Linked devices — browsers that mirror this phone's messenger (2026-10-12). */
+  LinkedDevices: undefined;
   /** Backup restore — entered after login when an existing backup is found. */
   BackupRestore: undefined;
   NewsHub: undefined;
@@ -661,6 +663,7 @@ export type AgentStackParamList = {
   // the pane here without this makes that row the same dead tap the line above
   // fixes.
   BackupSetup: undefined;
+  LinkedDevices: undefined;
   // VoiceCall is the legacy alias used in older agent flows. The
   // call screens are all also registered here so the agent UI can
   // launch into a 1:1 / group / ringing flow. Full param shapes live
@@ -803,6 +806,8 @@ export type DeptVaultStackParamList = {
   MessengerSettings: undefined;
   // W1b — transitive: the Settings pane's Chat Backup row navigates here.
   BackupSetup: undefined;
+  // Linked devices row in the Settings pane.
+  LinkedDevices: undefined;
 };
 
 /**

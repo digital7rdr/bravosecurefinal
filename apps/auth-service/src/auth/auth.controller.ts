@@ -271,7 +271,7 @@ export class AuthController {
   async messengerTicket(
     @CurrentUser() user: AccessClaims,
     @Req() req: Request & {cookies?: Record<string, string>},
-  ): Promise<{ticket: string; expiresIn: number}> {
+  ): Promise<{ticket: string; expiresIn: number; hasPhone: boolean}> {
     // Audit fix #10 — cookie-session callers only. The whole point of
     // the ticket is to keep the long-lived JWT out of JS reach for the
     // ops-console; a mobile Bearer caller already holds an access JWT
@@ -298,7 +298,13 @@ export class AuthController {
     // minted ticket was rejected as `token_revoked` the instant it was used.
     // TTL matches the ticket lifetime so the key self-expires.
     await this.redis.storeJti(jti, ttlSec);
-    return {ticket: accessToken, expiresIn: ttlSec};
+    // Linked devices (2026-10-12) — tell the browser whether this account has
+    // a phone. If it does, the browser messenger mirrors that phone (linked
+    // mode) instead of acting as a second "device 1" that would compete with
+    // the phone for its messages. Fail-soft: unknown → false (old behaviour).
+    let hasPhone = false;
+    try { hasPhone = await this.auth.hasActivePhone(user.sub); } catch { /* unknown → false */ }
+    return {ticket: accessToken, expiresIn: ttlSec, hasPhone};
   }
 
   @UseGuards(JwtAuthGuard)

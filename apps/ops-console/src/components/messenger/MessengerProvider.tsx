@@ -19,6 +19,9 @@ import {
 } from 'react';
 import dynamic from 'next/dynamic';
 import type {MessengerRuntime, DecryptedMessage, PresenceState} from '@/lib/messenger/runtime';
+import type {LinkedRuntime, LinkPairing, LinkRecord} from '@/lib/messenger/linkedRuntime';
+import type {MessengerDb} from '@/lib/messenger/idb';
+import type {WrapKey} from '@/lib/messenger/crypto';
 import useSWR from 'swr';
 import {useOpsMe} from '@/lib/api';
 import {isProviderHost, isWebHost} from '@/lib/provider/host';
@@ -40,14 +43,37 @@ const VaultUnlockModal = dynamic(
   {ssr: false},
 );
 
-type State = 'absent' | 'locked' | 'unlocking' | 'unlocked' | 'error';
+type State = 'absent' | 'locked' | 'unlocking' | 'unlocked' | 'link_required' | 'error';
+
+/**
+ * Linked devices (2026-10-12) — 'standalone': this browser is its own Signal
+ * device (accounts without a phone, e.g. web-only staff). 'linked': it mirrors
+ * the user's phone (LinkedRuntime). While the account has a phone but this
+ * browser is not linked yet, state is 'link_required' and the chat shows the
+ * QR code to scan from the app.
+ */
+export type MessengerMode = 'standalone' | 'linked';
+
+/** What the chat UI calls on either runtime. */
+export type ChatRuntime = MessengerRuntime | LinkedRuntime;
+
+export interface PairingState { qr: string | null; error: string | null }
 
 interface Ctx {
   state: State;
   error: string | null;
   userId: string | null;
   /** Live runtime. Null until state === 'unlocked'. */
-  runtime: MessengerRuntime | null;
+  runtime: ChatRuntime | null;
+  /** The Signal runtime — null in linked mode (mission groups need it). */
+  signalRuntime: MessengerRuntime | null;
+  mode: MessengerMode | null;
+  /** The QR to scan while state === 'link_required' (after beginPairing). */
+  pairing: PairingState | null;
+  /** Start showing a link QR; returns a stop function. */
+  beginPairing: () => () => void;
+  /** Linked mode: log this browser out of the phone (clears the mirror). */
+  unlinkBrowser: () => Promise<void>;
   /** Open the unlock dialog. Resolves when state becomes 'unlocked'. */
   requestUnlock: () => void;
   /** Forget the current key + close DB. UI snaps back to 'locked'. */
@@ -92,7 +118,94 @@ export function MessengerProvider({children}: {children: ReactNode}) {
   const [state, setState] = useState<State>('absent');
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const runtimeRef = useRef<MessengerRuntime | null>(null);
+  const runtimeRef = useRef<ChatRuntime | null>(null);
+  const [mode, setMode] = useState<MessengerMode | null>(null);
+  const [pairing, setPairing] = useState<PairingState | null>(null);
+  // The unlocked vault while waiting for the phone to approve the link.
+  const vaultRef = useRef<{db: MessengerDb; wrapKey: WrapKey} | null>(null);
+  const pairingRef = useRef<LinkPairing | null>(null);
+
+  const startLinked = useCallback(async (lr: LinkedRuntime): Promise<void> => {
+    lr.onUnlinked(() => {
+      // The phone (or this browser) ended the link: back to the QR.
+      vaultRef.current = lr.vaultHandle();
+      runtimeRef.current = null;
+      setPairing(null);
+      setState('link_required');
+    });
+    await lr.startListening();
+    vaultRef.current = null;
+    runtimeRef.current = lr;
+    setMode('linked');
+    setState('unlocked');
+    setModalOpen(false);
+  }, []);
+
+  /**
+   * After the vault is open: linked (a link record exists), link_required
+   * (the account has a phone), or standalone (everything as before).
+   */
+  const bootFromVault = useCallback(async (rt: MessengerRuntime, uid: string): Promise<void> => {
+    const {readLinkRecord, LinkedRuntime} = await import('@/lib/messenger/linkedRuntime');
+    const vault = rt.vaultHandle();
+    const link = await readLinkRecord(vault.db, vault.wrapKey);
+    let hasPhone = !!link;
+    if (!hasPhone) {
+      try {
+        const {messengerAccountHasPhone} = await import('@/lib/api');
+        hasPhone = await messengerAccountHasPhone();
+      } catch { hasPhone = false; }
+    }
+    if (link) {
+      await startLinked(new LinkedRuntime(uid, vault.db, vault.wrapKey, link));
+      return;
+    }
+    if (hasPhone) {
+      vaultRef.current = vault;
+      runtimeRef.current = null;
+      setMode('linked');
+      setState('link_required');
+      setModalOpen(false);
+      return;
+    }
+    await rt.ensureIdentityPublished();
+    rt.startListening();
+    // Session-level presence: while the vault is unlocked we are reachable
+    // on the messenger, so flag ourselves as active to anyone watching.
+    rt.setActivity('active');
+    runtimeRef.current = rt;
+    setMode('standalone');
+    setState('unlocked');
+    setModalOpen(false);
+  }, [startLinked]);
+
+  const beginPairing = useCallback((): (() => void) => {
+    const vault = vaultRef.current;
+    if (!vault || !userId) return () => undefined;
+    let cancelled = false;
+    void (async () => {
+      const {LinkPairing, LinkedRuntime} = await import('@/lib/messenger/linkedRuntime');
+      if (cancelled) return;
+      pairingRef.current?.stop();
+      const p = new LinkPairing(vault.db, vault.wrapKey,
+        (qr, error) => { if (!cancelled) setPairing({qr, error}); },
+        (rec: LinkRecord) => {
+          if (cancelled) return;
+          setPairing(null);
+          void startLinked(new LinkedRuntime(userId, vault.db, vault.wrapKey, rec)).catch(e => {
+            setError((e as Error).message || 'Link failed');
+          });
+        });
+      pairingRef.current = p;
+      p.start();
+    })();
+    return () => { cancelled = true; pairingRef.current?.stop(); pairingRef.current = null; };
+  }, [userId, startLinked]);
+
+  const unlinkBrowser = useCallback(async () => {
+    const rt = runtimeRef.current;
+    if (rt && 'kind' in rt && rt.kind === 'linked') await rt.unlink();
+  }, []);
 
   useEffect(() => {
     if (!userId) { setState('absent'); return; }
@@ -108,22 +221,25 @@ export function MessengerProvider({children}: {children: ReactNode}) {
     void (async () => {
       try {
         const {MessengerRuntime} = await import('@/lib/messenger/runtime');
-        const runtime = await MessengerRuntime.unlockRemembered(userId);
-        if (!runtime) return;
+        let runtime = await MessengerRuntime.unlockRemembered(userId);
+        if (!runtime) {
+          // Linked devices — an account with a phone needs no passphrase on a
+          // browser that never had a vault: it gets a device-bound key and goes
+          // straight to "scan the code with your phone".
+          if (await MessengerRuntime.hasVault(userId)) return;
+          const {messengerAccountHasPhone} = await import('@/lib/api');
+          if (!(await messengerAccountHasPhone().catch(() => false))) return;
+          runtime = await MessengerRuntime.createDeviceVault(userId);
+        }
         setState('unlocking');
-        await runtime.ensureIdentityPublished();
-        runtime.startListening();
-        runtime.setActivity('active');
-        runtimeRef.current = runtime;
-        setState('unlocked');
-        setModalOpen(false);
+        await bootFromVault(runtime, userId);
       } catch (e) {
         console.warn('[messenger] remembered unlock failed', e);
         runtimeRef.current = null;
         setState('locked');
       }
     })();
-  }, [userId, state]);
+  }, [userId, state, bootFromVault]);
 
   const unlock = useCallback(async (passphrase: string, remember = true) => {
     if (!userId) throw new Error('no admin user yet');
@@ -132,18 +248,9 @@ export function MessengerProvider({children}: {children: ReactNode}) {
       const {MessengerRuntime} = await import('@/lib/messenger/runtime');
       const runtime = await MessengerRuntime.unlock(userId, passphrase);
       await runtime.rememberOnThisBrowser(remember).catch(e => console.warn('[messenger] remember failed', e));
-      await runtime.ensureIdentityPublished();
-      runtime.startListening();
-      // Session-level presence: while ops has the vault unlocked we are
-      // reachable on the messenger, so flag ourselves as active to
-      // anyone watching. Without this, mobile members only saw ops as
-      // 'active' during the brief window when MissionGroupDock was open
-      // — meaning the agent's chat list and chat header never lit up
-      // green for the dispatcher.
-      runtime.setActivity('active');
-      runtimeRef.current = runtime;
-      setState('unlocked');
-      setModalOpen(false);
+      // Standalone: identity publish + listen + presence (mobile members see
+      // ops as 'active' while the vault is unlocked). Linked: mirror the phone.
+      await bootFromVault(runtime, userId);
     } catch (e) {
       // Why: matched by name, not `instanceof` — the class lives behind the
       // dynamic import above (errors.ts stamps `name` in its constructor).
@@ -152,7 +259,7 @@ export function MessengerProvider({children}: {children: ReactNode}) {
       setState('locked');
       throw e;
     }
-  }, [userId]);
+  }, [userId, bootFromVault]);
 
   const lock = useCallback(async () => {
     // Flip back to away before the socket closes so watchers see the
@@ -166,6 +273,10 @@ export function MessengerProvider({children}: {children: ReactNode}) {
     // and drops the in-memory group-key cache (not just stopListening()).
     runtimeRef.current?.close();
     runtimeRef.current = null;
+    pairingRef.current?.stop();
+    vaultRef.current = null;
+    setPairing(null);
+    setMode(null);
     setState('locked');
   }, []);
 
@@ -185,13 +296,24 @@ export function MessengerProvider({children}: {children: ReactNode}) {
     // Drop the live runtime + WS first so an in-flight session can't
     // race a wipe and re-create rows after the IDB delete starts.
     try {
-      runtimeRef.current?.setActivity('away');
-      runtimeRef.current?.stopListening();
-      if (runtimeRef.current) {
-        await runtimeRef.current.wipe();
+      const rt = runtimeRef.current;
+      // Linked mode: signing out also logs this browser out of the phone,
+      // so the phone stops mirroring to a browser that kept nothing.
+      if (rt && 'kind' in rt && rt.kind === 'linked') {
+        await Promise.race([rt.unlink().catch(() => undefined), new Promise(r => setTimeout(r, 3_000))]);
+      }
+      rt?.setActivity('away');
+      rt?.stopListening();
+      if (rt) {
+        await rt.wipe();
       }
     } catch { /* runtime.wipe handles its own errors; never block sign-out */ }
     runtimeRef.current = null;
+    pairingRef.current?.stop();
+    try { vaultRef.current?.db.close(); } catch { /* ignore */ }
+    vaultRef.current = null;
+    setPairing(null);
+    setMode(null);
 
     // Even if no runtime was live, the IDB may exist from a prior
     // session: delete it by deterministic name. Indexed by userId so
@@ -222,11 +344,17 @@ export function MessengerProvider({children}: {children: ReactNode}) {
 
   const requestUnlock = useCallback(() => { setModalOpen(true); }, []);
 
-  const value: Ctx = useMemo(() => ({
-    state, error, userId,
-    runtime: runtimeRef.current,
-    requestUnlock, lock, wipe,
-  }), [state, error, userId, requestUnlock, lock, wipe]);
+  const value: Ctx = useMemo(() => {
+    const rt = runtimeRef.current;
+    const signal = rt && !('kind' in rt) ? rt : null;
+    return {
+      state, error, userId,
+      runtime: rt,
+      signalRuntime: signal,
+      mode, pairing, beginPairing, unlinkBrowser,
+      requestUnlock, lock, wipe,
+    };
+  }, [state, error, userId, mode, pairing, beginPairing, unlinkBrowser, requestUnlock, lock, wipe]);
 
   // Tear down the runtime on unmount. Mirror the lock() cleanup so the
   // last 'away' frame goes out before we close the socket.

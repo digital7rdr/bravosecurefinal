@@ -1,7 +1,8 @@
-import {Injectable, CanActivate, ExecutionContext, UnauthorizedException, BadRequestException} from '@nestjs/common';
+import {Injectable, CanActivate, ExecutionContext, UnauthorizedException, BadRequestException, ForbiddenException} from '@nestjs/common';
 import type {Request} from 'express';
 import {JwtService, type AccessClaims} from '../../auth/jwt.service';
 import {RedisService} from '../../redis/redis.service';
+import {checkLinkedDevice} from '../../link/link-policy';
 
 /**
  * Attached state we hang on the Express request once auth passes.
@@ -33,6 +34,9 @@ declare module 'express' {
  */
 @Injectable()
 export class JwtHttpGuard implements CanActivate {
+  /** Link-management routes accept a caller with no device header (a browser before it is linked). */
+  protected readonly requireDeviceHeader: boolean = true;
+
   constructor(
     private readonly jwt:   JwtService,
     private readonly redis: RedisService,
@@ -97,12 +101,24 @@ export class JwtHttpGuard implements CanActivate {
     }
 
     const raw = req.header('x-signal-device-id');
-    const n   = raw ? Number.parseInt(raw, 10) : NaN;
+    let n     = raw ? Number.parseInt(raw, 10) : NaN;
     if (!Number.isFinite(n) || n < 1) {
-      throw new BadRequestException('missing_signal_device_id');
+      if (this.requireDeviceHeader) throw new BadRequestException('missing_signal_device_id');
+      n = 0;
     }
+
+    // Linked devices — a linked browser may only use its own reserved device
+    // id, and nobody else may use one (see link/link-policy.ts).
+    const verdict = await checkLinkedDevice(this.redis, claims.sub, claims.deviceId, n);
+    if (!verdict.ok) throw new ForbiddenException(verdict.reason);
 
     req.caller = {claims, signalDeviceId: n};
     return true;
   }
+}
+
+/** JwtHttpGuard for routes where the device header is optional (link management). */
+@Injectable()
+export class JwtAnyDeviceGuard extends JwtHttpGuard {
+  protected readonly requireDeviceHeader: boolean = false;
 }

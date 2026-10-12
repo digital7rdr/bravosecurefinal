@@ -14,7 +14,7 @@ import {openMessengerDb} from '@/lib/messenger/idb';
 import {checkPassphraseStrength, MIN_PASSPHRASE_LENGTH} from '@/lib/messenger/crypto';
 
 interface Props {
-  state: 'absent' | 'locked' | 'unlocking' | 'unlocked' | 'error';
+  state: 'absent' | 'locked' | 'unlocking' | 'unlocked' | 'link_required' | 'error';
   error: string | null;
   userId: string | null;
   onClose: () => void;

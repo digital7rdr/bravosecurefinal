@@ -808,6 +808,21 @@ export class PushService implements OnModuleInit, OnModuleDestroy, OnApplication
   }
 
   /**
+   * Linked devices — wake the phone so it fetches what a linked browser just
+   * queued for it (a message to send, a history request). Opaque on the wire:
+   * `kind: link_wake` and nothing else — no link id, no peer, no content.
+   * Debounced to one wake per 5 s per account; the phone drains the whole
+   * inbox on each wake.
+   */
+  async sendLinkWake(userId: string): Promise<number> {
+    try {
+      const ok = await this.redis.client.set(`push-link-debounce:${userId}`, '1', 'EX', 5, 'NX');
+      if (ok === null) return 0;
+    } catch { /* best-effort debounce */ }
+    return this.sendDataOnlyToUser(userId, {kind: 'link_wake'}, 'link_wake', true);
+  }
+
+  /**
    * Generic data-only push (legacy stub kept for backwards compat).
    * Prefer `sendChatWake` for new chat-message wakes.
    */

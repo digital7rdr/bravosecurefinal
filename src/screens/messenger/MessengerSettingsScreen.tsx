@@ -573,6 +573,21 @@ export default function MessengerSettingsScreen() {
           />
         </View>
 
+        <Text style={styles.sectionLabel}>Linked devices</Text>
+        <TouchableOpacity
+          style={styles.row}
+          activeOpacity={0.75}
+          onPress={() => navigation.navigate('LinkedDevices')}>
+          <View style={styles.backupIconWrap}>
+            <Icon name="monitor-cellphone" size={20} color="#1E88FF" />
+          </View>
+          <View style={{flex:1}}>
+            <Text style={styles.rowTitle}>Use Messenger in a browser</Text>
+            <Text style={styles.rowHint}>Scan the code on web.bravosecure.cloud to mirror your chats there.</Text>
+          </View>
+          <Icon name="chevron-right" size={20} color="rgba(180,188,204,0.45)" />
+        </TouchableOpacity>
+
         <Text style={styles.sectionLabel}>Chat Backup</Text>
         <TouchableOpacity
           style={styles.row}

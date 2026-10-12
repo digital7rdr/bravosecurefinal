@@ -209,7 +209,9 @@ describe('KeysService (per-device, B-18)', () => {
       mockDb.q.mockResolvedValueOnce([{cnt: '4'}]);
       await service.fetchBundle('t', 'r', 'd', '1.1.1.1');
       const primaryQuery = String(mockDb.qOne.mock.calls[0][0]);
-      expect(primaryQuery).toMatch(/ORDER BY\s+updated_at\s+DESC/i);
+      // 2026-10-12 — a live phone's identity ranks first, then newest.
+      expect(primaryQuery).toMatch(/ORDER BY\s+\(ad\.device_id IS NOT NULL\) DESC,\s*si\.updated_at\s+DESC/i);
+      expect(primaryQuery).toMatch(/platform IN \('ios','android'\) AND ad\.revoked_at IS NULL/);
       expect(primaryQuery).not.toMatch(/ORDER BY\s+device_id\s+ASC/i);
     });
   });

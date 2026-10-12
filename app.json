@@ -24,7 +24,7 @@
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Bravo Secure uses your location in the background for active mission tracking.",
         "NSContactsUsageDescription": "Bravo Secure accesses your contacts to help you start secure conversations.",
         "NSMicrophoneUsageDescription": "Bravo Secure uses the microphone for secure voice and video calls.",
-        "NSCameraUsageDescription": "Bravo Secure uses the camera for secure video calls.",
+        "NSCameraUsageDescription": "Bravo Secure uses the camera for secure video calls and to scan the code that links Messenger in a browser.",
         "UIBackgroundModes": ["voip", "audio", "remote-notification"]
       }
     },
@@ -80,7 +80,7 @@
       [
         "@config-plugins/react-native-webrtc",
         {
-          "cameraPermission": "Bravo Secure uses the camera for secure video calls.",
+          "cameraPermission": "Bravo Secure uses the camera for secure video calls and to scan the code that links Messenger in a browser.",
           "microphonePermission": "Bravo Secure uses the microphone for secure voice and video calls."
         }
       ],
@@ -110,7 +110,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Bravo Secure uses the camera for secure video calls.",
+          "cameraPermission": "Bravo Secure uses the camera for secure video calls and to scan the code that links Messenger in a browser.",
           "microphonePermission": "Bravo Secure uses the microphone for secure voice and video calls."
         }
       ],

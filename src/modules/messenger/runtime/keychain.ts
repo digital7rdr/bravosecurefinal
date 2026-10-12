@@ -337,6 +337,32 @@ export async function clearMirrorMasterKey(userId: string): Promise<void> {
 }
 
 /**
+ * Linked devices (2026-10-12) — the link keys of the browsers this phone
+ * mirrors to, as one JSON array `[{linkId, key, label, approvedAt}]`. Same
+ * protection as the mirror key (hardware keystore, this device only), scoped
+ * per user, wiped on sign-out.
+ */
+function linkServiceFor(userId: string): string {
+  return `bravo.messenger.links.${userId}`;
+}
+
+export async function saveLinkSecrets(userId: string, json: string): Promise<void> {
+  if (!userId) {return;}
+  await setStrictGenericPassword('messenger-links', json, linkServiceFor(userId));
+}
+
+export async function loadLinkSecrets(userId: string): Promise<string | null> {
+  if (!userId) {return null;}
+  const existing = await readKeychainWithRetry(linkServiceFor(userId), 2);
+  return existing && existing.password ? existing.password : null;
+}
+
+export async function clearLinkSecrets(userId: string): Promise<void> {
+  if (!userId) {return;}
+  await Keychain.resetGenericPassword({service: linkServiceFor(userId)});
+}
+
+/**
  * Audit P0-S5 — fetch (or generate) the per-user GROUP-KEY-WRAP secret.
  *
  * Lives in its OWN keychain entry, separate from the SQLCipher DB key.

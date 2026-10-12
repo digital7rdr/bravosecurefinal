@@ -18,6 +18,7 @@ import {TurnModule} from './turn/turn.module';
 import {SfuModule} from './sfu/sfu.module';
 import {BackupModule} from './backup/backup.module';
 import {UsersModule} from './users/users.module';
+import {LinkModule} from './link/link.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -61,6 +62,7 @@ import configuration from './config/configuration';
     TurnModule,
     SfuModule,
     BackupModule,
+    LinkModule,
     GatewayModule,
   ],
   providers: [

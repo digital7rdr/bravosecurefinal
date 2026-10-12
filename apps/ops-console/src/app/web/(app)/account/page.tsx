@@ -35,13 +35,24 @@ export default function WebAccount() {
         {client && <IdentityCard/>}
         <PasswordCard/>
         <PvCard title="Messenger on this browser">
-          <p className="pv-hint" style={{marginTop: 0}}>
-            Your chats are end-to-end encrypted and kept in this browser, locked with your messenger passphrase.
-            If you chose to keep it unlocked, it opens without asking until you lock it here or sign out.
-            Signing out deletes them from this browser; your phone keeps its own copy.
-          </p>
+          {messenger.mode === 'linked' ? (
+            <p className="pv-hint" style={{marginTop: 0}}>
+              {messenger.state === 'unlocked'
+                ? 'This browser mirrors the Bravo app on your phone: the same chats and contacts, kept in sync. Messages you send here go out from your phone. Log this browser out here or from the app (Messenger → Settings → Linked devices).'
+                : 'Open Messenger and scan the code with the Bravo app on your phone to use your chats here.'}
+            </p>
+          ) : (
+            <p className="pv-hint" style={{marginTop: 0}}>
+              Your chats are end-to-end encrypted and kept in this browser, locked with your messenger passphrase.
+              If you chose to keep it unlocked, it opens without asking until you lock it here or sign out.
+              Signing out deletes them from this browser; your phone keeps its own copy.
+            </p>
+          )}
           <div className="pv-actions">
-            {messenger.state === 'unlocked' && <button className="btn btn-sec" onClick={messenger.lock}>Lock messenger</button>}
+            {messenger.mode === 'linked' && messenger.state === 'unlocked' && (
+              <button className="btn btn-sec" onClick={() => void messenger.unlinkBrowser()}>Log out this browser from my phone</button>
+            )}
+            {messenger.mode !== 'linked' && messenger.state === 'unlocked' && <button className="btn btn-sec" onClick={messenger.lock}>Lock messenger</button>}
             <button className="btn btn-ghost" onClick={signOut}>Sign out</button>
           </div>
         </PvCard>

@@ -219,6 +219,19 @@ export class AuthService {
     return {challengeId, secondFactor: 'totp_enrol', enrol};
   }
 
+  /** Linked devices — does the account have a signed-in phone (ios/android)? */
+  async hasActivePhone(userId: string): Promise<boolean> {
+    const row = await this.db.qOne<{ok: boolean}>(
+      `SELECT EXISTS (
+         SELECT 1 FROM auth_devices
+          WHERE user_id=$1 AND platform IN ('ios','android')
+            AND revoked_at IS NULL AND expires_at > now()
+       ) AS ok`,
+      [userId],
+    );
+    return !!row?.ok;
+  }
+
   // ── Shared: create access + refresh tokens for a verified device ─────────
   async issueSession(
     user: UserRow,

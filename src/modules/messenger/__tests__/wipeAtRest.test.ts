@@ -22,6 +22,7 @@ jest.mock('../runtime/keychain', () => ({
   destroyCompartmentDbKey: jest.fn(() => Promise.resolve()),
   destroyMerkleSeqHmacKey: jest.fn(() => Promise.resolve()),
   clearMirrorMasterKey: jest.fn(() => Promise.resolve()),
+  clearLinkSecrets: jest.fn(() => Promise.resolve()),
 }));
 
 import {wipeUserAtRest} from '../runtime/wipeAtRest';
@@ -31,6 +32,7 @@ import {
   destroyCompartmentDbKey,
   destroyMerkleSeqHmacKey,
   clearMirrorMasterKey,
+  clearLinkSecrets,
 } from '../runtime/keychain';
 
 const mockDestroyCompartment = destroyCompartmentDbKey as jest.Mock;
@@ -60,6 +62,8 @@ describe('wipeUserAtRest — F11 residual keychain material', () => {
     expect(destroyDbKey).toHaveBeenCalledWith(OWNER);
     expect(destroyGroupWrapKey).toHaveBeenCalledWith(OWNER);
     expect(clearMirrorMasterKey).toHaveBeenCalledWith(OWNER);
+    // Linked devices — the browsers' link keys go too.
+    expect(clearLinkSecrets).toHaveBeenCalledWith(OWNER);
     expect(report.errors).toEqual([]);
   });
 

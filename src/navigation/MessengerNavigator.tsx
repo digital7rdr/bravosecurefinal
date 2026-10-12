@@ -40,6 +40,7 @@ import DepartmentChatScreen from '@screens/messenger/DepartmentChatScreen';
 import VoiceCallScreen from '@screens/messenger/VoiceCallScreen';
 import MessengerSettingsScreen from '@screens/messenger/MessengerSettingsScreen';
 import BackupSetupScreen from '@screens/messenger/BackupSetupScreen';
+import LinkedDevicesScreen from '@screens/messenger/LinkedDevicesScreen';
 import BackupRestoreScreen from '@screens/messenger/BackupRestoreScreen';
 import NewsHubScreen from '@screens/news/NewsHubScreen';
 import IntelFeedScreen from '@screens/news/IntelFeedScreen';
@@ -300,6 +301,11 @@ export default function MessengerNavigator() {
       <Stack.Screen
         name="BackupSetup"
         component={BackupSetupScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="LinkedDevices"
+        component={LinkedDevicesScreen}
         options={{headerShown: false}}
       />
       <Stack.Screen

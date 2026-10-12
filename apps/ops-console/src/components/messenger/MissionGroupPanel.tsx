@@ -83,7 +83,13 @@ export function MissionGroupPanel({conversationId, missionShortCode}: Props) {
           </span>
         </div>
 
-        {messenger.state !== 'unlocked' ? (
+        {messenger.mode === 'linked' ? (
+          <div style={unlockBanner}>
+            <span style={{fontFamily:'var(--font-mono)', fontSize:10.5, color:'var(--tx-2)'}}>
+              📱 This browser mirrors your phone. Mission group chat is in the Bravo app.
+            </span>
+          </div>
+        ) : messenger.state !== 'unlocked' ? (
           <div style={unlockBanner}>
             <span style={{fontFamily:'var(--font-mono)', fontSize:10.5, color:'var(--tx-2)'}}>
               🔒 Vault locked
@@ -157,7 +163,7 @@ export function MissionGroupPanel({conversationId, missionShortCode}: Props) {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            disabled={messenger.state !== 'unlocked'}
+            disabled={messenger.state !== 'unlocked' || !messenger.signalRuntime}
             style={openBtn(messenger.state !== 'unlocked')}>
             {messenger.state !== 'unlocked'
               ? 'UNLOCK FIRST'
@@ -167,7 +173,7 @@ export function MissionGroupPanel({conversationId, missionShortCode}: Props) {
       </div>
 
       {/* Floating dock — portal'd to body so sidebar overflow can't hide it */}
-      {open && messenger.state === 'unlocked' && (
+      {open && messenger.state === 'unlocked' && messenger.signalRuntime && (
         <MissionGroupDock
           conversationId={conversationId}
           missionShortCode={missionShortCode}
@@ -232,51 +238,51 @@ function MissionGroupDock({
   // mean the ops admin left the messenger; the session-level state in
   // MessengerProvider owns the active/away lifecycle now.
   useEffect(() => {
-    if (!messenger.runtime || messenger.state !== 'unlocked') return;
-    messenger.runtime.setActivity('active');
-  }, [messenger.runtime, messenger.state]);
+    if (!messenger.signalRuntime || messenger.state !== 'unlocked') return;
+    messenger.signalRuntime.setActivity('active');
+  }, [messenger.signalRuntime, messenger.state]);
 
   // Mark inbound messages read whenever the unread set grows. The
   // runtime fans the receipt back per-peer; receiptedIdsRef stops us
   // from re-firing on every render after the first.
   useEffect(() => {
-    if (!messenger.runtime || messages.length === 0) return;
+    if (!messenger.signalRuntime || messages.length === 0) return;
     const fresh = messages
       .filter(m => m.senderUserId !== messenger.userId)
       .map(m => m.envelopeId)
       .filter(id => !receiptedIdsRef.current.has(id));
     if (fresh.length === 0) return;
     for (const id of fresh) receiptedIdsRef.current.add(id);
-    messenger.runtime.markRead(conversationId, fresh);
-  }, [messenger.runtime, messenger.userId, messages, conversationId]);
+    messenger.signalRuntime.markRead(conversationId, fresh);
+  }, [messenger.signalRuntime, messenger.userId, messages, conversationId]);
 
   // Typing indicator sender — debounced by the 6s server-side auto-stop
   // so we only fire on transitions. Fan out to every other member; the
   // server forwards each frame only to that peer's connected sockets.
   useEffect(() => {
-    if (!messenger.runtime || otherMemberIds.length === 0) return;
+    if (!messenger.signalRuntime || otherMemberIds.length === 0) return;
     const shouldType = text.trim().length > 0;
     if (shouldType && !typingActiveRef.current) {
       for (const uid of otherMemberIds) {
-        messenger.runtime.sendTyping({userId: uid, deviceId: 1}, 'start');
+        messenger.signalRuntime.sendTyping({userId: uid, deviceId: 1}, 'start');
       }
       typingActiveRef.current = true;
     } else if (!shouldType && typingActiveRef.current) {
       for (const uid of otherMemberIds) {
-        messenger.runtime.sendTyping({userId: uid, deviceId: 1}, 'stop');
+        messenger.signalRuntime.sendTyping({userId: uid, deviceId: 1}, 'stop');
       }
       typingActiveRef.current = false;
     }
-  }, [text, messenger.runtime, otherMemberIds]);
+  }, [text, messenger.signalRuntime, otherMemberIds]);
 
   // Stop typing on unmount in case the user closed the dock mid-compose.
   useEffect(() => () => {
-    if (!typingActiveRef.current || !messenger.runtime) return;
+    if (!typingActiveRef.current || !messenger.signalRuntime) return;
     for (const uid of otherMemberIds) {
-      messenger.runtime.sendTyping({userId: uid, deviceId: 1}, 'stop');
+      messenger.signalRuntime.sendTyping({userId: uid, deviceId: 1}, 'stop');
     }
     typingActiveRef.current = false;
-  }, [messenger.runtime, otherMemberIds]);
+  }, [messenger.signalRuntime, otherMemberIds]);
 
   const display = useMemo(() => {
     const out: Array<{key: string; senderUserId: string | null; body: string; at: number; pending?: boolean; failed?: boolean; read?: boolean}> = [];
@@ -328,7 +334,7 @@ function MissionGroupDock({
   }, [display.length]);
 
   const send = async () => {
-    if (!text.trim() || !convo || !messenger.runtime) return;
+    if (!text.trim() || !convo || !messenger.signalRuntime) return;
     setSending(true); setSendErr(null);
     const body = text.trim();
     // Optimistic bubble: add to outbox BEFORE we await the network so
@@ -337,8 +343,8 @@ function MissionGroupDock({
     setOutbox(p => [...p, {localId, body, at: Date.now(), status: 'sending'}]);
     setText('');
     try {
-      const cert = await messenger.runtime.getSenderCert();
-      const runtime = messenger.runtime;
+      const cert = await messenger.signalRuntime.getSenderCert();
+      const runtime = messenger.signalRuntime;
 
       // Phase-1 simplification: skip the master-key wrap entirely. The
       // pairwise Signal session is already E2E (each recipient gets
@@ -401,14 +407,14 @@ function MissionGroupDock({
    */
   const [resetting, setResetting] = useState(false);
   const resetSessions = async () => {
-    if (!convo || !messenger.runtime || resetting) return;
+    if (!convo || !messenger.signalRuntime || resetting) return;
     setResetting(true); setSendErr(null);
     try {
-      const others = convo.members.filter(m => m.userId !== messenger.runtime!.self.userId);
+      const others = convo.members.filter(m => m.userId !== messenger.signalRuntime!.self.userId);
       let failed = 0;
       for (const m of others) {
         try {
-          await messenger.runtime.resetSessionWith({userId: m.userId, deviceId: 1});
+          await messenger.signalRuntime.resetSessionWith({userId: m.userId, deviceId: 1});
         } catch { failed += 1; }
       }
       if (failed > 0) setSendErr(`Reset failed for ${failed}/${others.length} members`);

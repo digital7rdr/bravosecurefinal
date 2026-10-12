@@ -60,6 +60,7 @@ import VaultNewPinScreen from '@screens/messenger/VaultNewPinScreen';
 import GroupsScreen from '@screens/messenger/GroupsScreen';
 import MessengerSettingsScreen from '@screens/messenger/MessengerSettingsScreen';
 import BackupSetupScreen from '@screens/messenger/BackupSetupScreen';
+import LinkedDevicesScreen from '@screens/messenger/LinkedDevicesScreen';
 import FilesScreen from '@screens/messenger/FilesScreen';
 import VBGEmergencyScreen from '@screens/vbg/VBGEmergencyScreen';
 import WorkspaceHubScreen from '@screens/deptchat/WorkspaceHubScreen';
@@ -329,6 +330,7 @@ export default function AgentNavigator() {
           both of which resolve in this stack. */}
       <Stack.Screen name="MessengerSettings"  component={MessengerSettingsScreen}  options={{headerShown: false}} />
       <Stack.Screen name="BackupSetup"        component={BackupSetupScreen}        options={{headerShown: false}} />
+      <Stack.Screen name="LinkedDevices"      component={LinkedDevicesScreen}      options={{headerShown: false}} />
       <Stack.Screen name="Files"              component={FilesScreen}              options={{headerShown: false}} />
       <Stack.Screen name="VoiceCall"          component={CallScreen}               options={{headerShown: false}} />
       <Stack.Screen name="CallScreen"         component={CallScreen}               options={{headerShown: false, animation: 'fade'}} />

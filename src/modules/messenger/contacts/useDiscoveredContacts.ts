@@ -146,6 +146,59 @@ export function clearDiscoveredContactsCache(): void {
   discoveryCache.clear();
 }
 
+/**
+ * Linked devices (2026-10-12) — the freshest discovery answer this session
+ * has, whatever its age or key, or null when no sweep ran yet.
+ */
+export function latestDiscoveredContacts(): DiscoveredRow[] | null {
+  let best: CacheEntry | null = null;
+  for (const e of discoveryCache.values()) {if (!best || e.at > best.at) {best = e;}}
+  return best ? best.rows : null;
+}
+
+/**
+ * Linked devices — one discovery sweep outside React, PASSIVE: it never shows
+ * the contacts permission prompt (a browser asking for a sync must not pop a
+ * dialog on the phone). Returns [] when permission was not granted earlier.
+ * The answer is cached like the hook's.
+ */
+export async function discoverContactsPassive(
+  users: UsersHttpClient | null,
+  ownPhoneE164: string | null,
+): Promise<DiscoveredRow[]> {
+  if (!isContactsAvailable() || !users) {return [];}
+  const perm = await Contacts.getPermissionsAsync();
+  if (perm.status !== Contacts.PermissionStatus.GRANTED) {return [];}
+  const region = regionFromOwnPhone(ownPhoneE164);
+  const {data} = await Contacts.getContactsAsync({
+    fields: [Contacts.Fields.Name, Contacts.Fields.PhoneNumbers],
+    pageSize: 0,
+  });
+  const phoneToLocalName = new Map<string, string>();
+  for (const c of data) {
+    const name = (c.name ?? '').trim() || phoneFallback(c);
+    for (const p of c.phoneNumbers ?? []) {
+      const e164 = normalizeSingle(p.number ?? p.digits, region);
+      if (e164 && !phoneToLocalName.has(e164)) {phoneToLocalName.set(e164, name);}
+    }
+  }
+  const phones = Array.from(phoneToLocalName.keys());
+  const matches: DiscoveredContact[] = [];
+  for (let i = 0; i < phones.length; i += 500) {
+    matches.push(...await users.lookup(phones.slice(i, i + 500)));
+  }
+  const rows: DiscoveredRow[] = matches.map(m => ({
+    userId:      m.userId,
+    displayName: m.displayName,
+    avatarUrl:   m.avatarUrl,
+    phoneE164:   m.phone,
+    localName:   phoneToLocalName.get(m.phone) ?? m.displayName,
+  }));
+  rows.sort((a, b) => a.localName.localeCompare(b.localName));
+  discoveryCache.set(`${ownPhoneE164 ?? 'anon'}:${region ?? ''}`, {rows, at: Date.now()});
+  return rows;
+}
+
 export function useDiscoveredContacts(opts: Options): UseDiscoveredContactsResult {
   const {users, ownPhoneE164, defaultRegion, enabled = true, passive = false} = opts;
 

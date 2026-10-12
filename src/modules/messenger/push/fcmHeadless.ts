@@ -90,6 +90,16 @@ export async function handleHeadlessFcm(message: RemoteMessage | undefined): Pro
   // now sends a data-only cancel push. Dismiss any ring this device already
   // drew and leave a Missed-call trace, so a Doze-deferred ring can't keep
   // ringing after the call is over ("notification appears only after the call").
+  // Linked devices — a linked browser queued something for this phone.
+  if (kind === 'link_wake') {
+    try {
+      const {handleLinkWake} = require('../link/linkEngine') as typeof import('../link/linkEngine');
+      await handleLinkWake('headless');
+    } catch (e) {
+      console.warn('[fcm-headless] link wake failed:', (e as Error).message);
+    }
+    return;
+  }
   if (kind === 'call-cancel' && typeof data.callId === 'string') {
     // WI-4.1 — the warm lane's handleCallCancel guards the empty string too.
     if (!data.callId) {return;}

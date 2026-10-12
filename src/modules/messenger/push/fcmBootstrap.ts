@@ -383,6 +383,14 @@ export async function startFcmBootstrap(): Promise<void> {
   } catch (e) {
     console.warn('[fcm] bg-message notifier start failed:', (e as Error).message);
   }
+  // Linked devices (2026-10-12) — mirror chats to linked browsers and run
+  // what they ask this phone to send. Idempotent; stopped on sign-out.
+  try {
+    const {startLinkEngine} = require('../link/linkEngine') as typeof import('../link/linkEngine');
+    startLinkEngine();
+  } catch (e) {
+    console.warn('[fcm] link engine start failed:', (e as Error).message);
+  }
   if (started && serverRegistered) {
     console.log('[fcm] bootstrap skip — already started + server-registered');
     return;
@@ -492,6 +500,15 @@ export async function startFcmBootstrap(): Promise<void> {
       // while backgrounded the instant the caller gives up, instead of letting
       // it run out its 45 s timeout after the app is foregrounded.
       if (kind === 'call-cancel') { await handleCallCancel(stringFields(data)); return; }
+      // Linked devices — a linked browser queued something for this phone.
+      if (kind === 'link_wake') {
+        try {
+          const {startLinkEngine, drainLinkInboxes} = require('../link/linkEngine') as typeof import('../link/linkEngine');
+          startLinkEngine();
+          await drainLinkInboxes();
+        } catch (e) { console.warn('[fcm] link wake failed:', (e as Error).message); }
+        return;
+      }
       if (kind === 'voip-wake') {
         // AC-3 (B-306 rider) — a GROUP wake arriving in the FOREGROUND is the
         // FCM lane's copy of the ring. This used to drop it on the assumption
@@ -2709,6 +2726,10 @@ export function stopFcmBootstrap(): void {
     const {stopBackgroundMessageNotifier} = require('./backgroundMessageNotifier') as typeof import('./backgroundMessageNotifier');
     stopBackgroundMessageNotifier();
   } catch { /* notifier never started */ }
+  try {
+    const {stopLinkEngine} = require('../link/linkEngine') as typeof import('../link/linkEngine');
+    stopLinkEngine();
+  } catch { /* link engine never started */ }
   // Teardown the CallKit/Telecom bridge so a re-login starts clean
   // (re-prompts for phone-account permission if it was revoked, and
   // drops any orphaned system-UI calls from the previous session).
@@ -2872,6 +2893,12 @@ messaging().setBackgroundMessageHandler(async (remoteMessage) => {
   // Dismiss any ring we drew and (when the caller gave up on an unanswered
   // call) leave a Missed-call trace, so a Doze-deferred ring can't keep ringing
   // after the call is over.
+  // Linked devices — a linked browser queued something for this phone.
+  if (data.kind === 'link_wake') {
+    const {handleLinkWake} = require('../link/linkEngine') as typeof import('../link/linkEngine');
+    await handleLinkWake('warm');
+    return;
+  }
   if (data.kind === 'call-cancel' && typeof data.callId === 'string') {
     // P2-5 — full teardown (ring dismiss + Telecom reportEnded + cache
     // tombstone + optional missed-call trace), shared with the foreground path.

@@ -252,6 +252,12 @@ export async function headlessDrainAndNotify(): Promise<HeadlessDrainOutcome> {
     // killed lane down the generic-fallback path for no reason.
     try { notifier.armBackgroundMessageNotifier?.(); }
     catch (e) { console.warn('[headlessDrain] notifier arm failed:', (e as Error).message); }
+    // Linked devices — mirror what this drain ingests to linked browsers.
+    // Started AFTER the boot's hydration so history is not re-forwarded.
+    try {
+      const {startLinkEngine} = require('../link/linkEngine') as typeof import('../link/linkEngine');
+      startLinkEngine();
+    } catch (e) { console.warn('[headlessDrain] link engine start failed:', (e as Error).message); }
     // B-703 MR-1 — pullEnvelopes never throws, so its REPORT is the only signal
     // that the fetch actually did its job. A missing method (degraded build)
     // classifies as 'failed', not 'drained': nothing was ingested either way.
@@ -281,6 +287,10 @@ export async function headlessDrainAndNotify(): Promise<HeadlessDrainOutcome> {
     // module doc for why an unbounded wait would trade a stuck tick for a
     // muted thread that dings.
     await flushAcksBounded(runtime, 'headless drain');
+    try {
+      const {flushLinkBounded} = require('../link/linkEngine') as typeof import('../link/linkEngine');
+      await flushLinkBounded(3_000);
+    } catch { /* mirroring is best-effort */ }
     return verdict;
   } catch (e) {
     console.warn('[fcm-headless] drain failed:', (e as Error).message);

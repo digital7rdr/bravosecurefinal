@@ -7,6 +7,7 @@ import {
   destroyCompartmentDbKey,
   destroyMerkleSeqHmacKey,
   clearMirrorMasterKey,
+  clearLinkSecrets,
   getOrCreateDbKey,
   ALL_COMPARTMENTS,
 } from './keychain';
@@ -144,6 +145,14 @@ export async function wipeUserAtRest(ownerKey: string): Promise<WipeReport> {
     report.mirrorKeyDestroyed = true;
   } catch (e) {
     report.errors.push('mirror key clear: ' + ((e as Error).message ?? String(e)));
+  }
+
+  // Step 4a — linked devices: forget the browsers' link keys so a later
+  // account on this phone can never mirror to them.
+  try {
+    await clearLinkSecrets(ownerKey);
+  } catch (e) {
+    report.errors.push('link keys clear: ' + ((e as Error).message ?? String(e)));
   }
 
   // Step 4b — F11: destroy the per-compartment SQLCipher keys (id/rt/msg,

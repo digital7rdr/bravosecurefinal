@@ -291,8 +291,23 @@ export class KeysService {
     // recently-updated row returns the active install's current identity.
     // The bundle is still authority-signed (P0-I2), so this changes WHICH
     // device's bundle is returned, never WHETHER it is authenticated.
+    //
+    // 2026-10-12 (linked devices) — prefer the identity of a LIVE PHONE over a
+    // fresher browser one. A browser that opened the messenger on a phone
+    // user's account uploaded its own keys, became "most recently updated",
+    // and peers then encrypted to the browser while the envelopes went to the
+    // phone's queue — the phone could not decrypt them. A phone (ios/android,
+    // not revoked) always wins; accounts without one (web-only staff) fall
+    // back to the most recent row exactly as before.
     const primary = await this.db.qOne<{device_id: number}>(
-      `SELECT device_id FROM public.signal_identities WHERE user_id=$1 ORDER BY updated_at DESC, device_id DESC LIMIT 1`,
+      `SELECT si.device_id
+         FROM public.signal_identities si
+         LEFT JOIN public.auth_devices ad
+           ON ad.user_id = si.user_id AND ad.signal_device_id = si.device_id
+          AND ad.platform IN ('ios','android') AND ad.revoked_at IS NULL
+        WHERE si.user_id=$1
+        ORDER BY (ad.device_id IS NOT NULL) DESC, si.updated_at DESC, si.device_id DESC
+        LIMIT 1`,
       [targetUserId],
     );
     if (!primary) throw new NotFoundException('no_keys_found');

@@ -1,3 +1,4 @@
+import {checkLinkedDevice} from '../link/link-policy';
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -425,6 +426,13 @@ export class MessengerGateway
         if (!(await this.redis.client.exists(`jti:${claims.jti}`))) {
           this.logger.warn(`[handshake] reject token_revoked ip=${ip} sub=${claims.sub} jti=${claims.jti.slice(0,8)}`);
           return next(handshakeError('token_revoked'));
+        }
+        // Linked devices — a linked browser holds its own reserved device id
+        // (never device 1's socket slot or queue); see link/link-policy.ts.
+        const linkVerdict = await checkLinkedDevice(this.redis, claims.sub, claims.deviceId, signalDeviceId);
+        if (!linkVerdict.ok) {
+          this.logger.warn(`[handshake] reject ${linkVerdict.reason} sub=${claims.sub.slice(0, 8)} dev=${signalDeviceId}`);
+          return next(handshakeError(linkVerdict.reason));
         }
         // B-354 — presence-invisible background socket (headless drain).
         // Self-declared and privacy-reducing-only: claiming it can only make

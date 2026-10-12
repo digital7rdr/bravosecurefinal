@@ -308,6 +308,43 @@ export class MessengerRuntime {
   }
 
   /**
+   * Linked devices (2026-10-12) — a vault for a browser that will mirror the
+   * user's phone. No passphrase: the key is a random, NON-EXTRACTABLE
+   * AES-GCM key kept in this browser profile (the same protection as "keep
+   * unlocked on this browser"). Only used when the vault does not exist yet;
+   * the data it protects is a copy of what is on the phone.
+   */
+  static async createDeviceVault(userId: string): Promise<MessengerRuntime> {
+    const db = await openMessengerDb(userId);
+    if (await db.get('vault', 1)) { db.close(); throw new Error('vault_exists'); }
+    const key = await crypto.subtle.generateKey({name: 'AES-GCM', length: 256}, false, ['encrypt', 'decrypt']);
+    const canary = await wrapString(key, 'OK');
+    await db.put('vault', {salt: newSalt(), canary, created_at: Date.now(), remembered_key: key}, 1);
+    const r = new MessengerRuntime(userId);
+    r.db = db;
+    r.wrapKey = key;
+    r.store = new IndexedDBProtocolStore(r.db, r.wrapKey);
+    r.session = new SessionManager(r.store);
+    r.messages = new MessageStore(r.db, r.wrapKey);
+    return r;
+  }
+
+  /** Whether this browser already holds a messenger vault for the user. */
+  static async hasVault(userId: string): Promise<boolean> {
+    const db = await openMessengerDb(userId);
+    try { return !!(await db.get('vault', 1)); } finally { db.close(); }
+  }
+
+  /**
+   * Linked devices — hand the unlocked vault (database + wrap key) to the
+   * linked-mode runtime. Nothing has been started on this instance (no socket,
+   * no key upload), so it is simply dropped afterwards.
+   */
+  vaultHandle(): {db: MessengerDb; wrapKey: WrapKey} {
+    return {db: this.db, wrapKey: this.wrapKey};
+  }
+
+  /**
    * 2026-10-12 — keep (or stop keeping) this vault unlocked on this browser.
    * Stores the vault's wrap key as a non-extractable CryptoKey in the
    * vault row; nothing readable leaves WebCrypto.

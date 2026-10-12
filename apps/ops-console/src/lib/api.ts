@@ -295,14 +295,14 @@ export const authApi = {
  * Audit fix 0.4 — in-memory messenger ticket holder. Refreshed before
  * expiry by the messenger runtime. NEVER persisted to disk.
  */
-let messengerTicketCache: {token: string; expiresAt: number} | null = null;
+let messengerTicketCache: {token: string; expiresAt: number; hasPhone: boolean} | null = null;
 
 /**
  * Mint a messenger ticket WITHOUT the fetchJson login-redirect, so a 401
  * (stale access cookie / rotated jti) can be recovered by a silent session
  * refresh instead of bouncing the operator to /login mid-mission.
  */
-async function mintTicketRaw(): Promise<{ticket: string; expiresIn: number} | 401> {
+async function mintTicketRaw(): Promise<{ticket: string; expiresIn: number; hasPhone?: boolean} | 401> {
   const res = await fetch(`${BASE}/auth/messenger-ticket`, {
     method: 'POST',
     credentials: 'include',
@@ -314,7 +314,7 @@ async function mintTicketRaw(): Promise<{ticket: string; expiresIn: number} | 40
   });
   if (res.status === 401) return 401;
   if (!res.ok) throw new ApiError(res.status, null, `messenger-ticket ${res.status}`);
-  return (await res.json()) as {ticket: string; expiresIn: number};
+  return (await res.json()) as {ticket: string; expiresIn: number; hasPhone?: boolean};
 }
 
 export async function getMessengerTicket(forceRefresh = false): Promise<string> {
@@ -346,8 +346,19 @@ export async function getMessengerTicket(forceRefresh = false): Promise<string> 
   messengerTicketCache = {
     token:     res.ticket,
     expiresAt: now + res.expiresIn * 1000,
+    hasPhone:  res.hasPhone === true,
   };
   return res.ticket;
+}
+
+/**
+ * Linked devices (2026-10-12) — does this account have the Bravo app signed
+ * in on a phone? Then the browser messenger mirrors that phone instead of
+ * being a second, competing "device". Read from the ticket mint response.
+ */
+export async function messengerAccountHasPhone(): Promise<boolean> {
+  await getMessengerTicket();
+  return messengerTicketCache?.hasPhone ?? false;
 }
 
 export function clearMessengerTicket(): void {

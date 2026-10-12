@@ -23,6 +23,8 @@ import {
   useMessenger, usePresence, useTyping, useReadReceipts,
 } from '@/components/messenger/MessengerProvider';
 import type {StoredMessage, ConversationSummary} from '@/lib/messenger/runtime';
+import type {LinkedRuntime} from '@/lib/messenger/linkedRuntime';
+import {LinkPhonePanel} from './LinkPhonePanel';
 
 const DIRECT = 'direct:';
 const peerOf = (cid: string) => (cid.startsWith(DIRECT) ? cid.slice(DIRECT.length) : null);
@@ -108,12 +110,28 @@ function sendError(e: unknown): string {
   return `Not delivered: ${msg || 'unknown error'}.`;
 }
 
+/** Linked mode: the runtime that mirrors the phone, else null. */
+function useLinked(): LinkedRuntime | null {
+  const {runtime} = useMessenger();
+  return runtime && 'kind' in runtime && runtime.kind === 'linked' ? runtime : null;
+}
+
+/** Linked mode: names come from the phone's contacts, like in the app. */
+function linkedPerson(linked: LinkedRuntime | null, userId: string | null): ChatPerson | null {
+  const p = linked && userId ? linked.peer(userId) : null;
+  return p?.name ? {id: p.userId, name: p.name, subtitle: p.phone ?? ''} : null;
+}
+
 function usePeerProfile(userId: string | null, cache: Map<string, ChatPerson>) {
   const dir = useContext(DirectoryCtx);
+  const linked = useLinked();
+  const [, bump] = useState(0);
+  useEffect(() => (linked ? linked.onPeersChange(() => bump(n => n + 1)) : undefined), [linked]);
+  const fromPhone = linkedPerson(linked, userId);
   const cached = userId ? cache.get(userId) : undefined;
-  const {data} = useSWR(userId && !cached ? ['chat-peer', dir.seenKey, userId] : null,
+  const {data} = useSWR(userId && !cached && !fromPhone ? ['chat-peer', dir.seenKey, userId] : null,
     () => dir.get(userId!), {revalidateOnFocus: false, shouldRetryOnError: false});
-  return cached ?? data ?? null;
+  return fromPhone ?? cached ?? data ?? null;
 }
 
 export function ChatWorkspace({directory = OPS_CHAT_DIRECTORY}: {directory?: ChatDirectory} = {}) {
@@ -121,6 +139,7 @@ export function ChatWorkspace({directory = OPS_CHAT_DIRECTORY}: {directory?: Cha
   const {state, runtime} = messenger;
 
   if (state === 'absent') return <div className="chat-empty-state">Loading…</div>;
+  if (state === 'link_required') return <LinkPhonePanel />;
   if (state !== 'unlocked' || !runtime) {
     return (
       <div className="chat-locked card">
@@ -202,6 +221,7 @@ function UnlockedChat() {
       <aside className="chat-list">
         <PeopleSearch onPick={startWith} selfId={selfId} />
         <div className="chat-list-head">{dir.title ?? 'Chats'}</div>
+        <LinkedBanner />
         <div className="chat-list-scroll">
           {listed.length === 0 && (
             <div className="chat-list-empty">
@@ -238,18 +258,23 @@ function PeopleSearch({onPick, selfId}: {onPick: (u: ChatPerson) => void; selfId
   const [q, setQ] = useState('');
   const [debounced, setDebounced] = useState('');
   useEffect(() => { const t = setTimeout(() => setDebounced(q.trim()), 250); return () => clearTimeout(t); }, [q]);
+  const linked = useLinked();
   const {data, error, isLoading} = useSWR(debounced.length >= 2 ? ['chat-search', dir.seenKey, debounced] : null,
     () => dir.search(debounced), {revalidateOnFocus: false, shouldRetryOnError: false});
-  const results = (data ?? []).filter(u => u.id !== selfId);
+  // Linked mode: the phone's contacts first, then the directory's matches.
+  const fromPhone: ChatPerson[] = linked && debounced.length >= 1
+    ? linked.searchPeers(debounced).map(p => ({id: p.userId, name: p.name ?? p.phone ?? 'Bravo user', subtitle: p.phone ?? 'Contact'}))
+    : [];
+  const results = [...fromPhone, ...(data ?? []).filter(u => !fromPhone.some(p => p.id === u.id))].filter(u => u.id !== selfId);
   return (
     <div className="chat-search">
       <input value={q} onChange={e => setQ(e.target.value)} placeholder={dir.searchPlaceholder}
         aria-label="Search people to message" />
-      {debounced.length >= 2 && (
+      {(debounced.length >= 2 || fromPhone.length > 0) && (
         <div className="chat-search-results">
           {isLoading && <div className="chat-search-note">Searching…</div>}
-          {error && <div className="chat-search-note">{dir.searchError ? dir.searchError(error) : 'Search failed.'}</div>}
-          {!isLoading && !error && results.length === 0 && <div className="chat-search-note">{dir.noResultsText ? dir.noResultsText(debounced) : 'No one found.'}</div>}
+          {error && fromPhone.length === 0 && <div className="chat-search-note">{dir.searchError ? dir.searchError(error) : 'Search failed.'}</div>}
+          {!isLoading && !error && results.length === 0 && debounced.length >= 2 && <div className="chat-search-note">{dir.noResultsText ? dir.noResultsText(debounced) : 'No one found.'}</div>}
           {results.map(u => (
             <button key={u.id} type="button" className="chat-search-row" onClick={() => { onPick(u); setQ(''); }}>
               <span className="chat-avatar sm">{initials(u.name)}</span>
@@ -356,6 +381,16 @@ function Thread({conversationId, directory}: {conversationId: string; directory:
     try { await runtime.sendDirect(peerId, m.body); } catch (e) { setErr(sendError(e)); }
   };
 
+  // Linked mode: a message waits on the phone; say so if it takes a while.
+  const linked = useLinked();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!linked) return;
+    const t = setInterval(() => setNow(Date.now()), 5_000);
+    return () => clearInterval(t);
+  }, [linked]);
+  const waitingOnPhone = !!linked && rows.some(r => r.direction === 'out' && r.status === 'sending' && now - r.sentAt > 15_000);
+
   const status = typing ? 'typing…'
     : presence?.state === 'online' || presence?.state === 'active' ? 'online'
     : presence?.lastSeenMs ? `last seen ${timeLabel(presence.lastSeenMs)}` : (peer?.subtitle ?? '');
@@ -405,6 +440,9 @@ function Thread({conversationId, directory}: {conversationId: string; directory:
         {typing && <div className="chat-bubble-row"><div className="chat-bubble typing"><span/><span/><span/></div></div>}
         <div ref={bottom} />
       </div>
+      {waitingOnPhone && !err && (
+        <div className="chat-error">Waiting for your phone. Messages go out from the Bravo app, so make sure your phone is on and connected to the internet.</div>
+      )}
       {err && <div className="chat-error">{err}</div>}
       <form className="chat-composer" onSubmit={e => { e.preventDefault(); void send(); }}>
         <textarea value={text} rows={1} placeholder="Type a message"
@@ -417,5 +455,16 @@ function Thread({conversationId, directory}: {conversationId: string; directory:
         </button>
       </form>
     </>
+  );
+}
+
+/** Linked mode: a one-line reminder that this browser mirrors the phone. */
+function LinkedBanner() {
+  const linked = useLinked();
+  if (!linked) return null;
+  return (
+    <div className="chat-search-note" style={{padding: '6px 14px'}}>
+      📱 Mirrored from your phone. Chats and messages sync through the Bravo app.
+    </div>
   );
 }
