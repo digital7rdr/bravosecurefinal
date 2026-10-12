@@ -470,6 +470,16 @@ export class OpsDataController {
     return r;
   }
 
+  // 2026-10-12 — remove an already-deleted account for good (Super Admin).
+  @Post('users/:id/purge')
+  @RequireRoles('ADMIN')
+  async purgeUser(@Param('id', ParseUUIDPipe) id: string, @Req() req: OpsReq) {
+    if (id === req.admin.user_id) throw new BadRequestException('cannot_erase_self');
+    const r = await this.data.purgeUser(id);
+    await this.audit.recordAdmin(req.admin, 'user.purge', 'user', id, {});
+    return r;
+  }
+
   // ─── SOS log (DC-06) ──────────────────────────────────────────────
   @Get('sos')
   listSos(@Query() q: OpsSosQueryDto) {

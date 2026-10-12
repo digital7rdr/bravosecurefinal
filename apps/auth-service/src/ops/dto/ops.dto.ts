@@ -242,6 +242,8 @@ export class OpsUsersQueryDto {
   @IsOptional() @IsString() @MaxLength(32) tier?: string;
   @IsOptional() @Type(() => Number) @IsInt() @Min(1) @Max(500) limit?: number;
   @IsOptional() @Type(() => Number) @IsInt() @Min(0) @Max(100_000) offset?: number;
+  /** 2026-10-12 — deleted accounts are hidden unless asked for. */
+  @IsOptional() @IsIn(['hide', 'only', 'all'] as const) deleted?: 'hide' | 'only' | 'all';
 }
 
 export class OpsSosQueryDto {

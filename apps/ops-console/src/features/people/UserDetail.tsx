@@ -232,6 +232,23 @@ export function UserDetail() {
     void runAccountAction(() => opsDataApi.restoreUser(id));
   }
 
+  // 2026-10-12 — an already-deleted account removed for good, unless it still
+  // has records the business must keep (the server names them).
+  async function purge() {
+    if (!window.confirm('Remove this deleted account permanently? It disappears from the console. This cannot be undone.')) return;
+    setAcctBusy(true); setAcctErr(null);
+    try {
+      await opsDataApi.purgeUser(id);
+      router.push(routes.people.users);
+    } catch (e) {
+      const m = (e as Error).message;
+      setAcctErr(/has_records|Kept as an anonymised/.test(m)
+        ? (m.match(/Kept as an anonymised[^"]*/)?.[0] ?? 'This account still has records that must be kept (bookings, payments or audit), so it stays as an anonymised entry.')
+        : m);
+      setAcctBusy(false);
+    }
+  }
+
   function confirmErase(reason: string) {
     // Erase keeps its double-confirm: validated reason first, then a final
     // irreversible-action gate.
@@ -320,6 +337,12 @@ export function UserDetail() {
                   SUSPEND
                 </button>
               )
+            )}
+            {canErase && user.deleted_at && (
+              <button onClick={() => void purge()} disabled={acctBusy}
+                className="rounded-md border border-err/40 bg-err/10 px-3 py-1.5 text-xs font-semibold text-err hover:bg-err/20 disabled:opacity-50">
+                REMOVE PERMANENTLY
+              </button>
             )}
             {canErase && !user.deleted_at && user.id !== me?.admin.user_id && (
               <button onClick={() => setEraseOpen(true)} disabled={acctBusy}

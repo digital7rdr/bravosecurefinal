@@ -59,6 +59,8 @@ export function UsersDirectory({scope}: {scope: DirectoryScope}) {
   const [role, setRole] = useState<string | undefined>(isClients ? 'individual' : undefined);
   const [kyc, setKyc] = useState<string | undefined>(undefined);
   const [tier, setTier] = useState<string | undefined>(undefined);
+  // 2026-10-12 — deleted accounts are hidden unless asked for.
+  const [showDeleted, setShowDeleted] = useState(false);
   const [adding, setAdding] = useState(false);
   const {data: me} = useOpsMe();
   const canAdd = canCreateUsers(me?.admin.role);
@@ -73,10 +75,10 @@ export function UsersDirectory({scope}: {scope: DirectoryScope}) {
   const effectiveRole = isClients ? 'individual' : role;
 
   const {rows, isLoading, isLoadingMore, error, hasMore, loadMore, mutate} = usePagedList<OpsUserRow>({
-    key: ['ops-users', scope, debouncedQ, effectiveRole ?? '', kyc ?? '', tier ?? ''],
+    key: ['ops-users', scope, debouncedQ, effectiveRole ?? '', kyc ?? '', tier ?? '', showDeleted ? 'only' : 'hide'],
     pageSize: PAGE,
     maxRows: LIMIT_MAX,
-    fetchPage: ({limit, offset}) => opsDataApi.listUsers({q: debouncedQ || undefined, role: effectiveRole, kyc, tier, limit, offset}),
+    fetchPage: ({limit, offset}) => opsDataApi.listUsers({q: debouncedQ || undefined, role: effectiveRole, kyc, tier, limit, offset, deleted: showDeleted ? 'only' : 'hide'}),
     idOf,
     swr: {refreshInterval: POLL_DASH},
   });
@@ -206,6 +208,8 @@ export function UsersDirectory({scope}: {scope: DirectoryScope}) {
         {KYCS.map(k => (
           <Chip key={k.label} on={kyc === k.value} onClick={() => setKyc(k.value)}>{k.label}</Chip>
         ))}
+        <span style={{color: 'var(--tx-3)'}}>|</span>
+        <Chip on={showDeleted} onClick={() => setShowDeleted(v => !v)}>Deleted accounts</Chip>
       </div>
 
       <DataTable

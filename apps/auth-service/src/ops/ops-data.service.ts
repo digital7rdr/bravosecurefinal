@@ -18,6 +18,14 @@ import {IDENTITY_FACTS_UNKNOWN, resolveIdentityDocument} from '../identity/ident
  * broadcast log, and the user directory. Mutations stay in OpsService /
  * dedicated services — the only write here is the session-device revoke.
  */
+/** What an erased account's remaining rows are, in words (purgeUser). */
+const PURGE_KEEPS: Record<string, string> = {
+  bookings: 'bookings', lite_bookings: 'bookings', booking_assignments: 'mission assignments',
+  wallet_transactions: 'payment history', mission_payouts: 'payouts', audit_events: 'audit history',
+  gps_pings: 'mission tracking history', incident_reports: 'incident reports', incident_events: 'incident history',
+  conversations: 'conversations it started', job_applications: 'job applications',
+};
+
 @Injectable()
 export class OpsDataService {
   constructor(
@@ -208,7 +216,7 @@ export class OpsDataService {
   // ─── User directory (DC-04) ───────────────────────────────────────
   // password_hash / notif_prefs never selected.
 
-  listUsers(q: {q?: string; role?: string; kyc?: string; tier?: string; limit?: number; offset?: number}) {
+  listUsers(q: {q?: string; role?: string; kyc?: string; tier?: string; limit?: number; offset?: number; deleted?: 'hide' | 'only' | 'all'}) {
     return this.db.q(
       `SELECT u.id, u.display_name, u.phone_e164, u.email, u.role,
               u.subscription_tier, u.kyc_status, u.country_code, u.home_region,
@@ -223,12 +231,47 @@ export class OpsDataService {
           AND ($2::text IS NULL OR u.role = $2)
           AND ($3::text IS NULL OR u.kyc_status = $3)
           AND ($4::text IS NULL OR u.subscription_tier = $4)
+          AND ($7::text = 'all' OR ($7::text = 'only') = (u.deleted_at IS NOT NULL))
         ORDER BY u.created_at DESC
         LIMIT $5 OFFSET $6`,
       // OP-13 review — same escaping as the bookings/missions search: a typed
       // '%' or '_' used to be a wildcard and a trailing backslash a 500.
-      [q.q?.trim() ? `%${escapeLike(q.q.trim())}%` : null, q.role ?? null, q.kyc ?? null, q.tier ?? null, this.clampLimit(q.limit, 100), Math.max(0, Math.floor(q.offset ?? 0))],
+      [q.q?.trim() ? `%${escapeLike(q.q.trim())}%` : null, q.role ?? null, q.kyc ?? null, q.tier ?? null, this.clampLimit(q.limit, 100), Math.max(0, Math.floor(q.offset ?? 0)), q.deleted ?? 'hide'],
     );
+  }
+
+  /**
+   * 2026-10-12 — remove an already-DELETED (erased) account for good. Only an
+   * erased account (deleted_at set, personal data already scrubbed) can be
+   * removed. Its private rows go with it (sessions, keys, wallet shell,
+   * memberships…: ON DELETE CASCADE). If it still has records the business
+   * must keep — bookings, payments, missions, audit trail — the database
+   * refuses and the anonymised entry stays; the answer names what holds it.
+   */
+  async purgeUser(userId: string): Promise<{ok: true}> {
+    try {
+      await this.db.withTransaction(async tx => {
+        const row = await tx.qOne<{id: string}>(
+          `SELECT id FROM public.users WHERE id = $1 AND deleted_at IS NOT NULL FOR UPDATE`, [userId]);
+        if (!row) throw new ConflictException('not_deleted');
+        // Undelivered message envelopes are only a delivery queue to / from
+        // this account; they would otherwise block the removal.
+        await tx.q(`DELETE FROM public.message_envelopes WHERE sender_id = $1 OR recipient_id = $1`, [userId]);
+        await tx.q(`DELETE FROM admin_users WHERE user_id = $1`, [userId]);
+        await tx.q(`DELETE FROM public.users WHERE id = $1`, [userId]);
+      });
+    } catch (e) {
+      const err = e as {code?: string; table?: string};
+      if (err?.code === '23503') {
+        throw new ConflictException({
+          error: 'has_records',
+          table: err.table ?? null,
+          message: `Kept as an anonymised entry: it still has ${PURGE_KEEPS[err.table ?? ''] ?? 'records the business must keep'}${err.table ? ` (${err.table})` : ''}. Its personal details are already removed.`,
+        });
+      }
+      throw e;
+    }
+    return {ok: true as const};
   }
 
   async getUserDetail(userId: string) {
@@ -499,7 +542,9 @@ export class OpsDataService {
     await this.db.q(`DELETE FROM public.identity_document_versions WHERE user_id = $1`, [userId]);
     // 2026-10-11 — a deleted console admin also loses console access for good
     // (the row stays for the audit trail; Internal → Admins hides it).
-    await this.db.q(`UPDATE admin_users SET active = FALSE WHERE user_id = $1`, [userId]);
+    // 2026-10-12 — and its console copy of the phone is freed too (unique), so
+    // the number can be used for a new account or admin.
+    await this.db.q(`UPDATE admin_users SET active = FALSE, phone_e164 = NULL WHERE user_id = $1`, [userId]);
     const revoked = await this.revokeAllDevices(userId);
     // E2E-39 — erasure is the STRONGEST of the three account actions, so it must
     // not be the one that leaves a stale gate. It is also the only one the cache

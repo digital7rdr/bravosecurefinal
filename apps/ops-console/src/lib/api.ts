@@ -3141,7 +3141,7 @@ export const opsDataApi = {
     fetchJson<WalletOverview>(`/ops/finance/wallet/${userId}`),
 
   // DC-04 — user directory (SUPERVISOR+).
-  listUsers: (q?: {q?: string; role?: string; kyc?: string; tier?: string; limit?: number; offset?: number}) =>
+  listUsers: (q?: {q?: string; role?: string; kyc?: string; tier?: string; limit?: number; offset?: number; deleted?: 'hide' | 'only' | 'all'}) =>
     fetchJson<OpsUserRow[]>(`/ops/users${qs({...q})}`),
   getUser: (id: string) => fetchJson<OpsUserDetail>(`/ops/users/${id}`),
   // B-867 — deliberately unkeyed and never polled: each call is its own audit
@@ -3256,6 +3256,9 @@ export const opsDataApi = {
     fetchJson<{ok: true}>(`/ops/users/${userId}/restore`, {
       method: 'POST', idempotencyKey: newIdempotencyKey(),
     } as RequestInit & {idempotencyKey?: string}),
+  // 2026-10-12 — remove an already-deleted account for good (Super Admin).
+  purgeUser: (userId: string) =>
+    fetchJson<{ok: true}>(`/ops/users/${userId}/purge`, {method: 'POST'}),
   eraseUser: (userId: string, reason: string) =>
     fetchJson<{ok: true; revoked_sessions: number}>(`/ops/users/${userId}/erase`, {
       method: 'POST', body: JSON.stringify({reason}),
