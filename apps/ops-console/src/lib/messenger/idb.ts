@@ -105,6 +105,13 @@ export interface MessengerSchema {
       passkey_credential_id?: Uint8Array;
       passkey_prf_salt?:      Uint8Array;
       passkey_canary?:        Uint8Array;  // wrapped string 'OK' (PRF-derived key)
+      // 2026-10-12 — "Keep the messenger unlocked on this browser". The
+      // vault's own AES-GCM wrap key, stored as a NON-EXTRACTABLE CryptoKey
+      // (IndexedDB keeps CryptoKey objects by structured clone; the raw bytes
+      // can never be read back, only used by this origin in this browser
+      // profile). Present only while the person keeps it on; "Lock messenger"
+      // removes it and sign-out deletes the whole database.
+      remembered_key?:        CryptoKey;
     };
   };
   /**

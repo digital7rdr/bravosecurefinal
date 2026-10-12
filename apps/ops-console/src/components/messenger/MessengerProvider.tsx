@@ -99,12 +99,39 @@ export function MessengerProvider({children}: {children: ReactNode}) {
     if (state === 'absent') setState('locked');
   }, [userId, state]);
 
-  const unlock = useCallback(async (passphrase: string) => {
+  // 2026-10-12 — the messenger reopens by itself when it was kept unlocked
+  // on this browser: no passphrase dialog. Tried once per signed-in user.
+  const autoTried = useRef<string | null>(null);
+  useEffect(() => {
+    if (!userId || state !== 'locked' || autoTried.current === userId) return;
+    autoTried.current = userId;
+    void (async () => {
+      try {
+        const {MessengerRuntime} = await import('@/lib/messenger/runtime');
+        const runtime = await MessengerRuntime.unlockRemembered(userId);
+        if (!runtime) return;
+        setState('unlocking');
+        await runtime.ensureIdentityPublished();
+        runtime.startListening();
+        runtime.setActivity('active');
+        runtimeRef.current = runtime;
+        setState('unlocked');
+        setModalOpen(false);
+      } catch (e) {
+        console.warn('[messenger] remembered unlock failed', e);
+        runtimeRef.current = null;
+        setState('locked');
+      }
+    })();
+  }, [userId, state]);
+
+  const unlock = useCallback(async (passphrase: string, remember = true) => {
     if (!userId) throw new Error('no admin user yet');
     setState('unlocking'); setError(null);
     try {
       const {MessengerRuntime} = await import('@/lib/messenger/runtime');
       const runtime = await MessengerRuntime.unlock(userId, passphrase);
+      await runtime.rememberOnThisBrowser(remember).catch(e => console.warn('[messenger] remember failed', e));
       await runtime.ensureIdentityPublished();
       runtime.startListening();
       // Session-level presence: while ops has the vault unlocked we are
@@ -132,6 +159,9 @@ export function MessengerProvider({children}: {children: ReactNode}) {
     // transition cleanly. The disconnect handler will follow it up
     // with 'offline' on the last-socket close.
     runtimeRef.current?.setActivity('away');
+    // 2026-10-12 — an explicit lock also forgets "keep unlocked on this
+    // browser": the next open asks for the passphrase again.
+    await runtimeRef.current?.rememberOnThisBrowser(false).catch(() => undefined);
     // Audit OPS-MSG-09 — close() stops the pumps, closes the IDB handle,
     // and drops the in-memory group-key cache (not just stopListening()).
     runtimeRef.current?.close();
@@ -214,7 +244,7 @@ export function MessengerProvider({children}: {children: ReactNode}) {
           error={error}
           userId={userId}
           onClose={() => setModalOpen(false)}
-          onSubmit={async (p) => { try { await unlock(p); } catch { /* error already in state */ } }}
+          onSubmit={async (p, remember) => { try { await unlock(p, remember); } catch { /* error already in state */ } }}
         />
       )}
     </MessengerCtx.Provider>

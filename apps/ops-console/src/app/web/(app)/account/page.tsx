@@ -37,6 +37,7 @@ export default function WebAccount() {
         <PvCard title="Messenger on this browser">
           <p className="pv-hint" style={{marginTop: 0}}>
             Your chats are end-to-end encrypted and kept in this browser, locked with your messenger passphrase.
+            If you chose to keep it unlocked, it opens without asking until you lock it here or sign out.
             Signing out deletes them from this browser; your phone keeps its own copy.
           </p>
           <div className="pv-actions">

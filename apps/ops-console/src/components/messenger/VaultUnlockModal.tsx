@@ -18,7 +18,7 @@ interface Props {
   error: string | null;
   userId: string | null;
   onClose: () => void;
-  onSubmit: (passphrase: string) => Promise<void>;
+  onSubmit: (passphrase: string, remember: boolean) => Promise<void>;
 }
 
 export function VaultUnlockModal({state, error, userId, onClose, onSubmit}: Props) {
@@ -26,6 +26,8 @@ export function VaultUnlockModal({state, error, userId, onClose, onSubmit}: Prop
   const [confirm, setConfirm] = useState('');
   const [hasVault, setHasVault] = useState<boolean | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  // 2026-10-12 — on by default: the passphrase is asked once per browser.
+  const [remember, setRemember] = useState(true);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   // Detect first-run vs returning. We open the schema-aware DB
@@ -66,7 +68,7 @@ export function VaultUnlockModal({state, error, userId, onClose, onSubmit}: Prop
     e.preventDefault();
     if (disabled) return;
     setSubmitting(true);
-    try { await onSubmit(pass); }
+    try { await onSubmit(pass, remember); }
     finally { setSubmitting(false); }
   };
 
@@ -85,7 +87,7 @@ export function VaultUnlockModal({state, error, userId, onClose, onSubmit}: Prop
           </h3>
           <p style={blurb}>
             {isCreate
-              ? 'This passphrase encrypts your Signal identity in this browser. You\'ll enter it again every time you open the console. There is no recovery — losing it wipes the vault.'
+              ? 'This passphrase encrypts your messenger keys in this browser. Keep it safe: there is no recovery. With "Keep unlocked" on, you will not be asked again on this browser until you lock the messenger or sign out.'
               : 'Enter the passphrase you set the first time you opened this browser. Wrong passphrase fails cleanly — no data is destroyed on a miss.'}
           </p>
           <form onSubmit={submit} style={{display:'flex', flexDirection:'column', gap:10, marginTop:14}}>
@@ -123,6 +125,13 @@ export function VaultUnlockModal({state, error, userId, onClose, onSubmit}: Prop
             {mismatch && (
               <div style={hint}>Confirmation doesn&apos;t match.</div>
             )}
+            <label style={{display:'flex', alignItems:'flex-start', gap:8, cursor:'pointer'}}>
+              <input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} disabled={submitting} style={{marginTop:2}}/>
+              <span style={{fontFamily:'var(--font-sans)', fontSize:12.5, color:'var(--tx-2)', lineHeight:1.45}}>
+                Keep the messenger unlocked on this browser
+                <span style={{display:'block', fontSize:11, color:'var(--tx-3)'}}>Turn off on a shared computer. &ldquo;Lock messenger&rdquo; or signing out forgets it.</span>
+              </span>
+            </label>
             {error && (
               <div style={errorBox}>{error}</div>
             )}

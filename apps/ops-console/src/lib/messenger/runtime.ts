@@ -276,6 +276,53 @@ export class MessengerRuntime {
   }
 
   /**
+   * 2026-10-12 — reopen without asking: the vault key remembered on this
+   * browser (see `rememberOnThisBrowser`). Returns null when nothing is
+   * remembered or the remembered key no longer opens the vault (then the
+   * normal unlock dialog is shown and the stale key is dropped).
+   */
+  static async unlockRemembered(userId: string): Promise<MessengerRuntime | null> {
+    const db = await openMessengerDb(userId);
+    const vault = await db.get('vault', 1);
+    const key = vault?.remembered_key;
+    if (!vault || !key) { db.close(); return null; }
+    let ok = false;
+    for (const canary of [vault.canary, vault.passkey_canary]) {
+      if (!canary) continue;
+      try { if (await unwrapString(key, canary) === 'OK') { ok = true; break; } } catch { /* try the next */ }
+    }
+    if (!ok) {
+      const next = {...vault};
+      delete next.remembered_key;
+      await db.put('vault', next, 1);
+      db.close();
+      return null;
+    }
+    const r = new MessengerRuntime(userId);
+    r.db = db;
+    r.wrapKey = key;
+    r.store = new IndexedDBProtocolStore(r.db, r.wrapKey);
+    r.session = new SessionManager(r.store);
+    r.messages = new MessageStore(r.db, r.wrapKey);
+    return r;
+  }
+
+  /**
+   * 2026-10-12 — keep (or stop keeping) this vault unlocked on this browser.
+   * Stores the vault's wrap key as a non-extractable CryptoKey in the
+   * vault row; nothing readable leaves WebCrypto.
+   */
+  async rememberOnThisBrowser(on: boolean): Promise<void> {
+    if (!this.db) return;
+    const vault = await this.db.get('vault', 1);
+    if (!vault) return;
+    const next = {...vault};
+    if (on) next.remembered_key = this.wrapKey;
+    else delete next.remembered_key;
+    await this.db.put('vault', next, 1);
+  }
+
+  /**
    * Audit fix 4.7 — passkey-derived unlock.
    *
    * Opens the IDB, reads the vault row, and uses the WebAuthn PRF
