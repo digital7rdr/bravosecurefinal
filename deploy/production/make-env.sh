@@ -250,10 +250,12 @@ TURN_TTL_SECONDS=86400
 TURN_URLS=turn:turn.bravosecure.cloud:3478?transport=udp,turn:turn.bravosecure.cloud:3478?transport=tcp,turns:turn.bravosecure.cloud:5349?transport=tcp
 TURN_STUN_URLS=stun:turn.bravosecure.cloud:3478
 
-# MinIO replaces Cloudflare R2. Internal endpoint for the SDK; presigned URLs
-# are signed over MINIO_SERVER_URL (https://media.bravosecure.cloud) so the
-# phone can fetch them.
+# MinIO replaces Cloudflare R2. The SDK talks to MinIO on the internal docker
+# name; the presigned upload/download URLs handed to phones must name the
+# PUBLIC host (Caddy → MinIO, MINIO_SERVER_URL the same), so they are signed
+# with MEDIA_S3_PUBLIC_ENDPOINT. Without it no phone can upload or fetch.
 MEDIA_S3_ENDPOINT=http://minio:9000
+MEDIA_S3_PUBLIC_ENDPOINT=https://media.bravosecure.cloud
 MEDIA_S3_BUCKET=bravo-messenger-media
 MEDIA_S3_REGION=us-east-1
 MEDIA_S3_ACCESS_KEY_ID=${MINIO_USER}

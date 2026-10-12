@@ -243,6 +243,12 @@ export default () => ({
   media: {
     /** S3-compatible endpoint. For R2: https://<accountid>.r2.cloudflarestorage.com */
     endpoint:        process.env['MEDIA_S3_ENDPOINT'] ?? '',
+    /**
+     * 2026-10-12 — the host phones reach, used to presign upload/download
+     * URLs when MEDIA_S3_ENDPOINT is an internal name (self-hosted MinIO:
+     * https://media.bravosecure.cloud). Empty → MEDIA_S3_ENDPOINT.
+     */
+    publicEndpoint:  process.env['MEDIA_S3_PUBLIC_ENDPOINT'] ?? '',
     /** Bucket for encrypted attachment blobs. */
     bucket:          process.env['MEDIA_S3_BUCKET']   ?? 'bravo-messenger-media',
     /** Region — R2 expects "auto"; AWS expects a real region. */

@@ -2,6 +2,7 @@ import {Injectable, BadRequestException} from '@nestjs/common';
 import {ConfigService} from '@nestjs/config';
 import {S3Client, PutObjectCommand, GetObjectCommand} from '@aws-sdk/client-s3';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
+import {publicSigner} from '../media/public-signer';
 import {createHash, randomUUID} from 'node:crypto';
 import {VaultAuditLog} from './audit.log';
 
@@ -21,6 +22,8 @@ import {VaultAuditLog} from './audit.log';
 @Injectable()
 export class VaultService {
   private client?: S3Client;
+  /** Presigns URLs for the public media host (media/public-signer.ts). */
+  private signerClient?: S3Client;
 
   constructor(
     private readonly config: ConfigService,
@@ -51,6 +54,11 @@ export class VaultService {
       credentials: {accessKeyId: accessKey, secretAccessKey: secretKey},
     });
     return this.client;
+  }
+
+  private signer(): S3Client {
+    if (!this.signerClient) this.signerClient = publicSigner(this.config, this.s3());
+    return this.signerClient;
   }
 
   /** Presigned PUT for the first-time upload of a vault file. */
@@ -87,7 +95,7 @@ export class VaultService {
       ContentLength: params.contentLength,
       ContentType:   params.contentType,
     });
-    const uploadUrl = await getSignedUrl(this.s3(), cmd, {expiresIn: ttl});
+    const uploadUrl = await getSignedUrl(this.signer(), cmd, {expiresIn: ttl});
     this.audit.record({
       at: Date.now(), userId: params.callerUserId, authDeviceId: params.callerAuthDevice,
       fileHash: hashKey(key), ip: params.ip, outcome: 'granted', reason: 'upload',
@@ -125,7 +133,7 @@ export class VaultService {
     const ttl    = this.config.get<number>('vault.presignTtlSeconds') ?? 60;
     const bucket = this.config.get<string>('media.bucket')!;
     const cmd = new GetObjectCommand({Bucket: bucket, Key: params.objectKey});
-    const downloadUrl = await getSignedUrl(this.s3(), cmd, {expiresIn: ttl});
+    const downloadUrl = await getSignedUrl(this.signer(), cmd, {expiresIn: ttl});
     this.audit.record({
       at: Date.now(), userId: params.callerUserId, authDeviceId: params.callerAuthDevice,
       fileHash: hashKey(params.objectKey), ip: params.ip, outcome: 'granted', reason: 'download',

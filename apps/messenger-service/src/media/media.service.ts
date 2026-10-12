@@ -4,6 +4,7 @@ import {Cron, CronExpression} from '@nestjs/schedule';
 import {runWithReplicaLock} from '../redis/replica-lock';
 import {S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand, DeleteObjectsCommand, ListObjectsV2Command} from '@aws-sdk/client-s3';
 import {getSignedUrl} from '@aws-sdk/s3-request-presigner';
+import {publicSigner} from './public-signer';
 import {randomUUID} from 'node:crypto';
 import {RedisService} from '../redis/redis.service';
 
@@ -31,6 +32,8 @@ import {RedisService} from '../redis/redis.service';
 export class MediaService {
   private readonly logger = new Logger(MediaService.name);
   private client?: S3Client;
+  /** Presigns URLs for the public media host (media/public-signer.ts). */
+  private signerClient?: S3Client;
 
   /**
    * P0-V5 — recipient grant registry.
@@ -88,6 +91,11 @@ export class MediaService {
       credentials: {accessKeyId: accessKey, secretAccessKey: secretKey},
     });
     return this.client;
+  }
+
+  private signer(): S3Client {
+    if (!this.signerClient) this.signerClient = publicSigner(this.config, this.s3());
+    return this.signerClient;
   }
 
   /**
@@ -231,7 +239,7 @@ export class MediaService {
       ContentLength:  params.contentLength,
       ContentType:    params.contentType,
     });
-    const uploadUrl = await getSignedUrl(this.s3(), cmd, {expiresIn: ttl});
+    const uploadUrl = await getSignedUrl(this.signer(), cmd, {expiresIn: ttl});
     return {
       uploadUrl,
       objectKey: key,
@@ -314,7 +322,7 @@ export class MediaService {
     const ttl    = this.config.get<number>('media.presignTtlSeconds') ?? 300;
     const bucket = this.config.get<string>('media.bucket')!;
     const cmd = new GetObjectCommand({Bucket: bucket, Key: objectKey});
-    const downloadUrl = await getSignedUrl(this.s3(), cmd, {expiresIn: ttl});
+    const downloadUrl = await getSignedUrl(this.signer(), cmd, {expiresIn: ttl});
     return {
       downloadUrl,
       expiresAt: Math.floor(Date.now() / 1000) + ttl,
