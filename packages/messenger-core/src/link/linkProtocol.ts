@@ -103,8 +103,16 @@ export function b64uDecode(s: string): Uint8Array {
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
-/** TS 5.7+ narrows BufferSource to ArrayBuffer-backed views; these always are. */
-function bs(u: Uint8Array): BufferSource { return u as unknown as BufferSource; }
+/**
+ * A plain ArrayBuffer copy: assignable to every BufferSource flavour (DOM,
+ * NodeJS, TS 5.7+ ArrayBuffer-only views), so the same file typechecks for
+ * the app, the web console and Node.
+ */
+function bs(u: Uint8Array): ArrayBuffer {
+  const out = new ArrayBuffer(u.byteLength);
+  new Uint8Array(out).set(u);
+  return out;
+}
 
 function subtle(): SubtleCrypto {
   const s = globalThis.crypto?.subtle;
