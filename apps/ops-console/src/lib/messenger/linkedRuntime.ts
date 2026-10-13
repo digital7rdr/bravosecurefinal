@@ -422,6 +422,9 @@ export class LinkedRuntime {
 
   peer(userId: string): LinkPeer | null { return this.peers.get(userId) ?? null; }
 
+  /** The phone's Bravo contacts (and chat partners), as last synced. */
+  contacts(): LinkPeer[] { return [...this.peers.values()]; }
+
   searchPeers(q: string): LinkPeer[] {
     const needle = q.trim().toLowerCase();
     const digits = needle.replace(/\D/g, '');

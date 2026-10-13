@@ -15,6 +15,7 @@ import AccessEndedScreen from '@screens/cpo/AccessEndedScreen';
 import IdentityDocumentScreen from '@screens/settings/IdentityDocumentScreen';
 import {needsIdentityDocument} from '@modules/identity/identityGate';
 import type {RootStackParamList} from './types';
+import {IncomingShareHost} from '@/modules/messenger/share/IncomingShareHost';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const PERMS_KEY = 'bravo_perms_shown';
@@ -119,6 +120,10 @@ export default function RootNavigator() {
           <Stack.Screen name="Auth" component={AuthNavigator} />
         )}
       </Stack.Navigator>
+
+      {/* "Share to Bravo" — a screenshot/photo/file shared from another app
+          asks "Send to…" and opens that chat's review tray (Android). */}
+      {showMain && !accessEnded && <IncomingShareHost />}
 
       {(isLoading || (isAuthenticated && permsShown === null) || coldIntro) && !isSigningOut && (
         <View

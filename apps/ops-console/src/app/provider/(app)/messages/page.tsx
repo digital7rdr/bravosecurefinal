@@ -44,6 +44,7 @@ export default function ProviderMessages() {
         const m = (await roster()).find(r => r.member_user_id === id);
         return m ? toPerson(m) : null;
       },
+      list: async () => (await roster()).map(toPerson),
       searchPlaceholder: 'New chat — search your officers by name or call sign',
       searchError: () => 'Could not load your roster.',
       // Per agency: switching agency must not mark the other one's chats read.

@@ -70,6 +70,26 @@
             }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
+        },
+        {
+          "action": "SEND",
+          "data": [
+            {"mimeType": "image/*"},
+            {"mimeType": "video/*"},
+            {"mimeType": "audio/*"},
+            {"mimeType": "application/*"},
+            {"mimeType": "text/*"}
+          ],
+          "category": ["DEFAULT"]
+        },
+        {
+          "action": "SEND_MULTIPLE",
+          "data": [
+            {"mimeType": "image/*"},
+            {"mimeType": "video/*"},
+            {"mimeType": "application/*"}
+          ],
+          "category": ["DEFAULT"]
         }
       ]
     },

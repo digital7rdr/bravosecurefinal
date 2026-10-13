@@ -107,7 +107,7 @@ export type MessengerHomeTab = 'Chats' | 'Calls' | 'News';
 
 export type MessengerStackParamList = {
   MessengerHome: {tab?: MessengerHomeTab} | undefined;
-  Chat: {conversationId: string; name: string; isGroup: boolean; draft?: string; focusMessageId?: string};
+  Chat: {conversationId: string; name: string; isGroup: boolean; draft?: string; focusMessageId?: string; sharedAssets?: import('@/modules/messenger/ui/pickedAssets').PickedAsset[]};
   VaultLock: VaultGateParams;
   // `addToGroupId` (+ name) puts NewChat in "add member to existing group"
   // mode: picking a contact calls runtime.addGroupMember instead of opening
@@ -643,7 +643,7 @@ export type AgentStackParamList = {
   AgentVerificationStatus: undefined;
   // Cross-module messenger screens (full stack available from agent portal)
   MessengerHome: {tab?: MessengerHomeTab} | undefined;
-  Chat: {conversationId: string; name: string; isGroup: boolean; draft?: string; focusMessageId?: string};
+  Chat: {conversationId: string; name: string; isGroup: boolean; draft?: string; focusMessageId?: string; sharedAssets?: import('@/modules/messenger/ui/pickedAssets').PickedAsset[]};
   NewChat: {addToGroupId: string; groupName: string} | undefined;
   ChatInfo: {conversationId: string};
   VaultLock: VaultGateParams;

@@ -36,6 +36,7 @@ class MainApplication : Application(), ReactApplication {
               add(BravoCallVolumePackage())
               add(BravoNetworkCountryPackage())
               add(BravoMessageSyncPackage())
+              add(BravoShareIntentPackage())
             }
 
           override fun getJSMainModuleName(): String = ".expo/.virtual-metro-entry"

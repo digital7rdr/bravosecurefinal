@@ -34,11 +34,14 @@ class MainActivity : ReactActivity() {
     // @generated end expo-splashscreen
     super.onCreate(null)
     applyCallLaunchFlagsIfNeeded(intent)
+    // "Share to Bravo" — keep a share intent for JS (BravoShareIntentModule).
+    BravoShareIntentModule.capture(this, intent)
   }
 
   override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
     applyCallLaunchFlagsIfNeeded(intent)
+    BravoShareIntentModule.capture(this, intent)
   }
 
   /**

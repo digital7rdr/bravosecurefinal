@@ -1314,6 +1314,15 @@ function ChatScreenInner({navigation, route}: Props) {
   const [mediaQueue, setMediaQueue] = useState<{done: number; total: number} | null>(null);
   // B-87/MX-04 — assets awaiting review in the pre-send tray.
   const [pendingAssets, setPendingAssets] = useState<PickedAsset[]>([]);
+  // "Share to Bravo" (2026-10-13) — screenshots, photos and files shared from
+  // another app arrive as a route param and open in the same review tray as a
+  // gallery pick (caption, remove, send). Consumed once, then cleared.
+  const sharedAssets = route.params.sharedAssets;
+  useEffect(() => {
+    if (!sharedAssets?.length) {return;}
+    setPendingAssets(prev => [...prev, ...sharedAssets].slice(0, MAX_PICKED_ASSETS));
+    navigation.setParams({sharedAssets: undefined});
+  }, [sharedAssets, navigation]);
   // B-450 — the armed quote, readable from the SERIAL media queue.
   //
   // The queue holds `sendPickedMediaRef` and runs long after the tap, so

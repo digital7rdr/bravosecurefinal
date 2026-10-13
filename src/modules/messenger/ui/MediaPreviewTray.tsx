@@ -113,7 +113,15 @@ export function MediaPreviewTray({assets, onRemoveAt, onCancel, onSend}: {
                 const dur = fmtDuration(item.meta.durationMs);
                 return (
                   <View style={styles.thumbWrap}>
-                    <Image source={{uri: item.uri}} style={styles.thumb} resizeMode="cover" />
+                    {item.kind === 'image' || item.kind === 'video'
+                      ? <Image source={{uri: item.uri}} style={styles.thumb} resizeMode="cover" />
+                      : (
+                        // A shared document / audio file has no picture to show.
+                        <View style={[styles.thumb, styles.fileThumb]}>
+                          <Icon name={item.kind === 'audio' ? 'music-note' : 'file-document-outline'} size={26} color="#FFF" />
+                          <Text style={styles.fileThumbName} numberOfLines={2}>{item.meta.name ?? 'File'}</Text>
+                        </View>
+                      )}
                     {item.kind === 'video' && (
                       <View style={styles.videoBadge}>
                         <Icon name="play" size={11} color="#FFF" />
@@ -200,6 +208,8 @@ const styles = StyleSheet.create({
   strip: {gap: 10, paddingVertical: 4},
   thumbWrap: {position: 'relative'},
   thumb: {width: 92, height: 92, borderRadius: 14, backgroundColor: T.glassFill, borderWidth: 1, borderColor: T.hair},
+  fileThumb: {alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6, gap: 4},
+  fileThumbName: {color: '#FFF', fontSize: 10, textAlign: 'center'},
   videoBadge: {position: 'absolute', left: 6, bottom: 6, flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, backgroundColor: 'rgba(4,6,10,0.75)'},
   videoBadgeText: {color: '#FFF', fontSize: 9, fontWeight: '700'},
   removeBtn: {position: 'absolute', top: -6, right: -6, width: 22, height: 22, borderRadius: 11, backgroundColor: '#2A3348', borderWidth: 1, borderColor: T.hair2, alignItems: 'center', justifyContent: 'center'},

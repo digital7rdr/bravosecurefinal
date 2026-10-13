@@ -172,6 +172,26 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <data android:scheme="https" android:host="ops.bravosecure.cloud" android:pathPrefix="/r/"/>
       </intent-filter>
+      <!-- "Share to Bravo" (2026-10-13): Bravo appears in the Android share
+           sheet for screenshots, photos, videos, documents and text.
+           MainActivity hands the intent to BravoShareIntentModule; JS lets
+           the user pick a chat and sends it end-to-end encrypted. -->
+      <intent-filter>
+        <action android:name="android.intent.action.SEND"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <data android:mimeType="image/*"/>
+        <data android:mimeType="video/*"/>
+        <data android:mimeType="audio/*"/>
+        <data android:mimeType="application/*"/>
+        <data android:mimeType="text/*"/>
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.SEND_MULTIPLE"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <data android:mimeType="image/*"/>
+        <data android:mimeType="video/*"/>
+        <data android:mimeType="application/*"/>
+      </intent-filter>
     </activity>
     <!-- Call foreground service. The phoneCall+microphone+camera type tags tell
          Android 14+ to keep capture alive across screen-off and

@@ -55,6 +55,12 @@ export interface ChatDirectory {
   noResultsText?: (q: string) => string;
   /** Shown when there are no chats yet. */
   emptyText?: string;
+  /**
+   * 2026-10-13 — everyone this console may message, for the Contacts tab
+   * (ops: app users; provider: the roster). Omitted where browsing everyone
+   * is not allowed (the web app finds people by exact phone number only).
+   */
+  list?: () => Promise<ChatPerson[]>;
 }
 
 const ROLE_LABEL: Record<string, string> = {
@@ -74,6 +80,10 @@ export const OPS_CHAT_DIRECTORY: ChatDirectory = {
   searchPlaceholder: 'New chat — search name, phone or email',
   searchError: e => (/403|forbidden|domain/i.test(String((e as Error)?.message)) ? 'Searching people needs Operation Admin or Super Admin.' : 'Search failed.'),
   seenKey: 'bravo_ops_chat_seen_v1',
+  list: async () => (await opsDataApi.listUsers({limit: 300}))
+    .filter(u => !u.deleted_at)
+    .map(u => ({id: u.id, name: u.display_name ?? u.phone_e164 ?? 'Unnamed',
+      subtitle: `${ROLE_LABEL[u.role] ?? u.role} · ${u.phone_e164 ?? u.email ?? '—'}`})),
 };
 
 const DirectoryCtx = createContext<ChatDirectory>(OPS_CHAT_DIRECTORY);
@@ -87,8 +97,9 @@ function writeSeenTo(key: string, v: Record<string, number>) {
 }
 
 function initials(name: string) {
-  const p = name.trim().split(/\s+/).filter(Boolean);
-  return ((p[0]?.[0] ?? '?') + (p[1]?.[0] ?? '')).toUpperCase();
+  // First letter or digit of the first two words that have one: "Omar (Driver)" → "OD".
+  const p = name.trim().split(/\s+/).map(w => w.match(/[\p{L}\p{N}]/u)?.[0]).filter(Boolean) as string[];
+  return ((p[0] ?? '?') + (p[1] ?? '')).toUpperCase();
 }
 function timeLabel(ms: number) {
   const d = new Date(ms);
@@ -171,6 +182,7 @@ function UnlockedChat() {
   const writeSeen = useCallback((v: Record<string, number>) => writeSeenTo(dir.seenKey, v), [dir.seenKey]);
   const [threads, setThreads] = useState<ConversationSummary[]>([]);
   const [active, setActive] = useState<string | null>(null);
+  const [tab, setTab] = useState<'chats' | 'contacts'>('chats');
   const [seen, setSeen] = useState<Record<string, number>>({});
   const directory = useRef(new Map<string, ChatPerson>());
   const [, bump] = useState(0);
@@ -220,8 +232,19 @@ function UnlockedChat() {
     <div className="chat-shell card">
       <aside className="chat-list">
         <PeopleSearch onPick={startWith} selfId={selfId} />
-        <div className="chat-list-head">{dir.title ?? 'Chats'}</div>
+        <div className="chat-tabs" role="tablist">
+          <button type="button" role="tab" aria-selected={tab === 'chats'} className={`chat-tab${tab === 'chats' ? ' on' : ''}`} onClick={() => setTab('chats')}>
+            {dir.title ?? 'Chats'}
+          </button>
+          <button type="button" role="tab" aria-selected={tab === 'contacts'} className={`chat-tab${tab === 'contacts' ? ' on' : ''}`} onClick={() => setTab('contacts')}>
+            Contacts
+          </button>
+        </div>
         <LinkedBanner />
+        {tab === 'contacts' ? (
+          <ContactsList threads={threads} selfId={selfId} directory={directory.current}
+            onPick={u => { startWith(u); setTab('chats'); }} />
+        ) : (
         <div className="chat-list-scroll">
           {listed.length === 0 && (
             <div className="chat-list-empty">
@@ -237,6 +260,7 @@ function UnlockedChat() {
               onOpen={() => openThread(t.conversationId)} />
           ))}
         </div>
+        )}
       </aside>
       <section className="chat-thread">
         {active
@@ -466,5 +490,79 @@ function LinkedBanner() {
     <div className="chat-search-note" style={{padding: '6px 14px'}}>
       📱 Mirrored from your phone. Chats and messages sync through the Bravo app.
     </div>
+  );
+}
+
+/**
+ * 2026-10-13 — the Contacts tab: everyone you can start a chat with, without
+ * having to search first. Linked browsers list the phone's contacts (as the
+ * app does); the ops console lists app users and the provider console its
+ * roster (ChatDirectory.list); everyone you already chat with is included.
+ */
+function ContactsList({threads, selfId, directory, onPick}: {
+  threads: ConversationSummary[];
+  selfId: string | null;
+  directory: Map<string, ChatPerson>;
+  onPick: (u: ChatPerson) => void;
+}) {
+  const dir = useContext(DirectoryCtx);
+  const linked = useLinked();
+  const [filter, setFilter] = useState('');
+  const [peersVersion, bump] = useState(0);
+  useEffect(() => (linked ? linked.onPeersChange(() => bump(n => n + 1)) : undefined), [linked]);
+  const {data: listed, error, isLoading} = useSWR(dir.list ? ['chat-contacts', dir.seenKey] : null,
+    () => dir.list!(), {revalidateOnFocus: false, shouldRetryOnError: false});
+
+  const people = useMemo(() => {
+    const byId = new Map<string, ChatPerson>();
+    for (const p of linked?.contacts() ?? []) {
+      byId.set(p.userId, {id: p.userId, name: p.name ?? p.phone ?? 'Bravo user', subtitle: p.phone ?? 'Contact'});
+    }
+    for (const p of listed ?? []) if (!byId.has(p.id)) byId.set(p.id, p);
+    for (const t of threads) {
+      const id = peerOf(t.conversationId);
+      if (!id || byId.has(id)) continue;
+      const known = directory.get(id) ?? linkedPerson(linked, id);
+      byId.set(id, known ?? {id, name: 'Bravo user', subtitle: 'Chat'});
+    }
+    byId.delete(selfId ?? '');
+    return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+  // `directory` is a mutable ref map; peersVersion re-reads the phone's list.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [linked, listed, threads, selfId, peersVersion]);
+
+  const f = filter.trim().toLowerCase();
+  const digits = f.replace(/\D/g, '');
+  const shown = f
+    ? people.filter(p => p.name.toLowerCase().includes(f) || (digits.length >= 3 && p.subtitle.replace(/\D/g, '').includes(digits)))
+    : people;
+
+  return (
+    <>
+      <div className="chat-search">
+        <input value={filter} onChange={e => setFilter(e.target.value)} placeholder="Filter contacts"
+          aria-label="Filter contacts" />
+      </div>
+      <div className="chat-list-scroll">
+        {isLoading && people.length === 0 && <div className="chat-list-empty">Loading contacts…</div>}
+        {error && <div className="chat-search-note">{dir.searchError ? dir.searchError(error) : 'Could not load contacts.'}</div>}
+        {!isLoading && shown.length === 0 && (
+          <div className="chat-list-empty">
+            {f ? 'No contact matches.'
+              : linked ? 'No contacts yet. Contacts come from your phone: allow Bravo to read contacts in the app, then they appear here.'
+              : 'No contacts yet. Use the search above to find someone and start a chat.'}
+          </div>
+        )}
+        {shown.map(p => (
+          <button key={p.id} type="button" className="chat-row" onClick={() => onPick(p)}>
+            <span className="chat-avatar">{initials(p.name)}</span>
+            <span className="chat-row-main">
+              <span className="chat-name">{p.name}</span>
+              <span className="chat-preview">{p.subtitle}</span>
+            </span>
+          </button>
+        ))}
+      </div>
+    </>
   );
 }
