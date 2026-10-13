@@ -149,11 +149,13 @@ describe('W1b — the transitive sweep: mounting the pane exposes ITS outbound t
     // If this set grows, the sweep below has to grow with it — that is the
     // whole point of reading the targets out of the source instead of listing
     // them here.
-    expect(new Set(targets)).toEqual(new Set(['BackupSetup', 'VaultLock']));
+    // 2026-10-12 — LinkedDevices (browsers that mirror this phone) joined.
+    expect(new Set(targets)).toEqual(new Set(['BackupSetup', 'VaultLock', 'LinkedDevices']));
     for (const shell of SHELLS) {
       const shellSrc = code(shell);
       expect(registers(shellSrc, 'BackupSetup', 'BackupSetupScreen')).toBe(true);
       expect(registers(shellSrc, 'VaultLock', 'VaultLockScreen')).toBe(true);
+      expect(registers(shellSrc, 'LinkedDevices', 'LinkedDevicesScreen')).toBe(true);
     }
   });
 
