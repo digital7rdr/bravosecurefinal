@@ -36,9 +36,20 @@ describe('link protocol', () => {
     expect(await other.open('w2p', item)).toBeNull();
     const otherLink = await linkCipher('BBBBBBBBBBBBBBBBBBBBBB', key);
     expect(await otherLink.open('w2p', item)).toBeNull();
-    const tampered = item.slice(0, -2) + (item.endsWith('A') ? 'B' : 'A') + item.slice(-1);
+    // Flip one ciphertext character to a DIFFERENT one (the old version could
+    // pick the character already there, ~1 run in 64, and "tamper" nothing).
+    const at = Math.floor(item.length / 2);
+    const tampered = item.slice(0, at) + (item[at] === 'A' ? 'B' : 'A') + item.slice(at + 1);
+    expect(tampered).not.toBe(item);
     expect(await b.open('w2p', tampered)).toBeNull();
     expect(await b.open('w2p', 'garbage')).toBeNull();
+    for (let i = 0; i < 50; i++) {
+      const it = await a.seal('w2p', {...msg, id: `m${i}`});
+      for (const pos of [5, Math.floor(it.length / 2), it.length - 2]) {
+        const t = it.slice(0, pos) + (it[pos] === 'A' ? 'B' : 'A') + it.slice(pos + 1);
+        expect(await b.open('w2p', t)).toBeNull();
+      }
+    }
   });
 
   it('chunks rows under the cap', () => {
