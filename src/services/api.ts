@@ -2718,8 +2718,16 @@ export interface SavedCardDto {
   is_default: boolean;
 }
 
+/** 2026-10-14 — what one Bravo Credit is worth per region (display only). */
+export interface CreditRatesDto {
+  eurPerBc: number;
+  rates: Array<{region: string; name: string; currency: string; localPerBc: number; launched: boolean}>;
+}
+
 export const walletApi = {
   getBalance: () => authHttp.get<WalletBalanceDto>('/wallet/balance'),
+  /** "How Bravo Credits work" — 1 BC in EUR and in each region's currency. */
+  creditRates: () => authHttp.get<CreditRatesDto>('/bookings/credit-rates'),
   // Saved cards (Payment Methods)
   listCards: () => authHttp.get<{cards: SavedCardDto[]}>('/wallet/payment-methods'),
   cardSetupIntent: () => authHttp.post<{client_secret: string}>('/wallet/payment-methods/setup-intent'),

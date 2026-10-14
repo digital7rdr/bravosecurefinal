@@ -882,6 +882,8 @@ export type RootStackParamList = {
   /** B-867 — the registration identity step, hosted by the root after the
    *  permissions gate for a freshly registered individual. */
   IdentityGate: undefined;
+  /** 2026-10-14 — one-time "How Bravo Credits work" step for clients. */
+  CreditsIntro: undefined;
   AgentStack: undefined;
   // §35A §F — terminal CPO access-ended screen, shown above the auth form once a
   // revoked guard has been torn down (survives signOut via the accessEnded flag).

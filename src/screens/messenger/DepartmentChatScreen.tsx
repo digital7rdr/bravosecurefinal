@@ -1660,7 +1660,8 @@ export default function DepartmentChatScreen() {
           <Pressable style={[styles.sheet, {maxHeight: '70%', paddingBottom: insets.bottom + 10}]}>
             <Text style={styles.sheetTitle}>Forward to…</Text>
             {groupConversationId && (
-              <ForwardList currentConvId={groupConversationId} onPick={id => { void forwardTo(id); }} />
+              <ForwardList currentConvId={groupConversationId} onPick={id => { void forwardTo(id); }}
+                confirm={{verb: 'Forward', what: 'They receive a copy of this message, end-to-end encrypted.'}} />
             )}
             <TouchableOpacity style={styles.sheetCancel} onPress={() => setForwardSource(null)} activeOpacity={0.7}>
               <Text style={styles.sheetCancelText}>Cancel</Text>

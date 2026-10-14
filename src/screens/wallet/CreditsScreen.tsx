@@ -28,6 +28,7 @@ import {goBackOnce, navigateOnce} from '@navigation/tapGuard';
 import {shortRef} from '@screens/booking/bookingHistoryRows';
 import {eurPerBcLabel} from '@screens/booking/servicePricingOverrides';
 import LoadingView from '@components/LoadingView';
+import {CreditsExplainer} from './CreditsExplainer';
 
 // Obsidian / cobalt palette — imported "Bravo Credits" design family.
 const T = {
@@ -107,6 +108,7 @@ function CreditsScreen() {
   const [selectedPkg, setSelectedPkg] = useState('p2');
   const [purchasing, setPurchasing] = useState(false);
   const [promoOpen, setPromoOpen] = useState(false);
+  const [explainerOpen, setExplainerOpen] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [redeeming, setRedeeming] = useState(false);
 
@@ -269,6 +271,9 @@ function CreditsScreen() {
           <Text style={styles.sectionLabel}>SELECT TOP-UP AMOUNT</Text>
           {/* B-798 — the peg is stated BEFORE the purchase, from the live ops key. */}
           <Text style={styles.pegNote} accessibilityRole="text">{eurPerBcLabel()} · your card is charged in euro</Text>
+          <TouchableOpacity onPress={() => setExplainerOpen(true)} accessibilityRole="button" hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <Text style={styles.howLink}>How Bravo Credits work · rates in your currency ›</Text>
+          </TouchableOpacity>
           <View style={{gap: 14}}>
             {TOP_UP_PACKAGES.map(pkg => {
               const on = selectedPkg === pkg.id;
@@ -401,6 +406,13 @@ function CreditsScreen() {
           </TouchableOpacity>
         </View>
       )}
+
+      {/* 2026-10-14 — "How Bravo Credits work" (same page as the sign-up step). */}
+      <Modal visible={explainerOpen} animationType="slide" onRequestClose={() => setExplainerOpen(false)}>
+        <View style={{flex: 1, backgroundColor: T.bg, paddingTop: insets.top, paddingBottom: bottomPad(0)}}>
+          <CreditsExplainer onDone={() => setExplainerOpen(false)} doneLabel="Close" />
+        </View>
+      </Modal>
 
       {/* Promo code popup */}
       <Modal visible={promoOpen} transparent animationType="fade" onRequestClose={() => setPromoOpen(false)}>
@@ -543,6 +555,7 @@ const styles = StyleSheet.create({
   promoLinkText: {fontFamily: BravoFont.bold, fontSize: 13, color: T.blue},
 
   // Refund/redemption disclaimer (obsidian info-card, matches ProDashboard noteCard).
+  howLink: {fontFamily: BravoFont.bold, fontSize: 12, color: T.accentSoft, marginTop: -4, marginBottom: 10},
   noteCard: {flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 4, padding: 14, borderRadius: 14, backgroundColor: 'rgba(30,136,255,0.07)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.22)'},
   noteTitle: {fontFamily: BravoFont.bold, fontSize: 12, color: T.text, marginBottom: 3},
   noteText: {flex: 1, minWidth: 0, fontFamily: BravoFont.regular, fontSize: 11.5, lineHeight: 17, color: T.textDim},

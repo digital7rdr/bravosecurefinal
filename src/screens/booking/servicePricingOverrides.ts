@@ -36,5 +36,16 @@ export function priceValue(key: string, fallback: number): number {
  * from the LIVE ops peg (`eur_per_bc`, fallback 1), never a literal.
  */
 export function eurPerBcLabel(): string {
-  return `1 BC = €${priceValue('eur_per_bc', 1).toFixed(2)}`;
+  return eurPerBcLabelFor(null);
+}
+
+/**
+ * The same label for a peg the caller already holds (the credit explainer
+ * fetches it with the rates, before any booking screen hydrated the board).
+ * A missing or corrupt value falls back to the live board, then to 1.
+ */
+export function eurPerBcLabelFor(eurPerBc: number | null | undefined): string {
+  const v = typeof eurPerBc === 'number' && Number.isFinite(eurPerBc) && eurPerBc > 0
+    ? eurPerBc : priceValue('eur_per_bc', 1);
+  return `1 BC = €${v.toFixed(2)}`;
 }

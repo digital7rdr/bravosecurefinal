@@ -13,7 +13,7 @@
  * the next booking to show it, and it never did.
  */
 
-export type PricingGroupKey = 'root' | 'transfer' | 'executive' | 'addons' | 'lead' | 'duration' | 'settlement';
+export type PricingGroupKey = 'root' | 'transfer' | 'executive' | 'addons' | 'lead' | 'duration' | 'settlement' | 'display';
 
 export interface PricingGroup {
   key: PricingGroupKey;
@@ -40,6 +40,12 @@ export const PRICING_GROUPS: readonly PricingGroup[] = [
     appliesWhen: 'NOT a quote number. Read at settlement time: the platform fee when a hold is RELEASED to the provider (auto-release, client confirm, or an operator release), the cancel fee when a client cancels after crew is committed / inside the late-cancel window, or when a lead declares a client no-show. A hold already settled keeps its recorded split.',
     keys: ['platform_fee_pct', 'cancel_fee_pct'],
   },
+  // 2026-10-14 — the app's "How Bravo Credits work" page. Never a price.
+  {
+    key: 'display', title: 'Bravo Credits — local currency (display only)',
+    appliesWhen: 'NOT a price. Only the app\'s "How Bravo Credits work" page reads it, to show what 1 BC is worth in this region\'s currency. Quotes, top-ups and settlements are unaffected: cards are always charged in euro. Pick the region first; GLOBAL has no currency.',
+    keys: ['local_per_eur'],
+  },
 ];
 
 export const PRICING_LABELS: Record<string, string> = {
@@ -65,6 +71,7 @@ export const PRICING_LABELS: Record<string, string> = {
   hourly_max_hours: 'Hourly services: maximum duration (hours)',
   platform_fee_pct: 'Platform fee at escrow RELEASE (% of gross kept by the platform; the provider receives the rest)',
   cancel_fee_pct: 'Cancellation / client no-show fee (% of gross paid to the provider; the rest is refunded)',
+  local_per_eur: 'Local currency per €1 for this region (e.g. AED 4.11) — display only, shown to clients next to 1 BC',
 };
 
 /** Longer help shown under the two settlement keys. */
@@ -95,6 +102,9 @@ export function pricingSaveConfirmText(key: string, from: number, to: number, re
   const group = pricingGroupOf(key);
   if (key === 'eur_per_bc') {
     return `Change THE ROOT (eur_per_bc) from ${from} to ${to} for ${scope}? This re-prices every booking charge from the next quote.`;
+  }
+  if (key === 'local_per_eur') {
+    return `Change the displayed exchange rate (local currency per €1) from ${from} to ${to} for ${scope}? Display only: clients see the new value on "How Bravo Credits work"; no price or charge changes.`;
   }
   if (group?.key === 'settlement') {
     const what = key === 'platform_fee_pct'

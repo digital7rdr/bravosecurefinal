@@ -54,6 +54,10 @@ const BOUNDS: Record<keyof ServicePricingConfig, {min: number; max: number}> = {
   // ceiling; a larger value would make the service unbookable.
   transfer_min_lead_hours:     {min: 0.25, max: 168},
   close_min_lead_hours:        {min: 0.25, max: 168},
+  // 2026-10-14 — DISPLAY ONLY (the app's credit explainer): local currency per
+  // €1 for the region. Bounds wide enough for every currency we serve
+  // (GBP ≈ 0.84 … BDT ≈ 137); the DB CHECK caps it below 100000.
+  local_per_eur:               {min: 0.0001, max: 50_000},
   // OP-10 — percentages. The DB CHECK (0 < value) means a literal 0% cannot be
   // stored on the board; clear the row to fall back to the env base instead.
   platform_fee_pct:            {min: 0.01, max: 50},

@@ -120,6 +120,16 @@ export class BookingController {
    * the client mirror. The apps keep their compiled numbers as the fail-open
    * fallback; at the shipped values this returns exactly those.
    */
+  /**
+   * 2026-10-14 — "How Bravo Credits work": 1 BC = eur_per_bc EUR and what that
+   * is in each region's currency (display only, ops-editable per region as
+   * `local_per_eur`). Public like service-pricing: nothing user-specific.
+   */
+  @Get('credit-rates')
+  creditRates() {
+    return this.pricing.creditRates();
+  }
+
   @Get('service-pricing')
   servicePricing(@Query('region') region?: string, @Query('lat') lat?: string, @Query('lng') lng?: string) {
     // OP-01 — this used to return the GLOBAL board unconditionally while the

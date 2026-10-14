@@ -4489,6 +4489,9 @@ const pickerItemKey = (i: {key: string}): string => i.key;
  * so the list shrinks and scrolls instead of running under it. A separate
  * component so the keyboard state re-renders the sheet, not the whole chat.
  */
+/** 2026-10-14 — "Forward to <name>?" before a message goes out (tester report). */
+const FORWARD_CONFIRM = {verb: 'Forward', what: 'They receive a copy of this message, end-to-end encrypted.'} as const;
+
 function ForwardSheet({currentConvId, onPick, onClose, header = null}: {
   currentConvId: string;
   onPick: (id: string) => void;
@@ -4508,7 +4511,7 @@ function ForwardSheet({currentConvId, onPick, onClose, header = null}: {
           overlap > 0 ? {maxHeight: winH - insets.top - 12} : {maxHeight: '70%'},
         ]}>
           <Text style={styles.sheetTitle}>Forward to…</Text>
-          <ForwardList currentConvId={currentConvId} onPick={onPick} header={header} listMaxHeight={null} />
+          <ForwardList currentConvId={currentConvId} onPick={onPick} header={header} confirm={FORWARD_CONFIRM} listMaxHeight={null} />
           <TouchableOpacity style={styles.sheetCancel} onPress={onClose} activeOpacity={0.7}>
             <Text style={styles.sheetCancelText}>Cancel</Text>
           </TouchableOpacity>
@@ -4542,9 +4545,16 @@ function ShareOutsideRow({onPress}: {onPress: () => void}) {
   );
 }
 
-export function ForwardList({currentConvId, onPick, header = null, listMaxHeight = 360}: {
+export function ForwardList({currentConvId, onPick, header = null, listMaxHeight = 360, confirm = null}: {
   currentConvId: string;
   onPick: (id: string) => void;
+  /**
+   * 2026-10-14 (tester: "after selecting forward to a Bravo contact the action
+   * takes place without a confirmation") — ask "Forward to <name>?" before
+   * onPick. `verb` titles the dialog and its button; `what` is the body. Null
+   * where the next step is already a review (the share-in tray).
+   */
+  confirm?: {verb: string; what?: string} | null;
   /**
    * B-815 — rows that scroll WITH the picker (the news share sheet's
    * "Share outside Bravo" row + workspace list). They used to sit ABOVE the
@@ -4637,6 +4647,13 @@ export function ForwardList({currentConvId, onPick, header = null, listMaxHeight
   // the synthetic `direct:` key) and seed the row only when it is new. The
   // exact recipe NewChatScreen's contact tap uses; drifting from it re-opens
   // the split-brain duplicate-thread bug.
+  const guarded = (name: string, go: () => void) => {
+    if (!confirm) { go(); return; }
+    Alert.alert(`${confirm.verb} to ${name}?`, confirm.what ?? '', [
+      {text: 'Cancel', style: 'cancel'},
+      {text: confirm.verb, onPress: go},
+    ]);
+  };
   const pickContact = (m: DiscoveredRow) => {
     const conversationId = resolveDirectConversationIdFromState(
       useMessengerStore.getState(), m.userId,
@@ -4724,7 +4741,7 @@ export function ForwardList({currentConvId, onPick, header = null, listMaxHeight
           activeOpacity={0.7}
           accessibilityRole="button"
           accessibilityLabel={`Send to ${name}`}
-          onPress={() => pickContact(item.m)}>
+          onPress={() => guarded(name, () => pickContact(item.m))}>
           <UserAvatar userId={item.m.userId} size={36} fallback={initialsDisc(name)} />
           <View style={{flex:1}}>
             <Text style={{color:'#FFFFFF', fontSize:13, fontWeight:'700'}} numberOfLines={1}>{name}</Text>
@@ -4742,7 +4759,7 @@ export function ForwardList({currentConvId, onPick, header = null, listMaxHeight
         activeOpacity={0.7}
         accessibilityRole="button"
         accessibilityLabel={`Send to ${name}`}
-        onPress={() => onPick(c.id)}>
+        onPress={() => guarded(name, () => onPick(c.id))}>
         {/* A group has no single owner, so it keeps the initials disc; a 1:1
             shows the peer's profile photo when there is one (client
             2026-08-22). */}

@@ -16,6 +16,7 @@ import IdentityDocumentScreen from '@screens/settings/IdentityDocumentScreen';
 import {needsIdentityDocument} from '@modules/identity/identityGate';
 import type {RootStackParamList} from './types';
 import {IncomingShareHost} from '@/modules/messenger/share/IncomingShareHost';
+import CreditsIntroScreen, {CREDITS_INTRO_KEY} from '@screens/wallet/CreditsIntroScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const PERMS_KEY = 'bravo_perms_shown';
@@ -91,10 +92,29 @@ export default function RootNavigator() {
     setPermsShown(true);
   }, []);
 
+  // 2026-10-14 — "How Bravo Credits work", once per install, for clients (the
+  // people who buy and spend credits). After permissions and the identity
+  // step; every existing client meets it once on their next open too.
+  const isClient = user?.role === 'individual';
+  const [creditsShown, setCreditsShown] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!isAuthenticated || !isClient) { setCreditsShown(null); return; }
+    AsyncStorage.getItem(CREDITS_INTRO_KEY)
+      .then(v => setCreditsShown(v === '1'))
+      .catch(() => setCreditsShown(true)); // unreadable storage: never block the app on an explainer
+  }, [isAuthenticated, isClient]);
+  const onCreditsDone = useCallback(async () => {
+    await AsyncStorage.setItem(CREDITS_INTRO_KEY, '1').catch(() => {});
+    setCreditsShown(true);
+  }, []);
+
   const showAuth  = !isAuthenticated || !user?.role;
   const showPerms = !showAuth && permsShown === false;
   const showIdentity = !showAuth && permsShown === true && justRegistered && needsIdentity;
   const showMain  = !showAuth && permsShown === true && !showIdentity;
+  // The credits explainer sits between the identity step and Main.
+  const showCredits = showMain && isClient && creditsShown === false;
+  const creditsPending = showMain && isClient && creditsShown === null;
 
   return (
     <NavigationContainer ref={navigationRef}>
@@ -113,7 +133,11 @@ export default function RootNavigator() {
           <Stack.Screen name="IdentityGate">
             {() => <IdentityDocumentScreen onDone={clearJustRegistered} />}
           </Stack.Screen>
-        ) : showMain ? (
+        ) : showCredits ? (
+          <Stack.Screen name="CreditsIntro">
+            {() => <CreditsIntroScreen onDone={() => { void onCreditsDone(); }} />}
+          </Stack.Screen>
+        ) : showMain && !creditsPending ? (
           <Stack.Screen name="Main" component={MainNavigator} />
         ) : (
           // permsShown === null → still loading AsyncStorage; show nothing (overlay covers it)
@@ -123,9 +147,9 @@ export default function RootNavigator() {
 
       {/* "Share to Bravo" — a screenshot/photo/file shared from another app
           asks "Send to…" and opens that chat's review tray (Android). */}
-      {showMain && !accessEnded && <IncomingShareHost />}
+      {showMain && !showCredits && !creditsPending && !accessEnded && <IncomingShareHost />}
 
-      {(isLoading || (isAuthenticated && permsShown === null) || coldIntro) && !isSigningOut && (
+      {(isLoading || (isAuthenticated && permsShown === null) || creditsPending || coldIntro) && !isSigningOut && (
         <View
           /*
            * The intro CAPTURES touches; the plain loading overlay keeps its

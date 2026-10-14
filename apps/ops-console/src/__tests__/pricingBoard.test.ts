@@ -20,6 +20,7 @@ const SERVER_KEYS = [
   'platform_fee_pct', 'cancel_fee_pct',
   'hourly_default_hours', 'hourly_min_hours', 'hourly_max_hours',
   'transfer_block_hours',
+  'local_per_eur',
 ];
 
 describe('B-807 — settlement fees are first-class on the board', () => {
@@ -74,5 +75,14 @@ describe('B-807 — settlement fees are first-class on the board', () => {
   it('the root and a rate key keep their quote-time copy', () => {
     expect(pricingSaveConfirmText('eur_per_bc', 1, 1.1, 'GLOBAL')).toMatch(/THE ROOT[\s\S]*next quote/);
     expect(pricingSaveConfirmText('exec_cpo_rate_bc', 86, 90, 'GLOBAL')).toMatch(/next quote/);
+  });
+
+  it('the local exchange rate is display-only and says so', () => {
+    expect(pricingGroupOf('local_per_eur')?.key).toBe('display');
+    expect(pricingGroupOf('local_per_eur')?.appliesWhen).toMatch(/NOT a price/);
+    const t = pricingSaveConfirmText('local_per_eur', 4.11, 4.2, 'AE');
+    expect(t).toMatch(/region AE only/);
+    expect(t).toMatch(/Display only/);
+    expect(t).not.toMatch(/next quote/);
   });
 });

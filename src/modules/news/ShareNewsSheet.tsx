@@ -302,6 +302,7 @@ export const ShareNewsSheet = React.memo(function ShareNewsSheet({item, onClose}
              */
             <ForwardList currentConvId="" onPick={id => { void send(id); }}
               listMaxHeight={null}
+              confirm={{verb: 'Share', what: 'They receive this article in a chat, end-to-end encrypted.'}}
               header={(
                 <>
                   <TouchableOpacity

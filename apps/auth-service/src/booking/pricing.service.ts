@@ -3,7 +3,7 @@ import {ConfigService} from '@nestjs/config';
 import {DatabaseService} from '../database/database.service';
 import {RedisService} from '../redis/redis.service';
 import {ConfigVersionMirror} from '../common/services/config-version';
-import {regionUtcOffsetHours} from '../common/regions';
+import {regionUtcOffsetHours, regions} from '../common/regions';
 
 /**
  * Pricing calculator for Lite bookings.
@@ -78,6 +78,13 @@ export interface ServicePricingConfig {
    */
   transfer_min_lead_hours: number;
   close_min_lead_hours: number;
+  /**
+   * 2026-10-14 — DISPLAY ONLY: units of the region's local currency per €1, so
+   * the app can explain what one Bravo Credit is worth where the client lives
+   * ("1 BC = €1 ≈ 4.11 AED"). Set per region on the board; never read by a
+   * quote, a charge, a top-up or a settlement (cards are charged in euro).
+   */
+  local_per_eur: number;
   /**
    * OP-10 — the two dispatch fee percentages, previously env-only
    * (DISPATCH_PLATFORM_FEE_PCT / DISPATCH_CANCEL_FEE_PCT; the config comment
@@ -337,7 +344,35 @@ export const DEFAULT_SERVICE_PRICING: ServicePricingConfig = {
   // shipped app's stepper pre-selected and the value the engine already stored
   // for a transfer that did not choose, so the key ships behaviour-neutral.
   transfer_block_hours: 4,
+  // Display only; the real per-region numbers are region rows (and
+  // LOCAL_PER_EUR_DEFAULTS below when a region has none). 1 = euro.
+  local_per_eur: 1,
 };
+
+/**
+ * Indicative mid-market rates, local currency per €1, as of 2026-10-14 (ECB
+ * reference rates for USD/GBP/ZAR; AED and SAR through their USD pegs; BDT
+ * mid-market). The fail-open floor for `local_per_eur` when a region has no
+ * board row. Ops keep the live numbers on the pricing board, per region.
+ */
+export const LOCAL_PER_EUR_DEFAULTS: Readonly<Record<string, number>> = {
+  EUR: 1,
+  USD: 1.1195,
+  AED: 4.1114,
+  SAR: 4.1981,
+  GBP: 0.8439,
+  BDT: 137.20,
+  ZAR: 18.4382,
+};
+
+export interface CreditRate {
+  region: string;
+  name: string;
+  currency: string;
+  /** Local currency for ONE Bravo Credit (local_per_eur × eur_per_bc). */
+  localPerBc: number;
+  launched: boolean;
+}
 
 export interface PricingInput {
   cpoCount: number;
@@ -462,6 +497,42 @@ export class PricingService {
    * direction: a booking whose coordinates match no region can never be cheaper
    * than the global price, only equal to it.
    */
+  /**
+   * 2026-10-14 — what one Bravo Credit is worth in each region's currency,
+   * for the app's "How Bravo Credits work" explainer. Display only.
+   * A region's own `local_per_eur` row wins; otherwise the indicative default
+   * for its currency. Never throws: an unreadable board answers the defaults.
+   */
+  async creditRates(): Promise<{eurPerBc: number; rates: CreditRate[]}> {
+    const global = await this.config().catch(() => DEFAULT_SERVICE_PRICING);
+    const eurPerBc = Number(global.eur_per_bc) > 0 ? Number(global.eur_per_bc) : 1;
+    const own = new Map<string, number>();
+    if (this.db) {
+      try {
+        const rows = await this.db.q<{region_code: string; value: string}>(
+          `SELECT region_code, value FROM service_pricing WHERE key = 'local_per_eur'`,
+        );
+        for (const r of rows) {
+          const v = Number(r.value);
+          if (Number.isFinite(v) && v > 0) {own.set(String(r.region_code).toUpperCase(), v);}
+        }
+      } catch (e) {
+        this.log.warn(`credit rates read failed, using defaults: ${e instanceof Error ? e.message : e}`);
+      }
+    }
+    const rates: CreditRate[] = [];
+    for (const r of regions()) {
+      const perEur = own.get(r.code) ?? LOCAL_PER_EUR_DEFAULTS[r.currency.toUpperCase()];
+      if (!perEur) {continue;}
+      rates.push({
+        region: r.code, name: r.name, currency: r.currency.toUpperCase(),
+        localPerBc: Math.round(perEur * eurPerBc * 10_000) / 10_000,
+        launched: r.launched,
+      });
+    }
+    return {eurPerBc, rates};
+  }
+
   async config(regionCode?: string | null): Promise<ServicePricingConfig> {
     const region = (regionCode ?? '').trim().toUpperCase() || GLOBAL_REGION;
     const now = Date.now();
