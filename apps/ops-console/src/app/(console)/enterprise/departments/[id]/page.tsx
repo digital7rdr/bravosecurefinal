@@ -5,7 +5,9 @@
  * content: profile and workspace settings, the department roll-up, the channel
  * tree, the people in it, incidents, join requests and invites, a 30-day
  * attendance fold, the org audit feed and, at the end, the organisation graph.
- * Read-only: decisions belong to the organisation's own managers in the app.
+ * Read-only here; the channel tree itself is edited on the STRUCTURE page
+ * (levels, template channels, member placement — 2026-10-15). Everything else
+ * belongs to the organisation's own managers in the app.
  */
 
 import {use, useMemo, useState, type ReactNode} from 'react';
@@ -75,6 +77,7 @@ const ACTION_LABELS: Record<string, string> = {
   'member.channel_remove': 'Member removed from channel',
   'member.channel_role': 'Member channel role changed',
   'member.channels_bulk_add': 'Member added to channels',
+  'member.placement': 'Member placed in the structure',
   'member.crypto_claims_stranded': 'Member key claims stranded',
   'roster.archived': 'Roster archived',
   'roster.published': 'Roster published',
@@ -179,7 +182,10 @@ export default function OrganisationDetailPage({params}: {params: Promise<{id: s
           </>
         )}
         actions={org && (
-          <Link href={routes.people.user(org.id)} className="btn btn-sm btn-ghost">ACCOUNT RECORD →</Link>
+          <>
+            <Link href={routes.enterprise.orgStructure(org.id)} className="btn btn-sm btn-pri">CHANNEL STRUCTURE →</Link>
+            <Link href={routes.people.user(org.id)} className="btn btn-sm btn-ghost">ACCOUNT RECORD →</Link>
+          </>
         )}
       />
 
@@ -225,7 +231,7 @@ export default function OrganisationDetailPage({params}: {params: Promise<{id: s
           <DepartmentsCard data={data} loading={isLoading} />
 
           <div id="channels" />
-          <ChannelsCard graph={graph} data={data} loading={isLoading} />
+          <ChannelsCard graph={graph} data={data} loading={isLoading} orgId={id} />
         </div>
 
         <div>
@@ -352,15 +358,21 @@ function DepartmentsCard({data, loading}: {data: EnterpriseOrgDetail | null | un
   );
 }
 
-function ChannelsCard({graph, data, loading}: {graph: OrgGraph | null; data: EnterpriseOrgDetail | null | undefined; loading: boolean}) {
+function ChannelsCard({graph, data, loading, orgId}: {graph: OrgGraph | null; data: EnterpriseOrgDetail | null | undefined; loading: boolean; orgId: string}) {
   const nodes = (graph?.nodes ?? []).filter(n => n.kind !== 'org');
   return (
     <Card title={`Channels · ${nodes.length}`} action={
-      <a href="#graph" className="card-header-act">VIEW GRAPH ↓</a>
+      <span style={{display: 'flex', gap: 12}}>
+        <Link href={routes.enterprise.orgStructure(orgId)} className="card-header-act">EDIT STRUCTURE →</Link>
+        <a href="#graph" className="card-header-act">VIEW GRAPH ↓</a>
+      </span>
     }>
       {loading && !data && <><div className="skel-row" /><div className="skel-row" /></>}
       {data && nodes.length === 0 && (
-        <div className="q-empty">No department channels yet. Channels are created by the organisation&apos;s admins in the app.</div>
+        <div className="q-empty">
+          No department channels yet. Build the levels and channels on the{' '}
+          <Link href={routes.enterprise.orgStructure(orgId)}>structure page</Link>, or let the organisation&apos;s admins create them in the app.
+        </div>
       )}
       {nodes.map(n => <ChannelRow key={n.id} node={n} />)}
       {data && data.org.channels_archived > 0 && (

@@ -28,6 +28,7 @@ import {AttendanceModule}    from './attendance/attendance.module';
 import {IncidentModule}      from './incident/incident.module';
 import {OpsModule}           from './ops/ops.module';
 import {OpsDeptChatModule}   from './ops/ops-deptchat.module';
+import {OpsEnterpriseStructureModule} from './ops/ops-enterprise-structure.module';
 import {DispatchModule}      from './dispatch/dispatch.module';
 import {ComplianceModule}    from './compliance/compliance.module';
 import {SosModule}           from './sos/sos.module';
@@ -123,6 +124,7 @@ import {ObservabilityModule} from './observability/observability.module';
     AttendanceModule,
     OpsModule,
     OpsDeptChatModule,
+    OpsEnterpriseStructureModule,
     DispatchModule,
     ComplianceModule,
     SosModule,

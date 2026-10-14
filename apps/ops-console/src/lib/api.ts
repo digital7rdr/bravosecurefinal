@@ -3780,6 +3780,99 @@ export function useEnterpriseOrg(id: string | null) {
   );
 }
 
+/* ── Enterprise structure editor (2026-10-15) ───────────────────────────
+ * Build an organisation's channel tree from the console: nodes (organisation ›
+ * country › province › area), each level's template channels, and where each
+ * member sits. Writes are SUPERVISOR+ and audited server-side
+ * (/ops/enterprise/orgs/:id/structure, communication domain). */
+
+export type StructurePostMode = 'open' | 'read_only' | 'announcement' | 'admin_only';
+
+export interface StructureChannel {
+  id: string;
+  name: string;
+  parent_id: string | null;
+  level: number;
+  is_lateral: boolean;
+  is_broadcast: boolean;
+  post_mode: StructurePostMode;
+  access: 'standard' | 'read_only' | 'restricted';
+  channel_type: 'board' | 'department' | 'incident';
+  archived: boolean;
+  provisioned: boolean;
+  member_count: number;
+  created_at: string;
+}
+
+export interface StructureMember {
+  user_id: string;
+  display_name: string | null;
+  member_role: 'cpo' | 'manager' | 'employee';
+  department: string | null;
+  placement_channel_id: string | null;
+  placement_state: 'org' | 'ok' | 'archived' | 'missing';
+}
+
+export interface StructureTemplate {name: string; post_mode: StructurePostMode}
+export type StructureTemplates = Record<'0' | '1' | '2' | '3', StructureTemplate[]>;
+
+export interface EnterpriseStructure {
+  org: {id: string; display_name: string | null; workspace_name: string | null; home_region: string | null;
+    is_workspace: boolean; is_agency: boolean};
+  channels: StructureChannel[];
+  members: StructureMember[];
+  templates: StructureTemplates;
+  templates_are_default: boolean;
+  default_templates: StructureTemplates;
+  level_names: string[];
+}
+
+export interface TemplateRun {
+  created: Array<{id: string; name: string}>;
+  failed: Array<{name: string; error: string}>;
+}
+
+const structureBase = (orgId: string) => `/ops/enterprise/orgs/${encodeURIComponent(orgId)}/structure`;
+
+export const enterpriseStructureApi = {
+  get: (orgId: string) => fetchJson<EnterpriseStructure>(structureBase(orgId)),
+  createNode: (orgId: string, body: {name: string; parent_id?: string | null; post_mode?: StructurePostMode; apply_template?: boolean}) =>
+    fetchJson<{node: {id: string; level: number}; laterals: TemplateRun}>(`${structureBase(orgId)}/nodes`, {
+      method: 'POST', body: JSON.stringify(body),
+    }),
+  createChannel: (orgId: string, body: {parent_id: string; name: string; post_mode?: StructurePostMode}) =>
+    fetchJson<{id: string}>(`${structureBase(orgId)}/channels`, {method: 'POST', body: JSON.stringify(body)}),
+  updateChannel: (orgId: string, channelId: string, body: {name?: string; post_mode?: StructurePostMode}) =>
+    fetchJson<{ok: true}>(`${structureBase(orgId)}/channels/${encodeURIComponent(channelId)}`, {
+      method: 'PATCH', body: JSON.stringify(body),
+    }),
+  archive: (orgId: string, channelId: string) =>
+    fetchJson<{ok: true}>(`${structureBase(orgId)}/channels/${encodeURIComponent(channelId)}/archive`, {method: 'POST'}),
+  unarchive: (orgId: string, channelId: string) =>
+    fetchJson<{ok: true}>(`${structureBase(orgId)}/channels/${encodeURIComponent(channelId)}/unarchive`, {method: 'POST'}),
+  applyTemplate: (orgId: string, channelId: string) =>
+    fetchJson<TemplateRun>(`${structureBase(orgId)}/channels/${encodeURIComponent(channelId)}/apply-template`, {method: 'POST'}),
+  setTemplates: (orgId: string, body: {templates?: StructureTemplates; reset?: boolean}) =>
+    fetchJson<{templates: StructureTemplates; is_default: boolean}>(`${structureBase(orgId)}/templates`, {
+      method: 'PUT', body: JSON.stringify(body),
+    }),
+  setLevelNames: (orgId: string, names: string[]) =>
+    fetchJson<{levelNames: string[]}>(`${structureBase(orgId)}/level-names`, {method: 'PUT', body: JSON.stringify({names})}),
+  place: (orgId: string, userIds: string[], channelId: string | null) =>
+    fetchJson<{results: Array<{user_id: string; ok: boolean; added?: number; removed?: number; error?: string}>}>(
+      `${structureBase(orgId)}/members/placement`, {
+        method: 'POST', body: JSON.stringify({user_ids: userIds, channel_id: channelId}),
+      }),
+};
+
+export function useEnterpriseStructure(orgId: string | null) {
+  return useSWR<EnterpriseStructure | null>(
+    orgId ? ['enterprise-structure', orgId] : null,
+    () => (orgId ? enterpriseStructureApi.get(orgId) : Promise.resolve(null)),
+    {refreshInterval: POLL_SLOW},
+  );
+}
+
 export function useConfigStatus() {
   return useSWR(['config-status'], () => opsSectionsApi.configStatus(), {refreshInterval: POLL_SLOW});
 }

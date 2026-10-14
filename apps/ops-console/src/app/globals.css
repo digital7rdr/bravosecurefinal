@@ -1111,6 +1111,9 @@ button.region-chip { text-align: center; }
 
 /* ── Enterprise organisation detail (departments/[id]) ──────────────── */
 .org-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+/* Grid items default to min-width:auto, so one long mono line (a placement path)
+   widened the column past a phone screen. */
+.org-grid > * { min-width: 0; }
 @media (max-width: 1000px) { .org-grid { grid-template-columns: 1fr; } }
 .org-row {
   padding: 9px 14px; display: grid; grid-template-columns: 150px minmax(0, 1fr);

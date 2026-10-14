@@ -131,11 +131,17 @@ export class OrgCpoService {
       // of a per-channel addMember loop that cost ~5 queries + a transaction
       // per channel on a fan-out that can span hundreds of channels.
       try {
+        // Enterprise placement (2026-10-15): a member placed at a node rejoins
+        // only that node's grant, and the levels above it read-only. null =
+        // unplaced = every channel, as before.
+        const grant = await this.department.placementGrantForMember(orgUserId, memberUserId, isManager);
+        const inScope = grant ? channels.filter(ch => grant.has(ch.id)) : channels;
         await this.department.addMemberBulk(
           orgUserId, memberUserId,
-          channels.map(ch => ({
+          inScope.map(ch => ({
             channelId: ch.id,
-            role: isManager ? 'admin' as const : DepartmentService.memberRoleFor(ch.post_mode ?? 'read_only'),
+            role: grant?.get(ch.id) === 'reader' ? 'viewer' as const
+              : isManager ? 'admin' as const : DepartmentService.memberRoleFor(ch.post_mode ?? 'read_only'),
             roleLabel: isManager ? 'Manager' : null,
           })),
           auditActor,

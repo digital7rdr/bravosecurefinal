@@ -190,15 +190,16 @@ export function ChannelTree({
             expandable={isExpandable(node.row.id)}
             meta={metaById.get(node.row.id)}
             /**
-             * THE COLLAPSED ROLL-UP. A collapsed level hides its children, so a
-             * message inside one would otherwise be invisible everywhere — the
-             * exact state the drill-in row's aggregate unread existed to fix,
-             * reproduced by the feature that replaced it.
-             *
-             * Only when COLLAPSED: an expanded level shows its own count and its
-             * children show theirs, so rolling up as well would double-count.
+             * THE BRANCH ROLL-UP. A level row counts its own unread plus
+             * everything beneath it. Collapsed, that is the only signal a
+             * hidden child has (the state the drill-in row's aggregate unread
+             * existed to fix). Expanded, it is the enterprise sample's layout
+             * (2026-10-15): "Gauteng Province 12" over areas showing 5 and 7 —
+             * a level's number answers "how much is waiting in this branch",
+             * and each row below answers it for its own branch. Laterals are
+             * leaves, so they only ever show their own count.
              */
-            rolledUpIds={isCollapsed
+            rolledUpIds={node.kind === 'level' || isCollapsed
               ? descendantIdsOf(nodes, node.row.id)
                 .map(id => metaById.get(id)?.groupConversationId)
               : undefined}

@@ -24,7 +24,8 @@ const mockDb = {
   withTransaction: jest.fn(),
 };
 const mockPw = {hash: jest.fn(), verify: jest.fn()};
-const mockDept = {addMember: jest.fn(), addMemberBulk: jest.fn(), removeMember: jest.fn(), updateMemberRole: jest.fn()};
+const mockDept = {addMember: jest.fn(), addMemberBulk: jest.fn(), removeMember: jest.fn(), updateMemberRole: jest.fn(),
+  placementGrantForMember: jest.fn()};
 const mockAuth = {revokeAllUserSessions: jest.fn()};
 const mockOrgAudit = {log: jest.fn()};
 
@@ -41,6 +42,8 @@ describe('OrgCpoService', () => {
     mockDept.addMemberBulk.mockResolvedValue({added: 1, skipped: 0});
     mockDept.removeMember.mockResolvedValue({ok: true});
     mockDept.updateMemberRole.mockResolvedValue({ok: true});
+    // Unplaced (2026-10-15 enterprise structure) — org-wide, the pre-placement behaviour.
+    mockDept.placementGrantForMember.mockResolvedValue(null);
     mockOrgAudit.log.mockResolvedValue(undefined);
     // Default: org owns no channels, so post-commit channel sync is a no-op.
     mockDb.q.mockResolvedValue([]);

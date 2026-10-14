@@ -71,6 +71,8 @@ export const routes = {
     departments: '/enterprise/departments',
     /** One organisation: profile, channel tree, people, incidents, org graph. */
     org: (id: string) => `/enterprise/departments/${id}`,
+    /** Build the org's channel tree, templates and member placement (2026-10-15). */
+    orgStructure: (id: string) => `/enterprise/departments/${id}/structure`,
     attendance: '/enterprise/attendance',
     incidents: '/enterprise/incidents',
     joinRequests: '/enterprise/join-requests',

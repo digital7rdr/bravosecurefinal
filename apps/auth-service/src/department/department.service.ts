@@ -1,8 +1,10 @@
 import {BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException} from '@nestjs/common';
+import type {QueryResultRow} from 'pg';
 import {DatabaseService, type Tx} from '../database/database.service';
 import {OrgAuditService} from '../org/org-audit.service';
 import {orgNameExpr, orgNameJoin} from '../org/org-context';
 import type {ChannelAccess, ChannelPostMode, ChannelType} from './dto/channel.dto';
+import {placementGrant, type PlacementGrant, type PlacementKind, type PlacementRow} from './placement';
 
 export interface ChannelSummary {
   id: string;
@@ -619,12 +621,192 @@ export class DepartmentService {
     return !!row;
   }
 
-  private async activeOrgMembers(orgUserId: string): Promise<Array<{member_user_id: string; member_role: string}>> {
-    return this.db.q<{member_user_id: string; member_role: string}>(
-      `SELECT member_user_id, member_role FROM public.org_members
+  private async activeOrgMembers(orgUserId: string): Promise<Array<{
+    member_user_id: string; member_role: string; placement_channel_id: string | null;
+  }>> {
+    return this.db.q<{member_user_id: string; member_role: string; placement_channel_id: string | null}>(
+      `SELECT member_user_id, member_role, placement_channel_id FROM public.org_members
         WHERE org_user_id = $1 AND status = 'active'`,
       [orgUserId],
     );
+  }
+
+  // ─── Enterprise structure: member PLACEMENT (2026-10-15) ─────────────
+  //
+  // `org_members.placement_channel_id` scopes a member to one node of the
+  // tree (placement.ts states the rule). NULL = the whole organisation, i.e.
+  // every member's behaviour before placement existed. Every seeder that used
+  // to fan out to "all active members" asks `placementFilter` first, so a
+  // channel created anywhere in the tree reaches only the people it is for.
+
+  /** Every channel of the org, archived ones included and flagged. */
+  private async placementRows(orgUserId: string): Promise<PlacementRow[]> {
+    return this.db.q<PlacementRow & QueryResultRow>(
+      `SELECT id, parent_id, is_lateral, is_broadcast, post_mode, access, channel_type,
+              (archived_at IS NOT NULL) AS archived
+         FROM public.department_channels WHERE org_id = $1`,
+      [orgUserId],
+    );
+  }
+
+  /**
+   * For one channel: which members it may be seeded to, and which of those
+   * only READ it. `undefined` from `kindFor` = not for this member.
+   */
+  private async placementFilter(
+    orgUserId: string,
+    members: ReadonlyArray<{member_user_id: string; member_role: string; placement_channel_id?: string | null}>,
+  ): Promise<(m: {member_user_id: string; member_role: string; placement_channel_id?: string | null}, channelId: string) => PlacementKind | undefined> {
+    const placed = members.filter(m => m.placement_channel_id);
+    if (placed.length === 0) {return () => 'member';}
+    const rows = await this.placementRows(orgUserId);
+    const cache = new Map<string, PlacementGrant | null>();
+    return (m, channelId) => {
+      if (!m.placement_channel_id) {return 'member';}
+      const asManager = m.member_role === 'manager';
+      const key = `${m.placement_channel_id}:${asManager ? 'm' : 'e'}`;
+      if (!cache.has(key)) {
+        cache.set(key, placementGrant(rows, m.placement_channel_id, asManager, DepartmentService.seedsManagersOnly));
+      }
+      const grant = cache.get(key);
+      return grant ? grant.get(channelId) : 'member';
+    };
+  }
+
+  /**
+   * One member's grant, for the org roster fan-out (org-cpo
+   * syncMemberToOrgChannels). null = unplaced, i.e. org-wide.
+   */
+  async placementGrantForMember(
+    orgUserId: string, memberUserId: string, asManager: boolean,
+  ): Promise<PlacementGrant | null> {
+    const m = await this.db.qOne<{placement_channel_id: string | null}>(
+      `SELECT placement_channel_id FROM public.org_members
+        WHERE org_user_id = $1 AND member_user_id = $2`,
+      [orgUserId, memberUserId],
+    );
+    if (!m?.placement_channel_id) {return null;}
+    return placementGrant(await this.placementRows(orgUserId), m.placement_channel_id, asManager,
+      DepartmentService.seedsManagersOnly);
+  }
+
+  /**
+   * Place a member at a node (or back to the whole organisation with null)
+   * and reconcile their channel memberships to match.
+   *
+   * Every membership change goes through addMemberBulk / removeMember, never a
+   * raw write, because those are what enqueue the rekey intents: without the
+   * intent a removed member keeps the group key and an added one gets rows
+   * they cannot decrypt.
+   *
+   * Roles are only changed where correctness needs it — a READ-ONLY grant
+   * that currently posts is demoted, and a member grant that should post but
+   * reads is promoted. A manager's in-thread "Allow post" on a read-only
+   * channel inside the member's own branch is left alone.
+   *
+   * Idempotent: running it again with the same placement converges.
+   */
+  async applyPlacement(
+    orgUserId: string, memberUserId: string, placementId: string | null, auditActor: string,
+  ): Promise<{placement_channel_id: string | null; added: number; removed: number; role_changes: number}> {
+    const member = await this.db.qOne<{member_role: string}>(
+      `SELECT member_role FROM public.org_members
+        WHERE org_user_id = $1 AND member_user_id = $2 AND status = 'active'`,
+      [orgUserId, memberUserId],
+    );
+    if (!member) {throw new NotFoundException('member_not_in_org');}
+    const asManager = member.member_role === 'manager';
+    const rows = await this.placementRows(orgUserId);
+    if (placementId) {
+      const node = rows.find(r => r.id === placementId);
+      if (!node || node.archived) {throw new BadRequestException('placement_channel_not_found');}
+      // A placement is a NODE of the tree. A lateral or a #broadcast is a
+      // channel hanging off a node, and "everything below" it is nothing.
+      if (node.is_lateral || node.is_broadcast) {throw new BadRequestException('placement_must_be_a_node');}
+    }
+    await this.db.q(
+      `UPDATE public.org_members SET placement_channel_id = $3
+        WHERE org_user_id = $1 AND member_user_id = $2`,
+      [orgUserId, memberUserId, placementId],
+    );
+
+    const grant = placementGrant(rows, placementId, asManager, DepartmentService.seedsManagersOnly);
+    const live = rows.filter(r => !r.archived);
+    const target = new Map<string, {kind: PlacementKind; post_mode: ChannelPostMode}>();
+    for (const r of live) {
+      const kind: PlacementKind | undefined = grant
+        ? grant.get(r.id)
+        : (asManager || !DepartmentService.seedsManagersOnly(r.access, r.channel_type) ? 'member' : undefined);
+      if (kind) {target.set(r.id, {kind, post_mode: r.post_mode ?? 'read_only'});}
+    }
+    const desired = (t: {kind: PlacementKind; post_mode: ChannelPostMode}): 'admin' | 'viewer' =>
+      t.kind === 'reader' ? 'viewer' : asManager ? 'admin' : DepartmentService.memberRoleFor(t.post_mode);
+
+    const current = await this.db.q<{channel_id: string; role: 'admin' | 'viewer'}>(
+      `SELECT m.channel_id, m.role
+         FROM public.department_channel_members m
+         JOIN public.department_channels c ON c.id = m.channel_id
+        WHERE c.org_id = $1 AND m.user_id = $2 AND c.archived_at IS NULL`,
+      [orgUserId, memberUserId],
+    );
+    const have = new Map(current.map(c => [c.channel_id, c.role]));
+
+    const toAdd = [...target.entries()]
+      .filter(([id]) => !have.has(id))
+      .map(([id, t]) => ({
+        channelId: id, role: desired(t),
+        roleLabel: asManager ? 'Manager' : null,
+      }));
+    const demote: string[] = [];
+    const promote: string[] = [];
+    for (const [id, role] of have) {
+      const t = target.get(id);
+      if (!t) {continue;}
+      const want = desired(t);
+      if (t.kind === 'reader' && role === 'admin') {demote.push(id);}
+      else if (t.kind === 'member' && want === 'admin' && role === 'viewer') {promote.push(id);}
+    }
+    // Unplaced (org-wide) removes nothing: the whole organisation is the target.
+    const toRemove = grant ? [...have.keys()].filter(id => !target.has(id)) : [];
+
+    let added = 0;
+    if (toAdd.length) {
+      added = (await this.addMemberBulk(orgUserId, memberUserId, toAdd, auditActor)).added;
+    }
+    let removed = 0;
+    for (const id of toRemove) {
+      try {
+        await this.removeMember(orgUserId, id, memberUserId, auditActor);
+        removed++;
+      } catch (e) {
+        if (e instanceof NotFoundException) {continue;}
+        this.log.warn(`placement remove failed for ${memberUserId} on ${id}: ${(e as Error).message}`);
+      }
+    }
+    if (demote.length || promote.length) {
+      await this.db.withTransaction(async tx => {
+        if (demote.length) {
+          await tx.q(
+            `UPDATE public.department_channel_members SET role = 'viewer'
+              WHERE user_id = $1 AND channel_id = ANY($2::uuid[])`,
+            [memberUserId, demote],
+          );
+        }
+        if (promote.length) {
+          await tx.q(
+            `UPDATE public.department_channel_members SET role = 'admin'
+              WHERE user_id = $1 AND channel_id = ANY($2::uuid[])`,
+            [memberUserId, promote],
+          );
+        }
+      });
+    }
+    await this.audit.log(orgUserId, auditActor, 'member.placement', {
+      targetKind: 'user', targetId: memberUserId,
+      metadata: {placement_channel_id: placementId, added, removed,
+        role_changes: demote.length + promote.length},
+    });
+    return {placement_channel_id: placementId, added, removed, role_changes: demote.length + promote.length};
   }
 
   /**
@@ -768,7 +950,9 @@ export class DepartmentService {
 
   private async seedChannelMembers(
     orgUserId: string, channelId: string, access: ChannelAccess, channelType: ChannelType,
-    members: Array<{member_user_id: string; member_role: string}>,
+    // `reader` (enterprise placement, 2026-10-15): the member sees this
+    // channel only because it sits ABOVE their placement — always a viewer.
+    members: Array<{member_user_id: string; member_role: string; reader?: boolean}>,
     postMode: ChannelPostMode = 'read_only',
   ): Promise<void> {
     // The org account is the channel admin (can post + manage membership).
@@ -801,7 +985,7 @@ export class DepartmentService {
       [
         channelId,
         eligible.map(m => m.member_user_id),
-        eligible.map(m => (m.member_role === 'manager' ? 'admin' : memberRole)),
+        eligible.map(m => (m.reader ? 'viewer' : m.member_role === 'manager' ? 'admin' : memberRole)),
         eligible.map(m => (m.member_role === 'manager' ? 'Manager' : null)),
       ],
     );
@@ -818,6 +1002,10 @@ export class DepartmentService {
     orgUserId: string, managerUserId: string,
     input: {name: string; department?: string; channel_type?: ChannelType; access?: ChannelAccess;
             parent_id?: string; post_mode?: ChannelPostMode; root?: boolean; lateral?: boolean},
+    // The HUMAN the audit rows name when that is not `managerUserId` — the ops
+    // console creates channels AS the org (created_by is ON DELETE CASCADE, so
+    // it must never be a console account) on behalf of a Bravo admin.
+    auditActor?: string,
   ): Promise<{id: string; name: string; channel_type: ChannelType; access: ChannelAccess;
               level: number; post_mode: ChannelPostMode; is_lateral: boolean}> {
     const channel_type: ChannelType = input.channel_type ?? 'department';
@@ -952,7 +1140,7 @@ export class DepartmentService {
             });
             // The promotion changes an EXISTING channel's structural level —
             // that deserves its own audit line, not a rider on the child's.
-            await this.audit.log(orgUserId, managerUserId, 'channel.promote_root', {
+            await this.audit.log(orgUserId, auditActor ?? managerUserId, 'channel.promote_root', {
               targetKind: 'channel', targetId: input.parent_id,
               metadata: {from_level: 1, to_level: 0},
             });
@@ -1025,13 +1213,21 @@ export class DepartmentService {
        input.parent_id ?? null, post_mode, asLateral],
     );
     if (!ch) throw new BadRequestException('channel_create_failed');
+    // Enterprise placement: a member placed at a node is seeded only when the
+    // new channel is inside their grant (placement.ts). Unplaced members keep
+    // today's org-wide behaviour.
     const members = await this.activeOrgMembers(orgUserId);
-    await this.seedChannelMembers(orgUserId, ch.id, access, channel_type, members, post_mode);
+    const kindFor = await this.placementFilter(orgUserId, members);
+    const seeded = members
+      .map(m => ({m, kind: kindFor(m, ch.id)}))
+      .filter(x => x.kind !== undefined)
+      .map(x => ({...x.m, reader: x.kind === 'reader'}));
+    await this.seedChannelMembers(orgUserId, ch.id, access, channel_type, seeded, post_mode);
     // vs2 items 5+12, extended to EVERY tenant on 2026-08-26: "nothing
     // auto-added beneath a main channel" now has no tenant carve-out, so the
     // per-level auto-#broadcast producer that used to run here for agencies is
     // gone entirely (the scope-v1 A9 rule it implemented is retired with it).
-    await this.audit.log(orgUserId, managerUserId, 'channel.create', {
+    await this.audit.log(orgUserId, auditActor ?? managerUserId, 'channel.create', {
       targetKind: 'channel', targetId: ch.id,
       metadata: {channel_type, access, parent_id: input.parent_id ?? null, level: ch.level, post_mode,
         is_lateral: ch.is_lateral},
@@ -1044,7 +1240,9 @@ export class DepartmentService {
     orgUserId: string, managerUserId: string, channelId: string,
     input: {name?: string; department?: string; channel_type?: ChannelType; access?: ChannelAccess;
             post_mode?: ChannelPostMode},
+    auditActor?: string, // see createChannel
   ): Promise<{ok: true}> {
+    const actor = auditActor ?? managerUserId;
     const current = await this.assertManagesChannel(orgUserId, channelId);
 
     // Tightening to a managers-only channel is a MEMBERSHIP change, not a bare
@@ -1107,7 +1305,7 @@ export class DepartmentService {
       const failed: string[] = [];
       for (const v of viewers) {
         try {
-          await this.removeMember(orgUserId, channelId, v.user_id, managerUserId);
+          await this.removeMember(orgUserId, channelId, v.user_id, actor);
         } catch (e) {
           // 'member_not_found' = already gone (idempotent retry) → benign. Any
           // other failure means this CPO was NOT rekeyed out.
@@ -1137,8 +1335,12 @@ export class DepartmentService {
         ? (current.post_mode ?? 'read_only')
         : (input.post_mode ?? current.post_mode ?? 'read_only');
       const members = await this.activeOrgMembers(orgUserId);
+      const kindFor = await this.placementFilter(orgUserId, members);
       for (const m of members) {
         if (m.member_role === 'manager') continue;
+        // Placement: loosening re-adds only the people this channel is for.
+        const kind = kindFor(m, channelId);
+        if (!kind) continue;
         try {
           // Role from POST_MODE, not hardcoded 'viewer' — loosening an `open`
           // channel used to leave everyone mute. And NO role_label: stamping
@@ -1146,7 +1348,7 @@ export class DepartmentService {
           // (the stored label wins over the tenant's live noun, so an
           // Enterprise roster read "CPO" again after any loosen).
           await this.addMember(orgUserId, channelId, m.member_user_id,
-            DepartmentService.memberRoleFor(loosenedPostMode), undefined, managerUserId);
+            kind === 'reader' ? 'viewer' : DepartmentService.memberRoleFor(loosenedPostMode), undefined, actor);
         } catch (e) {
           this.log.warn(`configure-loosen re-add failed for ${m.member_user_id} on ${channelId}: ${(e as Error).message}`);
         }
@@ -1193,26 +1395,35 @@ export class DepartmentService {
       // everyone would be in the poster set. The trigger guards the rule column;
       // only reading it back guards the enforcement column.
       const effective = (updated?.post_mode ?? input.post_mode) as ChannelPostMode;
+      // Placement: people who only READ this channel (it sits above their
+      // placement) stay viewers whatever the new mode is — opening a province
+      // chat must not make every area beneath it a poster there.
+      const placedMembers = (await this.activeOrgMembers(orgUserId)).filter(m => m.placement_channel_id);
+      const kindFor = await this.placementFilter(orgUserId, placedMembers);
+      const readers = placedMembers
+        .filter(m => kindFor(m, channelId) === 'reader')
+        .map(m => m.member_user_id);
       await this.db.q(
         `UPDATE public.department_channel_members m
             SET role = $3
           WHERE m.channel_id = $1
             AND m.user_id <> $2
+            AND NOT (m.user_id = ANY($4::uuid[]))
             AND NOT EXISTS (
               SELECT 1 FROM public.org_members om
                WHERE om.org_user_id = $2 AND om.member_user_id = m.user_id
                  AND om.member_role = 'manager' AND om.status = 'active')`,
-        [channelId, orgUserId, DepartmentService.memberRoleFor(effective)],
+        [channelId, orgUserId, DepartmentService.memberRoleFor(effective), readers],
       );
     }
-    await this.audit.log(orgUserId, managerUserId, 'channel.configure', {
+    await this.audit.log(orgUserId, actor, 'channel.configure', {
       targetKind: 'channel', targetId: channelId,
       metadata: {channel_type: input.channel_type, access: input.access, post_mode: input.post_mode},
     });
     return {ok: true};
   }
 
-  async archiveChannel(orgUserId: string, managerUserId: string, channelId: string): Promise<{ok: true}> {
+  async archiveChannel(orgUserId: string, managerUserId: string, channelId: string, auditActor?: string): Promise<{ok: true}> {
     // The call IS the authorization; the row itself is no longer needed here
     // (the broadcast gate that read it fell with the 2026-08-26 unification).
     await this.assertManagesChannel(orgUserId, channelId);
@@ -1255,13 +1466,13 @@ export class DepartmentService {
         WHERE id = $1 AND org_id = $2 AND archived_at IS NULL`,
       [channelId, orgUserId],
     );
-    await this.audit.log(orgUserId, managerUserId, 'channel.archive', {
+    await this.audit.log(orgUserId, auditActor ?? managerUserId, 'channel.archive', {
       targetKind: 'channel', targetId: channelId,
     });
     return {ok: true};
   }
 
-  async unarchiveChannel(orgUserId: string, managerUserId: string, channelId: string): Promise<{ok: true}> {
+  async unarchiveChannel(orgUserId: string, managerUserId: string, channelId: string, auditActor?: string): Promise<{ok: true}> {
     await this.assertManagesChannel(orgUserId, channelId);
     // The mirror of archiveChannel's guard, and it must exist on BOTH sides.
     // Archiving alone could not orphan a subtree, but this sequence could:
@@ -1310,7 +1521,7 @@ export class DepartmentService {
       }
       throw e;
     }
-    await this.audit.log(orgUserId, managerUserId, 'channel.unarchive', {
+    await this.audit.log(orgUserId, auditActor ?? managerUserId, 'channel.unarchive', {
       targetKind: 'channel', targetId: channelId,
     });
     return {ok: true};
