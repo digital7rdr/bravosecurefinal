@@ -4,8 +4,9 @@ import {
 } from '@nestjs/common';
 import {FileInterceptor} from '@nestjs/platform-express';
 import {diskStorage} from 'multer';
-import {extname, join} from 'node:path';
-import {mkdirSync} from 'node:fs';
+import {join} from 'node:path';
+import {existsSync, mkdirSync} from 'node:fs';
+import {uploadFileName} from '../common/naming/file-naming';
 import {JwtAuthGuard} from '../common/guards/jwt-auth.guard';
 import {CpoSessionGuard} from '../common/guards/cpo-session.guard';
 import {CurrentUser}  from '../common/decorators/current-user.decorator';
@@ -127,9 +128,21 @@ export class AgentController {
           cb(e as Error, dir);
         }
       },
-      filename: (_req, file, cb) => {
-        const safe = (file.originalname || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
-        cb(null, `${Date.now()}-${safe}${safe.includes('.') ? '' : extname(file.originalname || '')}`);
+      // Bravo naming standard (ISO 9001 deck): stored as
+      // "20261015T0930_PassportScanFront_v1.jpg" — date first, CamelCase
+      // descriptor, no spaces or special characters, and _v2/_v3 when the same
+      // file is uploaded again within the minute. The person's own file name is
+      // still returned as the display label.
+      filename: (req, file, cb) => {
+        const userId = (req as Express.Request & {user?: AccessClaims}).user?.sub ?? 'anon';
+        const dir = join(process.cwd(), 'uploads', userId);
+        const at = new Date();
+        let version = 1;
+        let name = uploadFileName(file.originalname, at, version);
+        while (version < 100 && existsSync(join(dir, name))) {
+          name = uploadFileName(file.originalname, at, ++version);
+        }
+        cb(null, name);
       },
     }),
     limits: {fileSize: 25 * 1024 * 1024},  // 25MB

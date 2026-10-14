@@ -1877,3 +1877,23 @@ textarea.pv-input { resize: vertical; }
   .hub-facts { grid-template-columns: 1fr; }
   .hub-panel { padding: 20px; }
 }
+
+/* ── Controlled documents (ISO 9001 library, 2026-10-15) ─────────────── */
+.docs-grid { display: grid; grid-template-columns: minmax(260px, 360px) 1fr; gap: 16px; align-items: start; }
+.docs-grid > * { min-width: 0; }
+@media (max-width: 1000px) { .docs-grid { grid-template-columns: 1fr; } }
+.docs-folder {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  padding: 8px 14px; background: transparent; border: none; border-top: 1px solid var(--bd-2);
+  color: var(--tx-1); font-family: var(--font-sans); font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.docs-folder:hover { background: var(--surf-3); }
+.docs-folder[data-active="true"] { background: var(--surf-3); box-shadow: inset 3px 0 0 var(--act); }
+.docs-sub { padding-left: 34px; font-weight: 500; color: var(--tx-2); border-top: none; }
+.docs-folder-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.docs-code { font-family: var(--font-mono); font-size: 10px; color: var(--tx-3); letter-spacing: 1px; }
+.docs-row { width: 100%; background: transparent; border-left: none; border-right: none; border-top: none; cursor: pointer; font: inherit; color: inherit; }
+.docs-number { font-family: var(--font-mono); font-size: 11.5px; color: var(--glow); margin-right: 4px; }
+.docs-panel { padding: 12px 14px 14px; background: var(--surf-3); border-bottom: 1px solid var(--bd-2); }
+.docs-version { display: flex; gap: 10px; align-items: center; justify-content: space-between; padding: 6px 0; border-top: 1px solid var(--bd-2); }
+.docs-actions { display: grid; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--bd-2); }

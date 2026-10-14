@@ -16,6 +16,7 @@ import {usePagedList} from '@/lib/usePagedList';
 import {formatDateTimeUtc} from '@/lib/datetime';
 import {roleLabel} from '@/lib/format';
 import {downloadCsv} from '@/lib/csv';
+import {exportFileName} from '@/lib/fileNaming';
 import {PageHeader} from '@/components/PageHeader';
 import {RouteTabs} from '@/components/RouteTabs';
 import {routes, bookingHref} from '@/lib/routes';
@@ -64,7 +65,8 @@ function ExportCsvButton({disabled, onClick}: {disabled: boolean; onClick: () =>
   );
 }
 
-const stamp = () => new Date().toISOString().slice(0, 10);
+/** Bravo naming standard: "20261015T0930_BRV-FN_WalletLedger.csv". */
+const financeFile = (subject: string) => exportFileName({dept: 'FN', subject, ext: 'csv'});
 
 const th = 'px-3 py-2';
 const tableWrap = 'overflow-x-auto rounded-xl border border-bd2';
@@ -118,7 +120,7 @@ export function LedgerTab() {
         <ExportCsvButton
           disabled={data.length === 0}
           onClick={() => downloadCsv(
-            `wallet_ledger_${stamp()}.csv`,
+            financeFile('Wallet Ledger'),
             // B-854 (A14) — `user` is the WALLET; `actor` is who spent it and
             // `via_name`/`via_user_id` the member they spent through. Without
             // those four a reconciler reads every family charge — and every
@@ -228,7 +230,7 @@ export function EscrowTab() {
         <ExportCsvButton
           disabled={(data?.length ?? 0) === 0}
           onClick={() => data && downloadCsv(
-            `escrows_${stamp()}.csv`,
+            financeFile('Escrows'),
             ['held_at', 'booking_id', 'booking_status', 'region', 'client', 'provider', 'gross_credits', 'to_provider', 'to_client', 'platform_fee', 'status', 'basis', 'review_required', 'review_reasons', 'completed_at', 'release_eligible_at', 'settled_at'],
             data.map(r => [r.held_at, r.booking_id, r.booking_status, r.region_code, r.client_name, r.provider_name, r.gross_credits, r.to_provider_credits, r.to_client_credits, r.platform_fee_credits, r.status, r.basis, r.review_required, (r.review_reasons ?? []).join(' '), r.completed_at, r.release_eligible_at, r.settled_at]),
           )}
@@ -360,7 +362,7 @@ export function PayoutsTab() {
         <ExportCsvButton
           disabled={(data?.length ?? 0) === 0}
           onClick={() => data && downloadCsv(
-            `payouts_${stamp()}.csv`,
+            financeFile('Payouts'),
             ['decided_at', 'payee', 'call_sign', 'mission', 'region', 'proposed_credits', 'paid_credits', 'deduction_credits', 'deduction_reason'],
             data.map(r => [r.decided_at, r.payee_name, r.call_sign, r.mission_short_code, r.region_code, r.proposed_credits, r.paid_credits, r.deduction_credits, r.deduction_reason]),
           )}
@@ -483,7 +485,7 @@ export function DisputesTab({canResolve}: {canResolve: boolean}) {
         <ExportCsvButton
           disabled={(data?.length ?? 0) === 0}
           onClick={() => data && downloadCsv(
-            `disputes_${stamp()}.csv`,
+            financeFile('Disputes'),
             ['created_at', 'booking_id', 'region', 'raised_by', 'category', 'reason', 'escrow_status', 'gross_credits', 'hold_to_provider', 'hold_to_client', 'hold_platform_fee', 'hold_basis', 'hold_no_show_at', 'status', 'to_client', 'to_provider', 'decided_at'],
             data.map(r => [r.created_at, r.booking_id, r.region_code, r.raised_by_name, r.category, r.reason, r.escrow_status, r.gross_credits, r.hold_to_provider_credits, r.hold_to_client_credits, r.hold_platform_fee_credits, r.hold_basis, r.hold_no_show_at, r.status, r.to_client_credits, r.to_provider_credits, r.decided_at]),
           )}
@@ -719,7 +721,7 @@ export function InvoicesTab() {
         <ExportCsvButton
           disabled={(data?.length ?? 0) === 0}
           onClick={() => data && downloadCsv(
-            `invoices_${stamp()}.csv`,
+            financeFile('Invoices'),
             ['invoice_number', 'issued_at', 'kind', 'region', 'booking_id', 'subtotal_credits', 'tax_credits', 'total_credits', 'currency'],
             data.map(r => [r.invoice_number, r.issued_at, r.kind, r.region_code, r.booking_id, r.subtotal_credits, r.tax_credits, r.total_credits, r.currency]),
           )}

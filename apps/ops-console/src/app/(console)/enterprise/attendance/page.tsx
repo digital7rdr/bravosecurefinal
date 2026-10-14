@@ -2,6 +2,7 @@
 
 import {useEffect, useRef, useState} from 'react';
 import {opsApi, useProOrgs, type DeptAttendanceSummary} from '@/lib/api';
+import {dateRangeScope, exportFileName} from '@/lib/fileNaming';
 
 const STAT_ORDER: {key: string; label: string; cls: string}[] = [
   {key: 'present', label: 'Present', cls: 'text-ok'},
@@ -101,6 +102,14 @@ export default function DeptAttendancePage() {
     return opsApi.deptAttendanceExport(orgId.trim(), r.from, r.to, signal);
   };
 
+  // Bravo naming standard: "20261015T0930_BRV-HR_Attendance_GardaWorldAfrica_….csv".
+  // The PDF window's <title> is what the browser offers as the PDF file name.
+  const attendanceFileName = (ext: string) => {
+    const org = (orgData?.orgs ?? []).find(o => o.id === orgId.trim());
+    return exportFileName({dept: 'HR', subject: 'Attendance', ext,
+      scope: `${org?.display_name ?? orgId.trim().slice(0, 8)} ${dateRangeScope(from, to) ?? ''}`});
+  };
+
   const exportCsv = async () => {
     if (!orgId.trim()) {return;}
     const ac = begin();
@@ -111,7 +120,7 @@ export default function DeptAttendancePage() {
       const url = URL.createObjectURL(new Blob([csv], {type: 'text/csv'}));
       const a = document.createElement('a');
       a.href = url;
-      a.download = `attendance-${orgId.trim().slice(0, 8)}.csv`;
+      a.download = attendanceFileName('csv');
       a.click();
       URL.revokeObjectURL(url);
       setMsg('Export downloaded (biometric-free).');
@@ -144,7 +153,7 @@ export default function DeptAttendancePage() {
       const win = window.open('', '_blank');
       if (!win) { setMsg('Popup blocked — allow popups to generate the PDF report.'); return; }
       win.document.write(`<!DOCTYPE html>
-<html><head><title>Attendance Report</title>
+<html><head><title>${escapeHtml(attendanceFileName('pdf').replace(/\.pdf$/, ''))}</title>
 <style>
   body { font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #111; margin: 32px; }
   h1 { font-size: 20px; margin: 0 0 2px; }

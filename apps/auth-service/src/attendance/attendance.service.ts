@@ -11,6 +11,7 @@ import {BookingPushBridge} from '../ops/booking-push-bridge.service';
 import {GeocodeService} from '../vbg/geocode.service';
 import {AttendancePhotoService} from './attendance-photo.service';
 import {computeAttendanceKpis, type AttendanceKpis} from './attendanceKpis';
+import {dateRangeScope, exportFileName} from '../common/naming/file-naming';
 
 // Closed sets shared by the schema CHECK constraints (20260629000000) and the
 // service derivation logic, so a typo can't drift between SQL and TS.
@@ -2443,7 +2444,9 @@ export class AttendanceService {
     });
 
     return {
-      filename: `attendance-${new Date().toISOString().slice(0, 10)}.csv`,
+      // Bravo naming standard: "20261015T0930_BRV-HR_Attendance_20261001-20261015.csv".
+      filename: exportFileName({dept: 'HR', subject: 'Attendance', ext: 'csv',
+        scope: dateRangeScope(filters?.from, filters?.to)}),
       contentType: 'text/csv; charset=utf-8',
       body: lines.join('\r\n'),
     };

@@ -14,6 +14,7 @@ import {Empty, ProductTag, PvCard, PvPage, Stat} from '@/components/provider/ui'
 import {usePvStatement} from '@/lib/provider/api';
 import {credits, productOf, serviceLabel, type Product} from '@/lib/provider/labels';
 import {downloadCsv} from '@/lib/csv';
+import {dateRangeScope, exportFileName} from '@/lib/fileNaming';
 
 const HOLD: Record<string, {label: string; cls: string}> = {
   RELEASED:        {label: 'Paid out', cls: 'pill-ok'},
@@ -74,8 +75,11 @@ export default function ProviderEarnings() {
   const periodLabel = selectedMonth ? monthName(selectedMonth) : `${dayName(from)} – ${dayName(to)}`;
 
   function exportCsv() {
-    const name = (org.name || 'agency').replace(/[^A-Za-z0-9]+/g, '-').toLowerCase();
-    downloadCsv(`bravo-statement-${name}-${from}-to-${to}${filter === 'all' ? '' : `-${filter}`}.csv`,
+    // Bravo naming standard (ISO 9001 deck): date first, BRV-FN, what, whose.
+    downloadCsv(exportFileName({
+      dept: 'FN', subject: filter === 'all' ? 'Statement' : `Statement ${filter}`, ext: 'csv',
+      scope: `${org.name || 'Agency'} ${dateRangeScope(from, to) ?? ''}`,
+    }),
       ['Date', 'Job', 'Product', 'Service', 'Area', 'Payment', 'Paid on', 'Job value (BC)', 'Platform fee (BC)', 'To agency (BC)'],
       rows.map(r => [
         r.job_date, r.short_code ?? r.booking_id, productOf(r.service) === 'executive' ? 'Executive' : 'Lite',

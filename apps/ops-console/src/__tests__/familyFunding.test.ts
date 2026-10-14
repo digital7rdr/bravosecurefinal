@@ -78,7 +78,8 @@ describe('the scans can see the code they are scanning', () => {
     expect(CARD).toContain('const CODE_COPY');
     expect(DETAIL).toContain('data?.payer');
     expect(LIST).toContain('function clientSub(');
-    expect(FINANCE).toContain('wallet_ledger_');
+    // The wallet-ledger export (named by the Bravo naming standard since 2026-10-15).
+    expect(FINANCE).toContain("financeFile('Wallet Ledger')");
   });
 });
 
@@ -555,7 +556,7 @@ describe('FinancePage — the actor rides with the row, in the table AND the exp
   });
 
   it('the CSV header and the row builder agree on the four new columns', () => {
-    const block = /wallet_ledger_\$\{stamp\(\)\}\.csv`,[\s\S]*?\n\s*\)\}/.exec(FINANCE)?.[0] ?? '';
+    const block = /financeFile\('Wallet Ledger'\),[\s\S]*?\n\s*\)\}/.exec(FINANCE)?.[0] ?? '';
     expect(block).toContain('created_at');              // self-check: block found
     for (const key of ['actor', 'actor_user_id', 'via_user_id', 'via_name']) {
       expect(`${key}:${block.includes(key)}`).toBe(`${key}:true`);

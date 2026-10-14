@@ -55,6 +55,7 @@ const iconClipboard = <Ic><path d="M3 5h14v12H3z" {...s}/><path d="M6 2h8l1 3H5l
 const iconTarget = <Ic><circle cx="10" cy="10" r="7" {...s}/><circle cx="10" cy="10" r="3" {...s}/><circle cx="10" cy="10" r="1" fill="currentColor"/></Ic>;
 const iconShieldStar = <Ic><path d="M10 2l6 2.5v5c0 4-2.7 6.4-6 8.5-3.3-2.1-6-4.5-6-8.5v-5L10 2Z" {...s} strokeLinejoin="round"/><path d="M10 6.5l1.1 2.2 2.4.35-1.75 1.7.4 2.4L10 12l-2.15 1.15.4-2.4-1.75-1.7 2.4-.35L10 6.5Z" stroke="currentColor" strokeWidth="1.1" strokeLinejoin="round"/></Ic>;
 const iconShieldDot = <Ic><path d="M10 2l6 2.5v4.5c0 4-2.6 6.6-6 8-3.4-1.4-6-4-6-8V4.5L10 2Z" {...s} strokeLinejoin="round"/><circle cx="10" cy="9" r="1.6" fill="currentColor"/></Ic>;
+const iconFolder = <Ic><path d="M2.5 5.5a1.5 1.5 0 0 1 1.5-1.5h3.6l1.6 1.8H16a1.5 1.5 0 0 1 1.5 1.5v7.7a1.5 1.5 0 0 1-1.5 1.5H4a1.5 1.5 0 0 1-1.5-1.5z" {...s} strokeLinejoin="round"/></Ic>;
 const iconDoc = <Ic><rect x="4" y="2.5" width="12" height="15" rx="1.4" {...s}/><path d="M7 6.5h6M7 9.5h6M7 12.5h4" {...s} strokeLinecap="round"/></Ic>;
 const iconBuilding = <Ic><rect x="3" y="3" width="8" height="14" rx="1.2" {...s}/><path d="M11 8h6v9h-6" {...s}/><path d="M6 6.5h2M6 9.5h2M6 12.5h2M13.5 11h1.5M13.5 14h1.5" {...s} strokeLinecap="round"/></Ic>;
 const iconPeople = <Ic><circle cx="7" cy="7" r="2.6" {...s}/><circle cx="13.5" cy="8.5" r="2.1" {...s}/><path d="M2.5 16.5c0-2.6 2-4.4 4.5-4.4s4.5 1.8 4.5 4.4M12.5 12.6c2.3.2 5 1.6 5 3.9" {...s} strokeLinecap="round"/></Ic>;
@@ -205,6 +206,8 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       {label: 'Admins', href: routes.internal.admins, icon: iconAdminKey, minRole: 'ADMIN'},
       {label: 'Audit Log', href: routes.internal.audit, icon: iconDoc, minRole: 'SUPERVISOR'},
+      // ISO 9001 controlled documents (2026-10-15): department folders × 100–400 sub-folders.
+      {label: 'Documents', href: routes.internal.documents, icon: iconFolder},
       {label: 'Console', href: routes.internal.console, icon: iconTerminal},
       {label: 'Apps', href: routes.internal.apps, icon: iconAdminKey, minRole: 'ADMIN'},
     ],

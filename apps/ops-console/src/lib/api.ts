@@ -174,7 +174,8 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
     ...restInit,
     credentials: 'include',
     headers: {
-      'Content-Type': 'application/json',
+      // A FormData body sets its own multipart boundary; forcing JSON breaks it.
+      ...(typeof FormData !== 'undefined' && restInit.body instanceof FormData ? {} : {'Content-Type': 'application/json'}),
       ...(csrf ? {'X-CSRF-Token': csrf} : {}),
       ...(idempotencyKey ? {'Idempotency-Key': idempotencyKey} : {}),
       ...(restInit?.headers ?? {}),
@@ -3864,6 +3865,85 @@ export const enterpriseStructureApi = {
         method: 'POST', body: JSON.stringify({user_ids: userIds, channel_id: channelId}),
       }),
 };
+
+/* ── Controlled documents (ISO 9001:2015 naming, 2026-10-15) ───────────
+ * Bravo's own policies, work instructions, forms and charts, in department
+ * folders (EX … QH) × sub-folders 100–400, numbered "BRV-FN 100-001", every
+ * version kept. Reads for every admin; uploads and changes SUPERVISOR+. */
+
+export interface ControlledDocument {
+  id: string;
+  department_code: string;
+  category: 100 | 200 | 300 | 400;
+  seq: number;
+  number: string;
+  title: string;
+  status: 'active' | 'obsolete';
+  current_version: number;
+  file_name: string | null;
+  size_bytes: number | null;
+  updated_at: string;
+  updated_by_name: string | null;
+}
+
+export interface ControlledDocumentLibrary {
+  departments: Array<{code: string; folder: string; name: string}>;
+  categories: Array<{code: 100 | 200 | 300 | 400; name: string}>;
+  allowed_extensions: string[];
+  max_bytes: number;
+  documents: ControlledDocument[];
+}
+
+export interface ControlledDocumentVersion {
+  version: number;
+  stored_name: string;
+  original_name: string;
+  size_bytes: number;
+  sha256: string;
+  change_note: string | null;
+  uploaded_at: string;
+  uploaded_by_name: string | null;
+}
+
+export const documentsApi = {
+  list: () => fetchJson<ControlledDocumentLibrary>('/ops/documents'),
+  get: (id: string) => fetchJson<{document: ControlledDocument & {created_at: string; created_by_name: string | null};
+    versions: ControlledDocumentVersion[]}>(`/ops/documents/${encodeURIComponent(id)}`),
+  create: (input: {department_code: string; category: number; title: string; change_note?: string; file: File}) => {
+    const fd = new FormData();
+    fd.append('department_code', input.department_code);
+    fd.append('category', String(input.category));
+    fd.append('title', input.title);
+    if (input.change_note) {fd.append('change_note', input.change_note);}
+    fd.append('file', input.file);
+    return fetchJson<{id: string; number: string; version: number; file_name: string}>('/ops/documents', {method: 'POST', body: fd});
+  },
+  addVersion: (id: string, input: {change_note?: string; file: File}) => {
+    const fd = new FormData();
+    if (input.change_note) {fd.append('change_note', input.change_note);}
+    fd.append('file', input.file);
+    return fetchJson<{id: string; number: string; version: number; file_name: string}>(
+      `/ops/documents/${encodeURIComponent(id)}/versions`, {method: 'POST', body: fd});
+  },
+  update: (id: string, patch: {title?: string; status?: 'active' | 'obsolete'}) =>
+    fetchJson<unknown>(`/ops/documents/${encodeURIComponent(id)}`, {method: 'PATCH', body: JSON.stringify(patch)}),
+  /** The file itself; the caller saves it under the stored (convention) name. */
+  download: async (id: string, version?: number): Promise<Blob> => {
+    const path = version ? `/ops/documents/${encodeURIComponent(id)}/versions/${version}/download`
+      : `/ops/documents/${encodeURIComponent(id)}/download`;
+    const res = await fetch(`${BASE}${path}`, {credentials: 'include', cache: 'no-store'});
+    if (!res.ok) {
+      const text = await res.text();
+      const body = text ? safeParse(text) : null;
+      throw new ApiError(res.status, body, (body as {message?: string})?.message ?? res.statusText);
+    }
+    return res.blob();
+  },
+};
+
+export function useControlledDocuments() {
+  return useSWR<ControlledDocumentLibrary>(['controlled-documents'], () => documentsApi.list(), {refreshInterval: POLL_SLOW});
+}
 
 export function useEnterpriseStructure(orgId: string | null) {
   return useSWR<EnterpriseStructure | null>(

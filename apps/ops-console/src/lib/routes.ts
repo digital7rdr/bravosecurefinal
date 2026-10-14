@@ -131,6 +131,8 @@ export const routes = {
     root: '/internal/audit',
     admins: '/internal/admins',
     audit: '/internal/audit',
+    /** ISO 9001 controlled-document library (2026-10-15). */
+    documents: '/internal/documents',
     console: '/internal/console',
     apps: '/internal/apps',
   },

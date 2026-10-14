@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {ApiError, opsDataApi, useAuditBrowse, type OpsAuditRow} from '@/lib/api';
 import {formatDateTimeUtc} from '@/lib/datetime';
 import {csvEscape} from '@/lib/csv';
+import {exportFileName} from '@/lib/fileNaming';
 
 // OC-13 — this list must mirror AuditSubjectType in ops-audit.service.ts.
 // 'dispatch' was listed but is not a valid subject type (always-empty result);
@@ -107,7 +108,7 @@ export default function AuditPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `audit_export_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = exportFileName({dept: 'QH', subject: 'Audit Log', ext: 'csv'});
     a.click();
     URL.revokeObjectURL(url);
   };
