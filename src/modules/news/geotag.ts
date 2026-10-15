@@ -249,7 +249,7 @@ export function sectionToTag(sectionId: string): string {
     case 'technology':   return 'TECH';
     case 'sport':        return 'SPORT';
     case 'society':      return 'SOCIETY';
-    case 'security':     return 'SECURITY';
+    case 'security':     return 'RISK';
     case 'defence':      return 'MILITARY';
     case 'energy':       return 'ENERGY';
     case 'aviation':     return 'AVIATION';

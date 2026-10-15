@@ -61,7 +61,7 @@ function Security() {
   return (
     <div className="hub-panel">
       <Link href={hubRoutes.home} className="hub-back">← All apps</Link>
-      <h1 className="hub-panel-title">Security</h1>
+      <h1 className="hub-panel-title">Sign-in &amp; authenticator</h1>
       <div className="hub-facts">
         <div><span>Phone</span><b className={data.user.phone_verified ? 'ok' : ''}>{data.user.phone_verified ? 'Verified' : 'Not verified yet'}</b></div>
         <div><span>Email</span><b className={data.user.email_verified ? 'ok' : ''}>{data.user.email_verified ? 'Verified' : 'Not verified yet'}</b></div>

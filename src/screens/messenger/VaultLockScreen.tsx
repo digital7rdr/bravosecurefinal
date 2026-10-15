@@ -380,7 +380,7 @@ export default function VaultLockScreen() {
         <Text style={styles.lockSub}>
           {biometricEnabled && bioAvailable
             ? 'Use biometric or enter your 6-digit PIN'
-            : 'Enter your 6-digit security code'}
+            : 'Enter your 6-digit vault PIN'}
         </Text>
       </View>
 

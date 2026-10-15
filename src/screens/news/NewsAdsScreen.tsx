@@ -20,7 +20,7 @@ const CYBER_APPS = [
   {
     id: 'mcafee',
     name: 'McAfee Total Protection',
-    sub: 'Full-device security · 5 devices',
+    sub: 'Full-device protection · 5 devices',
     price: 'AED 749/yr',
     rating: 4.6,
     stars: 5,
@@ -95,7 +95,7 @@ const JV_ADVERTS = [
     catColor: '#818CF8',
     catBg: 'rgba(99,102,241,0.15)',
     region: 'GB · London',
-    title: 'Mayfair Security Advisory JV Open',
+    title: 'Mayfair Risk Advisory JV Open',
     sub: 'UK-licensed firms invited to JV with Bravo for GCC clients.',
   },
   {
@@ -151,7 +151,7 @@ export default function NewsAdsScreen() {
           onPress={() => setActiveTab('cyber')}
           activeOpacity={0.8}>
           <Text style={[styles.tabBtnText, activeTab === 'cyber' && styles.tabBtnTextActive]}>
-            CYBER SECURITY APPS
+            CYBER PROTECTION APPS
           </Text>
         </TouchableOpacity>
         <TouchableOpacity

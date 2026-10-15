@@ -189,7 +189,7 @@ describe('buildBookingSummaryRows — Executive Protection', () => {
     expect(valueOf(rows, 'Schedule')).toMatch(/^Scheduled · [A-Za-z]{3},? \d{2} [A-Za-z]{3} · \d{1,2}:\d{2} (AM|PM)$/);
     expect(valueOf(rows, 'Duration')).toBe('6 hrs');
     expect(valueOf(rows, 'Service location')).toBe('Four Seasons DIFC');
-    expect(valueOf(rows, 'Event / Task type')).toBe('Event Security');
+    expect(valueOf(rows, 'Event / Task type')).toBe('Event Protection');
     expect(valueOf(rows, 'Description')).toBe('Gala dinner, discreet presence');
     expect(valueOf(rows, 'CPOs required')).toBe('2');
     expect(valueOf(rows, 'Female CPO')).toBe('Selected');

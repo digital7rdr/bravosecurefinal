@@ -234,7 +234,7 @@ describe('W2 — the row', () => {
     // BIOMETRIC_WEAK is not necessarily face unlock — it is whatever the OEM
     // classified as weak. The old copy asserted a modality we cannot know.
     const src = code(SETTINGS);
-    expect(src).toMatch(/This device's biometric is low-security\./);
+    expect(src).toMatch(/This device's biometric is a weaker type\./);
     expect(src).not.toMatch(/Face unlock on this device/);
   });
 });

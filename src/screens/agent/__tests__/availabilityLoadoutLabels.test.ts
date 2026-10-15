@@ -3,6 +3,9 @@
  * is only UK." The Availability loadout toggle was labelled 'SIA UK / Front
  * line licence'; Bravo operates outside the UK, so the label has to be regional.
  *
+ * 2026-10-15 (founder): "security" is no longer used as a descriptor anywhere,
+ * so 'Security License' became 'Protection Licence' — still regional, not SIA.
+ *
  * The wire value (`key: 'sia'`) is UNTOUCHED — it is what
  * `UpdateAvailabilityDto.loadout` carries and what the server has stored for
  * every existing agent. Only the human label moves.
@@ -40,9 +43,9 @@ const loadoutBlock = (src: string) => {
 };
 
 describe('B-824 — the licence toggle is regional, not UK-only', () => {
-  it('the sia row reads Security License / Regional front line licence', () => {
+  it('the sia row reads Protection Licence / Regional front line licence', () => {
     expect(loadoutBlock(code(SCREEN))).toMatch(
-      /\{\s*key:\s*'sia',\s*name:\s*'Security License',\s*sub:\s*'Regional front line licence'/,
+      /\{\s*key:\s*'sia',\s*name:\s*'Protection Licence',\s*sub:\s*'Regional front line licence'/,
     );
   });
 

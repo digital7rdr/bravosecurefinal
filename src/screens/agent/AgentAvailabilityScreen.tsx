@@ -36,7 +36,7 @@ interface LoadoutRow {key: string; name: string; sub: string; on: boolean}
 export const INITIAL_LOADOUT: LoadoutRow[] = [
   {key: 'armed',    name: 'Armed Ops',        sub: 'Firearms cert required',      on: false},
   {key: 'armoured', name: 'Armoured Vehicle', sub: 'B4 / B6 rating',              on: true},
-  {key: 'sia',      name: 'Security License', sub: 'Regional front line licence', on: true},
+  {key: 'sia',      name: 'Protection Licence', sub: 'Regional front line licence', on: true},
 ];
 
 export default function AgentAvailabilityScreen() {

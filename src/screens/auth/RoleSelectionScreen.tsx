@@ -182,7 +182,7 @@ const PROVIDER_CARD: RoleCard = {
   Icon: IcBuilding,
   eyebrow: 'Operator Partner',
   title: 'Operator Partner',
-  desc: 'Security company onboarding a roster of officers under one master licence.',
+  desc: 'Protection services company onboarding a roster of officers under one master licence.',
   features: null,
 };
 

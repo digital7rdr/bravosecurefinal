@@ -747,7 +747,7 @@ export class VbgService implements OnModuleInit, OnModuleDestroy {
     // (0,0) "Null Island" snapshot. Clients with no GPS fix degrade to their
     // "assessment unavailable" empty state on this error.
     if (lat === null || lng === null) {
-      throw new BadRequestException('A location (lat/lng) is required for the security assessment.');
+      throw new BadRequestException('A location (lat/lng) is required for the risk assessment.');
     }
     const fix = await this.geocode.reverse(lat, lng);
     const blended = await this.threatsForArea(fix, timeWindowHours ?? undefined, radiusKm ?? undefined);

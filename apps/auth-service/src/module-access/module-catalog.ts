@@ -47,7 +47,7 @@ export const MODULES: readonly ModuleDef[] = [
    groups: CLIENTS, serverGate: 'Monitoring enrolment, risk assessment, threats, key points and new geofences. Panic, check-ins, telemetry and tracking always work.'},
   {key: 'family', label: 'Linked Members', description: 'Link and fund family members.',
    groups: CLIENTS, serverGate: 'All linked-member management.'},
-  {key: 'news', label: 'Bravo Feed', description: 'Security news and threat alerts.',
+  {key: 'news', label: 'Bravo Feed', description: 'Risk intelligence and threat alerts.',
    groups: ['individual', 'enterprise', 'agency', 'cpo'], serverGate: 'The Bravo Feed API.'},
   {key: 'departmental', label: 'Departmental', description: 'Channels, attendance, incidents and workspace.',
    groups: ['enterprise', 'agency', 'cpo'], serverGate: 'Departmental channels, attendance, rosters, incident reports and workspace settings.'},

@@ -46,7 +46,7 @@ const MODULES: Array<{key: string; label: string; sub: string; icon: React.Compo
   {key: 'dept',       label: 'Departmental',  sub: 'Attendance · incidents · channels',    icon: 'office-building-outline'},
   {key: 'earn',       label: 'Org Earnings',  sub: 'Consolidated payouts · escrow splits', icon: 'chart-line'},
   {key: 'msg',        label: 'Messenger',     sub: 'Secure comms · end-to-end encrypted',  icon: 'message-text-outline'},
-  {key: 'intel',      label: 'Bravo Feed',    sub: 'Security news · threat alerts',        icon: 'newspaper-variant-outline'},
+  {key: 'intel',      label: 'Bravo Feed',    sub: 'Risk intelligence · threat alerts',        icon: 'newspaper-variant-outline'},
   {key: 'region',     label: 'Region',        sub: 'Dispatch region & coverage',           icon: 'map-marker-radius-outline'},
   // 2026-10-03 — provider console (web) modules. No app dashboard row yet; the
   // switch lives here too so the owner can grant them from either place.

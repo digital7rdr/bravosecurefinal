@@ -190,7 +190,7 @@ describe('BS-CERT-MISMATCH — identity rotation runs INLINE and actually execut
     // The stale cached identity MUST be evicted or the next envelope from this
     // peer re-derives the pre-rotation key and mismatches all over again.
     expect(peerIdentityCache.has(cacheKey)).toBe(false);
-    expect(useMessengerStore.getState().error).toMatch(/security code changed/i);
+    expect(useMessengerStore.getState().error).toMatch(/safety number changed/i);
   });
 
   it('a refresh with NO session reset proceeds silently — no TOFU note, no user-facing error', async () => {

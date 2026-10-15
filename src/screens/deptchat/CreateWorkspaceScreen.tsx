@@ -129,7 +129,7 @@ export default function CreateWorkspaceScreen() {
           <TextInput
             value={name}
             onChangeText={setName}
-            placeholder="Acme Security Ltd"
+            placeholder="Acme Holdings Ltd"
             placeholderTextColor={OB.textMute}
             maxLength={MAX_NAME}
             autoCapitalize="words"

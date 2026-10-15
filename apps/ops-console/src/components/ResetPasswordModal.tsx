@@ -9,7 +9,7 @@
 import {useEffect, useState} from 'react';
 
 const ERRORS: Record<string, string> = {
-  use_change_password: 'You cannot reset your own password here. Use Change password on bravosecure.cloud → Security.',
+  use_change_password: 'You cannot reset your own password here. Use Change password on bravosecure.cloud → Sign-in & authenticator.',
   super_admin_required: 'Only a Super Admin can reset passwords.',
   user_suspended: 'This account is suspended. Restore it first.',
   user_not_found: 'This account no longer exists (erased).',
@@ -58,7 +58,7 @@ export function ResetPasswordModal({open, name, onReset, onClose}: {
       <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={`Reset password for ${name}`}
         className="w-full max-w-md rounded-xl border border-bd1 bg-s2 shadow-2xl">
         <div className="border-b border-bd2 px-5 py-4">
-          <div className="text-xs font-bold uppercase tracking-widest text-t3">Bravo Ops · Security</div>
+          <div className="text-xs font-bold uppercase tracking-widest text-t3">Bravo Ops · Account access</div>
           <div className="mt-1 text-lg font-bold text-t1">Reset password for {name}</div>
         </div>
         {result ? (
@@ -73,7 +73,7 @@ export function ResetPasswordModal({open, name, onReset, onClose}: {
             </div>
             <ul className="list-disc space-y-1 pl-5 text-[12.5px] leading-relaxed text-t3">
               <li>{result.sessions_revoked > 0 ? `Signed out of ${result.sessions_revoked} device${result.sessions_revoked === 1 ? '' : 's'}.` : 'No device was signed in.'}</li>
-              <li>They sign in with it, then choose their own at bravosecure.cloud → Security → Change password (officers are asked to in the app).</li>
+              <li>They sign in with it, then choose their own at bravosecure.cloud → Sign-in & authenticator → Change password (officers are asked to in the app).</li>
               <li>Their authenticator app, if they have one, is unchanged.</li>
             </ul>
           </div>

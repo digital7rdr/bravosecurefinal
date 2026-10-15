@@ -62,7 +62,7 @@ export function ResetAuthenticatorModal({open, userId, name, onClose}: {
       <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={`Authenticator for ${name}`}
         className="w-full max-w-md rounded-xl border border-bd1 bg-s2 shadow-2xl">
         <div className="border-b border-bd2 px-5 py-4">
-          <div className="text-xs font-bold uppercase tracking-widest text-t3">Bravo Ops · Security</div>
+          <div className="text-xs font-bold uppercase tracking-widest text-t3">Bravo Ops · Account access</div>
           <div className="mt-1 text-lg font-bold text-t1">Authenticator for {name}</div>
         </div>
         <div className="space-y-3 px-5 py-4 text-sm leading-relaxed text-t2">

@@ -206,7 +206,7 @@ export default function SplashScreen({navigation}: Props) {
         <Animated.View
           style={{opacity: textRise, transform: [{translateY: textTranslate}], alignItems: 'center'}}>
           <Text style={styles.wordmark}>BRAVO SECURE</Text>
-          <Text style={styles.tagline}>ENTERPRISE SECURITY PLATFORM</Text>
+          <Text style={styles.tagline}>ENTERPRISE SECURE SOLUTION</Text>
         </Animated.View>
       </View>
 

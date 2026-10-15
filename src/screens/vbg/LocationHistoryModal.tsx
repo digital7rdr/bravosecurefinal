@@ -111,7 +111,7 @@ export function LocationHistoryModal({visible, onClose}: {visible: boolean; onCl
         ) : fixes.length === 0 ? (
           <View style={styles.center}>
             <Text style={styles.errTitle}>No history yet</Text>
-            <Text style={styles.errHint}>Enable live monitoring on the Security Assessment screen to start recording your location trail.</Text>
+            <Text style={styles.errHint}>Enable live monitoring on the Risk Assessment screen to start recording your location trail.</Text>
           </View>
         ) : (
           <ScrollView style={{maxHeight: 380}} showsVerticalScrollIndicator={false}>

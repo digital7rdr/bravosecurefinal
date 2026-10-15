@@ -43,7 +43,7 @@ const fileNameOf = (u: string) => {
 };
 
 const META: Record<DocSlot, {icon: string; title: string; req: 'REQ' | 'OPT'}> = {
-  sia:       {icon: 'certificate-outline',           title: 'Security License / CPO Profile',   req: 'REQ'},
+  sia:       {icon: 'certificate-outline',           title: 'Protection Licence / CPO Profile',   req: 'REQ'},
   passport:  {icon: 'card-account-details-outline',  title: 'Passport / National ID',           req: 'REQ'},
   insurance: {icon: 'file-document-outline',         title: 'Professional Indemnity Insurance', req: 'REQ'},
   dbs:       {icon: 'account-search-outline',        title: 'Police Clearance / DBS Enhanced',  req: 'REQ'},

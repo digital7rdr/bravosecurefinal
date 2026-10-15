@@ -209,7 +209,7 @@ export default function MessengerSettingsScreen() {
       // device credential — so the copy separates the two instead of implying
       // a screen lock can turn this on.
       : `Open the vault with your fingerprint or face instead of typing the PIN.${
-        vaultBioProbe === 'weak' ? " This device's biometric is low-security." : ''
+        vaultBioProbe === 'weak' ? " This device's biometric is a weaker type." : ''
       } Once it is on, your device screen lock can open the vault too. This is separate from Biometric Lock in your profile, which locks the whole app.`;
 
   // Reflect whether encrypted backup is already on so the row's subtitle

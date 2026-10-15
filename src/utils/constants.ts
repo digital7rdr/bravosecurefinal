@@ -75,7 +75,7 @@ export type DialCode = (typeof DIAL_CODES)[number];
 export const USER_ROLE_LABELS = {
   individual: 'Individual Client',
   corporate: 'Corporate Client',
-  agent: 'Security Agent / CPO',
+  agent: 'Protection Officer / CPO',
   ops: 'Operations Room',
 } as const;
 

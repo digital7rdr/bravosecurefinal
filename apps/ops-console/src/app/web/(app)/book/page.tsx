@@ -350,7 +350,7 @@ function Book() {
               <label className="pv-check" style={{marginTop: 12}}>
                 <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)}/>
                 <span>
-                  I agree to share my pick-up point and live location with the assigned security provider for this
+                  I agree to share my pick-up point and live location with the assigned service provider for this
                   mission, and I accept the Bravo Secure terms of service.
                 </span>
               </label>

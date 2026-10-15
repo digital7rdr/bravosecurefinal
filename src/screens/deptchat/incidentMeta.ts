@@ -8,7 +8,7 @@ type IconName = ComponentProps<typeof Icon>['name'];
 // The 15 categories (PDF p.11) in display order, with a label + icon. The
 // keys MUST match the backend allow-list (incident.constants.ts) exactly.
 export const INCIDENT_CATEGORY_META: Record<IncidentCategoryDto, {label: string; icon: IconName}> = {
-  security_concern:       {label: 'Security Concern',      icon: 'shield-alert-outline'},
+  security_concern:       {label: 'Safety Concern',      icon: 'shield-alert-outline'},
   safety_issue:           {label: 'Safety Issue',          icon: 'alert-octagon-outline'},
   medical_incident:       {label: 'Medical Incident',      icon: 'medical-bag'},
   suspicious_activity:    {label: 'Suspicious Activity',   icon: 'eye-outline'},

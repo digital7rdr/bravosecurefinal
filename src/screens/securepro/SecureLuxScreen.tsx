@@ -52,7 +52,7 @@ const PILLARS = [
   {
     icon: 'airplane',
     title: 'Private Aviation',
-    desc: 'Jet and helicopter charter with security-vetted flight crews and secured FBO handling, door to door.',
+    desc: 'Jet and helicopter charter with vetted flight crews and secured FBO handling, door to door.',
   },
   {
     icon: 'shield-car',
@@ -61,7 +61,7 @@ const PILLARS = [
   },
   {
     icon: 'sail-boat',
-    title: 'Maritime Security',
+    title: 'Maritime Protection',
     desc: 'Yacht and coastal protection details run by maritime-trained close-protection teams.',
   },
   {

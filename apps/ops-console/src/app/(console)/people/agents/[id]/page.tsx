@@ -43,7 +43,7 @@ function usePlaceName(lat: number | null, lng: number | null): string {
 
 const KYC_LABEL: Record<string, string> = {
   gov_id: 'Gov ID', proof_address: 'Proof of Address',
-  sia_licence: 'Security License', police: 'Police / DBS',
+  sia_licence: 'Protection Licence', police: 'Police / DBS',
 };
 const KYC_ICON: Record<string, string> = {
   gov_id: 'ID', proof_address: 'PoA', sia_licence: 'LIC', police: 'DBS',

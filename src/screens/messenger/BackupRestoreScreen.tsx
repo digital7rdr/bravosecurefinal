@@ -542,7 +542,7 @@ export default function BackupRestoreScreen({navigation}: Props) {
               </View>
               <Text style={s.h1}>This backup can't be unlocked</Text>
               <Text style={s.p}>
-                It was created before a security upgrade that changed how
+                It was created before an encryption upgrade that changed how
                 backup passwords are verified, so it can no longer be
                 restored — with any password.
               </Text>

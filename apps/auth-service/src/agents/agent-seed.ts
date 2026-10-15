@@ -4,7 +4,7 @@ import {KYC_KINDS, DEPLOYMENT_CHECKS} from './dto/agent.dto';
 export const REVIEW_STEPS = ['submit', 'docs', 'kyc', 'ops', 'partner'] as const;
 
 export const AGENT_DOC_SEED: {slot: string; required: boolean; title: string}[] = [
-  {slot: 'sia',       required: true,  title: 'Security License / CPO Profile'},
+  {slot: 'sia',       required: true,  title: 'Protection Licence / CPO Profile'},
   {slot: 'passport',  required: true,  title: 'Passport / National ID'},
   {slot: 'insurance', required: true,  title: 'Professional Indemnity Insurance'},
   {slot: 'dbs',       required: true,  title: 'Police Clearance / DBS Enhanced'},

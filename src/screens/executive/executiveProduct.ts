@@ -17,7 +17,7 @@ export const isExecDuration = (h: number): h is ExecDurationHours =>
 /** Task types — what the protection detail is for (Step 4). */
 export const EXEC_TASK_TYPES = [
   {key: 'site_protection',  label: 'Site Protection',            icon: 'office-building-outline'},
-  {key: 'event_security',   label: 'Event Security',             icon: 'account-group-outline'},
+  {key: 'event_security',   label: 'Event Protection',             icon: 'account-group-outline'},
   {key: 'close_protection', label: 'Close Protection (Escort)',  icon: 'shield-account'},
   {key: 'residential_watch',label: 'Residential Watch',          icon: 'home-outline'},
   {key: 'asset_protection', label: 'Asset Protection',           icon: 'diamond-stone'},

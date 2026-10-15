@@ -77,7 +77,7 @@ export default function VBGSRAScreen() {
         <IconButton onPress={() => goBackOnce(navigation)}>
           <Svg width={9} height={15} viewBox="0 0 9 15"><Path d="M8 1L1.5 7.5 8 14" stroke={VBG.text} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" /></Svg>
         </IconButton>
-        <SectionLabel color={VBG.text} style={{fontSize: 12, letterSpacing: 2}}>Security Risk Assessment</SectionLabel>
+        <SectionLabel color={VBG.text} style={{fontSize: 12, letterSpacing: 2}}>Location Risk Assessment</SectionLabel>
       </View>
 
       {loading ? (

@@ -37,7 +37,7 @@ const PRODUCTS: Array<{
   shiftY?: number;
 }> = [
   {key: 'messenger', icon: 'message-lock-outline', title: 'Messenger', desc: 'Secure encrypted communications, team chats, calls & news.', img: Imagery.messengerHero},
-  {key: 'secure', icon: 'shield-check-outline', title: 'Secure Services', desc: 'On-demand security, transfers & executive protection.', img: Imagery.heroBookProtection, shiftY: 130},
+  {key: 'secure', icon: 'shield-check-outline', title: 'Secure Services', desc: 'Secure comms, movement, management and processes.', img: Imagery.heroBookProtection, shiftY: 130},
   {key: 'vbg', icon: 'shield-account-outline', title: 'Bravo GeoRisk', desc: 'AI-powered personal safety monitoring & risk intelligence.', badge: 'AI', img: Imagery.vbgHero},
 ];
 

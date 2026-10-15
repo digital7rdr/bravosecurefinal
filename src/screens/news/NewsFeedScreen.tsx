@@ -34,6 +34,7 @@ const CAT_ICON: Record<string, {icon: string; color: string}> = {
   'business':    {icon: 'briefcase',    color: '#1D4ED8'},
   'finance':     {icon: 'bank',         color: '#374151'},
   'security':    {icon: 'shield-alert', color: '#7F1D1D'},
+  'risk & safety': {icon: 'shield-alert', color: '#7F1D1D'},
   'technology':  {icon: 'laptop',       color: '#164E63'},
   'energy':      {icon: 'lightning-bolt', color: '#92400E'},
   'defence':     {icon: 'shield-star',  color: '#7F1D1D'},

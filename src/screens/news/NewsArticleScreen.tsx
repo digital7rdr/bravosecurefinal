@@ -16,7 +16,7 @@ import {scaleTextStyles} from '@utils/scaling';
 import {goBackOnce} from '@navigation/tapGuard';
 
 const RELATED = [
-  {icon: 'lock', iconBg: 'rgba(34,197,94,0.1)', iconColor: '#4ade80', title: 'UAE Cybersecurity Framework V2.0 Issued', meta: 'UAE · 8 hrs ago'},
+  {icon: 'lock', iconBg: 'rgba(34,197,94,0.1)', iconColor: '#4ade80', title: 'UAE Cyber Resilience Framework V2.0 Issued', meta: 'UAE · 8 hrs ago'},
   {icon: 'airplane', iconBg: 'rgba(37,99,235,0.1)', iconColor: '#60A5FA', title: 'Emirates Orders 50 Boeing 777X', meta: 'UAE · 1 day ago'},
 ];
 

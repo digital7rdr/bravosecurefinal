@@ -48,7 +48,7 @@ const TYPES: TypeDef[] = [
     id: 'agent',
     icon: 'shield-account-outline',
     title: 'Agent',
-    sub: 'Close protection officer joining a security company that invited you.',
+    sub: 'Close protection officer joining a service provider that invited you.',
     bullets: [
       'Join with the invitation code your provider gave you',
       'Your provider manages your roster, shifts and payouts',
@@ -61,7 +61,7 @@ const TYPES: TypeDef[] = [
     id: 'agency',
     icon: 'office-building-outline',
     title: 'Service Provider',
-    sub: 'Registered private security company onboarding a roster of officers as a Bravo partner.',
+    sub: 'Registered protection services company onboarding a roster of officers as a Bravo partner.',
     bullets: [
       'Company-wide compliance pack',
       'Create & manage your own CPOs under one master licence',

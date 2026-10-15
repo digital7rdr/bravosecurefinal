@@ -50,7 +50,7 @@ const PATHS: PathConfig[] = [
   {
     key: 'pro',
     label: 'Bravo Secure Pro',
-    sub: 'Full security suite · Ops · Booking · Messenger',
+    sub: 'Enterprise suite · Comms · Movement · Management',
     icon: 'shield',
     color: '#1E88FF',
     colorLight: 'rgba(30,136,255,0.16)',

@@ -184,7 +184,7 @@ export default function AddOnsScreen() {
 
         <View style={styles.titleWrap}>
           <Text style={styles.title}>Enhance Your{'\n'}<Text style={styles.titleHighlight}>Protection</Text></Text>
-          <Text style={styles.subtitle}>Optionally add resources to strengthen your security detail.</Text>
+          <Text style={styles.subtitle}>Optionally add resources to strengthen your protection detail.</Text>
         </View>
 
         {/* Base package */}

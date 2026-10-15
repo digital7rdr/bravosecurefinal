@@ -65,7 +65,7 @@ export function VbgScanPrompt({fix}: {fix: VbgFix | null}) {
       const passed = level === LocalAuthentication.SecurityLevel.NONE
         ? true
         : (await LocalAuthentication.authenticateAsync({
-            promptMessage: 'Security check-in — confirm it’s you',
+            promptMessage: 'Identity check-in — confirm it’s you',
             fallbackLabel: 'Use device PIN',
             cancelLabel: 'Cancel',
             disableDeviceFallback: false,

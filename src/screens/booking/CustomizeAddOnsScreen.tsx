@@ -1332,7 +1332,7 @@ export default function CustomizeAddOnsScreen() {
             multiline
             maxLength={NOTES_MAX}
             textAlignVertical="top"
-            accessibilityLabel="Instructions for the security team, optional"
+            accessibilityLabel="Instructions for the protection team, optional"
           />
           <Text style={s.refNote}>{notes.length}/{NOTES_MAX} · Sent to the Bravo Control System with your request.</Text>
         </View>

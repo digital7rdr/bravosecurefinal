@@ -4517,7 +4517,7 @@ export async function buildProductionRuntime(
           (isDirectPrefixed(conversationId) ? peerFromDirectSlot(conversationId) : convo?.peer?.userId);
         if (gatePeerId && hasPendingIdentityAck(gatePeerId)) {
           try {
-            useMessengerStore.getState().setError('This contact’s security code changed. Review and accept it before sending.');
+            useMessengerStore.getState().setError('This contact’s safety number changed. Review and accept it before sending.');
           } catch { /* ignore */ }
           failDirectSend('identity change not yet acknowledged for this contact');
         }
@@ -8236,7 +8236,7 @@ async function handleDeliverInner(frame: ServerEnvelopeDeliver, deps: FrameDeps)
         if (outcome.sessionReset) {
           try {
             useMessengerStore.getState().setError(
-              'A contact’s security code changed — their messages will resume on a new secure session.',
+              'A contact’s safety number changed — their messages will resume on a new secure session.',
             );
           } catch { /* ignore */ }
         }
@@ -11090,7 +11090,7 @@ async function drainRelay(
             if (outcome.sessionReset) {
               try {
                 useMessengerStore.getState().setError(
-                  'A contact’s security code changed — their messages will resume on a new secure session.',
+                  'A contact’s safety number changed — their messages will resume on a new secure session.',
                 );
               } catch { /* ignore */ }
             }

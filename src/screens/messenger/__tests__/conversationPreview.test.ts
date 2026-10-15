@@ -22,7 +22,7 @@ describe('B-662 — lastMessagePreview', () => {
   it('shows a system row body verbatim (decrypt-failure notice etc.)', () => {
     expect(lastMessagePreview({type: 'system', content: 'Ask the sender to resend it.'}))
       .toBe('Ask the sender to resend it.');
-    expect(lastMessagePreview({type: 'system', content: ''})).toBe('Security update');
+    expect(lastMessagePreview({type: 'system', content: ''})).toBe('Encryption update');
   });
 
   it('keeps the MSG-13 media labels', () => {

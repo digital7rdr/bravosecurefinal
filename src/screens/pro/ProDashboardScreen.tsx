@@ -113,7 +113,7 @@ const MODULES: ModuleDef[] = [
   // Documents shape: nested through MessengerTab, `initial: false` for the
   // cold first mount, a FRESH payload per tap for every warm one (see the
   // ModuleDef.targetParams note), and the tab carried as MessengerHome's param.
-  {key: 'news', title: 'Bravo Feed', desc: 'Security news · threat alerts', icon: 'newspaper-variant-outline', target: 'MessengerTab', targetParams: () => ({screen: 'MessengerHome', params: {tab: 'News'}, initial: false}), img: Imagery.proNewsFeed},
+  {key: 'news', title: 'Bravo Feed', desc: 'Risk intelligence · threat alerts', icon: 'newspaper-variant-outline', target: 'MessengerTab', targetParams: () => ({screen: 'MessengerHome', params: {tab: 'News'}, initial: false}), img: Imagery.proNewsFeed},
   {key: 'vbg', title: 'Bravo GeoRisk', desc: 'Journey monitoring, alerts & safety tools', icon: 'shield-account', target: 'VBGHome', img: Imagery.vbgCompanion},
   {key: 'members', title: 'Linked Members', desc: 'Manage members & permissions', icon: 'account-multiple-plus-outline', target: 'SecureProMembers', img: Imagery.proLinkedMembers},
   // B-726 — `initial: false` is load-bearing: without it the nested `screen`

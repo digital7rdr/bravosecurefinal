@@ -78,7 +78,7 @@ function AccountMenu({name, onSignOut}: {name: string; onSignOut: () => void}) {
       {open && (
         <div className="hub-menu" role="menu">
           <div className="hub-menu-name">{name}</div>
-          <Link role="menuitem" href={hubRoutes.security} className="hub-menu-item" onClick={() => setOpen(false)}>Security &amp; authenticator</Link>
+          <Link role="menuitem" href={hubRoutes.security} className="hub-menu-item" onClick={() => setOpen(false)}>Sign-in &amp; authenticator</Link>
           <button role="menuitem" className="hub-menu-item" onClick={onSignOut}>Sign out</button>
         </div>
       )}

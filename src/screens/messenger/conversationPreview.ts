@@ -29,6 +29,6 @@ export function lastMessagePreview(last: PreviewableMessage | undefined | null):
   if (last.type === 'call')  {return '📞 Call';}
   // System rows carry a human-readable body already (decrypt-failure notice,
   // group membership changes); show it rather than pretending it's ciphertext.
-  if (last.type === 'system') {return last.content || 'Security update';}
+  if (last.type === 'system') {return last.content || 'Encryption update';}
   return last.content || '(encrypted)';
 }

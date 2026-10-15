@@ -83,7 +83,7 @@ const AGENT_MENU: {icon: IconName; label: string; divider?: boolean}[] = [
   {icon: 'earth',                    label: 'Coverage Regions', divider: true},
   {icon: 'message-text-outline',     label: 'Messenger'},
   {icon: 'newspaper-variant-outline',label: 'Bravo Feed', divider: true},
-  {icon: 'shield-lock-outline',      label: 'Security Settings'},
+  {icon: 'shield-lock-outline',      label: 'Sign-in & Privacy'},
   {icon: 'help-circle-outline',      label: 'Help & Support'},
 ];
 
@@ -616,7 +616,7 @@ export default function AgentDashboardScreen() {
     // B-799 (founder 2026-09-05) — this door lands on the News HUB (the messenger
     // News tab: filter + My Feed + Bravo Feed), not one level inside it on the
     // LIVE intel feed. Same destination the drawer's Bravo Feed item uses.
-    {key: 'intel',  tint: 'red',    icon: 'newspaper-variant-outline', title: 'Bravo Feed',       sub: 'Security news · threat alerts', img: Imagery.agentIntelFeed, onPress: () => navigateOnce(navigation, 'MessengerHome', {tab: 'News'})},
+    {key: 'intel',  tint: 'red',    icon: 'newspaper-variant-outline', title: 'Bravo Feed',       sub: 'Risk intelligence · threat alerts', img: Imagery.agentIntelFeed, onPress: () => navigateOnce(navigation, 'MessengerHome', {tab: 'News'})},
     isOrg
       ? {key: 'region', tint: 'blue' as const, icon: 'map-marker-radius-outline' as IconName, title: 'Region',
          sub: me?.agent.region_code ? `Operating in ${regionName(me.agent.region_code)} · tap to change` : 'Set your dispatch region · tap to choose',

@@ -62,7 +62,7 @@ export default function AgentInviteCodeScreen() {
       <View style={s.body}>
         <Text style={s.lead}>Enter your invitation code</Text>
         <Text style={s.sub}>
-          Your security company gives you this code. It links you to their roster —
+          Your agency gives you this code. It links you to their roster —
           it is single use, and it is the only way to join.
         </Text>
 
@@ -100,7 +100,7 @@ export default function AgentInviteCodeScreen() {
         activeOpacity={0.7}
         onPress={() => Alert.alert(
           'About invitation codes',
-          'Bravo officers work under a registered security company. That company creates your place on its roster and gives you a single-use code. You cannot join a roster without one.',
+          'Bravo officers work under a registered service provider. That provider creates your place on its roster and gives you a single-use code. You cannot join a roster without one.',
         )}>
         <Text style={s.helpText}>How does this work?</Text>
       </TouchableOpacity>

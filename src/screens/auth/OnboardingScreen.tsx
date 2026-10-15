@@ -140,7 +140,7 @@ type Service = {
 
 const SERVICES: Service[] = [
   {key: 'messenger', tint: 'blue', Icon: IcChat, title: 'Messenger', desc: 'Secure encrypted communications, team chats, calls & news.', img: Imagery.messengerHero},
-  {key: 'services', tint: 'signal', Icon: IcShield, title: 'Secure Services', desc: 'On-demand security, transfers & executive protection.', img: Imagery.heroBookProtection, shiftY: 130},
+  {key: 'services', tint: 'signal', Icon: IcShield, title: 'Secure Services', desc: 'Secure comms, movement, management and processes.', img: Imagery.heroBookProtection, shiftY: 130},
   {key: 'vb', tint: 'indigo', Icon: IcBot, title: 'Bravo GeoRisk', desc: 'AI-powered personal safety monitoring & risk intelligence.', badge: 'AI', img: Imagery.vbgHero},
 ];
 

@@ -67,7 +67,7 @@ export function canCancel(b: Pick<Booking, 'status' | 'mission_status'>): boolea
 
 export const TASKS: Array<{id: string; label: string}> = [
   {id: 'close_protection', label: 'Close protection'},
-  {id: 'event_security', label: 'Event security'},
+  {id: 'event_security', label: 'Event protection'},
   {id: 'site_protection', label: 'Site protection'},
   {id: 'residential_watch', label: 'Residential watch'},
   {id: 'asset_protection', label: 'Asset protection'},

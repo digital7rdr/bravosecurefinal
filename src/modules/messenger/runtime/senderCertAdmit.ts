@@ -112,7 +112,7 @@ export async function admitSenderCert(
         } catch { /* ignore */ }
         if (outcome.sessionReset) {
           try {
-            useMessengerStore.getState().setError('A contact’s security code changed — their messages will resume on a new secure session.');
+            useMessengerStore.getState().setError('A contact’s safety number changed — their messages will resume on a new secure session.');
           } catch { /* ignore */ }
         }
         // Trust refreshed — proceed with the authority-attested claims.

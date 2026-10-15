@@ -17,7 +17,7 @@ const SERVICE_LABEL: Record<string, string> = {
 };
 const TASK_LABEL: Record<string, string> = {
   site_protection: 'Site protection',
-  event_security: 'Event security',
+  event_security: 'Event protection',
   close_protection: 'Close protection',
   residential_watch: 'Residential watch',
   asset_protection: 'Asset protection',

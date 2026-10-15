@@ -293,7 +293,7 @@ export default function VBGHomeScreen() {
 
         {/* Three intel cards — all region-driven */}
         <View style={styles.miniGrid}>
-          <MiniCard label="Security Risk" img={Imagery.vbgSecurityRisk} onLink={() => navigation.navigate('VBGSRA')} linkText="View SRA">
+          <MiniCard label="Location Risk" img={Imagery.vbgSecurityRisk} onLink={() => navigation.navigate('VBGSRA')} linkText="View SRA">
             {threatsReady ? (
               <RiskBadge level={criticalCount >= 3 ? 'critical' : criticalCount >= 1 ? 'elevated' : 'low'} small>
                 {criticalCount >= 3 ? 'High' : criticalCount >= 1 ? 'Elevated' : 'Low'}

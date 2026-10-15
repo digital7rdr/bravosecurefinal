@@ -79,7 +79,7 @@ export const SETTINGS_CATALOG: readonly SettingDef[] = [
   {key: 'email.smtpPort', category: 'email', label: 'SMTP port', secret: false,
    placeholder: '465', help: '465 for SSL/TLS, 587 for STARTTLS.',
    envFallback: () => env('SMTP_PORT')},
-  {key: 'email.smtpSecurity', category: 'email', label: 'Connection security', secret: false,
+  {key: 'email.smtpSecurity', category: 'email', label: 'Connection encryption', secret: false,
    options: [
      {value: 'tls', label: 'SSL/TLS (usually port 465)'},
      {value: 'starttls', label: 'STARTTLS (usually port 587)'},

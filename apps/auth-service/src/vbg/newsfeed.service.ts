@@ -46,7 +46,7 @@ const CATEGORIES: Record<string, CategorySpec> = {
   business:   {label: 'Business',    topic: 'BUSINESS',   terms: ['business', 'economy', 'trade']},
   technology: {label: 'Technology',  topic: 'TECHNOLOGY', terms: ['technology', 'tech']},
   finance:    {label: 'Finance',     terms: ['finance', 'banking', 'markets']},
-  security:   {label: 'Security',    terms: ['security', 'crime', 'police']},
+  security:   {label: 'Risk & Safety',    terms: ['security', 'crime', 'police']},
   energy:     {label: 'Energy',      terms: ['energy', 'oil', 'gas']},
   defence:    {label: 'Defence',     terms: ['defence', 'military', '"armed forces"']},
   aviation:   {label: 'Aviation',    terms: ['aviation', 'airline', 'airport']},

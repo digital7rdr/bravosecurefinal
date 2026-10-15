@@ -463,7 +463,7 @@ export default function BookingHomeScreen() {
               </View>
             ) : (
               <Text style={[styles.heroSub, styles.heroSubBlock]}>
-                Executive transport · VIP security · Personal protection
+                Executive transport · Secure movement · Personal protection
               </Text>
             )}
 

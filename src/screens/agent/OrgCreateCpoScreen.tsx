@@ -265,7 +265,7 @@ export default function OrgCreateCpoScreen() {
         <View style={{gap: 10}}>
           <Text style={s.nextLabel}>NEXT — OPS REVIEW</Text>
           <View style={{flexDirection: 'row', gap: 8}}>
-            {['Security License', 'ID / KYC', 'Right to Work'].map(c => (
+            {['Protection Licence', 'ID / KYC', 'Right to Work'].map(c => (
               <View key={c} style={s.complianceChip}>
                 <View style={s.complianceCircle} />
                 <Text style={s.complianceText}>{c}</Text>

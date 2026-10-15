@@ -236,7 +236,7 @@ export const NEWS_CATEGORIES: Array<{id: NewsCategoryId; label: string}> = [
   {id: 'world',      label: 'World'},
   {id: 'business',   label: 'Business'},
   {id: 'finance',    label: 'Finance'},
-  {id: 'security',   label: 'Security'},
+  {id: 'security',   label: 'Risk & Safety'},
   {id: 'technology', label: 'Technology'},
   {id: 'energy',     label: 'Energy'},
   {id: 'defence',    label: 'Defence'},

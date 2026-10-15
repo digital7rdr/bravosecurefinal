@@ -83,7 +83,7 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    title: 'Security',
+    title: 'Sign-in & Privacy',
     rows: [
       {icon:'fingerprint', label:'Biometric Lock', toggle:true, action:{kind:'toggle'}},
       // 2FA (OTP) is enforced app-wide and has no separate config screen, so

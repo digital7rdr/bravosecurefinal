@@ -20,7 +20,7 @@ import {goBackOnce} from '@navigation/tapGuard';
 const CHECKLIST = [
   {icon: 'check', label: 'Documents received', status: 'Done', statusColor: '#4ADE80', bg: 'rgba(34,197,94,0.15)', iconColor: '#4ADE80'},
   {icon: 'timer-sand', label: 'Identity verification', status: 'Pending', statusColor: '#FBBF24', bg: 'rgba(245,158,11,0.12)', iconColor: '#FBBF24', border: 'rgba(245,158,11,0.25)'},
-  {icon: 'lock-outline', label: 'Security clearance check', status: 'Waiting', statusColor: '#475569', bg: '#07111f', iconColor: '#475569', border: '#1E2D45'},
+  {icon: 'lock-outline', label: 'Background clearance check', status: 'Waiting', statusColor: '#475569', bg: '#07111f', iconColor: '#475569', border: '#1E2D45'},
   {icon: 'card-account-details-outline', label: 'Agent activation', status: 'Waiting', statusColor: '#475569', bg: '#07111f', iconColor: '#475569', border: '#1E2D45'},
 ];
 

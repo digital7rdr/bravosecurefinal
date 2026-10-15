@@ -8,7 +8,7 @@ const NOTICES = [{key: PV_PW_CHANGED_KEY, text: 'Password changed. Sign in again
 
 const BRAND: AuthBrand = {
   kicker: 'Provider Console',
-  headline: 'Run your security agency',
+  headline: 'Run your agency on Bravo',
   lede: 'Accept Lite and Executive jobs, crew and dispatch your officers, track live missions and follow your earnings.',
   points: [
     'Offers, crew assignment and live tracking',

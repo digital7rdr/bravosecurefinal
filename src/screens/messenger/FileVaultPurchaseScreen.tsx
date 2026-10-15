@@ -144,7 +144,7 @@ export default function FileVaultPurchaseScreen() {
       <View style={styles.mfaNotice}>
         <Text style={styles.mfaIcon}>🔒</Text>
         <Text style={styles.mfaText}>
-          File Vault access requires Multi-Factor Authentication every session for your security.
+          File Vault access requires Multi-Factor Authentication every session to keep your files protected.
         </Text>
       </View>
 

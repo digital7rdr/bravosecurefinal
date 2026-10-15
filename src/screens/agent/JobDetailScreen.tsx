@@ -233,7 +233,7 @@ export default function JobDetailScreen({route, navigation}: Props) {
       out.push(`Dress brief: ${b.dress_instructions.trim()}`);
     }
     if (b.driver_only) {
-      out.push('Driver-only detail — client provides the vehicle; deploy as a vetted security driver.');
+      out.push('Driver-only detail — client provides the vehicle; deploy as a vetted protection driver.');
     } else {
       out.push(`Crew: ${b.cpo_count}× CPO · ${b.vehicle_count}× vehicle. Be at pickup 15 min before dispatch.`);
     }

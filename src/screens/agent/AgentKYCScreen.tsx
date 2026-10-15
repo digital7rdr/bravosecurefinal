@@ -43,7 +43,7 @@ interface KycCheck {
 const KIND_META: Record<KycKind, {icon: string; title: string; hint: string}> = {
   gov_id:        {icon: 'shield-check',           title: 'Government ID',     hint: 'Passport or national ID'},
   proof_address: {icon: 'home-city-outline',      title: 'Proof of Address',  hint: 'Utility bill, < 3 months'},
-  sia_licence:   {icon: 'certificate-outline',    title: 'Security License',  hint: 'Front + back, in date'},
+  sia_licence:   {icon: 'certificate-outline',    title: 'Protection Licence',  hint: 'Front + back, in date'},
   police:        {icon: 'account-search-outline', title: 'Police Clearance',  hint: 'DBS Enhanced or equivalent'},
 };
 

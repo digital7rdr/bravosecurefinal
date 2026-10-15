@@ -98,7 +98,7 @@ type ProfileMenuItem = {
 const PROFILE_MENU: ProfileMenuItem[] = [
   {icon: 'account',              label: 'My Profile',           action: 'profile',       enabled: true},
   {icon: 'calendar',              label: 'My Bookings',          action: 'bookings',      enabled: true,  divider: true},
-  {icon: 'shield-lock',           label: 'Security Settings',    action: 'security',      enabled: false},
+  {icon: 'shield-lock',           label: 'Sign-in & Privacy',    action: 'security',      enabled: false},
   {icon: 'bell-outline',          label: 'Notification Settings', action: 'notifications', enabled: false},
   {icon: 'help-circle-outline',   label: 'Help & Support',       action: 'support',       enabled: false},
 ];
@@ -536,7 +536,7 @@ export default function DashboardScreen() {
             iconName="shield-check"
             tint="blue"
             title="Bravo Secure"
-            sub="Book security & protection"
+            sub="Book protection & secure transport"
             badge={{kind: 'dot'}}
           />
 

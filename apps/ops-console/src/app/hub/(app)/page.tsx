@@ -45,8 +45,8 @@ export default function HubHome() {
     <div className="hub-home">
       <section className="hub-hero">
         <h1 className="hub-title">Welcome</h1>
-        <div className="hub-kicker">YOUR SECURITY ECOSYSTEM</div>
-        <div className="hub-pillars">PEOPLE <span>|</span> INFORMATION <span>|</span> OPERATIONS <span>|</span> ANYWHERE</div>
+        <div className="hub-kicker">YOUR SECURE ENTERPRISE SOLUTION</div>
+        <div className="hub-pillars">COMMS <span>|</span> MOVEMENT <span>|</span> MANAGEMENT <span>|</span> PROCESSES</div>
       </section>
       {err && <div className="hub-err" role="alert">{err}</div>}
       <div className="hub-grid">

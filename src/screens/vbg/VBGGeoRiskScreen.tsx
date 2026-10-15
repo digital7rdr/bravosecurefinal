@@ -308,7 +308,7 @@ export function GeoRiskPanel() {
         });
       return;
     } catch {
-      setError('Security analysis unavailable. Try again.');
+      setError('Risk analysis unavailable. Try again.');
       setSra(null);
     } finally {
       setResolving(false);
@@ -411,7 +411,7 @@ export function GeoRiskPanel() {
               <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
                 <Path d="M3 12h4l2 6 4-13 2 7h6" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" fill="none" />
               </Svg>
-              <Text style={styles.runText}>RUN SECURITY ANALYSIS</Text>
+              <Text style={styles.runText}>RUN RISK ANALYSIS</Text>
             </>
           )}
         </PillButton>
@@ -565,7 +565,7 @@ export function GeoRiskPanel() {
           </View>
         ) : !busy && !error ? (
           <Text style={styles.hint}>
-            Set a location, radius and time window, then run the analysis to see a live security assessment for that area.
+            Set a location, radius and time window, then run the analysis to see a live risk assessment for that area.
           </Text>
         ) : null}
 

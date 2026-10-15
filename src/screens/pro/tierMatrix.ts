@@ -85,7 +85,7 @@ export const SECURE_PRO_FEATURES = [
 
 export const VBG_FEATURES = [
   'AI safety monitoring',
-  'Security Risk Assessment',
+  'Location Risk Assessment',
   'Global threat feed',
   'Geo-risk mapping',
   'Emergency escalation',

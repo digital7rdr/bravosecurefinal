@@ -83,7 +83,7 @@ describe('what — service, task type, reference', () => {
 
   it('appends the executive task type — the "category" the founder asked for', () => {
     expect(serviceTitle(b({service: 'executive_protection', task_type: 'event_security'})))
-      .toBe('Executive Protection · Event Security');
+      .toBe('Executive Protection · Event Protection');
   });
 
   it('ignores an unknown task type rather than printing a raw key', () => {
