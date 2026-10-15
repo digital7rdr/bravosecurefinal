@@ -10,7 +10,7 @@ import {pvApi, usePvManagers, type ModuleKey} from '@/lib/provider/api';
 import {CONSOLE_MODULES, MODULE_LABEL, errorText} from '@/lib/provider/labels';
 import {pvRoutes} from '@/lib/provider/routes';
 
-const APP_ONLY: ModuleKey[] = ['compliance', 'orgChart', 'dept', 'intel', 'region'];
+const APP_ONLY: ModuleKey[] = ['compliance', 'orgChart', 'intel', 'region'];
 
 const HELP: Partial<Record<ModuleKey, string>> = {
   jobs: 'Crew, dispatch, track and complete jobs; answer offers',
@@ -20,6 +20,7 @@ const HELP: Partial<Record<ModuleKey, string>> = {
   msg: 'Encrypted chat with officers, here and in the app',
   fleet: 'Add, edit and retire agency vehicles',
   pro: 'See officers on Secure Pro duty',
+  dept: 'Build departments and channels, and place people (also in the app)',
 };
 
 export default function ProviderManagers() {

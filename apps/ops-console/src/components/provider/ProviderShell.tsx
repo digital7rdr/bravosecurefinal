@@ -60,6 +60,7 @@ const ICONS: Record<NavIcon, ReactNode> = {
   car:      <svg {...ic}><path d="M5 17h14M6 17v2M18 17v2M3 13l2-6h14l2 6v4H3z"/><circle cx="7.5" cy="13.5" r="1"/><circle cx="16.5" cy="13.5" r="1"/></svg>,
   key:      <svg {...ic}><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/><path d="m17 3 1.5 1.5L21 2"/></svg>,
   chart:    <svg {...ic}><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg>,
+  tree:     <svg {...ic}><rect x="9" y="3" width="6" height="4" rx="1"/><rect x="3" y="17" width="6" height="4" rx="1"/><rect x="15" y="17" width="6" height="4" rx="1"/><path d="M12 7v5M6 17v-5h12v5"/></svg>,
 };
 
 function Splash({label}: {label: string}) {

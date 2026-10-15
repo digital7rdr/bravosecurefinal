@@ -58,6 +58,14 @@ export interface StructureMember {
 
 const MAX_BULK_PLACEMENT = 200;
 
+/**
+ * Who is changing the structure: a Bravo console admin (region-scoped, from
+ * AdminGuard) or the organisation's own owner / unscoped manager (provider
+ * console, from OrgManagerGuard). Either way `user_id` is the human named in
+ * the organisation's audit trail; channels are still created AS the org.
+ */
+export type StructureActor = AdminContext | {user_id: string};
+
 @Injectable()
 export class OpsEnterpriseStructureService {
   private readonly log = new Logger(OpsEnterpriseStructureService.name);
@@ -69,7 +77,7 @@ export class OpsEnterpriseStructureService {
   ) {}
 
   /** The org must exist, be an organisation, and be inside the admin's region. */
-  async assertOrg(orgId: string, admin: AdminContext): Promise<{
+  async assertOrg(orgId: string, admin: StructureActor): Promise<{
     id: string; display_name: string | null; workspace_name: string | null;
     home_region: string | null; is_workspace: boolean; is_agency: boolean;
   }> {
@@ -92,11 +100,13 @@ export class OpsEnterpriseStructureService {
     if (!org || !(org.is_workspace || org.is_agency || org.is_enterprise)) {
       throw new NotFoundException('organisation_not_found');
     }
-    if (org.home_region) {assertRegionScope(admin, org.home_region);}
+    // A console admin is region-scoped; an organisation's own owner/manager
+    // (provider console) was already matched to this org by OrgManagerGuard.
+    if ('role' in admin && org.home_region) {assertRegionScope(admin, org.home_region);}
     return org;
   }
 
-  async structure(orgId: string, admin: AdminContext) {
+  async structure(orgId: string, admin: StructureActor) {
     const org = await this.assertOrg(orgId, admin);
     const [channels, members, settings] = await Promise.all([
       this.db.q<StructureChannel>(
@@ -155,7 +165,7 @@ export class OpsEnterpriseStructureService {
    * own, and "Apply template" fills any gap later (it skips names that exist).
    */
   async createNode(
-    orgId: string, admin: AdminContext,
+    orgId: string, admin: StructureActor,
     input: {name: string; parent_id?: string | null; post_mode?: ChannelPostMode; apply_template?: boolean},
   ) {
     await this.assertOrg(orgId, admin);
@@ -174,7 +184,7 @@ export class OpsEnterpriseStructureService {
   }
 
   /** Add the template channels a node is still missing (by name). */
-  async applyTemplate(orgId: string, admin: AdminContext, nodeId: string) {
+  async applyTemplate(orgId: string, admin: StructureActor, nodeId: string) {
     await this.assertOrg(orgId, admin);
     const node = await this.db.qOne<{level: number; is_lateral: boolean; is_broadcast: boolean; archived: boolean}>(
       `SELECT level, is_lateral, is_broadcast, (archived_at IS NOT NULL) AS archived
@@ -192,7 +202,7 @@ export class OpsEnterpriseStructureService {
   }
 
   private async applyTemplateTo(
-    orgId: string, admin: AdminContext, nodeId: string, level: number, existingNames: string[],
+    orgId: string, admin: StructureActor, nodeId: string, level: number, existingNames: string[],
   ): Promise<{created: Array<{id: string; name: string}>; failed: Array<{name: string; error: string}>}> {
     const templates = await this.templatesFor(orgId);
     const list: ChannelTemplate[] = templates[String(level) as keyof ChannelTemplates] ?? [];
@@ -216,7 +226,7 @@ export class OpsEnterpriseStructureService {
   }
 
   async createLateral(
-    orgId: string, admin: AdminContext,
+    orgId: string, admin: StructureActor,
     input: {parent_id: string; name: string; post_mode?: ChannelPostMode},
   ) {
     await this.assertOrg(orgId, admin);
@@ -227,7 +237,7 @@ export class OpsEnterpriseStructureService {
   }
 
   async updateChannel(
-    orgId: string, admin: AdminContext, channelId: string,
+    orgId: string, admin: StructureActor, channelId: string,
     input: {name?: string; post_mode?: ChannelPostMode; access?: ChannelAccess},
   ) {
     await this.assertOrg(orgId, admin);
@@ -238,12 +248,12 @@ export class OpsEnterpriseStructureService {
     }, admin.user_id);
   }
 
-  async archive(orgId: string, admin: AdminContext, channelId: string) {
+  async archive(orgId: string, admin: StructureActor, channelId: string) {
     await this.assertOrg(orgId, admin);
     return this.department.archiveChannel(orgId, orgId, channelId, admin.user_id);
   }
 
-  async unarchive(orgId: string, admin: AdminContext, channelId: string) {
+  async unarchive(orgId: string, admin: StructureActor, channelId: string) {
     await this.assertOrg(orgId, admin);
     return this.department.unarchiveChannel(orgId, orgId, channelId, admin.user_id);
   }
@@ -257,7 +267,7 @@ export class OpsEnterpriseStructureService {
   }
 
   /** Whole-object replace (two editors cannot interleave); reset → defaults. */
-  async setTemplates(orgId: string, admin: AdminContext, input: {templates?: unknown; reset?: boolean}) {
+  async setTemplates(orgId: string, admin: StructureActor, input: {templates?: unknown; reset?: boolean}) {
     await this.assertOrg(orgId, admin);
     let value: ChannelTemplates | Record<string, never>;
     if (input.reset) {
@@ -281,13 +291,13 @@ export class OpsEnterpriseStructureService {
     return effectiveTemplates(value);
   }
 
-  async setLevelNames(orgId: string, admin: AdminContext, names: unknown) {
+  async setLevelNames(orgId: string, admin: StructureActor, names: unknown) {
     await this.assertOrg(orgId, admin);
     if (!Array.isArray(names)) {throw new BadRequestException('names_must_be_a_list');}
     return this.workspace.setLevelNames(orgId, admin.user_id, names.map(n => (typeof n === 'string' ? n : '')));
   }
 
-  async place(orgId: string, admin: AdminContext, userIds: readonly string[], channelId: string | null) {
+  async place(orgId: string, admin: StructureActor, userIds: readonly string[], channelId: string | null) {
     await this.assertOrg(orgId, admin);
     if (userIds.length === 0) {throw new BadRequestException('no_members');}
     if (userIds.length > MAX_BULK_PLACEMENT) {throw new BadRequestException('too_many_members');}

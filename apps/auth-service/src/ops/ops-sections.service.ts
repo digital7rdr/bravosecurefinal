@@ -43,6 +43,11 @@ const ORG_TENANTS_CTE = `
     SELECT owner_user_id FROM public.org_workspaces
     UNION
     SELECT DISTINCT org_id FROM public.department_channels WHERE archived_at IS NULL
+    -- 2026-10-15: every service-provider agency, so a provider with no
+    -- channels yet is listed and its departments can be built from the
+    -- console ("I don't see the departments in the provider account").
+    UNION
+    SELECT user_id FROM public.agents WHERE type = 'company'
   )`;
 
 /**

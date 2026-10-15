@@ -14,5 +14,7 @@ export const pvRoutes = {
   pro: '/pro',
   messages: '/messages',
   managers: '/managers',
+  /** The agency's levels, channels and who sits where (2026-10-15). */
+  departments: '/departments',
   earnings: '/earnings',
 } as const;

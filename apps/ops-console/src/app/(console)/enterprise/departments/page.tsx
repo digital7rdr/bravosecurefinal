@@ -67,7 +67,7 @@ export default function DepartmentsPage() {
       cell: o => (
         <div>
           <div className="dt-val">{o.channels}</div>
-          <div className="dt-val-sub">{o.channels_provisioned} E2E active</div>
+          <div className="dt-val-sub">{o.channels === 0 ? 'none yet — open to build' : `${o.channels_provisioned} E2E active`}</div>
         </div>
       ),
     },
@@ -113,7 +113,7 @@ export default function DepartmentsPage() {
     <>
       <PageHeader
         title="Departments"
-        subtitle="Every organisation running department channels on the platform. Open one for its channel tree, people, incidents, attendance and the organisation graph."
+        subtitle="Every organisation and service provider on the platform. Open one, then CHANNEL STRUCTURE to build its departments, channels and who sits where."
         badges={!isLoading && !error
           ? <span className="pill pill-info">● {rows.length} ORGANISATION{rows.length === 1 ? '' : 'S'}{rows.length >= LIMIT ? ' · FIRST ' + LIMIT : ''}</span>
           : undefined}
@@ -164,7 +164,7 @@ export default function DepartmentsPage() {
         initialSort={{key: 'activity', dir: 'desc'}}
         empty={q.trim()
           ? `No organisation matches “${q.trim()}”.`
-          : 'No organisations yet. An organisation appears here once an account is on the Enterprise tier, creates a workspace, or owns a department channel.'}
+          : 'No organisations yet. An organisation appears here once a service provider is registered, an account is on the Enterprise tier, creates a workspace, or owns a department channel.'}
         footer={rows.length >= LIMIT
           ? <span>Showing the first {LIMIT} organisations by recent activity — narrow with the search box.</span>
           : undefined}

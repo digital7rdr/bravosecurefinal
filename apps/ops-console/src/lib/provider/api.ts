@@ -13,7 +13,7 @@
  */
 
 import useSWR, {type SWRConfiguration} from 'swr';
-import {deviceId, ApiError, type LoginStartResult} from '@/lib/api';
+import {deviceId, ApiError, type LoginStartResult, type EnterpriseStructure, type StructurePostMode, type StructureTemplates, type TemplateRun} from '@/lib/api';
 import {pvRoutes} from '@/lib/provider/routes';
 
 export {ApiError};
@@ -108,7 +108,7 @@ async function pv<T>(path: string, init?: Init): Promise<T> {
 }
 
 const get = <T>(path: string) => pv<T>(path);
-const send = <T>(method: 'POST' | 'PATCH' | 'DELETE', path: string, body?: unknown, idempotencyKey?: string) =>
+const send = <T>(method: 'POST' | 'PATCH' | 'PUT' | 'DELETE', path: string, body?: unknown, idempotencyKey?: string) =>
   pv<T>(path, {method, body: body === undefined ? undefined : JSON.stringify(body), idempotencyKey});
 
 /** A fresh key per user action; the server collapses retries of the same one. */
@@ -348,6 +348,29 @@ export const pvAuth = {
   },
 };
 
+/**
+ * Departments (2026-10-15) — the agency's own channel structure, the same
+ * editor the Bravo console has. The org is resolved server-side from
+ * X-Org-Context; `can_edit` is false for a manager scoped to one department.
+ */
+export const pvStructureApi = {
+  get: () => get<EnterpriseStructure & {can_edit: boolean}>('/org/structure'),
+  createNode: (body: {name: string; parent_id?: string | null; post_mode?: StructurePostMode; apply_template?: boolean}) =>
+    send<{node: {id: string; level: number}; laterals: TemplateRun}>('POST', '/org/structure/nodes', body),
+  createChannel: (body: {parent_id: string; name: string; post_mode?: StructurePostMode}) =>
+    send<{id: string}>('POST', '/org/structure/channels', body),
+  updateChannel: (id: string, body: {name?: string; post_mode?: StructurePostMode}) =>
+    send<{ok: true}>('PATCH', `/org/structure/channels/${encodeURIComponent(id)}`, body),
+  archive: (id: string) => send<{ok: true}>('POST', `/org/structure/channels/${encodeURIComponent(id)}/archive`),
+  unarchive: (id: string) => send<{ok: true}>('POST', `/org/structure/channels/${encodeURIComponent(id)}/unarchive`),
+  applyTemplate: (id: string) => send<TemplateRun>('POST', `/org/structure/channels/${encodeURIComponent(id)}/apply-template`),
+  setTemplates: (body: {templates?: StructureTemplates; reset?: boolean}) => send<unknown>('PUT', '/org/structure/templates', body),
+  setLevelNames: (names: string[]) => send<unknown>('PUT', '/org/structure/level-names', {names}),
+  place: (userIds: string[], channelId: string | null) =>
+    send<{results: Array<{user_id: string; ok: boolean; added?: number; removed?: number; error?: string}>}>(
+      'POST', '/org/structure/members/placement', {user_ids: userIds, channel_id: channelId}),
+};
+
 export const pvApi = {
   summary:        () => get<OrgSummary>('/org/summary'),
   missions:       () => get<MissionBoard>('/org/missions'),
@@ -415,6 +438,7 @@ export const usePvCompleted = (org: string | null, on = true) => useOrgSWR(on ? 
 export const usePvOffer    = (org: string | null, on = true) => useOrgSWR(on ? 'offer' : null, org, pvApi.currentOffer, {refreshInterval: 8_000});
 export const usePvRoster   = (org: string | null, on = true) => useOrgSWR(on ? 'roster' : null, org, pvApi.roster);
 export const usePvInvites  = (org: string | null, on = true) => useOrgSWR(on ? 'invites' : null, org, pvApi.invites, {refreshInterval: 60_000});
+export const usePvStructure = (org: string | null, on = true) => useOrgSWR(on ? 'structure' : null, org, pvStructureApi.get, {refreshInterval: 60_000});
 export const usePvManagers = (org: string | null, on = true) => useOrgSWR(on ? 'managers' : null, org, pvApi.managers, {refreshInterval: 60_000});
 export const usePvEarnings = (org: string | null, on = true) => useOrgSWR(on ? 'earnings' : null, org, pvApi.earnings, {refreshInterval: 60_000});
 export const usePvLive     = (org: string | null, missionId: string | null) =>

@@ -5,7 +5,7 @@
 import type {ModuleKey} from './api';
 import {pvRoutes} from './routes';
 
-export type NavIcon = 'home' | 'shield' | 'star' | 'chat' | 'people' | 'car' | 'key' | 'chart';
+export type NavIcon = 'home' | 'shield' | 'star' | 'chat' | 'people' | 'car' | 'key' | 'chart' | 'tree';
 
 export interface PvNavItem {
   href: string;
@@ -26,6 +26,7 @@ export const PROVIDER_NAV: PvNavGroup[] = [
   ]},
   {label: 'Crew & fleet', items: [
     {href: pvRoutes.crew, label: 'Officers', icon: 'people', modules: ['roster']},
+    {href: pvRoutes.departments, label: 'Departments', icon: 'tree', modules: ['dept']},
     {href: pvRoutes.vehicles, label: 'Vehicles', icon: 'car', modules: ['fleet']},
     {href: pvRoutes.managers, label: 'Managers', icon: 'key', ownerOnly: true},
   ]},
