@@ -449,9 +449,15 @@ export default function LoginScreen({navigation}: Props) {
               }
             />
 
-            {/* Forgot password */}
+            {/* Forgot password — was plain text with no action (2026-10-16 bug). */}
             <View style={styles.forgotRow}>
-              <Text style={styles.forgot}>Forgot password?</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('ForgotPassword', {identifier: email.trim() || undefined})}
+                hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+                accessibilityRole="button"
+                accessibilityLabel="Forgot password? Reset it">
+                <Text style={styles.forgot}>Forgot password?</Text>
+              </TouchableOpacity>
             </View>
 
             {errorMsg ? (
@@ -575,7 +581,7 @@ const styles = StyleSheet.create(scaleTextStyles({
   eyeBtn: {flexShrink: 0, padding: 4},
 
   forgotRow: {flexDirection: 'row', justifyContent: 'flex-end', marginTop: -2},
-  forgot: {color: T.textMute, fontSize: 12.5, fontWeight: '500', letterSpacing: -0.05},
+  forgot: {color: '#3BA6FF', fontSize: 12.5, fontWeight: '600', letterSpacing: -0.05},
 
   errorBox: {
     flexDirection: 'row', alignItems: 'center', gap: 8,

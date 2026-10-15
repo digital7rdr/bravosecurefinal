@@ -434,6 +434,20 @@ export interface ApiUser {
 
 export const authApi = {
   /**
+   * Forgot password (2026-10-16) — the home site's reset flow, from the app.
+   * Unauthenticated. `start` answers the same whether or not an account
+   * matched; `complete` may ask for an authenticator code ({done:false,
+   * needTotp:true}) and signs the account out everywhere on success.
+   */
+  passwordResetStatus: async (): Promise<{available: boolean}> =>
+    (await authHttp.get<{available: boolean}>('/auth/password/reset/status')).data,
+  passwordResetStart: async (identifier: string): Promise<{resetId: string}> =>
+    (await authHttp.post<{resetId: string}>('/auth/password/reset/start', {identifier})).data,
+  passwordResetComplete: async (dto: {resetId: string; code: string; newPassword: string; totpCode?: string}):
+    Promise<{done: true; needTotp?: undefined} | {done: false; needTotp: true}> =>
+    (await authHttp.post<{done: true} | {done: false; needTotp: true}>('/auth/password/reset/complete', dto)).data as
+      {done: true; needTotp?: undefined} | {done: false; needTotp: true},
+  /**
    * Step 1 of registration: duplicate check + Twilio OTP send. Does NOT create
    * the user row — that only happens on registerVerify() after the OTP is
    * approved by Twilio.

@@ -16,6 +16,8 @@ export type AuthStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
   Login: undefined;
+  // Forgot password (2026-10-16): prefilled with what was typed on Sign In.
+  ForgotPassword: {identifier?: string} | undefined;
   Register: {role: 'individual' | 'corporate' | 'agent'; tier?: 'lite' | 'pro' | 'enterprise'} | undefined;
   OTPVerification: {
     phone: string;
