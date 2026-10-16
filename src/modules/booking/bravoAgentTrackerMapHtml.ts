@@ -7,6 +7,9 @@
  * RN drives the canvas via:
  *   window.setRoute({pickup, dropoff, polyline})
  *   window.setNavRoute({traveled, ahead})   // turn-by-turn split (Step 31)
+ *   window.setNavCamera({mode, zoom, pitch}) // orientation + target zoom (Nav v2)
+ *   window.setAlternatives([{id, coords, selected}]) // route choices (Nav v2)
+ *   window.fitRoute([[lng,lat]...])         // overview of what is ahead (Nav v2)
  *   window.setCpo({lat, lng, callsign, heading_deg})
  *   window.setPrincipal({lat, lng})
  *   window.pushBubble({id, kind, sender, name, preview, ttl})
@@ -384,7 +387,7 @@ export function buildAgentTrackerHtml(mapboxToken: string): string {
   //  - follow: auto-follow the CPO during nav until the user drags the map.
   //  - lastBase/lastNav: cached payloads re-applied after a style swap wipes layers.
   let navActive = false, framedOnce = false, follow = true, centeredOnce = false;
-  let lastBasePayload = null, lastNavPayload = null;
+  let lastBasePayload = null, lastNavPayload = null, lastAltPayload = null;
 
   // Track-up camera. In 'course' mode the map rotates so the direction of
   // travel is always screen-up, the view is pitched, and the vehicle sits in
@@ -398,6 +401,12 @@ export function buildAgentTrackerHtml(mapboxToken: string): string {
   // before the first movement.
   const NAV_PITCH = 55, MIN_COURSE_M = 6, NAV_OFFSET_FRAC = 0.20;
   let navMode = 'course', navBearing = 0, haveBearing = false, lastCourseLL = null;
+  // Navigation Ver 2 — the zoom/pitch RN asks for (modules/maps/navCamera.ts
+  // decides: tighter at a turn and on arrival, wider at speed). The follow
+  // camera applies it on every fix, so the frame closes in as the vehicle
+  // approaches instead of staying at the one zoom it was given at the start.
+  let navZoom = null, navPitch = NAV_PITCH;
+  function followPitch() { return navPitch == null ? NAV_PITCH : navPitch; }
 
   function bearingDeg(a, b) {
     const y1 = a[1] * Math.PI / 180, y2 = b[1] * Math.PI / 180;
@@ -462,6 +471,17 @@ export function buildAgentTrackerHtml(mapboxToken: string): string {
                 'line-blur': 0.5},
       });
     }
+    // Navigation Ver 2 — route CHOICES. Unselected alternatives in a lighter
+    // shade under the chosen line, like Google Maps' grey routes.
+    if (!map.getSource('alts')) {
+      map.addSource('alts', {type: 'geojson', data: {type: 'FeatureCollection', features: []}});
+    }
+    if (!map.getLayer('route-alts')) {
+      map.addLayer({
+        id: 'route-alts', type: 'line', source: 'alts',
+        paint: {'line-color': '#9FB3CC', 'line-opacity': 0.55, 'line-width': 5, 'line-cap': 'round'},
+      }, 'route-base');
+    }
     if (!map.getLayer('route-future')) {
       map.addLayer({
         id: 'route-future', type: 'line', source: 'route',
@@ -502,6 +522,7 @@ export function buildAgentTrackerHtml(mapboxToken: string): string {
       addDetailLayers();
       if (navActive && lastNavPayload) { window.setNavRoute(lastNavPayload); }
       else if (lastBasePayload) { window.setRoute(lastBasePayload); }
+      if (lastAltPayload) { window.setAlternatives(lastAltPayload); }
       relayoutBubbles();
     } catch (e) {}
   });
@@ -673,13 +694,18 @@ export function buildAgentTrackerHtml(mapboxToken: string): string {
       // the user takes manual control (dragstart flips the follow flag off).
       if (navActive && follow) {
         const cam = {center: [lng, lat], duration: 800};
-        if (!centeredOnce) {
+        if (navZoom != null) {
+          // Nav v2 — the requested zoom, every fix (easeTo only moves when
+          // it differs from the current zoom, so a steady target costs nothing).
+          cam.zoom = navZoom;
+          centeredOnce = true;
+        } else if (!centeredOnce) {
           cam.zoom = Math.max(map.getZoom(), 16);
           centeredOnce = true;
         }
         if (courseUpNow()) {
           cam.bearing = navBearing;
-          cam.pitch = NAV_PITCH;
+          cam.pitch = followPitch();
           cam.offset = navOffset();
         } else if (navMode === 'north') {
           cam.bearing = 0;
@@ -718,7 +744,24 @@ export function buildAgentTrackerHtml(mapboxToken: string): string {
   // the camera driven again, so it must clear a stale manual-pan state.
   window.setNavCamera = function(payload) {
     try {
-      navMode = (payload && payload.mode) === 'north' ? 'north' : 'course';
+      const p = payload || {};
+      const prevMode = navMode;
+      navMode = p.mode === 'north' ? 'north' : 'course';
+      // Nav v2 — zoom/pitch targets. A zoom-only update (the 1 Hz approach
+      // logic) must NOT re-arm follow: the driver who panned away to look at
+      // something keeps their view until they tap ⌖ Follow or change mode.
+      if (typeof p.zoom === 'number') navZoom = p.zoom;
+      if (typeof p.pitch === 'number') navPitch = p.pitch;
+      const modeChanged = prevMode !== navMode || p.rearm === true;
+      if (!modeChanged) {
+        if (follow && navActive && anchors.cpo && navZoom != null) {
+          const up = courseUpNow();
+          map.easeTo({center: anchors.cpo, zoom: navZoom,
+            bearing: up ? navBearing : 0, pitch: up ? followPitch() : 0,
+            offset: up ? navOffset() : [0, 0], duration: 800});
+        }
+        return;
+      }
       follow = true;
       const pill = document.getElementById('recenter');
       if (pill) pill.style.display = 'none';
@@ -727,8 +770,9 @@ export function buildAgentTrackerHtml(mapboxToken: string): string {
         const up = navMode === 'course' && haveBearing;
         map.easeTo({
           center: c,
+          zoom: navZoom != null ? navZoom : map.getZoom(),
           bearing: up ? navBearing : 0,
-          pitch: up ? NAV_PITCH : 0,
+          pitch: up ? followPitch() : 0,
           offset: up ? navOffset() : [0, 0],
           duration: 600,
         });
@@ -1023,7 +1067,37 @@ export function buildAgentTrackerHtml(mapboxToken: string): string {
   function breakFollow() {
     follow = false;
     recenterEl.style.display = 'block';
+    post({type: 'follow', on: false});
   }
+
+  // Navigation Ver 2 — route OVERVIEW: frame everything still ahead (north-up,
+  // flat) and stop following; ⌖ Follow brings the driving camera back.
+  window.fitRoute = function(coords) {
+    try {
+      const pts = (Array.isArray(coords) ? coords : []).filter(c => Array.isArray(c) && c.length === 2 && validLL(c[0], c[1]));
+      if (anchors.cpo) pts.push(anchors.cpo);
+      if (pts.length < 2) return;
+      const b = new mapboxgl.LngLatBounds();
+      for (const c of pts) b.extend(c);
+      breakFollow();
+      map.fitBounds(b, {padding: {top: 180, bottom: 240, left: 50, right: 50}, duration: 700, maxZoom: 16, bearing: 0, pitch: 0});
+    } catch (e) { post({type: 'err', where: 'fitRoute', msg: String(e)}); }
+  };
+
+  // Navigation Ver 2 — route CHOICES: [{id, coords: [[lng,lat]...], selected}].
+  // Unselected ones draw in the alts layer; the selected one is the nav line.
+  window.setAlternatives = function(list) {
+    try {
+      lastAltPayload = list || null;
+      ensureRouteLayer();
+      const src = map.getSource('alts');
+      if (!src || !src.setData) return;
+      const features = (Array.isArray(list) ? list : [])
+        .filter(r => r && !r.selected && Array.isArray(r.coords) && r.coords.length >= 2)
+        .map(r => ({type: 'Feature', properties: {id: String(r.id)}, geometry: {type: 'LineString', coordinates: r.coords}}));
+      src.setData({type: 'FeatureCollection', features});
+    } catch (e) { post({type: 'err', where: 'setAlternatives', msg: String(e)}); }
+  };
   recenterEl.addEventListener('click', () => {
     follow = true;
     recenterEl.style.display = 'none';
@@ -1034,14 +1108,15 @@ export function buildAgentTrackerHtml(mapboxToken: string): string {
       const up = courseUpNow();
       map.easeTo({
         center: anchors.cpo,
-        zoom: Math.max(map.getZoom(), 15),
+        zoom: navZoom != null ? navZoom : Math.max(map.getZoom(), 15),
         bearing: up ? navBearing : 0,
-        pitch: up ? NAV_PITCH : 0,
+        pitch: up ? followPitch() : 0,
         offset: up ? navOffset() : [0, 0],
         duration: 700,
       });
       centeredOnce = true;
     }
+    post({type: 'follow', on: true});
   });
   map.on('dragstart', breakFollow);
   map.on('zoomstart', (e) => { if (e.originalEvent) breakFollow(); });

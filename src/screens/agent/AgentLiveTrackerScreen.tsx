@@ -71,10 +71,11 @@ import {haptics} from '@utils/haptics';
 import {useKeyboardLayout} from '@hooks/useKeyboardLayout';
 import {scaleTextStyles} from '@utils/scaling';
 import {
-  fetchDirections, splitRouteAtProgress, nextManeuver, formatDistance, offRouteDistanceM,
-  remainingRouteM, nearestIndexOnRoute, haversineM, speedLimitAtKph, currentRoadName,
-  type DirectionsRoute, type LngLat,
+  fetchDirections, fetchRouteAlternatives, splitRouteAtProgress, nextManeuver, formatDistance, formatDuration,
+  offRouteDistanceM, remainingRouteM, nearestIndexOnRoute, haversineM, speedLimitAtKph, currentRoadName,
+  upcomingManeuvers, type DirectionsRoute, type LngLat,
 } from '@utils/mapboxDirections';
+import {navCameraFor, shouldRetarget, progressShareText, ARRIVAL_M, type NavCamFrame} from '@/modules/maps/navCamera';
 
 import {subscribeOwnPosition} from '@services/ownPositionBus';
 import {missionActionView, missionActionConfirm, type MissionShape} from '@screens/cpo/missionAction';
@@ -296,6 +297,29 @@ export default function AgentLiveTrackerScreen() {
   // Remaining distance along the LIVE route (not straight-line) — a driver
   // needs a real unit next to the ETA.
   const [remainingLabel, setRemainingLabel] = useState<string | null>(null);
+
+  // ── Navigation Ver 2 (2026-10-16) ───────────────────────
+  // The camera frame last SENT to the map (zoom + pitch). navCameraFor decides
+  // the target from speed / next turn / distance left; shouldRetarget stops the
+  // map breathing on GPS wobble. Both renderers apply it on every fix, which is
+  // what makes the view close in as the vehicle approaches ("the navigation
+  // does not get zoomed in as we approach the location").
+  const camFrameRef = useRef<NavCamFrame | null>(null);
+  // Route CHOICES for the current leg (Google's "Choose a route"): fetched
+  // once per leg, drawn in a lighter shade, picked from a list with
+  // ETA / duration / distance / via-road. The chosen one becomes the live route.
+  const [altRoutes, setAltRoutes] = useState<DirectionsRoute[]>([]);
+  const [altLegKey, setAltLegKey] = useState('');
+  const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
+  const [sheet, setSheet] = useState<'none' | 'routes' | 'turns'>('none');
+  const [overviewOn, setOverviewOn] = useState(false);
+  // The upcoming turns, refreshed with the banner (same 1 Hz throttle rule).
+  const [turnList, setTurnList] = useState<Array<{key: string; icon: IconName; distanceLabel: string; primary: string; road: string | null}>>([]);
+  const turnListSigRef = useRef('');
+  // Metres left to the destination along the route (drives arrival).
+  const [destDistM, setDestDistM] = useState<number | null>(null);
+  const arrived = destDistM !== null && destDistM <= ARRIVAL_M;
+  const [shareBusy, setShareBusy] = useState(false);
 
   // Own-GPS navigation cadence. 'monitor' is a remote observer with no own
   // fix, so it keeps reading the server's copy.
@@ -700,10 +724,19 @@ export default function AgentLiveTrackerScreen() {
         useNativeMap
           ? nativeMapRef.current?.setStyle(id)
           : inject(`window.setStyle(${JSON.stringify(id)});`),
-      setNavCamera: (p: {mode: 'course' | 'north'}) =>
+      setNavCamera: (p: {mode: 'course' | 'north'; zoom?: number; pitch?: number; rearm?: boolean}) =>
         useNativeMap
           ? nativeMapRef.current?.setNavCamera(p)
           : inject(`window.setNavCamera(${JSON.stringify(p)});`),
+      // Navigation Ver 2 — overview of what is ahead / route choices.
+      fitRoute: (coords: [number, number][]) =>
+        useNativeMap
+          ? nativeMapRef.current?.fitRoute(coords)
+          : inject(`window.fitRoute && window.fitRoute(${JSON.stringify(coords)});`),
+      setAlternatives: (list: Array<{id: string; coords: [number, number][]; selected: boolean}>) =>
+        useNativeMap
+          ? nativeMapRef.current?.setAlternatives(list)
+          : inject(`window.setAlternatives && window.setAlternatives(${JSON.stringify(list)});`),
       pushBubble: (p: PushBubbleInput) =>
         useNativeMap
           ? nativeMapRef.current?.pushBubble(p)
@@ -1007,6 +1040,33 @@ export default function AgentLiveTrackerScreen() {
       // (which would slide forward and never converge to arrival).
       const remainM = remainingRouteM(rt.coordinates, cpo);
       setRemainingLabel(formatDistance(remainM));
+      setDestDistM(Math.round(remainM));
+      // Navigation Ver 2 — the camera closes in as the vehicle approaches a
+      // turn or the destination, and opens up at speed. Sent only when the
+      // target moves by a real step, so a steady road costs no camera work.
+      if (isDriver) {
+        const frame = navCameraFor({
+          speedKph: speedRef.current, distToManeuverM: nm ? nm.distanceM : null,
+          distToDestinationM: remainM, mode: navCamMode,
+        });
+        if (shouldRetarget(camFrameRef.current, frame)) {
+          camFrameRef.current = frame;
+          mapCmd.setNavCamera({mode: navCamMode, zoom: frame.zoom, pitch: frame.pitch});
+        }
+      }
+      // The next-turns list (Nav v2), throttled like the banner.
+      const ups = upcomingManeuvers(rt, cpo, 10);
+      const sig = ups.map(u => `${u.index}:${Math.round(u.distanceM / 50)}`).join('|');
+      if (sig !== turnListSigRef.current) {
+        turnListSigRef.current = sig;
+        setTurnList(ups.map(u => ({
+          key: `${u.index}`,
+          icon: maneuverIcon(u.step.modifier, u.step.maneuverType),
+          distanceLabel: formatDistance(u.distanceM),
+          primary: u.step.bannerPrimary || u.step.instruction || 'Continue',
+          road: u.step.roadName,
+        })));
+      }
       const frac = rt.distanceM > 0 ? Math.min(1, remainM / rt.distanceM) : 1;
       const remainS = Math.max(0, Math.floor(rt.durationS * frac));
       const eta = new Date(Date.now() + remainS * 1000);
@@ -1018,7 +1078,14 @@ export default function AgentLiveTrackerScreen() {
     // the pickup while the driver was already navigating to the drop-off.
     if (desiredTargetKeyRef.current && desiredTargetKeyRef.current !== targetKey) {
       setRemainingLabel(null);
+      setDestDistM(null);
       navBannerSigRef.current = '';
+      turnListSigRef.current = '';
+      // A new leg has new choices; the old alternatives are for a destination
+      // the driver is no longer going to.
+      setAltRoutes([]);
+      setSelectedRouteId(null);
+      mapCmd.setAlternatives([]);
     }
     desiredTargetKeyRef.current = targetKey;
     // Only reuse the cached route if it's for the CURRENT target; a pickup→dropoff
@@ -1074,7 +1141,7 @@ export default function AgentLiveTrackerScreen() {
       apply(existing);
     }
     wasOffRouteRef.current = offRoute;
-  }, [webReady, currentLat, currentLng, activeTarget, missionStatus, mapCmd, speakNav]);
+  }, [webReady, currentLat, currentLng, activeTarget, missionStatus, mapCmd, speakNav, isDriver, navCamMode]);
 
   // Push style swaps.
   useEffect(() => {
@@ -1087,8 +1154,102 @@ export default function AgentLiveTrackerScreen() {
   // actually rotates once turn-by-turn is driving the line.
   useEffect(() => {
     if (!webReady) {return;}
-    mapCmd.setNavCamera({mode: navCamMode});
+    // A mode change re-arms follow (rearm) and resends the current frame so the
+    // map does not fall back to its start-up zoom.
+    const f = camFrameRef.current;
+    mapCmd.setNavCamera({mode: navCamMode, rearm: true, ...(f ? {zoom: f.zoom, pitch: f.pitch} : {})});
+    setOverviewOn(false);
   }, [webReady, navCamMode, mapCmd]);
+
+  // Speed as a REF for the 1 Hz camera decision (the state copy drives the chip).
+  const speedRef = useRef<number | null>(null);
+  useEffect(() => { speedRef.current = speedKph; }, [speedKph]);
+
+  // ── Navigation Ver 2: route choices ─────────────────────
+  // Fetched when the driver opens the Routes sheet (one Directions call with
+  // alternatives=true), for the CURRENT leg only. Picking one swaps the live
+  // route in place: the split, banner, voice and ETA all follow from it.
+  const openRoutes = useCallback(() => {
+    setSheet('routes');
+    if (currentLat === null || currentLng === null || !activeTarget) {return;}
+    const legKey = desiredTargetKeyRef.current;
+    if (altLegKey === legKey && altRoutes.length > 0) {return;}
+    void fetchRouteAlternatives({lng: currentLng, lat: currentLat}, activeTarget).then(list => {
+      if (list.length === 0 || desiredTargetKeyRef.current !== legKey) {return;}
+      setAltRoutes(list);
+      setAltLegKey(legKey);
+      const cur = navRouteRef.current;
+      const sel = cur ? (list.find(r => r.id === cur.id)?.id ?? list[0].id) : list[0].id;
+      setSelectedRouteId(sel);
+      mapCmd.setAlternatives(list.map(r => ({
+        id: r.id, selected: r.id === sel, coords: r.coordinates.map(c => [c.lng, c.lat] as [number, number]),
+      })));
+      // Show every choice on screen while deciding.
+      mapCmd.fitRoute(list.flatMap(r => r.coordinates.map(c => [c.lng, c.lat] as [number, number])));
+      setOverviewOn(true);
+    });
+  }, [currentLat, currentLng, activeTarget, altLegKey, altRoutes.length, mapCmd]);
+
+  const chooseRoute = useCallback((rt: DirectionsRoute) => {
+    setSelectedRouteId(rt.id);
+    navRouteRef.current = rt;
+    navRouteTargetRef.current = desiredTargetKeyRef.current;
+    lastSplitRef.current = null;
+    navBannerSigRef.current = '';
+    turnListSigRef.current = '';
+    camFrameRef.current = null;
+    mapCmd.setAlternatives(altRoutes.map(r => ({
+      id: r.id, selected: r.id === rt.id, coords: r.coordinates.map(c => [c.lng, c.lat] as [number, number]),
+    })));
+    const {traveled, remaining} = splitRouteAtProgress(rt.coordinates,
+      {lng: posRef.current.lng ?? rt.coordinates[0].lng, lat: posRef.current.lat ?? rt.coordinates[0].lat});
+    mapCmd.setNavRoute({traveled: traveled.map(c => [c.lng, c.lat]), ahead: remaining.map(c => [c.lng, c.lat])});
+    setSheet('none');
+    // Back to the driving camera on the chosen line.
+    mapCmd.setNavCamera({mode: navCamMode, rearm: true});
+    setOverviewOn(false);
+    haptics.tap();
+  }, [altRoutes, mapCmd, navCamMode]);
+
+  // Overview ⇄ follow (Google's "route overview" toggle).
+  const toggleOverview = useCallback(() => {
+    if (overviewOn) {
+      mapCmd.setNavCamera({mode: navCamMode, rearm: true});
+      setOverviewOn(false);
+      return;
+    }
+    const rt = navRouteRef.current;
+    const at = posRef.current;
+    if (!rt) {return;}
+    const ahead = at.lat !== null && at.lng !== null
+      ? splitRouteAtProgress(rt.coordinates, {lng: at.lng, lat: at.lat}).remaining
+      : rt.coordinates;
+    mapCmd.fitRoute(ahead.map(c => [c.lng, c.lat] as [number, number]));
+    setOverviewOn(true);
+  }, [overviewOn, mapCmd, navCamMode]);
+
+  // Share progress (Navigation Ver 2): one line into the mission group — the
+  // control room and every specified contact in the room see the ETA. The
+  // CPO's live position already streams to ops; this is the human summary.
+  const shareProgress = useCallback(() => {
+    if (!commsChannelId || !runtime) {
+      Alert.alert('Mission group not ready', 'The mission group is still being set up. Try again in a moment.');
+      return;
+    }
+    const text = progressShareText({
+      etaText, remainingLabel, roadName: navBanner?.roadName ?? null, shortCode: shortCode || null,
+      targetLabel: missionStatus === 'LIVE' ? 'drop-off' : 'pickup',
+    });
+    setShareBusy(true);
+    haptics.tap();
+    void runtime.sendText(commsChannelId, text, {isGroup: true})
+      .then(() => mapCmd.pushSystem({
+        id: `share-${Date.now()}`, label: 'Progress shared', preview: text,
+        lat: posRef.current.lat ?? 0, lng: posRef.current.lng ?? 0, ttl: 4000,
+      }))
+      .catch(e => useMessengerStore.getState().setError(e instanceof Error ? e.message : 'Send failed'))
+      .finally(() => setShareBusy(false));
+  }, [commsChannelId, runtime, etaText, remainingLabel, navBanner?.roadName, shortCode, missionStatus, mapCmd]);
 
   const onMessage = (e: WebViewMessageEvent) => {
     try {
@@ -1109,6 +1270,8 @@ export default function AgentLiveTrackerScreen() {
             || /401|403|unauthorized|forbidden|access token/i.test(String(msg.msg ?? ''))));
       if (fatal) {map.onError();}
       if (msg.type === 'bubble.tap' || msg.type === 'chip.tap') {openChat();}
+      // Nav v2 — ⌖ Follow on the map ends an overview; a drag starts one.
+      if (msg.type === 'follow') {setOverviewOn(!(msg as {on?: boolean}).on);}
     } catch { /* ignore */ }
   };
 
@@ -1445,18 +1608,61 @@ export default function AgentLiveTrackerScreen() {
               (navBanner.secondary ? `, ${navBanner.secondary}` : '') +
               (navBanner.roadName ? `. Driving on ${navBanner.roadName}` : '')
             }>
-            <View style={s.navIcon}><Icon name={navBanner.icon} size={42} color="#FFFFFF" /></View>
+            <View style={s.navIcon}><Icon name={arrived ? 'flag-checkered' : navBanner.icon} size={42} color="#FFFFFF" /></View>
             <View style={{flex: 1, minWidth: 0}}>
-              <Text style={s.navDist} numberOfLines={1}>{navBanner.distanceLabel}</Text>
+              <Text style={s.navDist} numberOfLines={1}>{arrived ? 'ARRIVED' : navBanner.distanceLabel}</Text>
               {/* Two lines: a truncated street name is a missed turn. */}
-              <Text style={s.navPrimary} numberOfLines={2}>{navBanner.primary}</Text>
+              <Text style={s.navPrimary} numberOfLines={2}>
+                {arrived ? (missionStatus === 'LIVE' ? 'At the drop-off' : 'At the pickup point') : navBanner.primary}
+              </Text>
               {!!navBanner.secondary && <Text style={s.navSecondary} numberOfLines={1}>{navBanner.secondary}</Text>}
               {/* Navigation.docx — the road being driven ON right now. */}
               {!!navBanner.roadName && <Text style={s.navRoad} numberOfLines={1}>ON {navBanner.roadName.toUpperCase()}</Text>}
             </View>
             {/* Orientation + voice live INSIDE the banner: they only apply
-                while navigating, and the map edge is reserved for the route. */}
+                while navigating, and the map edge is reserved for the route.
+                Nav v2 adds the route tools: choices, upcoming turns, overview
+                and share — a second column so the banner keeps its height. */}
             <View style={s.navCtrls}>
+              <TouchableOpacity
+                style={[s.navCtrl, sheet === 'routes' && s.navCtrlOn]}
+                onPress={() => (sheet === 'routes' ? setSheet('none') : openRoutes())}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Route choices">
+                <Icon name="routes" size={17} color="#FFFFFF" />
+                <Text style={[s.navCtrlTxt, sheet === 'routes' && s.navCtrlTxtOn]}>ROUTES</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.navCtrl, sheet === 'turns' && s.navCtrlOn]}
+                onPress={() => setSheet(v => (v === 'turns' ? 'none' : 'turns'))}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Upcoming turns">
+                <Icon name="format-list-bulleted" size={17} color="#FFFFFF" />
+                <Text style={[s.navCtrlTxt, sheet === 'turns' && s.navCtrlTxtOn]}>TURNS</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[s.navCtrl, overviewOn && s.navCtrlOn]}
+                onPress={toggleOverview}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={overviewOn ? 'Route overview. Tap to follow the vehicle' : 'Following. Tap for route overview'}>
+                <Icon name={overviewOn ? 'crosshairs-gps' : 'map-outline'} size={17} color="#FFFFFF" />
+                <Text style={[s.navCtrlTxt, overviewOn && s.navCtrlTxtOn]}>{overviewOn ? 'FOLLOW' : 'VIEW'}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={s.navCtrls}>
+              <TouchableOpacity
+                style={s.navCtrl}
+                onPress={shareProgress}
+                disabled={shareBusy}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel="Share progress with the mission group">
+                <Icon name="share-variant" size={17} color="#FFFFFF" />
+                <Text style={s.navCtrlTxt}>SHARE</Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={[s.navCtrl, navCamMode === 'course' && s.navCtrlOn]}
                 onPress={() => setNavCamMode(m => (m === 'course' ? 'north' : 'course'))}
@@ -1508,6 +1714,63 @@ export default function AgentLiveTrackerScreen() {
             </View>
           </View>
         )
+      )}
+
+      {/* ── Navigation Ver 2 sheets: route choices / upcoming turns ──── */}
+      {navShown && sheet !== 'none' && (
+        <View style={[s.navSheet, {top: insets.top + 50 + (navHeight || 112) + 8, bottom: (dockHeight || 0) + 12}]}>
+          <View style={s.navSheetHead}>
+            <Text style={s.navSheetTitle}>{sheet === 'routes' ? 'Choose a route' : 'Next turns'}</Text>
+            <TouchableOpacity onPress={() => setSheet('none')} hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+              accessibilityRole="button" accessibilityLabel="Close">
+              <Icon name="close" size={20} color={C.tx2} />
+            </TouchableOpacity>
+          </View>
+          {sheet === 'routes' && (
+            altRoutes.length === 0 ? (
+              <View style={s.navSheetEmpty}><ActivityIndicator color={C.glow} /><Text style={s.navSheetEmptyTxt}>Finding routes…</Text></View>
+            ) : (
+              altRoutes.map((r, i) => {
+                const fastest = Math.min(...altRoutes.map(x => x.durationS));
+                const slowerS = r.durationS - fastest;
+                const eta = new Date(Date.now() + r.durationS * 1000).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+                const on = r.id === selectedRouteId;
+                return (
+                  <TouchableOpacity key={r.id} style={[s.routeRow, on && s.routeRowOn]} onPress={() => chooseRoute(r)} activeOpacity={0.8}
+                    accessibilityRole="button" accessibilityState={{selected: on}}
+                    accessibilityLabel={`Route ${i + 1}, ${formatDuration(r.durationS)}, ${formatDistance(r.distanceM)}, arriving ${eta}${r.viaRoad ? `, via ${r.viaRoad}` : ''}`}>
+                    <View style={[s.routeSwatch, {backgroundColor: on ? C.glow : '#9FB3CC'}]} />
+                    <View style={{flex: 1, minWidth: 0}}>
+                      <Text style={s.routeMain} numberOfLines={1}>
+                        {formatDuration(r.durationS)}
+                        <Text style={s.routeSub}>  {formatDistance(r.distanceM)} · arrive {eta}</Text>
+                      </Text>
+                      <Text style={s.routeVia} numberOfLines={1}>
+                        {r.viaRoad ? `Via ${r.viaRoad}` : 'Via local roads'}
+                        {slowerS > 60 ? `  ·  ${formatDuration(slowerS)} slower` : i === 0 || slowerS <= 60 ? '  ·  fastest' : ''}
+                      </Text>
+                    </View>
+                    {on && <Text style={s.routeCurrent}>CURRENT</Text>}
+                  </TouchableOpacity>
+                );
+              })
+            )
+          )}
+          {sheet === 'turns' && (
+            turnList.length === 0
+              ? <View style={s.navSheetEmpty}><Text style={s.navSheetEmptyTxt}>No turns ahead.</Text></View>
+              : turnList.map(t => (
+                <View key={t.key} style={s.turnRow} accessible accessibilityLabel={`In ${t.distanceLabel}, ${t.primary}${t.road ? `, onto ${t.road}` : ''}`}>
+                  <Icon name={t.icon} size={22} color={C.tx1} />
+                  <Text style={s.turnDist}>{t.distanceLabel}</Text>
+                  <View style={{flex: 1, minWidth: 0}}>
+                    <Text style={s.turnMain} numberOfLines={1}>{t.primary}</Text>
+                    {!!t.road && <Text style={s.turnRoad} numberOfLines={1}>{t.road}</Text>}
+                  </View>
+                </View>
+              ))
+          )}
+        </View>
       )}
 
       {/* Navigation.docx — Waze pair: legal limit in a red ring, the vehicle's
@@ -2004,6 +2267,29 @@ const s = StyleSheet.create(scaleTextStyles({
 
   // Orientation + voice, docked inside the maneuver banner.
   navCtrls: {gap: 6},
+  // Navigation Ver 2 — the slide-down sheet under the banner (route choices /
+  // next turns). Sits in the map band, above the dock; the map stays visible
+  // through its edges.
+  navSheet: {
+    position: 'absolute', left: 12, right: 12, zIndex: 13, borderRadius: 16,
+    backgroundColor: 'rgba(8,19,38,0.96)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)',
+    paddingBottom: 6, overflow: 'hidden',
+  },
+  navSheetHead: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10},
+  navSheetTitle: {color: C.tx1, fontSize: 13, fontWeight: '800', letterSpacing: 0.6, textTransform: 'uppercase'},
+  navSheetEmpty: {alignItems: 'center', gap: 8, paddingVertical: 20},
+  navSheetEmptyTxt: {color: C.tx3, fontSize: 12.5},
+  routeRow: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 11, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)'},
+  routeRowOn: {backgroundColor: 'rgba(30,136,255,0.14)'},
+  routeSwatch: {width: 6, height: 36, borderRadius: 3},
+  routeMain: {color: C.tx1, fontSize: 16, fontWeight: '800'},
+  routeSub: {color: C.tx2, fontSize: 12.5, fontWeight: '600'},
+  routeVia: {color: C.tx3, fontSize: 12, marginTop: 2},
+  routeCurrent: {color: C.glow, fontSize: 9.5, fontWeight: '800', letterSpacing: 1, fontFamily: Platform.select({ios: 'Menlo', default: 'monospace'})},
+  turnRow: {flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 9, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)'},
+  turnDist: {width: 64, color: C.tx1, fontSize: 13, fontWeight: '800', fontFamily: Platform.select({ios: 'Menlo', default: 'monospace'})},
+  turnMain: {color: C.tx1, fontSize: 13.5, fontWeight: '600'},
+  turnRoad: {color: C.tx3, fontSize: 11.5, marginTop: 1},
   // On the solid cobalt slab these read as white-on-blue chips; the old navy
   // fill disappeared into nothing once the banner stopped being navy.
   navCtrl: {

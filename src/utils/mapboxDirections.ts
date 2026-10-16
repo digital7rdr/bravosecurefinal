@@ -50,6 +50,12 @@ export interface DirectionStep {
 }
 
 export interface DirectionsRoute {
+  /** Navigation Ver 2 — stable id for a route CHOICE (alternatives are
+   *  offered side by side and the driver picks one); '' on older callers. */
+  id: string;
+  /** The main road the route travels, e.g. "E11 - Sh Zayed Rd", for the
+   *  route-choice list ("Via E11 …"). null when no step names a road. */
+  viaRoad: string | null;
   coordinates: LngLat[]; // decoded overview geometry
   distanceM: number;
   durationS: number;
@@ -349,7 +355,19 @@ export function parseDirectionsRoute(route: RawRoute): DirectionsRoute | null {
   // defensively so a future multi-stop request stays aligned with coordinates.
   const rawMax = (route.legs ?? []).flatMap(l => l.annotation?.maxspeed ?? []);
   const maxspeedKph = rawMax.length > 0 ? rawMax.map(maxspeedEntryKph) : null;
+  // The road the route spends the most distance on — Google's "via …" line.
+  const byRoad = new Map<string, number>();
+  for (const st of steps) {
+    if (st.roadName) {byRoad.set(st.roadName, (byRoad.get(st.roadName) ?? 0) + st.distanceM);}
+  }
+  let viaRoad: string | null = null;
+  let viaBest = 0;
+  for (const [name, m] of byRoad) {
+    if (m > viaBest) {viaBest = m; viaRoad = name;}
+  }
   return {
+    id: `${Math.round(route.distance ?? 0)}-${Math.round(route.duration ?? 0)}-${coordinates.length}`,
+    viaRoad,
     coordinates,
     distanceM: route.distance ?? 0,
     durationS: route.duration ?? 0,
@@ -383,22 +401,88 @@ export async function fetchDirections(
   // annotations=maxspeed — the legal-limit chip (Navigation.docx). Same
   // response, no extra request; regions without data return `unknown` slots
   // and the chip simply doesn't render there.
+  const routes = await requestRoutes(profile, pair, false, opts.signal);
+  return routes[0] ?? null;
+}
+
+/**
+ * Navigation Ver 2 — route CHOICES. Mapbox returns up to three routes with
+ * `alternatives=true`; the first is its recommendation. Same request shape as
+ * fetchDirections, so every route carries steps, voice cues and speed limits
+ * and can become the live route the moment the driver picks it.
+ */
+export async function fetchRouteAlternatives(
+  from: LngLat,
+  to: LngLat,
+  opts: {profile?: DirectionsProfile; signal?: AbortSignal} = {},
+): Promise<DirectionsRoute[]> {
+  if (!hasDirectionsToken()) {
+    return [];
+  }
+  const profile = opts.profile ?? 'driving-traffic';
+  const pair = `${from.lng.toFixed(6)},${from.lat.toFixed(6)};${to.lng.toFixed(6)},${to.lat.toFixed(6)}`;
+  return requestRoutes(profile, pair, true, opts.signal);
+}
+
+async function requestRoutes(
+  profile: DirectionsProfile, pair: string, alternatives: boolean, signal?: AbortSignal,
+): Promise<DirectionsRoute[]> {
   const url =
     `https://api.mapbox.com/directions/v5/mapbox/${profile}/${pair}` +
     '?steps=true&overview=full&geometries=geojson&banner_instructions=true' +
     '&voice_instructions=true&voice_units=metric&language=en' +
     '&annotations=maxspeed' +
+    (alternatives ? '&alternatives=true' : '') +
     `&access_token=${encodeURIComponent(TOKEN)}`;
   try {
-    const res = await fetch(url, {signal: opts.signal});
+    const res = await fetch(url, {signal});
     if (!res.ok) {
-      return null;
+      return [];
     }
     const json = (await res.json()) as {routes?: RawRoute[]};
-    const route = json?.routes?.[0];
-    return route ? parseDirectionsRoute(route) : null;
+    const out: DirectionsRoute[] = [];
+    for (const r of json?.routes ?? []) {
+      const parsed = parseDirectionsRoute(r);
+      if (parsed) {out.push(parsed);}
+    }
+    return out;
   } catch {
     // Network error / aborted — caller keeps the last good route.
-    return null;
+    return [];
   }
+}
+
+/** "1 h 5 min" / "12 min" for route-choice rows and the ETA cluster. */
+export function formatDuration(seconds: number): string {
+  const m = Math.max(0, Math.round(seconds / 60));
+  if (m < 60) {return `${m} min`;}
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return rem === 0 ? `${h} h` : `${h} h ${rem} min`;
+}
+
+/**
+ * The maneuvers still AHEAD of the driver, nearest first, with the distance
+ * from the driver to each — the "next turns" list (Navigation Ver 2). The
+ * first entry is the one the banner shows; the rest let the driver see what
+ * follows ("Keep right, then in 3.9 km take exit 12").
+ */
+export function upcomingManeuvers(
+  route: DirectionsRoute, p: LngLat, limit = 12,
+): Array<{step: DirectionStep; distanceM: number; index: number}> {
+  const nm = nextManeuver(route, p);
+  if (!nm) {return [];}
+  const out: Array<{step: DirectionStep; distanceM: number; index: number}> = [];
+  let dist = nm.distanceM;
+  for (let i = nm.index; i < route.steps.length && out.length < limit; i++) {
+    const step = route.steps[i];
+    if (i > nm.index) {
+      // Each step's `distanceM` is the length of the road travelled AFTER its
+      // maneuver, so the distance to maneuver i is the sum up to i-1.
+      dist += route.steps[i - 1].distanceM;
+    }
+    if (step.maneuverType === 'depart') {continue;}
+    out.push({step, distanceM: dist, index: i});
+  }
+  return out;
 }

@@ -15,6 +15,9 @@ import {
   speedLimitAtKph,
   currentRoadName,
   fetchDirections,
+  fetchRouteAlternatives,
+  formatDuration,
+  upcomingManeuvers,
   type DirectionsRoute,
   type LngLat,
 } from '../mapboxDirections';
@@ -70,6 +73,7 @@ describe('mapboxDirections · splitRouteAtProgress', () => {
 
 describe('mapboxDirections · nextManeuver', () => {
   const route: DirectionsRoute = {
+    id: 'r1', viaRoad: null,
     coordinates: ROUTE,
     distanceM: 400,
     durationS: 90,
@@ -89,6 +93,19 @@ describe('mapboxDirections · nextManeuver', () => {
     expect(m?.step.maneuverType).toBe('turn');
     expect(m?.step.bannerSecondary).toBe('Al Khail Rd');
     expect(m?.distanceM).toBeGreaterThan(0);
+  });
+
+  // Navigation Ver 2 — the "next turns" list and route-choice helpers.
+  it('upcomingManeuvers lists the turn then the arrival, with cumulative distances, skipping depart', () => {
+    const ups = upcomingManeuvers(route, {lng: 55.2711, lat: 25.2000});
+    expect(ups.map(u => u.step.maneuverType)).toEqual(['turn', 'arrive']);
+    expect(ups[1].distanceM).toBeCloseTo(ups[0].distanceM + 200, 5);
+  });
+
+  it('formatDuration reads like a navigation app', () => {
+    expect(formatDuration(540)).toBe('9 min');
+    expect(formatDuration(3600)).toBe('1 h');
+    expect(formatDuration(3900)).toBe('1 h 5 min');
   });
 
   it('advances to arrival once the turn is passed', () => {
@@ -210,6 +227,12 @@ describe('mapboxDirections · fetchDirections', () => {
       await mod.fetchDirections({lng: 55.27, lat: 25.2}, {lng: 55.28, lat: 25.21});
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(String(fetchMock.mock.calls[0][0])).toContain('/directions/v5/mapbox/driving-traffic/');
+      expect(String(fetchMock.mock.calls[0][0])).not.toContain('alternatives=true');
+      // Navigation Ver 2 — route choices ask for alternatives, same request otherwise.
+      const alt = mod as unknown as {fetchRouteAlternatives: typeof fetchRouteAlternatives};
+      await alt.fetchRouteAlternatives({lng: 55.27, lat: 25.2}, {lng: 55.28, lat: 25.21});
+      expect(String(fetchMock.mock.calls[1][0])).toContain('alternatives=true');
+      expect(String(fetchMock.mock.calls[1][0])).toContain('annotations=maxspeed');
     } finally {
       (global as {fetch?: unknown}).fetch = realFetch;
       if (prev === undefined) {delete process.env.EXPO_PUBLIC_MAPBOX_TOKEN;}

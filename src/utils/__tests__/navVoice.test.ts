@@ -28,6 +28,7 @@ const step = (over: Partial<DirectionStep> = {}): DirectionStep => ({
 });
 
 const route = (steps: DirectionStep[]): DirectionsRoute => ({
+  id: 'r', viaRoad: null,
   coordinates: [{lng: 55.2, lat: 25.2}, {lng: 55.3, lat: 25.3}],
   distanceM: 4000,
   durationS: 600,

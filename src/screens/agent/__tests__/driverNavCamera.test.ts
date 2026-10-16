@@ -44,9 +44,11 @@ function region(src: string, startMarker: string, length = 700): string {
 
 describe('requirement 1 — track the vehicle and rotate the map to its direction', () => {
   it('the follow camera applies a bearing and a pitch, not just a centre', () => {
-    const follow = region(HTML, 'if (navActive && follow) {');
+    const follow = region(HTML, 'if (navActive && follow) {', 1000);
     expect(follow).toContain('cam.bearing = navBearing;');
-    expect(follow).toContain('cam.pitch = NAV_PITCH;');
+    // Nav v2: the pitch is the live target (NAV_PITCH on the road, flatter on arrival).
+    expect(follow).toContain('cam.pitch = followPitch();');
+    expect(follow).toContain('cam.zoom = navZoom;');
     expect(follow).toContain('map.easeTo(cam)');
   });
 
@@ -93,7 +95,7 @@ describe('requirement 1 — track the vehicle and rotate the map to its directio
 
   it('Track Up is the default and North Up is selectable', () => {
     expect(HTML).toContain('window.setNavCamera = function');
-    expect(HTML).toMatch(/navMode = \(payload && payload\.mode\) === 'north' \? 'north' : 'course'/);
+    expect(HTML).toMatch(/navMode = p\.mode === 'north' \? 'north' : 'course'/);
     // Default on the RN side: Track Up for whoever is driving, north-up for a
     // remote observer (rotating someone else's map is disorienting).
     expect(SCREEN).toMatch(/useState<'course' \| 'north'>\(\s*\n?\s*isDriver \? 'course' : 'north',?\s*\n?\s*\)/);
@@ -160,7 +162,7 @@ describe('requirement 6 — a reliable recenter', () => {
     const click = region(HTML, "recenterEl.addEventListener('click'");
     expect(click).toContain('follow = true;');
     expect(click).toContain('bearing: up ? navBearing : 0');
-    expect(click).toContain('pitch: up ? NAV_PITCH : 0');
+    expect(click).toContain('pitch: up ? followPitch() : 0');
     expect(click).toContain('offset: up ? navOffset() : [0, 0]');
   });
 

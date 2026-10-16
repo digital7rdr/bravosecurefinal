@@ -80,8 +80,15 @@ describe('native map parity — two implementations must not drift', () => {
     // Zoom, pitch, rotation AND the lower-third padding are all driven while
     // following — centre alone is a map that trails the car north-up from
     // orbit, which is what 1.0.252 shipped.
-    expect(native).toMatch(/zoomLevel=\{following \? \(courseUp \? NAV_ZOOM : NORTH_ZOOM\) : undefined\}/);
-    expect(native).toMatch(/pitch=\{following \? \(courseUp \? NAV_PITCH : 0\) : undefined\}/);
+    // Navigation Ver 2 — the LIVE zoom/pitch from navCamera.ts (tighter at a
+    // turn and on arrival, wider at speed) drive the camera; the constants are
+    // only the start-up frame before the tracker sends the first target.
+    expect(native).toMatch(/zoomLevel=\{following \? navZoom \?\? \(courseUp \? NAV_ZOOM : NORTH_ZOOM\) : undefined\}/);
+    expect(native).toMatch(/pitch=\{following \? \(courseUp \? navPitch : 0\) : undefined\}/);
+    // Both renderers accept the same frame and both apply it on every fix.
+    expect(native).toMatch(/setNavZoom\(p\.zoom\)/);
+    expect(code(WEB)).toMatch(/if \(typeof p\.zoom === 'number'\) navZoom = p\.zoom;/);
+    expect(code(WEB)).toMatch(/cam\.zoom = navZoom;/);
     expect(native).toMatch(/heading=\{following \? \(courseUp \? courseBearing \?\? 0 : 0\) : undefined\}/);
     expect(native).toMatch(/paddingTop: Math\.round\(mapHeightPx \* NAV_OFFSET_FRAC\)/);
     // easeTo: consecutive fixes glide; the flyTo default swoops per fix.
@@ -89,8 +96,11 @@ describe('native map parity — two implementations must not drift', () => {
     // NAV_PITCH matches the WebView constant so the two renderers read alike.
     expect(native).toMatch(/const NAV_PITCH = 55/);
     expect(code(WEB)).toMatch(/NAV_PITCH = 55/);
-    // Choosing an orientation re-arms follow on BOTH surfaces.
-    expect(native).toMatch(/setNavCamera:[\s\S]{0,220}?setFollowing\(true\)/);
+    // Choosing an orientation re-arms follow on BOTH surfaces — but a
+    // zoom-only update (the 1 Hz approach logic) must NOT take the map back
+    // from a driver who panned away.
+    expect(native).toMatch(/setNavCamera:[\s\S]{0,700}?if \(prev !== mode \|\| p\?\.rearm\) \{setFollowing\(true\)/);
+    expect(code(WEB)).toMatch(/const modeChanged = prevMode !== navMode \|\| p\.rearm === true;/);
   });
 
   it('the former parity gaps are now REAL, not stubs', () => {
@@ -129,7 +139,7 @@ describe('native map parity — two implementations must not drift', () => {
   it('a user drag stops the camera following, and only the pill resumes it', () => {
     const native = code(NATIVE);
     expect(native).toMatch(/isGestureActive[\s\S]{0,80}?setFollowing\(false\)/);
-    expect(native).toMatch(/onRecenter = useCallback\(\(\) => setFollowing\(true\)/);
+    expect(native).toMatch(/onRecenter = useCallback\(\(\) => \{ setOverview\(null\); setFollowing\(true\); \}/);
     // A new fix must not yank the map back while the user is reading it.
     expect(native).toMatch(/following \? cpoAt \?\? undefined : undefined/);
   });

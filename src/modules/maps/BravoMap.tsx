@@ -97,7 +97,13 @@ export interface BravoMapHandle {
   setCpo(p: CpoPayload): void;
   setPrincipal(p: {lat: number; lng: number} | null): void;
   setStyle(id: BravoMapStyleId): void;
-  setNavCamera(p: {mode: 'course' | 'north'}): void;
+  /** Nav v2: `zoom`/`pitch` are the follow targets (modules/maps/navCamera.ts);
+   *  a mode change (or `rearm`) also restores follow, a zoom-only update never does. */
+  setNavCamera(p: {mode: 'course' | 'north'; zoom?: number; pitch?: number; rearm?: boolean}): void;
+  /** Nav v2: frame what is ahead, north-up and flat; follow stops until ⌖ Follow. */
+  fitRoute(coords: LngLat[]): void;
+  /** Nav v2: route choices; unselected ones draw in a lighter shade. */
+  setAlternatives(list: Array<{id: string; coords: LngLat[]; selected: boolean}>): void;
   pushBubble(p: PushBubbleInput): void;
   pushSystem(p: PushSystemInput): void;
   setAwaiting(on: boolean): void;
@@ -136,6 +142,8 @@ interface Props {
  *                    AHEAD, not a circle around the vehicle
  */
 const NAV_PITCH = 55;
+// Starting zooms only — the tracker drives the live zoom through setNavCamera
+// (navCamera.ts: tighter at a turn and on arrival, wider at speed).
 const NAV_ZOOM = 16.5;
 const NORTH_ZOOM = 15;
 const NAV_OFFSET_FRAC = 0.4;
@@ -176,6 +184,14 @@ const BravoMap = forwardRef<BravoMapHandle, Props>(function BravoMap(
   const [route, setRoute] = useState<RoutePayload | null>(null);
   const [navRoute, setNavRoute] = useState<NavRoutePayload>({traveled: [], ahead: []});
   const [camMode, setCamMode] = useState<'course' | 'north'>('course');
+  // Nav v2 — live follow targets; null until the tracker sends the first.
+  const [navZoom, setNavZoom] = useState<number | null>(null);
+  const [navPitch, setNavPitch] = useState<number>(NAV_PITCH);
+  const [alternatives, setAlternatives] = useState<LngLat[][]>([]);
+  // A route overview frames bounds; the Camera reads them once, then follow is off.
+  const [overview, setOverview] = useState<{ne: LngLat; sw: LngLat; key: number} | null>(null);
+  // The latest fix for the imperative handle (built once, deps []).
+  const cpoRef = useRef<CpoPayload | null>(null);
 
   const [markerBubbles, setMarkerBubbles] = useState<MarkerBubble[]>([]);
   const [systemBubbles, setSystemBubbles] = useState<SystemBubble[]>([]);
@@ -213,6 +229,7 @@ const BravoMap = forwardRef<BravoMapHandle, Props>(function BravoMap(
         // This is what actually turns the course-up camera; the 1.0.252 build
         // only ever SEEDED the bearing, so the map never rotated (B-507 class).
         courseRef.current = advanceCourse(courseRef.current, [p.lng, p.lat], p.heading_deg);
+        cpoRef.current = p;
         setCpo(p);
       },
       setPrincipal: p => {
@@ -225,9 +242,31 @@ const BravoMap = forwardRef<BravoMapHandle, Props>(function BravoMap(
       // WebView parity: choosing an orientation is an explicit request to have
       // the camera driven again, so it also re-arms follow and drops the pill.
       setNavCamera: p => {
-        setCamMode(p?.mode === 'north' ? 'north' : 'course');
-        setFollowing(true);
+        const mode = p?.mode === 'north' ? 'north' : 'course';
+        if (typeof p?.zoom === 'number' && Number.isFinite(p.zoom)) {setNavZoom(p.zoom);}
+        if (typeof p?.pitch === 'number' && Number.isFinite(p.pitch)) {setNavPitch(p.pitch);}
+        setCamMode(prev => {
+          // Only a CHANGE of orientation (or an explicit re-arm) takes the
+          // camera back from the user — the 1 Hz zoom updates must not.
+          if (prev !== mode || p?.rearm) {setFollowing(true); setOverview(null);}
+          return mode;
+        });
       },
+      fitRoute: coords => {
+        const pts = (coords ?? []).filter(c => Array.isArray(c) && validLngLat(c[0], c[1]));
+        const at = cpoRef.current;
+        if (at && validLngLat(at.lng, at.lat)) {pts.push([at.lng, at.lat]);}
+        if (pts.length < 2) {return;}
+        let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+        for (const [lng, lat] of pts) {
+          minLng = Math.min(minLng, lng); maxLng = Math.max(maxLng, lng);
+          minLat = Math.min(minLat, lat); maxLat = Math.max(maxLat, lat);
+        }
+        setFollowing(false);
+        setOverview({ne: [maxLng, maxLat], sw: [minLng, minLat], key: Date.now()});
+      },
+      setAlternatives: list =>
+        setAlternatives((list ?? []).filter(r => r && !r.selected && r.coords?.length > 1).map(r => r.coords)),
       // The stacking rules live in bubbleStacks.ts, which is unit-tested.
       // These setters only hand it `Date.now()` and the payload.
       pushBubble: p => setMarkerBubbles(s => pushMarkerBubble(s, p, Date.now())),
@@ -271,7 +310,7 @@ const BravoMap = forwardRef<BravoMapHandle, Props>(function BravoMap(
     [route?.polyline],
   );
 
-  const onRecenter = useCallback(() => setFollowing(true), []);
+  const onRecenter = useCallback(() => { setOverview(null); setFollowing(true); }, []);
   // A gesture-driven camera move means the user took control. The SDK reports
   // the reason, so a programmatic follow-move does not switch itself off.
   // The actual heading is tracked (ref, not state — this fires per frame
@@ -342,9 +381,13 @@ const BravoMap = forwardRef<BravoMapHandle, Props>(function BravoMap(
           ref={cameraRef}
           followUserLocation={false}
           centerCoordinate={following ? cpoAt ?? undefined : undefined}
-          zoomLevel={following ? (courseUp ? NAV_ZOOM : NORTH_ZOOM) : undefined}
+          zoomLevel={following ? navZoom ?? (courseUp ? NAV_ZOOM : NORTH_ZOOM) : undefined}
           heading={following ? (courseUp ? courseBearing ?? 0 : 0) : undefined}
-          pitch={following ? (courseUp ? NAV_PITCH : 0) : undefined}
+          pitch={following ? (courseUp ? navPitch : 0) : undefined}
+          bounds={!following && overview
+            ? {ne: overview.ne, sw: overview.sw, paddingTop: 180, paddingBottom: 240, paddingLeft: 50, paddingRight: 50}
+            : undefined}
+          maxZoomLevel={!following && overview ? 16 : undefined}
           padding={
             following && courseUp && mapHeightPx > 0
               ? {...ZERO_PADDING, paddingTop: Math.round(mapHeightPx * NAV_OFFSET_FRAC)}
@@ -353,6 +396,17 @@ const BravoMap = forwardRef<BravoMapHandle, Props>(function BravoMap(
           animationMode="easeTo"
           animationDuration={800}
         />
+
+        {alternatives.length > 0 && (
+          <Mapbox.ShapeSource
+            id="bravo-route-alts"
+            shape={{type: 'FeatureCollection', features: alternatives.map(lineFeature)}}>
+            <Mapbox.LineLayer
+              id="bravo-route-alts-line"
+              style={{lineColor: '#9FB3CC', lineOpacity: 0.55, lineWidth: 5, lineCap: 'round', lineJoin: 'round'}}
+            />
+          </Mapbox.ShapeSource>
+        )}
 
         {navRoute.ahead.length > 1 && (
           <Mapbox.ShapeSource id="bravo-route-ahead" shape={lineFeature(navRoute.ahead)}>
