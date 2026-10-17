@@ -26,6 +26,7 @@ import {API_BASE_URL} from '@utils/constants';
 import {tokenStore} from '@services/api';
 import {getMessengerRuntime} from '@/modules/messenger/runtime';
 import {writeServerRosterOrQueue} from '@/modules/messenger/runtime/pendingRosterIntents';
+import {groupCreateFailureCopy, groupCreatePartialNote} from '@/modules/messenger/runtime/groupCreateOutcome';
 import {scaleTextStyles} from '@utils/scaling';
 import LoadingView from '@components/LoadingView';
 
@@ -42,6 +43,11 @@ export default function NewChatScreen() {
   const route = useRoute<RouteProp<MessengerStackParamList, 'NewChat'>>();
   const addToGroupId = route.params?.addToGroupId ?? null;
   const addGroupName = route.params?.groupName ?? null;
+  // Bug 27 (2026-10-17) — the Groups screen's "New Group" / "Create Group" /
+  // + buttons opened this screen in plain New Message mode, where tapping a
+  // contact opens a 1:1 chat: there was no way to create a group from there.
+  // They now pass startGroup, which opens straight into member selection.
+  const startGroup = route.params?.startGroup === true && !addToGroupId;
   const currentUser = useAuthStore(s => s.user);
   const upsertConversation = useMessengerStore(s => s.upsertConversation);
 
@@ -60,7 +66,7 @@ export default function NewChatScreen() {
 
   // Group-creation state. When groupMode is on, tapping a contact toggles
   // selection (WhatsApp-style multi-select) instead of opening a chat.
-  const [groupMode, setGroupMode] = useState(false);
+  const [groupMode, setGroupMode] = useState(startGroup);
   // The search bar used to be a decorative <Text> — it looked like an
   // input but held no state and filtered nothing, so typing did nothing.
   const [query, setQuery] = useState('');
@@ -88,6 +94,12 @@ export default function NewChatScreen() {
   // keeps the button visibly disabled + ignores presses until the
   // first call resolves (success or failure).
   const [creating, setCreating] = useState(false);
+  /**
+   * Bug 27 — people picked for a NEW group through "Add by Number". They are
+   * in no list above (not in the address book, no chat yet), so they get
+   * their own section where they show as selected and can be unticked.
+   */
+  const [numberPicks, setNumberPicks] = useState<DiscoveredRow[]>([]);
 
   const showDevContacts = isDevMode();
   const devContacts = otherDevContacts(currentUser?.id);
@@ -104,6 +116,7 @@ export default function NewChatScreen() {
   const exitGroupMode = () => {
     setGroupMode(false);
     setSelectedIds(new Set());
+    setNumberPicks([]);
   };
 
   const openGroupNamePrompt = () => {
@@ -136,20 +149,25 @@ export default function NewChatScreen() {
       //     so other members' clients call setGroupState +
       //     upsertConversation themselves and the chat appears in
       //     their inbox.
-      const {conversationId, groupId} = await runtime.createGroupChat({name, members: memberIds});
+      const {conversationId, groupId, leftOutUserIds} = await runtime.createGroupChat({name, members: memberIds});
       console.log('[group-create] OK conversationId =', conversationId, 'groupId =', groupId);
+      // Read BEFORE exitGroupMode clears the by-number picks it names.
+      const leftOutNote = groupCreatePartialNote(leftOutUserIds, nameOfPick);
       setGroupNameModalOpen(false);
       exitGroupMode();
       navigation.navigate('Chat', {conversationId, name, isGroup: true});
+      if (leftOutNote) {
+        const {Alert} = require('@utils/alert') as typeof import('@utils/alert');
+        Alert.alert('Group created', leftOutNote);
+      }
     } catch (e) {
       console.warn('[group-create] FAILED:', (e as Error).message);
-      // Surface to the user — without this they tap Create and nothing
-      // happens visibly when the network is down or peers can't be
-      // reached. The screen itself doesn't have an error banner today;
-      // a short alert is the simplest stopgap.
-
+      // Bug 27 — human copy. The raw message was
+      // "group create: no member could be reached (<uuid>: …)", or with an
+      // empty reason list when every member lacked Messenger keys.
       const {Alert} = require('@utils/alert') as typeof import('@utils/alert');
-      Alert.alert('Could not create group', (e as Error).message);
+      const copy = groupCreateFailureCopy(e, nameOfPick);
+      Alert.alert(copy.title, copy.message);
     } finally {
       setCreating(false);
     }
@@ -194,6 +212,13 @@ export default function NewChatScreen() {
     ...(currentUser?.id ? [currentUser.id] : []),
   ]);
   const visibleRecents = filterContacts(recentPeers, query);
+
+  /** The name the picker showed for a selected user (for group-create copy). */
+  const nameOfPick = (userId: string): string | undefined =>
+    matches.find(m => m.userId === userId)?.localName
+    ?? recentPeers.find(r => r.userId === userId)?.localName
+    ?? numberPicks.find(r => r.userId === userId)?.localName
+    ?? devContacts.find(d => d.userId === userId)?.name;
 
   const startDevChat = (peer: typeof DEV_CONTACTS[number]) => {
     // BS-NC1 — resolve to the CANONICAL direct conversation id. If a
@@ -443,6 +468,27 @@ export default function NewChatScreen() {
         });
         return;
       }
+      // Bug 27 — choosing members for a NEW group: a resolved number is
+      // SELECTED (and listed under "Added by number") instead of opening a
+      // 1:1 chat. Someone already in a list above is just ticked there.
+      if (groupMode) {
+        const listed = matches.some(m => m.userId === hit.userId)
+          || recentPeers.some(r => r.userId === hit.userId)
+          || devContacts.some(d => d.userId === hit.userId);
+        if (!listed) {
+          setNumberPicks(prev => prev.some(r => r.userId === hit.userId) ? prev : [...prev, {
+            userId:      hit.userId,
+            displayName: hit.displayName ?? '',
+            avatarUrl:   null,
+            phoneE164:   hit.phone ?? e164 ?? '',
+            localName:   hit.displayName || hit.phone || numberInput.trim(),
+          }]);
+        }
+        setSelectedIds(prev => new Set(prev).add(hit.userId));
+        setByNumberOpen(false);
+        setNumberInput('');
+        return;
+      }
       const conversationId = resolveDirectConversationIdFromState(
         useMessengerStore.getState(), hit.userId,
       );
@@ -482,10 +528,10 @@ export default function NewChatScreen() {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => groupMode ? exitGroupMode() : navigation.goBack()}
+          onPress={() => groupMode && !startGroup ? exitGroupMode() : navigation.goBack()}
           activeOpacity={0.7}
           hitSlop={{top: 6, bottom: 6, left: 6, right: 6}}>
-          <Icon name={groupMode ? 'close' : 'arrow-left'} size={20} color="#FFFFFF" />
+          <Icon name={groupMode && !startGroup ? 'close' : 'arrow-left'} size={20} color="#FFFFFF" />
         </TouchableOpacity>
         {/* B-657 - minWidth:0 or the flex is inert (min-width:auto floors a
             flex child at content size) and a long group name overflows. */}
@@ -549,23 +595,37 @@ export default function NewChatScreen() {
         )}
 
         {/* Message by number — reach someone not in your contacts. In
-            add-to-group mode the same lookup ADDS the number to the group. */}
-        {!groupMode && (
-          <TouchableOpacity style={styles.newGroupRow} activeOpacity={0.8}
-            onPress={() => { setLookupError(null); setByNumberOpen(true); }}>
-            <View style={styles.newGroupIcon}>
-              <Icon name="dialpad" size={20} color="#1E88FF" />
-            </View>
-            <View style={styles.newGroupInfo}>
-              <Text style={styles.newGroupTitle}>{addToGroupId ? 'Add by Number' : 'Message by Number'}</Text>
-              <Text style={styles.newGroupSub}>
-                {addToGroupId
-                  ? `Add any Bravo number to ${addGroupName ?? 'this group'}`
+            add-to-group mode the same lookup ADDS the number to the group;
+            while choosing members for a new group it SELECTS them (bug 27:
+            the row was hidden there, so a new user with no Bravo contacts
+            had nobody to pick and the Next button never appeared). */}
+        <TouchableOpacity style={styles.newGroupRow} activeOpacity={0.8}
+          onPress={() => { setLookupError(null); setByNumberOpen(true); }}>
+          <View style={styles.newGroupIcon}>
+            <Icon name="dialpad" size={20} color="#1E88FF" />
+          </View>
+          <View style={styles.newGroupInfo}>
+            <Text style={styles.newGroupTitle}>{groupMode ? 'Add by Number' : addToGroupId ? 'Add by Number' : 'Message by Number'}</Text>
+            <Text style={styles.newGroupSub}>
+              {addToGroupId
+                ? `Add any Bravo number to ${addGroupName ?? 'this group'}`
+                : groupMode
+                  ? 'Add someone who isn’t in your contacts'
                   : 'Start a chat with any Bravo number'}
-              </Text>
-            </View>
-            <Icon name="chevron-right" size={18} color="rgba(180,188,204,0.45)" />
-          </TouchableOpacity>
+            </Text>
+          </View>
+          <Icon name="chevron-right" size={18} color="rgba(180,188,204,0.45)" />
+        </TouchableOpacity>
+
+        {groupMode && numberPicks.length > 0 && (
+          <>
+            <Text style={styles.sectionLabel}>Added by number · {numberPicks.length}</Text>
+            {numberPicks.map(r => (
+              <PickerRow key={r.userId} row={r} groupMode
+                selected={selectedIds.has(r.userId)}
+                onPress={() => toggleSelect(r.userId)} />
+            ))}
+          </>
         )}
 
         {showDevContacts && (
@@ -692,11 +752,13 @@ export default function NewChatScreen() {
             overlap so the centered card re-centres above the keyboard. */}
         <View style={[styles.modalOverlay, {paddingBottom: keyboardOverlap}]}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>{addToGroupId ? 'Add by number' : 'Message by number'}</Text>
+            <Text style={styles.modalTitle}>{addToGroupId || groupMode ? 'Add by number' : 'Message by number'}</Text>
             <Text style={styles.modalSub}>
               {addToGroupId
                 ? `They'll be added to ${addGroupName ?? 'the group'} if they're on Bravo`
-                : 'Enter a phone number with country code'}
+                : groupMode
+                  ? 'They’ll be selected for the new group if they’re on Bravo'
+                  : 'Enter a phone number with country code'}
             </Text>
             <TextInput
               style={styles.modalInput}
@@ -721,7 +783,7 @@ export default function NewChatScreen() {
                 activeOpacity={0.85}>
                 {lookupBusy
                   ? <ActivityIndicator color="#FFF" />
-                  : <Text style={styles.modalCreateText}>{addToGroupId ? 'Add' : 'Message'}</Text>}
+                  : <Text style={styles.modalCreateText}>{addToGroupId || groupMode ? 'Add' : 'Message'}</Text>}
               </TouchableOpacity>
             </View>
           </View>

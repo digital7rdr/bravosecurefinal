@@ -42,6 +42,15 @@ ensure_env() {  # $1 file, $2 key, $3 value
 }
 ensure_env .env.auth SETTINGS_ENCRYPTION_KEY "$(openssl rand -base64 32)"
 ensure_env .env.auth PUBLIC_BASE_URL "https://auth.bravosecure.cloud"
+# 2026-10-17 — group calls. Without these the SFU fails closed in production
+# (no room is created, every join refused). Port range = the messenger-service
+# ports published in docker-compose.prod.yml. The token secret is generated
+# here, on the box, and never printed.
+ensure_env .env.messenger SFU_ANNOUNCED_IP "31.97.126.211"
+ensure_env .env.messenger SFU_LISTEN_IP "0.0.0.0"
+ensure_env .env.messenger SFU_RTC_MIN_PORT "40000"
+ensure_env .env.messenger SFU_RTC_MAX_PORT "40099"
+ensure_env .env.messenger SFU_ROOM_TOKEN_SECRET "$(openssl rand -base64 36 | tr -d '\n/+=' | head -c 48)"
 
 say "Update source"
 before="$(git -C ../.. rev-parse --short HEAD)"
@@ -73,6 +82,16 @@ docker compose -f "$COMPOSE" ps
 $unhealthy
   logs:  docker compose -f $COMPOSE logs --tail=100 <service>"
 
+case " ${SERVICES[*]} " in
+  *" messenger-service "*)
+    # Read first, then grep: under pipefail `docker logs | grep -q` reports the
+    # writer's SIGPIPE, which would hide exactly the line being looked for.
+    msgr_log="$(docker logs --since 3m bravo-msgr 2>&1 || true)"
+    if grep -qE 'sfu_announced_ip_unconfigured|SFU_ANNOUNCED_IP is' <<<"$msgr_log"; then
+      die "messenger: SFU refused to start (SFU_ANNOUNCED_IP) — group calls would fail"
+    fi
+    ok "messenger: SFU announced IP set (group calls)";;
+esac
 curl -fsS https://auth.bravosecure.cloud/auth/health >/dev/null && ok "auth: /auth/health 200"
 [[ "$(curl -s -o /dev/null -w '%{http_code}' https://relay.bravosecure.cloud/envelopes)" == "401" ]] && ok "relay: 401 unauthenticated (alive)"
 [[ "$(curl -s -o /dev/null -w '%{http_code}' https://ops.bravosecure.cloud/)" =~ ^30[27]$ ]] && ok "ops: redirects to /login"

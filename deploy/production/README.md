@@ -83,7 +83,8 @@ Then:
 cd /opt/bravo && bash deploy/production/bootstrap.sh
 ```
 
-Installs Docker + Caddy, opens only 22/80/443/3478/5349/49160-49200, stages
+Installs Docker + Caddy, opens only 22/80/443/3478/5349/49160-49200 (TURN)
+and 40000-40099 (group-call media), stages
 Supabase, and re-checks DNS. It does **not** touch SSH auth — harden that
 deliberately, per the note it prints, with a second session open.
 
@@ -198,9 +199,10 @@ cd /opt/bravo && bash deploy/production/deploy.sh ops-console     # just one
 ```
 
 `deploy.sh` fast-forwards the checkout, rebuilds only the named services,
-rolls them, waits for health, and probes the public URLs. It never touches
-the env files or the infra containers — rolling Redis drops every live
-WebSocket and rolling coturn drops every call.
+rolls them, waits for health, and probes the public URLs. It never rotates or
+rewrites an env value (it only appends keys that are missing) and never
+touches the infra containers — rolling Redis drops every live WebSocket and
+rolling coturn drops every call.
 
 ## 5. coturn's certificate
 
@@ -266,6 +268,21 @@ The usual cause is `CORS_ORIGINS` in `.env.messenger` missing
 `https://relay.bravosecure.cloud`: React Native sends that as the `Origin` of every
 socket and engine.io refuses unlisted origins with a silent 400. Add it, then
 `docker compose -f docker-compose.prod.yml up -d --force-recreate messenger-service`.
+
+### Group, channel and mission calls fail ("Call failed", or stuck on "Connecting")
+
+Those calls go through the SFU inside messenger-service, not peer to peer.
+In production it needs, in `.env.messenger`, `SFU_ANNOUNCED_IP` (this box's
+public IP), `SFU_ROOM_TOKEN_SECRET`, and `SFU_RTC_MIN_PORT`/`SFU_RTC_MAX_PORT`
+equal to the UDP/TCP range messenger-service publishes in
+`docker-compose.prod.yml` (40000-40099). `deploy.sh` appends any that are
+missing. Check without printing secrets:
+
+```bash
+grep -oE '^SFU_[A-Z_]+' .env.messenger                      # five names
+docker logs bravo-msgr 2>&1 | grep -E 'SFU_ANNOUNCED_IP|room_token|bootstrapping' | tail
+docker port bravo-msgr | grep -c '4000'                     # > 0 = media ports published
+```
 
 ## 9. Backups
 

@@ -378,7 +378,22 @@ export interface MessengerRuntime {
     // path; there is simply no one to distribute to yet. Default false: the
     // 1:1/user-created group flows keep requiring a second member.
     allowSolo?: boolean;
-  }): Promise<{conversationId: string; groupId: string}>;
+  }): Promise<{
+    conversationId: string;
+    groupId: string;
+    /**
+     * Bug 27 (2026-10-17) — members whose `create` copy failed transiently
+     * and sits in the durable outbox (delivered by the drain). A create with
+     * only queued copies SUCCEEDS instead of throwing.
+     */
+    queuedForRetry?: number;
+    /**
+     * Selected members left OUT of the group because they have no Messenger
+     * keys yet (never opened Messenger) — the screen names them. When every
+     * selected member is keyless the call throws GroupCreateUnreachableError.
+     */
+    leftOutUserIds?: string[];
+  }>;
 
   /**
    * MISSION-GROUP (batch area 5) — bootstrap E2EE state for a group whose

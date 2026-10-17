@@ -113,8 +113,10 @@ export type MessengerStackParamList = {
   VaultLock: VaultGateParams;
   // `addToGroupId` (+ name) puts NewChat in "add member to existing group"
   // mode: picking a contact calls runtime.addGroupMember instead of opening
-  // a new chat. Undefined param = normal new-message / new-group flow.
-  NewChat: {addToGroupId: string; groupName: string} | undefined;
+  // a new chat. `startGroup` opens straight into new-group member selection
+  // (the Groups screen's create buttons). Undefined param = normal
+  // new-message flow.
+  NewChat: {addToGroupId?: string; groupName?: string; startGroup?: boolean} | undefined;
   VaultScreen: undefined;
   FileVaultPurchase: undefined;
   VaultForgot: VaultGateParams;
@@ -646,7 +648,7 @@ export type AgentStackParamList = {
   // Cross-module messenger screens (full stack available from agent portal)
   MessengerHome: {tab?: MessengerHomeTab} | undefined;
   Chat: {conversationId: string; name: string; isGroup: boolean; draft?: string; focusMessageId?: string; sharedAssets?: import('@/modules/messenger/ui/pickedAssets').PickedAsset[]};
-  NewChat: {addToGroupId: string; groupName: string} | undefined;
+  NewChat: {addToGroupId?: string; groupName?: string; startGroup?: boolean} | undefined;
   ChatInfo: {conversationId: string};
   VaultLock: VaultGateParams;
   VaultScreen: undefined;

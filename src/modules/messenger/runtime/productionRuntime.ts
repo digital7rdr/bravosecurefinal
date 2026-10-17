@@ -172,6 +172,7 @@ import {PendingMutationStore} from '../store/pendingMutationStore';
 import {applyDirectText} from './applyDirectText';
 import {applyGroupText} from './applyGroupText';
 import {applyGroupAdmin} from './applyGroupAdmin';
+import {GroupCreateUnreachableError, isNoKeysError, isQueuedForRetry, markQueuedForRetry} from './groupCreateOutcome';
 import {buildInboundMessage, mentionsFrom, REPLY_PREVIEW_MAX_CHARS, sentAtFromAad} from './inboundMessageBuilder';
 import {mergeReaction} from './reactionMerge';
 import {PendingReactionStore} from '../store/pendingReactionStore';
@@ -3015,6 +3016,9 @@ export async function buildProductionRuntime(
       ciphertext:              args.ct,
       cert:                    args.cert,
     });
+    // Bug 27 (2026-10-17) — true once the durable row exists, so a transient
+    // send failure below can tell the caller "queued", not "lost".
+    let queued = false;
     if (sqlOutbox) {
       try {
         await sqlOutbox.enqueue({
@@ -3032,6 +3036,7 @@ export async function buildProductionRuntime(
             urgent: false,
           }),
         });
+        queued = true;
       } catch (e) {
         console.warn('[group-admin.outbox] enqueue failed:', asErrorMessage(e));
       }
@@ -3062,7 +3067,11 @@ export async function buildProductionRuntime(
             console.warn('[group-admin.outbox] recordAttempt failed:', asErrorMessage(err)),
           );
       }
-      throw e;
+      // Same rule the outbox drain uses (classifyOutboxFailure): only a
+      // copy the drain will actually retry counts as queued.
+      throw markQueuedForRetry(
+        e, queued && !isPermanentRelayRejection(e) && classifyOutboxFailure(e).kind !== 'rejected',
+      );
     }
   };
 
@@ -5663,8 +5672,40 @@ export async function buildProductionRuntime(
 
     createGroupChat: async ({name, members, allowZeroDelivered, allowSolo}) => {
       console.log('[group-create:runtime] start name=', JSON.stringify(name), 'inputMembers=', members);
-      const others = Array.from(new Set(members.filter(uid => uid && uid !== ownAddress.userId)));
+      let others = Array.from(new Set(members.filter(uid => uid && uid !== ownAddress.userId)));
       console.log('[group-create:runtime] dedup+self-strip otherMembers=', others);
+      // Bug 27 (2026-10-17) — a member with NO published Messenger keys
+      // (registered, never opened Messenger) can never receive the group key.
+      // Find them BEFORE the group exists: they are left out of it (and named
+      // to the creator), so the group is created for everyone who can hold
+      // the key and they can be added from Group info later — instead of the
+      // whole create failing, or a member listed who silently never gets it.
+      // Department channels (allowZeroDelivered) keep their own key-in-later
+      // path and are not filtered.
+      let keylessUserIds: string[] = [];
+      if (!allowZeroDelivered && others.length > 0) {
+        const PROBE_CONCURRENCY = 8; // same batch as broadcastToGroup's fan-out
+        for (let i = 0; i < others.length; i += PROBE_CONCURRENCY) {
+          await Promise.all(others.slice(i, i + PROBE_CONCURRENCY).map(async uid => {
+            try {
+              await ensureOutgoingSession(own, keys, {userId: uid, deviceId: 1}, ownStore);
+            } catch (e) {
+              if (isNoKeysError(e)) {keylessUserIds.push(uid);}
+              // Anything else (offline, 5xx) is left to the fan-out, which
+              // queues or reports it exactly as before.
+            }
+          }));
+        }
+        if (keylessUserIds.length > 0) {
+          console.warn('[group-create:runtime] members without Messenger keys left out:', keylessUserIds.length);
+          if (keylessUserIds.length === others.length) {
+            throw new GroupCreateUnreachableError(others, others.map(uid => `${uid}: no_keys_found`));
+          }
+          const keyless = new Set(keylessUserIds);
+          others = others.filter(uid => !keyless.has(uid));
+          keylessUserIds = members.filter(uid => keyless.has(uid)).filter((u, i, a) => a.indexOf(u) === i);
+        }
+      }
       // Founder QA 2026-08-08 — allowSolo: a dept channel's group may exist
       // with ONLY its admin. Nothing below needs a second member: the master
       // key is generated locally, the fan-out loop simply runs zero times
@@ -5733,7 +5774,15 @@ export async function buildProductionRuntime(
       const creatorIdentity = await ownStore.getIdentityKeyPair();
       const creatorSignature = await signGroupCreate(creatorIdentity.privKey, state);
       let delivered = 0;
+      // Bug 27 (2026-10-17) — a member whose copy failed TRANSIENTLY (offline,
+      // timeout, 5xx, 429) is not "unreachable": the copy is a durable outbox
+      // row the drain delivers. Counting it as a failure told the creator
+      // "Could not create group" while the group still reached everyone, and
+      // the re-tap made a second group.
+      let queuedForRetry = 0;
       const failures: string[] = [];
+      /** Members no copy could even be queued for, by user id. */
+      const unreachable = new Map<string, string>();
       try {
         const r = await broadcastToGroup({
           group:   state,
@@ -5765,18 +5814,37 @@ export async function buildProductionRuntime(
               delivered += 1;
             } catch (e) {
               const msg = asErrorMessage(e);
+              if (isQueuedForRetry(e)) {
+                queuedForRetry += 1;
+                console.warn('[group-create:runtime] deliver deferred (queued for retry) to', peer.userId, '—', msg);
+                return;
+              }
               failures.push(`${peer.userId}: ${msg}`);
+              unreachable.set(peer.userId, msg);
               console.warn('[group-create:runtime] deliver FAILED to', peer.userId, '—', msg);
             }
           },
         });
         // r.recipients is the count broadcastToGroup ENQUEUED — actual
         // success comes from the delivered counter inside our deliver.
-        void r;
+        // Bug 27 — r.failures are the members whose SESSION could not be
+        // built (no published keys: never opened Messenger). They never
+        // reach `deliver`, so they were dropped from the error entirely and
+        // the user read "no member could be reached ()".
+        for (const f of r.failures) {
+          if (unreachable.has(f.userId)) {continue;}
+          failures.push(`${f.userId}: ${f.error}`);
+          unreachable.set(f.userId, f.error);
+        }
       } catch (e) {
         failures.push(asErrorMessage(e));
       }
-      console.log('[group-create:runtime] fan-out done delivered=', delivered, 'failures=', failures.length);
+      console.log('[group-create:runtime] fan-out done delivered=', delivered, 'queued=', queuedForRetry, 'failures=', failures.length);
+      const unreachableUserIds = [...keylessUserIds, ...others.filter(uid => unreachable.has(uid))];
+      if (delivered === 0 && queuedForRetry > 0) {
+        console.warn('[group-create:runtime] 0 delivered now,', queuedForRetry, 'queued — keeping group conversationId=', conversationId);
+        return {conversationId, groupId: state.groupId, queuedForRetry, leftOutUserIds: keylessUserIds};
+      }
       if (delivered === 0) {
         // The local conversation/group state IS kept above — the user can re-share later.
         // D1-d — for dept-channel provisioning (allowZeroDelivered), a 0-delivered fan-out is
@@ -5788,10 +5856,19 @@ export async function buildProductionRuntime(
           return {conversationId, groupId: state.groupId};
         }
         console.warn('[group-create:runtime] no recipients reached, throwing');
-        throw new Error(`group create: no member could be reached (${failures.join('; ')})`);
+        // Bug 27 — undo the local rows: nobody holds this key, and a kept
+        // ghost group plus the user's retry is how one tap became two groups.
+        try {
+          store.removeGroupState(state.groupId);
+          store.removeConversation(conversationId);
+        } catch { /* best effort — the throw below is what the UI acts on */ }
+        throw new GroupCreateUnreachableError(unreachableUserIds, [
+          ...keylessUserIds.map(uid => `${uid}: no_keys_found`),
+          ...failures,
+        ]);
       }
       console.log('[group-create:runtime] OK conversationId=', conversationId, 'groupId=', state.groupId);
-      return {conversationId, groupId: state.groupId};
+      return {conversationId, groupId: state.groupId, queuedForRetry, leftOutUserIds: keylessUserIds};
     },
 
     /**

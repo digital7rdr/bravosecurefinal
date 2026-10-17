@@ -47,6 +47,7 @@ TOTP_KEY="$(genhex)"          # 64 hex = AES-256; prod fails closed without it
 SETTINGS_KEY="$(openssl rand -base64 32)"   # 32 bytes — Integrations tab secrets (AES-256-GCM)
 REDIS_PW="$(gen)"
 TURN_SECRET="$(gen)"
+SFU_TOKEN="$(gen)"           # HMAC key for group-call room tokens (messenger only)
 MINIO_USER="bravo-$(openssl rand -hex 4)"
 MINIO_PW="$(gen)"
 
@@ -249,6 +250,18 @@ TURN_TTL_SECONDS=86400
 # UDP to non-443 ports, and TCP is the only path that reaches coturn there.
 TURN_URLS=turn:turn.bravosecure.cloud:3478?transport=udp,turn:turn.bravosecure.cloud:3478?transport=tcp,turns:turn.bravosecure.cloud:5349?transport=tcp
 TURN_STUN_URLS=stun:turn.bravosecure.cloud:3478
+
+# Group calls (mediasoup SFU). In production the SFU refuses to start a room
+# without a public announced IP ("sfu_announced_ip_unconfigured") and refuses
+# every join without a room-token secret ("room_token_required"), so without
+# these every group, channel and mission call failed (bug 25/26, 2026-10-17).
+# The port range MUST match the messenger-service ports published in
+# docker-compose.prod.yml — each participant uses two ports.
+SFU_ANNOUNCED_IP=31.97.126.211
+SFU_LISTEN_IP=0.0.0.0
+SFU_RTC_MIN_PORT=40000
+SFU_RTC_MAX_PORT=40099
+SFU_ROOM_TOKEN_SECRET=${SFU_TOKEN}
 
 # MinIO replaces Cloudflare R2. The SDK talks to MinIO on the internal docker
 # name; the presigned upload/download URLs handed to phones must name the

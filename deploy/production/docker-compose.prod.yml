@@ -66,6 +66,14 @@ services:
       - ./secrets/firebase-service-account.json:/app/firebase-service-account.json:ro
     ports:
       - '127.0.0.1:3100:3100'
+      # Group calls — mediasoup media (2026-10-17). The SFU announces
+      # SFU_ANNOUNCED_IP and these ports in its ICE candidates, so phones send
+      # media straight here; unpublished, every group call sat on
+      # "Connecting" with no audio. MUST equal SFU_RTC_MIN_PORT..SFU_RTC_MAX_PORT
+      # in .env.messenger (two ports per participant: send + receive). Docker
+      # writes these into iptables directly (ufw does not apply).
+      - '40000-40099:40000-40099/udp'
+      - '40000-40099:40000-40099/tcp'
     networks: [bravo, supabase_default]
     depends_on:
       redis:

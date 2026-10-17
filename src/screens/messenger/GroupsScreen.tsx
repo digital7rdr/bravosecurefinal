@@ -213,7 +213,7 @@ export default function GroupsScreen() {
         <TouchableOpacity
           style={styles.newGroupBtn}
           activeOpacity={0.8}
-          onPress={() => navigation.navigate('NewChat')}>
+          onPress={() => navigation.navigate('NewChat', {startGroup: true})}>
           <Icon name="plus" size={14} color="#1E88FF" />
           <Text style={styles.newGroupText}>New Group</Text>
         </TouchableOpacity>
@@ -245,7 +245,7 @@ export default function GroupsScreen() {
             <TouchableOpacity
               style={styles.emptyCta}
               activeOpacity={0.85}
-              onPress={() => navigation.navigate('NewChat')}>
+              onPress={() => navigation.navigate('NewChat', {startGroup: true})}>
               <Icon name="plus" size={16} color="#FFF" />
               <Text style={styles.emptyCtaText}>Create Group</Text>
             </TouchableOpacity>
@@ -265,7 +265,7 @@ export default function GroupsScreen() {
       <TouchableOpacity
         style={[styles.fab, {bottom: insets.bottom + 16}]}
         activeOpacity={0.85}
-        onPress={() => navigation.navigate('NewChat')}>
+        onPress={() => navigation.navigate('NewChat', {startGroup: true})}>
         <Icon name="account-multiple-plus" size={22} color="#FFF" />
       </TouchableOpacity>
     </View>

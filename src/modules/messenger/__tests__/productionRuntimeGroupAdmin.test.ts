@@ -49,6 +49,11 @@ jest.mock('@bravo/messenger-core', () => {
   class FakeKeys {
     uploadBundle() { return Promise.resolve({poolSize: 50, identityRotated: false}); }
     fetchPeerBundleWithPoolSize(userId: string) {
+      // Bug 27 — an account that never opened Messenger: the keys service
+      // answers 404 no_keys_found.
+      if (userId.startsWith('nokeys-')) {
+        return Promise.reject(Object.assign(new Error('no_keys_found'), {status: 404}));
+      }
       const bundle = bus.bundles[userId];
       if (!bundle) { return Promise.reject(new Error(`no bundle for ${userId}`)); }
       return Promise.resolve({bundle, poolSize: 50});
@@ -298,15 +303,47 @@ describe('createGroupChat', () => {
     expect(bus().relaySends).toHaveLength(0);
   });
 
-  it('throws when NO member could be reached — but keeps the local state for a re-share', async () => {
+  it('throws a typed error when NO member could be reached and leaves no ghost group behind (bug 27)', async () => {
+    let caught: unknown;
     await withoutFinallyLeak(async () => {
-      await expect(runtime.createGroupChat({name: 'Unreachable', members: ['ghost-1']}))
-        .rejects.toThrow(/no member could be reached/);
+      await runtime.createGroupChat({name: 'Unreachable', members: ['ghost-1']}).catch(e => { caught = e; });
     });
-    // The group itself is valid; only delivery failed.
-    const gids = Object.keys(useMessengerStore.getState().groups);
-    expect(gids).toHaveLength(1);
-    expect(groupIn(gids[0])!.members['ghost-1']).toBeDefined();
+    expect((caught as Error).message).toMatch(/no member could be reached/);
+    expect((caught as {code?: string}).code).toBe('GROUP_MEMBERS_UNREACHABLE');
+    expect((caught as {unreachableUserIds?: string[]}).unreachableUserIds).toEqual(['ghost-1']);
+    // Nobody holds this key. Keeping the row made a dead group, and the
+    // user's retry made a second one.
+    expect(Object.keys(useMessengerStore.getState().groups)).toHaveLength(0);
+    expect(Object.keys(useMessengerStore.getState().conversations)).toHaveLength(0);
+  });
+
+  it('leaves out members with no Messenger keys and names them, creating the group for the rest (bug 27)', async () => {
+    const res = await runtime.createGroupChat({name: 'Mixed', members: [BOB, 'nokeys-1', CAROL]});
+    expect(res.leftOutUserIds).toEqual(['nokeys-1']);
+    const state = groupIn(res.groupId)!;
+    expect(Object.keys(state.members).sort()).toEqual([ALICE, BOB, CAROL].sort());
+    expect(bus().relaySends.map(r => r.recipient.userId).sort()).toEqual([BOB, CAROL].sort());
+    const convo = useMessengerStore.getState().conversations[res.conversationId]!;
+    expect(convo.participants).not.toContain('nokeys-1');
+  });
+
+  it('refuses up front when EVERY selected member lacks Messenger keys — nothing created, nothing sent', async () => {
+    let caught: unknown;
+    await withoutFinallyLeak(async () => {
+      await runtime.createGroupChat({name: 'Nobody', members: ['nokeys-1', 'nokeys-2']}).catch(e => { caught = e; });
+    });
+    expect((caught as {code?: string}).code).toBe('GROUP_MEMBERS_UNREACHABLE');
+    expect((caught as {reasons?: Record<string, string>}).reasons).toEqual({'nokeys-1': 'no_keys', 'nokeys-2': 'no_keys'});
+    expect(Object.keys(useMessengerStore.getState().groups)).toHaveLength(0);
+    expect(bus().relaySends).toHaveLength(0);
+  });
+
+  it('department provisioning (allowZeroDelivered) is not filtered by the key probe', async () => {
+    const res = await runtime.createGroupChat({
+      name: 'Dept keyless', members: ['nokeys-1'], allowZeroDelivered: true,
+    });
+    expect(groupIn(res.groupId)!.members['nokeys-1']).toBeDefined();
+    expect(res.leftOutUserIds ?? []).toEqual([]);
   });
 
   it('allowZeroDelivered keeps a STABLE id on a 0-delivered provisioning fan-out (D1-d)', async () => {

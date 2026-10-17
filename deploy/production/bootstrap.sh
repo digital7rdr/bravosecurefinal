@@ -66,6 +66,10 @@ ufw allow 3478/tcp      comment 'turn tcp'     >/dev/null
 ufw allow 3478/udp      comment 'turn udp'     >/dev/null
 ufw allow 5349/tcp      comment 'turns tls'    >/dev/null
 ufw allow 49160:49200/udp comment 'turn relay' >/dev/null
+# Group-call media (mediasoup). Docker publishes these itself; listed so the
+# firewall table documents every open port.
+ufw allow 40000:40099/udp comment 'sfu media udp' >/dev/null
+ufw allow 40000:40099/tcp comment 'sfu media tcp' >/dev/null
 ufw --force enable >/dev/null
 ok "ufw active — $(ufw status | grep -c ALLOW) rules"
 
