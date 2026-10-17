@@ -795,7 +795,12 @@ export class SfuService implements OnModuleInit, OnModuleDestroy {
     const tx = this.matchTransport(p, transportId);
     if (tx !== p.sendTransport) throw new BadRequestException('produce_on_recv_transport');
 
-    const producer = await tx.produce({kind, rtpParameters});
+    // 2026-10-17 — every video consumer resume asks the sender for a keyframe
+    // (resumeConsumer), and phones resume on stall checks, camera toggles and
+    // rejoins. Unthrottled, a burst of full keyframes on three simulcast
+    // layers shared the sender's 4G uplink with its audio, which broke up.
+    // At most one forwarded request per second per video producer.
+    const producer = await tx.produce({kind, rtpParameters, ...(kind === 'video' ? {keyFrameRequestDelay: 1000} : {})});
     p.producers.set(producer.id, producer);
 
     // Tear down on producer close.

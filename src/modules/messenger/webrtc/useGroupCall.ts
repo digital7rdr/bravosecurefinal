@@ -37,6 +37,7 @@
  *     pairwise Signal sessions, never through the SFU
  */
 import {GROUP_TERMINAL_STATES, type GroupCallState} from './groupCallStates';
+import {GROUP_AUDIO_CODEC_OPTIONS} from './groupAudioCodec';
 import {useEffect, useRef, useState, useCallback} from 'react';
 import {VIDEO_ENCODINGS, videoEncodings} from './videoEncodings';
 import type { types as MediasoupTypes} from 'mediasoup-client';
@@ -3084,7 +3085,8 @@ export function useGroupCall(opts: GroupCallOptions): GroupCallHandle {
         // below (B-06).
 
         // 8. Produce our local tracks.
-        // Audio: pin to mono Opus @ 32 kbps with in-band FEC + DTX.
+        // Audio: pin to mono Opus @ 32 kbps with in-band FEC, 20 ms packets,
+        // no DTX (groupAudioCodec.ts — 10 ms + DTX made group voice choppy).
         // Without these knobs mediasoup negotiates Opus stereo @ 32–64
         // kbps with NO FEC — every lost packet then triggers a NACK
         // round-trip, the receiver's NetEq jitter buffer grows to
@@ -3102,13 +3104,7 @@ export function useGroupCall(opts: GroupCallOptions): GroupCallHandle {
           const p = await withTrackBlanked(audioTrack, async () => {
             const prod = await sendTx.produce({
               track: audioTrack as never,
-              codecOptions: {
-                opusStereo:            false,
-                opusFec:               true,
-                opusDtx:               true,
-                opusMaxAverageBitrate: 32_000,
-                opusPtime:             10,
-              },
+              codecOptions: {...GROUP_AUDIO_CODEC_OPTIONS},
             } as never);
             producersRef.current.push(prod);
             clearBlankedPauseLatch(prod);
@@ -3899,7 +3895,7 @@ export function useGroupCall(opts: GroupCallOptions): GroupCallHandle {
               await withTrackBlanked(at, async () => {
                 const p = await reSendTx.produce({
                   track: at as never,
-                  codecOptions: {opusStereo: false, opusFec: true, opusDtx: true, opusMaxAverageBitrate: 32_000, opusPtime: 10},
+                  codecOptions: {...GROUP_AUDIO_CODEC_OPTIONS},
                 } as never);
                 newProducers.push(p);
                 clearBlankedPauseLatch(p);

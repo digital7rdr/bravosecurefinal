@@ -1,5 +1,6 @@
 import {BadRequestException, Injectable, Logger, NotFoundException} from '@nestjs/common';
 import {DatabaseService} from '../database/database.service';
+import {isOwnUploadUrl} from '../agents/own-upload';
 
 export const COMPLIANCE_DOC_TYPES = ['licence', 'insurance', 'armed_permit'] as const;
 export type ComplianceDocType = (typeof COMPLIANCE_DOC_TYPES)[number];
@@ -40,6 +41,9 @@ export class ComplianceService {
   async submit(subjectUserId: string, subjectKind: 'agency' | 'cpo', args: SubmitComplianceArgs): Promise<{id: string; doc_type: ComplianceDocType; state: 'PENDING'}> {
     if (!COMPLIANCE_DOC_TYPES.includes(args.docType)) throw new BadRequestException('invalid_doc_type');
     if (new Date(args.expiresAt).getTime() <= Date.now()) throw new BadRequestException('expiry_in_past');
+    // 2026-10-17 — the reviewer opens this link from the console: only a file
+    // the submitter uploaded themselves is accepted.
+    if (args.fileUrl && !isOwnUploadUrl(args.fileUrl, subjectUserId)) throw new BadRequestException('file_url_not_own_upload');
 
     if (args.docType === 'armed_permit') {
       const cpoUserId = args.cpoUserId ?? subjectUserId;
@@ -119,16 +123,28 @@ export class ComplianceService {
    * same queue with doc_type='armed_permit' + armed:true; the console
    * routes those rows to /ops/armed/:id/verify|reject.
    */
-  async listPending(regionCode?: string): Promise<Array<{id: string; doc_type: string; subject_user_id: string; provider_name: string | null; file_url: string | null; region_code: string; reference: string | null; expires_at: string; created_at: string; armed: boolean}>> {
+  async listPending(regionCode?: string): Promise<Array<{id: string; doc_type: string; subject_user_id: string; provider_name: string | null; file_url: string | null; file_from_onboarding: boolean; region_code: string; reference: string | null; expires_at: string; created_at: string; armed: boolean}>> {
     // IS-06 — reviewers must see WHO submitted and the DOC itself, not a bare
     // UUID: provider display name (users join) + file_url ride each row.
     // armed_authorizations carries no file column — those rows keep file_url null.
     const [creds, armed] = await Promise.all([
-      this.db.q<{id: string; kind: string; subject_user_id: string; provider_name: string | null; file_url: string | null; region_code: string; reference: string | null; expires_at: Date; created_at: Date}>(
-        `SELECT c.id, c.kind, c.subject_user_id, c.file_url, c.region_code, c.reference, c.expires_at, c.created_at,
+      // 2026-10-17 — a provider attaches its licence and insurance during
+      // mobile onboarding (agent_documents), and until now the Compliance
+      // screen sent no file at all, so every row here showed "—". Fall back
+      // to the matching onboarding upload (licence ↔ sia slot, insurance ↔
+      // insurance slot) and say so.
+      this.db.q<{id: string; kind: string; subject_user_id: string; provider_name: string | null; file_url: string | null; onboarding_file_url: string | null; region_code: string; reference: string | null; expires_at: Date; created_at: Date}>(
+        `SELECT c.id, c.kind, c.subject_user_id, c.file_url, d.file_url AS onboarding_file_url,
+                c.region_code, c.reference, c.expires_at, c.created_at,
                 u.display_name AS provider_name
            FROM public.compliance_credentials c
            LEFT JOIN public.users u ON u.id = c.subject_user_id
+           LEFT JOIN LATERAL (
+                SELECT ad.file_url FROM public.agent_documents ad
+                 WHERE ad.user_id = c.subject_user_id AND ad.state = 'done' AND ad.file_url IS NOT NULL
+                   AND ad.slot = CASE c.kind WHEN 'licence' THEN 'sia' WHEN 'insurance' THEN 'insurance' END
+                 ORDER BY ad.uploaded_at DESC NULLS LAST
+                 LIMIT 1) d ON TRUE
           WHERE NOT c.verified AND c.reject_reason IS NULL AND ($1::text IS NULL OR c.region_code = $1)
           ORDER BY c.created_at ASC
           LIMIT 200`,
@@ -146,9 +162,47 @@ export class ComplianceService {
       ),
     ]);
     return [
-      ...creds.map(c => ({id: c.id, doc_type: c.kind, subject_user_id: c.subject_user_id, provider_name: c.provider_name, file_url: c.file_url, region_code: c.region_code, reference: c.reference, expires_at: c.expires_at.toISOString(), created_at: c.created_at.toISOString(), armed: false})),
-      ...armed.map(a => ({id: a.id, doc_type: 'armed_permit', subject_user_id: a.cpo_user_id, provider_name: a.provider_name, file_url: null, region_code: a.region_code, reference: a.permit_ref, expires_at: a.expires_at ? a.expires_at.toISOString() : '', created_at: a.created_at.toISOString(), armed: true})),
+      ...creds.map(c => ({id: c.id, doc_type: c.kind, subject_user_id: c.subject_user_id, provider_name: c.provider_name, file_url: c.file_url ?? c.onboarding_file_url ?? null, file_from_onboarding: !c.file_url && !!c.onboarding_file_url, region_code: c.region_code, reference: c.reference, expires_at: c.expires_at.toISOString(), created_at: c.created_at.toISOString(), armed: false})),
+      ...armed.map(a => ({id: a.id, doc_type: 'armed_permit', subject_user_id: a.cpo_user_id, provider_name: a.provider_name, file_url: null, file_from_onboarding: false, region_code: a.region_code, reference: a.permit_ref, expires_at: a.expires_at ? a.expires_at.toISOString() : '', created_at: a.created_at.toISOString(), armed: true})),
     ].sort((x, y) => x.created_at.localeCompare(y.created_at));
+  }
+
+  /**
+   * 2026-10-17 — "Ops console can't verify service provider docs": documents
+   * a provider agency attached in the mobile onboarding (agent_documents, and
+   * evidence uploaded on its own on the KYC screen) that nobody has reviewed
+   * yet. They never reached this queue — it only read compliance_credentials.
+   * A KYC file that is just the mirror of a document already listed is not
+   * repeated. Not region-bounded, like listPending.
+   */
+  async listProviderDocsPending(): Promise<Array<{
+    source: 'doc' | 'kyc'; key: string; provider_user_id: string; provider_name: string | null;
+    title: string; file_url: string; uploaded_at: string | null; agent_status: string;
+  }>> {
+    const rows = await this.db.q<{
+      source: 'doc' | 'kyc'; key: string; provider_user_id: string; provider_name: string | null;
+      title: string; file_url: string; uploaded_at: Date | null; agent_status: string;
+    }>(
+      `SELECT * FROM (
+         SELECT 'doc'::text AS source, d.slot AS key, d.user_id AS provider_user_id,
+                u.display_name AS provider_name, d.title, d.file_url, d.uploaded_at, a.status::text AS agent_status
+           FROM public.agent_documents d
+           JOIN public.agents a ON a.user_id = d.user_id
+           LEFT JOIN public.users u ON u.id = d.user_id
+          WHERE a.type = 'company' AND d.state = 'done' AND d.reviewed_at IS NULL AND d.file_url IS NOT NULL
+         UNION ALL
+         SELECT 'kyc'::text, k.kind, k.user_id, u.display_name, COALESCE(k.subject, k.kind), k.file_url, k.uploaded_at, a.status::text
+           FROM public.agent_kyc_checks k
+           JOIN public.agents a ON a.user_id = k.user_id
+           LEFT JOIN public.users u ON u.id = k.user_id
+          WHERE a.type = 'company' AND k.reviewed_at IS NULL AND k.file_url IS NOT NULL
+            AND NOT EXISTS (SELECT 1 FROM public.agent_documents d2
+                             WHERE d2.user_id = k.user_id AND d2.file_url = k.file_url)
+       ) x
+       ORDER BY uploaded_at ASC NULLS LAST
+       LIMIT 300`,
+    );
+    return rows.map(r => ({...r, uploaded_at: r.uploaded_at ? r.uploaded_at.toISOString() : null}));
   }
 
   /** Admin verify — race-safe conditional flip from PENDING only (double-verify is a no-op). */

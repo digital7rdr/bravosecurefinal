@@ -176,11 +176,12 @@ const ROUTER_MEDIA_CODECS: MS.RtpCodecCapability[] = [
     //                             receiver can reconstruct one lost
     //                             packet without waiting for a NACK
     //                             round-trip.
-    //   • usedtx=1              — discontinuous transmission. While the
-    //                             talker is silent, drop bitrate to
-    //                             ~5 kbps. Frees the modem uplink
-    //                             queue so video frames don't sit
-    //                             behind audio.
+    //   • usedtx=0              — no discontinuous transmission
+    //                             (2026-10-17: with speakerphone noise
+    //                             suppression DTX clipped word onsets —
+    //                             "bad sound" in the first group call).
+    //                             The app's codecOptions decide; this
+    //                             keeps the advertised default aligned.
     //   • stereo=0              — voice calls are mono; halves encode
     //                             cost and wire bytes vs the libwebrtc
     //                             default. (channels stays at 2 so SDP
@@ -195,7 +196,7 @@ const ROUTER_MEDIA_CODECS: MS.RtpCodecCapability[] = [
     parameters: {
       'minptime':          10,
       'useinbandfec':       1,
-      'usedtx':             1,
+      'usedtx':             0,
       'stereo':             0,
       'maxaveragebitrate': 32000,
     },

@@ -1394,6 +1394,7 @@ export const opsApi = {
 
   // ─── Provider compliance review (vetting gate, Step 15) ──────────────
   compliancePending: () => fetchJson<CompliancePendingRow[]>(`/ops/compliance/pending`),
+  providerDocsPending: () => fetchJson<ProviderDocPendingRow[]>(`/ops/compliance/provider-docs`),
   // Audit PAGE-18 — keyed like every other decision mutation so a retry can't double-apply.
   verifyCompliance: (id: string) => fetchJson<{ok: true}>(`/ops/compliance/${id}/verify`, {
     method: 'POST', idempotencyKey: newIdempotencyKey(),
@@ -1716,6 +1717,21 @@ export interface CompliancePendingRow {
   /** IS-06 — reviewer context: who submitted + the doc itself (armed rows have no file). */
   provider_name?: string | null;
   file_url?: string | null;
+  /** 2026-10-17 — the file is the provider's mobile-onboarding upload (the credential itself carried none). */
+  file_from_onboarding?: boolean;
+}
+
+/** 2026-10-17 — a provider agency's onboarding upload nobody has reviewed yet. */
+export interface ProviderDocPendingRow {
+  source: 'doc' | 'kyc';
+  /** agent_documents.slot or agent_kyc_checks.kind — the review endpoint key. */
+  key: string;
+  provider_user_id: string;
+  provider_name: string | null;
+  title: string;
+  file_url: string;
+  uploaded_at: string | null;
+  agent_status: string;
 }
 
 export interface DispatchOfferRow {
@@ -1887,6 +1903,10 @@ export function useDispatchRequest(id: string | null) {
 
 export function useCompliancePending() {
   return useSWR<CompliancePendingRow[]>('compliance-pending', () => opsApi.compliancePending(), {refreshInterval: POLL_DASH});
+}
+
+export function useProviderDocsPending() {
+  return useSWR<ProviderDocPendingRow[]>('provider-docs-pending', () => opsApi.providerDocsPending(), {refreshInterval: POLL_DASH});
 }
 
 export function useDeptIncidents(params?: {org_id?: string; status?: string; severity?: string}, opts?: SWRConfiguration) {
@@ -3581,7 +3601,19 @@ export interface AgencyDetail {
   credentials: Array<{
     id: string; kind: string; region_code: string; reference: string | null;
     issued_at: string | null; expires_at: string; verified: boolean; created_at: string;
+    reject_reason?: string | null; file_url?: string | null;
   }>;
+  /** 2026-10-17 — files the agency attached during mobile onboarding. */
+  documents?: Array<{
+    id: string; slot: string; title: string; required: boolean; state: string;
+    file_url: string | null; uploaded_at: string | null; reviewed_at: string | null; expires_at: string | null;
+  }>;
+  kyc?: Array<{
+    kind: string; state: string; subject: string | null; file_url: string | null;
+    uploaded_at: string | null; reviewed_at: string | null;
+  }>;
+  /** The agency's own onboarding application (agents row), null for accounts made elsewhere. */
+  onboarding?: {type: string; status: string; submitted_at: string | null; approved_at: string | null} | null;
   armed: Array<{
     id: string; cpo_user_id: string; cpo_name: string | null; region_code: string;
     permit_ref: string | null; expires_at: string | null; authorized: boolean; created_at: string;

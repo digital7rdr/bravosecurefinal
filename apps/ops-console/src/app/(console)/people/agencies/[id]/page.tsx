@@ -5,11 +5,18 @@
  * who works for them, and what they have actually done with the offers sent to
  * them. Read-only; suspension lives on the account record under All Users,
  * which is where every other account action already is.
+ *
+ * 2026-10-17 — also the files the agency attached during mobile onboarding
+ * (they existed, but this page only read compliance credentials). VIEW opens a
+ * file and, for SUPERVISOR+, stamps it reviewed; approving the application
+ * stays on the review page.
  */
 
-import {use} from 'react';
+import {use, useState} from 'react';
 import Link from 'next/link';
-import {useAgency} from '@/lib/api';
+import {useAgency, useOpsMe} from '@/lib/api';
+import {canDecideAgent} from '@/lib/rbac';
+import {isViewableUrl, openAndMarkReviewed, providerDocLabel} from '@/lib/providerDocs';
 import {PageHeader} from '@/components/PageHeader';
 import {StatusPill} from '@/components/StatusPill';
 import {routes, bookingHref} from '@/lib/routes';
@@ -17,7 +24,19 @@ import {formatDateTimeUtc, formatDateUtc} from '@/lib/datetime';
 
 export default function AgencyDetailPage({params}: {params: Promise<{id: string}>}) {
   const {id} = use(params);
-  const {data, isLoading, error} = useAgency(id);
+  const {data, isLoading, error, mutate} = useAgency(id);
+  const {data: me} = useOpsMe();
+  const canStamp = canDecideAgent(me?.admin.role);
+  const [docErr, setDocErr] = useState<string | null>(null);
+
+  const view = async (source: 'doc' | 'kyc', key: string, url: string) => {
+    setDocErr(null);
+    try {
+      if (await openAndMarkReviewed(id, source, key, url, canStamp)) {await mutate();}
+    } catch (e) {
+      setDocErr(`Couldn't mark it reviewed: ${(e as Error).message}`);
+    }
+  };
 
   if (error) {
     return (
@@ -32,6 +51,19 @@ export default function AgencyDetailPage({params}: {params: Promise<{id: string}
 
   const a = data?.agency;
   const now = Date.now();
+  // Compliance-pack documents first; a KYC file that only mirrors one of them
+  // (the server copies passport / licence / DBS into KYC) is not listed twice.
+  const docUrls = new Set((data?.documents ?? []).map(d => d.file_url).filter(Boolean));
+  const uploads = [
+    ...(data?.documents ?? []).filter(d => d.state === 'done' || d.file_url).map(d => ({
+      source: 'doc' as const, key: d.slot, label: providerDocLabel('doc', d.slot, d.title),
+      file_url: d.file_url, uploaded_at: d.uploaded_at, reviewed_at: d.reviewed_at, state: d.state,
+    })),
+    ...(data?.kyc ?? []).filter(k => k.file_url && !docUrls.has(k.file_url)).map(k => ({
+      source: 'kyc' as const, key: k.kind, label: providerDocLabel('kyc', k.kind, k.subject),
+      file_url: k.file_url, uploaded_at: k.uploaded_at, reviewed_at: k.reviewed_at, state: k.state,
+    })),
+  ];
 
   return (
     <>
@@ -74,6 +106,9 @@ export default function AgencyDetailPage({params}: {params: Promise<{id: string}
                     </div>
                   </div>
                   <div className="q-right">
+                    {isViewableUrl(c.file_url) && (
+                      <a href={c.file_url} target="_blank" rel="noreferrer" className="btn btn-sm btn-ghost" style={{fontSize: 9}}>VIEW</a>
+                    )}
                     {expired
                       ? <span className="pill pill-err">EXPIRED</span>
                       : c.verified
@@ -86,6 +121,48 @@ export default function AgencyDetailPage({params}: {params: Promise<{id: string}
             <div className="q-footer">
               <Link href={routes.people.compliance}>Review pending documents →</Link>
             </div>
+          </Card>
+
+          <Card title={`Onboarding documents · ${uploads.length}`}>
+            {data?.onboarding && (
+              <div className="q-row" style={{cursor: 'default'}}>
+                <div style={{minWidth: 0}}>
+                  <div className="q-primary">Application · {data.onboarding.status.replace(/_/g, ' ')}</div>
+                  <div className="q-secondary">
+                    {data.onboarding.submitted_at ? `submitted ${formatDateUtc(data.onboarding.submitted_at)}` : 'not submitted yet'}
+                    {data.onboarding.approved_at ? ` · approved ${formatDateUtc(data.onboarding.approved_at)}` : ''}
+                  </div>
+                </div>
+                <div className="q-right">
+                  <Link href={routes.people.agent(id)} className="btn btn-sm btn-ghost" style={{fontSize: 9}}>REVIEW / APPROVE →</Link>
+                </div>
+              </div>
+            )}
+            {uploads.length === 0 && (
+              <div className="q-empty">No files attached during onboarding.</div>
+            )}
+            {uploads.map(u => (
+              <div key={`${u.source}:${u.key}`} className="q-row" style={{cursor: 'default'}}>
+                <div style={{minWidth: 0}}>
+                  <div className="q-primary">{u.label}</div>
+                  <div className="q-secondary">
+                    {u.reviewed_at ? `reviewed ${formatDateUtc(u.reviewed_at)}`
+                      : u.uploaded_at ? `uploaded ${formatDateUtc(u.uploaded_at)}` : u.state}
+                  </div>
+                </div>
+                <div className="q-right">
+                  {isViewableUrl(u.file_url)
+                    ? (
+                      <button type="button" className={`btn btn-sm ${u.reviewed_at ? 'btn-ok' : 'btn-ghost'}`} style={{fontSize: 9}}
+                        onClick={() => void view(u.source, u.key, u.file_url as string)}>
+                        {u.reviewed_at ? 'REVIEWED' : 'VIEW'}
+                      </button>
+                    )
+                    : <span className="pill">NO FILE</span>}
+                </div>
+              </div>
+            ))}
+            {docErr && <div className="q-empty" role="alert" style={{color: 'var(--err)'}}>{docErr}</div>}
           </Card>
 
           <Card title="Armed authorisations">

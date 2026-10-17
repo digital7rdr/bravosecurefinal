@@ -4,8 +4,10 @@ import {useState} from 'react';
 import Link from 'next/link';
 import {ConfirmReasonModal} from '@/components/ConfirmReasonModal';
 import {useToast} from '@/components/Toast';
-import {useCompliancePending, useOpsMe, opsApi, opsDataApi, type CompliancePendingRow} from '@/lib/api';
-import {canReviewCompliance} from '@/lib/rbac';
+import {useCompliancePending, useProviderDocsPending, useOpsMe, opsApi, opsDataApi, type CompliancePendingRow} from '@/lib/api';
+import {canDecideAgent, canReviewCompliance} from '@/lib/rbac';
+import {openAndMarkReviewed, providerDocLabel} from '@/lib/providerDocs';
+import {formatDateUtc} from '@/lib/datetime';
 import {routes} from '@/lib/routes';
 
 // Audit PAGE-18 — floor, not round: a doc that expired up to 12h ago used
@@ -18,6 +20,10 @@ export default function CompliancePage() {
   const {data, isLoading, error, mutate} = useCompliancePending();
   const {data: me} = useOpsMe();
   const canReview = canReviewCompliance(me?.admin.role);
+  // 2026-10-17 — files a provider attached in the mobile onboarding. They
+  // never reached this page (it read compliance credentials only).
+  const {data: provDocs, error: provErr, mutate: mutateProv} = useProviderDocsPending();
+  const canStamp = canDecideAgent(me?.admin.role);
   const [busy, setBusy] = useState<string | null>(null);
   // IS-15 — validated reject modal replaces window.prompt.
   const [rejectFor, setRejectFor] = useState<CompliancePendingRow | null>(null);
@@ -55,6 +61,21 @@ export default function CompliancePage() {
     setRejectFor(null);
     if (!r) return;
     void act(r.id, () => (r.armed ? opsDataApi.rejectArmed(r.id, reason) : opsApi.rejectCompliance(r.id, reason)), 'Reject');
+  };
+
+  const viewProviderDoc = async (userId: string, source: 'doc' | 'kyc', key: string, url: string) => {
+    setBusy(`prov:${userId}:${key}`);
+    try {
+      if (await openAndMarkReviewed(userId, source, key, url, canStamp)) {
+        await mutateProv();
+        push({kind: 'ok', text: 'Marked reviewed.'});
+      }
+    } catch (e) {
+      setLastErr(`Mark reviewed failed: ${(e as Error).message}`);
+      push({kind: 'err', text: `Mark reviewed failed: ${(e as Error).message}`});
+    } finally {
+      setBusy(null);
+    }
   };
 
   return (
@@ -106,10 +127,15 @@ export default function CompliancePage() {
                         <td className="px-3 py-2 text-t3">{r.reference ?? '—'}</td>
                         <td className="px-3 py-2">
                           {r.file_url ? (
-                            <a href={r.file_url} target="_blank" rel="noreferrer"
-                              className="text-xs font-semibold text-acc hover:underline">
-                              VIEW DOC
-                            </a>
+                            <>
+                              <a href={r.file_url} target="_blank" rel="noreferrer"
+                                className="text-xs font-semibold text-acc hover:underline">
+                                VIEW DOC
+                              </a>
+                              {r.file_from_onboarding && (
+                                <div className="text-[10px] text-t3">from onboarding upload</div>
+                              )}
+                            </>
                           ) : (
                             <span className="text-xs text-t3">—</span>
                           )}
@@ -138,6 +164,55 @@ export default function CompliancePage() {
                       </tr>
                     );
                   })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+        <div>
+          <h2 className="text-base font-bold text-t1">Provider onboarding documents</h2>
+          <p className="text-sm text-t3">
+            Files a provider agency attached when it registered in the mobile app, not yet reviewed.
+            VIEW opens the file{canStamp ? ' and marks it reviewed' : ''}; approve or reject the application on the provider&apos;s review page.
+          </p>
+        </div>
+        {provErr ? <p className="text-sm text-err">{(provErr as Error).message}</p>
+          : !provDocs ? <p className="text-sm text-t3">Loading…</p>
+          : provDocs.length === 0 ? <p className="text-sm text-t3">No provider documents waiting for review.</p>
+          : (
+            <div className="overflow-hidden rounded-xl border border-bd2">
+              <table className="w-full text-sm">
+                <thead className="bg-s2 text-left text-xs uppercase text-t3">
+                  <tr>
+                    <th className="px-3 py-2">Document</th><th className="px-3 py-2">Provider</th>
+                    <th className="px-3 py-2">Uploaded</th><th className="px-3 py-2">Application</th>
+                    <th className="px-3 py-2 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-bd2">
+                  {provDocs.map(d => (
+                    <tr key={`${d.provider_user_id}:${d.source}:${d.key}`} className="text-t2">
+                      <td className="px-3 py-2 font-semibold">{providerDocLabel(d.source, d.key, d.title)}</td>
+                      <td className="px-3 py-2">
+                        <Link href={routes.people.agency(d.provider_user_id)} className="text-acc hover:underline">
+                          {d.provider_name ?? d.provider_user_id.slice(0, 8)}
+                        </Link>
+                      </td>
+                      <td className="px-3 py-2 text-t3">{d.uploaded_at ? formatDateUtc(d.uploaded_at) : '—'}</td>
+                      <td className="px-3 py-2 text-t3">{d.agent_status.replace(/_/g, ' ')}</td>
+                      <td className="px-3 py-2 text-right">
+                        <button type="button" disabled={busy === `prov:${d.provider_user_id}:${d.key}`}
+                          onClick={() => void viewProviderDoc(d.provider_user_id, d.source, d.key, d.file_url)}
+                          className="mr-2 rounded-md border border-bd1 px-3 py-1.5 text-xs font-semibold text-acc hover:bg-s1 disabled:opacity-50">
+                          VIEW
+                        </button>
+                        <Link href={routes.people.agent(d.provider_user_id)}
+                          className="rounded-md bg-acc px-3 py-1.5 text-xs font-semibold text-canvas hover:bg-acc/80">
+                          Review →
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

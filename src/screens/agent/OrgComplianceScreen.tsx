@@ -12,6 +12,7 @@ import {Alert} from '@utils/alert';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import {useNavigation} from '@react-navigation/native';
+import * as DocumentPicker from 'expo-document-picker';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import type {AgentStackParamList} from '@navigation/types';
 import {complianceApi, agentApi, type ComplianceDocDto} from '@services/api';
@@ -33,6 +34,9 @@ const D = {
 // Canonical region codes (incl. ZA per the 2026-06-25 decision) — must match the
 // auth-service allow-list (common/regions.ts) so an SP can't pick an un-rankable region.
 const REGIONS = ['AE', 'SA', 'BD', 'GB', 'ZA'] as const;
+// Photos and PDFs. Listed explicitly: an "image/<star>" glob opens a block
+// comment for the repo's source scanners (sourceScanSafety).
+const PICK_TYPES = ['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'image/webp', 'application/pdf'];
 const DOC_TYPES = [
   {key: 'licence' as const, label: 'Licence'},
   {key: 'insurance' as const, label: 'Insurance'},
@@ -64,6 +68,10 @@ export default function OrgComplianceScreen() {
   const [reference, setReference] = useState('');
   const [years, setYears] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  // 2026-10-17 — the reviewer verifies the document itself, so a submission
+  // carries the file (photo or PDF). It used to send metadata only and the
+  // console's Compliance Review showed "—" for every row.
+  const [attached, setAttached] = useState<{uri: string; name: string; type: string} | null>(null);
 
   // Bug 3 — operating region + DPA (the two dispatch-eligibility inputs with no other UI).
   // `region` (above) is the single source for BOTH the agency's region_code AND the licence/
@@ -111,13 +119,30 @@ export default function OrgComplianceScreen() {
     }
   };
 
+  const pickFile = async () => {
+    try {
+      const res = await DocumentPicker.getDocumentAsync({type: PICK_TYPES, copyToCacheDirectory: true});
+      if (res.canceled || !res.assets?.[0]) {return;}
+      const f = res.assets[0];
+      setAttached({uri: f.uri, name: f.name ?? `${docType}-${Date.now()}`, type: f.mimeType ?? 'application/octet-stream'});
+    } catch (e: unknown) {
+      Alert.alert('Could not open the file', (e as Error).message ?? 'Try again');
+    }
+  };
+
   const submit = async () => {
+    if (!attached) {
+      Alert.alert('Attach the document', 'Add a photo or PDF of the document so Bravo can verify it.');
+      return;
+    }
     setSubmitting(true);
     try {
       const expires = new Date();
       expires.setFullYear(expires.getFullYear() + years);
-      await complianceApi.submit({doc_type: docType, region_code: region, expires_at: expires.toISOString(), reference: reference.trim() || undefined});
+      const fileUrl = await agentApi.uploadFile(attached);
+      await complianceApi.submit({doc_type: docType, region_code: region, expires_at: expires.toISOString(), reference: reference.trim() || undefined, file_url: fileUrl});
       setReference('');
+      setAttached(null);
       await load();
       Alert.alert('Submitted', 'Your document is pending admin verification.');
     } catch (e: unknown) {
@@ -184,7 +209,14 @@ export default function OrgComplianceScreen() {
               </TouchableOpacity>
             ))}
           </View>
-          <TouchableOpacity activeOpacity={0.85} disabled={submitting} onPress={() => void submit()} style={[s.submitBtn, submitting && {opacity: 0.6}]}>
+          <Text style={s.fieldLabel}>Document (photo or PDF)</Text>
+          <TouchableOpacity activeOpacity={0.85} disabled={submitting} onPress={() => void pickFile()} style={s.attachRow}
+            accessibilityRole="button" accessibilityLabel={attached ? `Attached ${attached.name}. Tap to replace` : 'Attach the document'}>
+            <Icon name={attached ? 'file-check-outline' : 'paperclip'} size={20} color={attached ? D.signal : D.accentSoft} />
+            <Text style={s.attachText} numberOfLines={1}>{attached ? attached.name : 'Attach the document'}</Text>
+            {attached ? <Text style={s.attachChange}>Change</Text> : null}
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.85} disabled={submitting} onPress={() => void submit()} style={[s.submitBtn, (submitting || !attached) && {opacity: 0.6}]}>
             {submitting ? <ActivityIndicator color="#fff" /> : <Text style={s.submitText}>Submit for verification</Text>}
           </TouchableOpacity>
         </View>
@@ -230,6 +262,9 @@ const s = StyleSheet.create(scaleTextStyles({
   chipText: {fontFamily: D.fSemi, fontSize: 13, color: D.textMute},
   chipTextOn: {color: D.accentSoft},
   input: {borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: D.hair2, color: D.text, fontFamily: D.fSans, fontSize: 14},
+  attachRow: {flexDirection: 'row', alignItems: 'center', gap: 10, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: D.hair2},
+  attachText: {flex: 1, minWidth: 0, fontFamily: D.fSemi, fontSize: 13, color: D.text},
+  attachChange: {fontFamily: D.fSemi, fontSize: 12, color: D.accentSoft},
   dpaRow: {flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginTop: 8},
   dpaText: {flex: 1, fontFamily: D.fSans, fontSize: 12, lineHeight: 17, color: D.textDim},
   submitBtn: {marginTop: 8, height: 50, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: D.accent, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)'},

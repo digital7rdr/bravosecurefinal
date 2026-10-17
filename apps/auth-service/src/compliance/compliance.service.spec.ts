@@ -122,4 +122,54 @@ describe('ComplianceService', () => {
     expect(rows[0]).toMatchObject({id: 'cred-1', provider_name: 'Falcon Security', file_url: 's3://bucket/enc-cert'});
     expect(rows[1]).toMatchObject({id: 'armed-1', provider_name: 'Officer K', file_url: null, armed: true});
   });
+
+  // 2026-10-17 — owner: provider documents attached on the phone never showed
+  // on the console's Compliance Review.
+  describe('provider documents from mobile onboarding', () => {
+    const cred = (extra: Record<string, unknown>) => ({id: 'cred-1', kind: 'licence', subject_user_id: 'agency-1', provider_name: 'Falcon', file_url: null, onboarding_file_url: null, region_code: 'AE', reference: null, expires_at: new Date(FUTURE), created_at: new Date('2026-08-01T00:00:00Z'), ...extra});
+
+    it('a credential without a file shows the matching onboarding upload, flagged', async () => {
+      const {svc, db} = mk();
+      (db.q as jest.Mock).mockImplementation((sql: string) =>
+        Promise.resolve(/FROM public\.compliance_credentials/.test(sql) ? [cred({onboarding_file_url: 'https://auth.test/uploads/agency-1/20261015T0930_TradeLicence_v1.pdf'})] : []));
+      const rows = await svc.listPending();
+      expect(rows[0]).toMatchObject({file_url: 'https://auth.test/uploads/agency-1/20261015T0930_TradeLicence_v1.pdf', file_from_onboarding: true});
+      const sql = (db.q as jest.Mock).mock.calls.map(c => c[0] as string).find(q => /compliance_credentials/.test(q)) ?? '';
+      expect(sql).toMatch(/agent_documents ad[\s\S]*ad\.state = 'done'[\s\S]*WHEN 'licence' THEN 'sia' WHEN 'insurance' THEN 'insurance'/);
+    });
+
+    it('a file attached to the credential itself wins and is not flagged', async () => {
+      const {svc, db} = mk();
+      (db.q as jest.Mock).mockImplementation((sql: string) =>
+        Promise.resolve(/FROM public\.compliance_credentials/.test(sql) ? [cred({file_url: 'https://auth.test/uploads/agency-1/a.pdf', onboarding_file_url: 'https://auth.test/uploads/agency-1/b.pdf'})] : []));
+      const rows = await svc.listPending();
+      expect(rows[0]).toMatchObject({file_url: 'https://auth.test/uploads/agency-1/a.pdf', file_from_onboarding: false});
+    });
+
+    it('lists unreviewed company onboarding files, without repeating KYC mirrors', async () => {
+      const {svc, db} = mk();
+      (db.q as jest.Mock).mockResolvedValueOnce([
+        {source: 'doc', key: 'insurance', provider_user_id: 'agency-1', provider_name: 'Falcon', title: 'Insurance', file_url: 'https://auth.test/uploads/agency-1/x.pdf', uploaded_at: new Date('2026-10-16T08:00:00Z'), agent_status: 'SUBMITTED'},
+      ]);
+      const rows = await svc.listProviderDocsPending();
+      expect(rows).toEqual([{source: 'doc', key: 'insurance', provider_user_id: 'agency-1', provider_name: 'Falcon', title: 'Insurance', file_url: 'https://auth.test/uploads/agency-1/x.pdf', uploaded_at: '2026-10-16T08:00:00.000Z', agent_status: 'SUBMITTED'}]);
+      const sql = (db.q as jest.Mock).mock.calls[0][0] as string;
+      expect(sql).toMatch(/a\.type = 'company' AND d\.state = 'done' AND d\.reviewed_at IS NULL/);
+      expect(sql).toMatch(/FROM public\.agent_kyc_checks[\s\S]*k\.reviewed_at IS NULL[\s\S]*NOT EXISTS[\s\S]*d2\.file_url = k\.file_url/);
+    });
+
+    it('submit accepts the submitter own upload and refuses any other link', async () => {
+      const prev = process.env.PUBLIC_BASE_URL;
+      process.env.PUBLIC_BASE_URL = 'https://auth.test';
+      try {
+        const {svc, txQOne} = mk();
+        await svc.submit('agency-1', 'agency', {docType: 'licence', regionCode: 'AE', expiresAt: FUTURE, fileUrl: 'https://auth.test/uploads/agency-1/20261017T0800_Licence_v1.pdf'});
+        expect(txQOne).toHaveBeenCalledWith(expect.any(String), expect.arrayContaining(['https://auth.test/uploads/agency-1/20261017T0800_Licence_v1.pdf']));
+        await expect(svc.submit('agency-1', 'agency', {docType: 'licence', regionCode: 'AE', expiresAt: FUTURE, fileUrl: 'https://auth.test/uploads/someone-else/a.pdf'})).rejects.toThrow('file_url_not_own_upload');
+        await expect(svc.submit('agency-1', 'agency', {docType: 'licence', regionCode: 'AE', expiresAt: FUTURE, fileUrl: 'https://evil.example/uploads/agency-1/a.pdf'})).rejects.toThrow('file_url_not_own_upload');
+      } finally {
+        if (prev === undefined) {delete process.env.PUBLIC_BASE_URL;} else {process.env.PUBLIC_BASE_URL = prev;}
+      }
+    });
+  });
 });

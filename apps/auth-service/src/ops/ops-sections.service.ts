@@ -193,9 +193,9 @@ export class OpsSectionsService {
     // admin may not enumerate another tenant's providers by UUID.
     if (agency.home_region) assertRegionScope(admin, agency.home_region);
 
-    const [credentials, armed, roster, offers] = await Promise.all([
+    const [credentials, armed, roster, offers, documents, kyc, onboarding] = await Promise.all([
       this.db.q(
-        `SELECT id, kind, region_code, reference, issued_at, expires_at, verified, created_at
+        `SELECT id, kind, region_code, reference, issued_at, expires_at, verified, reject_reason, file_url, created_at
            FROM public.compliance_credentials
           WHERE subject_user_id = $1
           ORDER BY expires_at DESC
@@ -229,9 +229,26 @@ export class OpsSectionsService {
           WHERE o.provider_user_id = $1
           ORDER BY o.offered_at DESC
           LIMIT 50`, [id]),
+      // 2026-10-17 — what the agency attached during mobile onboarding. The
+      // page showed only compliance_credentials, so these files existed but
+      // were nowhere on the agency's record.
+      this.db.q(
+        `SELECT id, slot, title, required, state::text AS state, file_url, uploaded_at, reviewed_at, expires_at
+           FROM public.agent_documents
+          WHERE user_id = $1
+          ORDER BY required DESC, slot ASC`, [id]),
+      this.db.q(
+        `SELECT kind, state::text AS state, subject, file_url, uploaded_at, reviewed_at
+           FROM public.agent_kyc_checks
+          WHERE user_id = $1
+          ORDER BY kind ASC`, [id]),
+      this.db.qOne(
+        `SELECT type::text AS type, status::text AS status, submitted_at, approved_at
+           FROM public.agents
+          WHERE user_id = $1`, [id]),
     ]);
 
-    return {agency, credentials, armed, roster, offers};
+    return {agency, credentials, armed, roster, offers, documents, kyc, onboarding: onboarding ?? null};
   }
 
   /** Enterprise section landing. */

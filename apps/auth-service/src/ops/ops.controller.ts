@@ -70,6 +70,13 @@ export class OpsController {
     return this.compliance.listPending(region || undefined);
   }
 
+  // 2026-10-17 — provider onboarding documents nobody has reviewed yet
+  // (VIEW on the console marks them reviewed through agents/:id/docs|kyc).
+  @Get('compliance/provider-docs')
+  listProviderDocsPending() {
+    return this.compliance.listProviderDocsPending();
+  }
+
   @Post('compliance/:id/verify')
   @RequireRoles('SUPERVISOR', 'ADMIN')
   async verifyCompliance(@Param('id', ParseUUIDPipe) id: string, @Req() req: OpsReq) {

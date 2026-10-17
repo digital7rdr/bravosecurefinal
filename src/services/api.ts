@@ -3289,7 +3289,8 @@ export interface ComplianceDocDto {
 }
 export const complianceApi = {
   listMine: () => authHttp.get<ComplianceDocDto[]>('/compliance/me'),
-  submit: (body: {doc_type: 'licence' | 'insurance' | 'armed_permit'; region_code: string; expires_at: string; reference?: string; cpo_user_id?: string}) =>
+  // file_url — a file this account uploaded via agentApi.uploadFile (the server refuses any other link).
+  submit: (body: {doc_type: 'licence' | 'insurance' | 'armed_permit'; region_code: string; expires_at: string; reference?: string; cpo_user_id?: string; file_url?: string}) =>
     authHttp.post<{id: string; doc_type: string; state: 'PENDING'}>('/compliance', body),
 };
 
