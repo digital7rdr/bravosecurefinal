@@ -6,7 +6,8 @@ import {ConfirmReasonModal} from '@/components/ConfirmReasonModal';
 import {useToast} from '@/components/Toast';
 import {useCompliancePending, useProviderDocsPending, useOpsMe, opsApi, opsDataApi, type CompliancePendingRow} from '@/lib/api';
 import {canDecideAgent, canReviewCompliance} from '@/lib/rbac';
-import {openAndMarkReviewed, providerDocLabel} from '@/lib/providerDocs';
+import {markProviderDocReviewed, providerDocLabel} from '@/lib/providerDocs';
+import {useDocumentViewer} from '@/components/DocumentViewerModal';
 import {formatDateUtc} from '@/lib/datetime';
 import {routes} from '@/lib/routes';
 
@@ -24,6 +25,8 @@ export default function CompliancePage() {
   // never reached this page (it read compliance credentials only).
   const {data: provDocs, error: provErr, mutate: mutateProv} = useProviderDocsPending();
   const canStamp = canDecideAgent(me?.admin.role);
+  // 2026-10-17 — documents open in a modal over the queue, not a new tab.
+  const viewer = useDocumentViewer();
   const [busy, setBusy] = useState<string | null>(null);
   // IS-15 — validated reject modal replaces window.prompt.
   const [rejectFor, setRejectFor] = useState<CompliancePendingRow | null>(null);
@@ -63,10 +66,11 @@ export default function CompliancePage() {
     void act(r.id, () => (r.armed ? opsDataApi.rejectArmed(r.id, reason) : opsApi.rejectCompliance(r.id, reason)), 'Reject');
   };
 
-  const viewProviderDoc = async (userId: string, source: 'doc' | 'kyc', key: string, url: string) => {
+  const viewProviderDoc = async (userId: string, source: 'doc' | 'kyc', key: string, url: string, title: string, provider: string | null) => {
+    viewer.open({url, title, subtitle: provider ?? undefined});
     setBusy(`prov:${userId}:${key}`);
     try {
-      if (await openAndMarkReviewed(userId, source, key, url, canStamp)) {
+      if (await markProviderDocReviewed(userId, source, key, canStamp)) {
         await mutateProv();
         push({kind: 'ok', text: 'Marked reviewed.'});
       }
@@ -128,10 +132,11 @@ export default function CompliancePage() {
                         <td className="px-3 py-2">
                           {r.file_url ? (
                             <>
-                              <a href={r.file_url} target="_blank" rel="noreferrer"
+                              <button type="button"
+                                onClick={() => viewer.open({url: r.file_url as string, title: `${r.doc_type.replace(/_/g, ' ')} · ${r.region_code}`, subtitle: r.provider_name ?? undefined})}
                                 className="text-xs font-semibold text-acc hover:underline">
                                 VIEW DOC
-                              </a>
+                              </button>
                               {r.file_from_onboarding && (
                                 <div className="text-[10px] text-t3">from onboarding upload</div>
                               )}
@@ -173,7 +178,7 @@ export default function CompliancePage() {
           <h2 className="text-base font-bold text-t1">Provider onboarding documents</h2>
           <p className="text-sm text-t3">
             Files a provider agency attached when it registered in the mobile app, not yet reviewed.
-            VIEW opens the file{canStamp ? ' and marks it reviewed' : ''}; approve or reject the application on the provider&apos;s review page.
+            VIEW shows the file{canStamp ? ' and marks it reviewed' : ''}; approve or reject the application on the provider&apos;s review page.
           </p>
         </div>
         {provErr ? <p className="text-sm text-err">{(provErr as Error).message}</p>
@@ -202,7 +207,7 @@ export default function CompliancePage() {
                       <td className="px-3 py-2 text-t3">{d.agent_status.replace(/_/g, ' ')}</td>
                       <td className="px-3 py-2 text-right">
                         <button type="button" disabled={busy === `prov:${d.provider_user_id}:${d.key}`}
-                          onClick={() => void viewProviderDoc(d.provider_user_id, d.source, d.key, d.file_url)}
+                          onClick={() => void viewProviderDoc(d.provider_user_id, d.source, d.key, d.file_url, providerDocLabel(d.source, d.key, d.title), d.provider_name)}
                           className="mr-2 rounded-md border border-bd1 px-3 py-1.5 text-xs font-semibold text-acc hover:bg-s1 disabled:opacity-50">
                           VIEW
                         </button>
@@ -218,6 +223,8 @@ export default function CompliancePage() {
             </div>
           )}
       </div>
+
+      {viewer.modal}
 
       <ConfirmReasonModal
         open={rejectFor !== null}

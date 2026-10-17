@@ -1,8 +1,8 @@
 /**
  * Provider onboarding documents (2026-10-17 — "Ops console can't verify
  * service provider docs"). Shared by the Compliance Review queue and the
- * agency page, so both open a file and stamp it reviewed the same way the
- * agent review page always has (POST /ops/agents/:id/docs|kyc/:key/review).
+ * agency page, so both stamp a file reviewed the same way the agent review
+ * page always has (POST /ops/agents/:id/docs|kyc/:key/review).
  */
 import {opsApi} from './api';
 
@@ -22,14 +22,13 @@ export function providerDocLabel(source: 'doc' | 'kyc', key: string, title: stri
 }
 
 /**
- * Open the file in a new tab; when the reviewer may decide (SUPERVISOR+,
- * enforced server-side too) also stamp it reviewed. Returns whether the stamp
- * was written.
+ * Stamp a provider document reviewed when the reviewer may decide (SUPERVISOR+,
+ * enforced server-side too). The file itself is shown in the console's
+ * document viewer modal by the caller. Returns whether the stamp was written.
  */
-export async function openAndMarkReviewed(
-  providerUserId: string, source: 'doc' | 'kyc', key: string, url: string, canStamp: boolean,
+export async function markProviderDocReviewed(
+  providerUserId: string, source: 'doc' | 'kyc', key: string, canStamp: boolean,
 ): Promise<boolean> {
-  if (isViewableUrl(url)) {window.open(url, '_blank', 'noopener');}
   if (!canStamp) {return false;}
   if (source === 'doc') {await opsApi.reviewDoc(providerUserId, key);}
   else {await opsApi.reviewKyc(providerUserId, key);}

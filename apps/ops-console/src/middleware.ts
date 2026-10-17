@@ -100,10 +100,15 @@ function buildCsp(nonce: string): string {
     `img-src 'self' data: blob: ${MAPBOX_HOSTS}`,
     `font-src 'self' data:`,
     `connect-src 'self' ${API_BASE} ${MSG_BASE} ${wsHost(MSG_BASE)} ${MAPBOX_HOSTS}`,
+    // 2026-10-17 — the document viewer modal shows uploads from blob: URLs
+    // (fetched from the API host): a PDF needs a blob: frame, and Chrome's PDF
+    // viewer inherits this policy, so object-src admits blob: too. Nothing
+    // else may be framed or embedded.
+    `frame-src 'self' blob:`,
     `frame-ancestors 'none'`,
     `base-uri 'self'`,
     `form-action 'self'`,
-    `object-src 'none'`,
+    `object-src blob:`,
   ].join('; ');
 }
 

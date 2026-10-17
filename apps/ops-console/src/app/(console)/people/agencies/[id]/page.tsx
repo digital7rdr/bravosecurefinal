@@ -7,16 +7,17 @@
  * which is where every other account action already is.
  *
  * 2026-10-17 — also the files the agency attached during mobile onboarding
- * (they existed, but this page only read compliance credentials). VIEW opens a
- * file and, for SUPERVISOR+, stamps it reviewed; approving the application
- * stays on the review page.
+ * (they existed, but this page only read compliance credentials). VIEW shows a
+ * file in the document viewer modal and, for SUPERVISOR+, stamps it reviewed;
+ * approving the application stays on the review page.
  */
 
 import {use, useState} from 'react';
 import Link from 'next/link';
 import {useAgency, useOpsMe} from '@/lib/api';
 import {canDecideAgent} from '@/lib/rbac';
-import {isViewableUrl, openAndMarkReviewed, providerDocLabel} from '@/lib/providerDocs';
+import {isViewableUrl, markProviderDocReviewed, providerDocLabel} from '@/lib/providerDocs';
+import {useDocumentViewer} from '@/components/DocumentViewerModal';
 import {PageHeader} from '@/components/PageHeader';
 import {StatusPill} from '@/components/StatusPill';
 import {routes, bookingHref} from '@/lib/routes';
@@ -28,11 +29,13 @@ export default function AgencyDetailPage({params}: {params: Promise<{id: string}
   const {data: me} = useOpsMe();
   const canStamp = canDecideAgent(me?.admin.role);
   const [docErr, setDocErr] = useState<string | null>(null);
+  const viewer = useDocumentViewer();
 
-  const view = async (source: 'doc' | 'kyc', key: string, url: string) => {
+  const view = async (source: 'doc' | 'kyc', key: string, url: string, title: string) => {
     setDocErr(null);
+    viewer.open({url, title, subtitle: data?.agency.display_name});
     try {
-      if (await openAndMarkReviewed(id, source, key, url, canStamp)) {await mutate();}
+      if (await markProviderDocReviewed(id, source, key, canStamp)) {await mutate();}
     } catch (e) {
       setDocErr(`Couldn't mark it reviewed: ${(e as Error).message}`);
     }
@@ -107,7 +110,10 @@ export default function AgencyDetailPage({params}: {params: Promise<{id: string}
                   </div>
                   <div className="q-right">
                     {isViewableUrl(c.file_url) && (
-                      <a href={c.file_url} target="_blank" rel="noreferrer" className="btn btn-sm btn-ghost" style={{fontSize: 9}}>VIEW</a>
+                      <button type="button" className="btn btn-sm btn-ghost" style={{fontSize: 9}}
+                        onClick={() => viewer.open({url: c.file_url as string, title: `${c.kind.replace(/_/g, ' ')} · ${c.region_code}`, subtitle: a?.display_name})}>
+                        VIEW
+                      </button>
                     )}
                     {expired
                       ? <span className="pill pill-err">EXPIRED</span>
@@ -154,7 +160,7 @@ export default function AgencyDetailPage({params}: {params: Promise<{id: string}
                   {isViewableUrl(u.file_url)
                     ? (
                       <button type="button" className={`btn btn-sm ${u.reviewed_at ? 'btn-ok' : 'btn-ghost'}`} style={{fontSize: 9}}
-                        onClick={() => void view(u.source, u.key, u.file_url as string)}>
+                        onClick={() => void view(u.source, u.key, u.file_url as string, u.label)}>
                         {u.reviewed_at ? 'REVIEWED' : 'VIEW'}
                       </button>
                     )
@@ -233,6 +239,7 @@ export default function AgencyDetailPage({params}: {params: Promise<{id: string}
           </Card>
         </div>
       </div>
+      {viewer.modal}
     </>
   );
 }

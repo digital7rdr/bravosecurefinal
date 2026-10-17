@@ -4,6 +4,7 @@ import { use, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { opsApi, useAgentDetail, useAgentStats, useOpsMe, type AgentDetail, type AgentStats } from '@/lib/api';
 import { Redacted } from '@/components/Redacted';
+import { useDocumentViewer } from '@/components/DocumentViewerModal';
 import { canTerminateAgent, canDecideAgent } from '@/lib/rbac';
 import { bcFromAed, earningsBc } from '@/lib/bc';
 import { formatDateUtc, formatDateTimeUtc } from '@/lib/datetime';
@@ -187,6 +188,9 @@ function OperationalView({id, data, stats, mutateDetail}: {
 }) {
   const {agent, profile, contact, kyc, documents, deployment} = data;
   const managedBy = (data as AgentDetail & {managed_by?: ManagedBy}).managed_by ?? null;
+  // 2026-10-17 — documents open in the console's viewer modal, not a new tab.
+  const viewer = useDocumentViewer();
+  const onView = (url: string, title: string) => viewer.open({url, title, subtitle: agent.display_name ?? undefined});
   const [termNotes, setTermNotes] = useState('');
   const [termConfirm, setTermConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -265,7 +269,7 @@ function OperationalView({id, data, stats, mutateDetail}: {
               </div>
               {d.file_url && /^https?:\/\//i.test(d.file_url) && (
                 <button className="btn btn-sm btn-ghost" style={{fontSize:9,flexShrink:0}}
-                  onClick={() => window.open(d.file_url!, '_blank', 'noopener')}>VIEW</button>
+                  onClick={() => onView(d.file_url!, d.title)}>VIEW</button>
               )}
             </div>
           ))}
@@ -424,6 +428,7 @@ function OperationalView({id, data, stats, mutateDetail}: {
         )}
       </div>
 
+      {viewer.modal}
     </div>
   );
 }
@@ -508,6 +513,8 @@ function ProviderCard({managedBy}: {managedBy: ManagedBy}) {
 function ApprovalView({id, data, mutate}: {id: string; data: AgentDetail; mutate: () => void}) {
   const {agent, profile, contact, kyc, documents, review} = data;
   const managedBy = (data as AgentDetail & {managed_by?: ManagedBy}).managed_by ?? null;
+  // 2026-10-17 — documents open in the console's viewer modal, not a new tab.
+  const viewer = useDocumentViewer();
   const [notes, setNotes] = useState('');
   const [busy, setBusy] = useState<'approve'|'reject'|null>(null);
   // Audit fix 4.2 — approve/reject decisions require SUPERVISOR/ADMIN.
@@ -538,7 +545,7 @@ function ApprovalView({id, data, mutate}: {id: string; data: AgentDetail; mutate
   };
 
   async function viewAndReview(type: 'doc'|'kyc', key: string, url: string|null) {
-    if (url && /^https?:\/\//i.test(url)) window.open(url, '_blank', 'noopener');
+    if (url && /^https?:\/\//i.test(url)) viewer.open({url, title: type === 'kyc' ? (KYC_LABEL[key] ?? key) : (documents.find(d => d.slot === key)?.title ?? key), subtitle: agent.display_name ?? undefined});
     // OC-04 — the "reviewed" stamp now requires SUPERVISOR/ADMIN server-side
     // (it feeds the approve decision). OPS can still VIEW the document; only
     // the stamp is skipped, instead of alert-flashing a 403 on every view.
@@ -676,6 +683,7 @@ function ApprovalView({id, data, mutate}: {id: string; data: AgentDetail; mutate
           })}
         </div>
       </div>
+      {viewer.modal}
     </div>
   );
 }
