@@ -176,6 +176,15 @@ describe('linkEngine (phone side of linked devices)', () => {
     expect(mockSendText).toHaveBeenCalledTimes(1);
   });
 
+  it('a snapshot still sealing when the engine stops is never sent (no leak into the next session)', async () => {
+    // Pre-push 2026-10-17: on a loaded machine the background snapshot of
+    // one test landed in the next test's calls, sealed with the old key.
+    await approveLinkFromQr(encodeLinkQr(LINK, key));
+    stopLinkEngine();
+    await flushLinkBounded(2000);
+    expect(calls.filter(c => c.url.endsWith(`/link/${LINK}/send`))).toHaveLength(0);
+  });
+
   it('ignores items not sealed with the link key', async () => {
     await approveLinkFromQr(encodeLinkQr(LINK, key));
     const forged = await (await linkCipher(LINK, newLinkKey())).seal('w2p', {t: 'send', id: 'x', ts: 1, ref: 'r', peerUserId: PEER, text: 'evil'});

@@ -75,6 +75,12 @@ const pending = new Map<string, {peerUserId: string; rows: Map<string, LinkMsgRo
 let convsDirty = false;
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let flushing: Promise<void> | null = null;
+/**
+ * The approve-time snapshot runs in the background (the Linked devices screen
+ * closes straight away). Tracked so the bounded flush (headless wake, tests)
+ * waits for it instead of racing it.
+ */
+let snapshotting: Promise<void> | null = null;
 let draining: Promise<void> | null = null;
 let drainAgain = false;
 const cursors = new Map<string, number>();
@@ -251,6 +257,9 @@ async function sendTo(link: ActiveLink, msgs: PhoneToWeb[]): Promise<void> {
   const items: string[] = [];
   for (const m of msgs) {items.push(await link.cipher.seal('p2w', m));}
   for (let i = 0; i < items.length; i += ITEMS_PER_POST) {
+    // A link forgotten while this was sealing (unlink, sign-out, engine
+    // stopped) gets nothing more — its browser is no longer ours to feed.
+    if (!links.some(l => l.linkId === link.linkId && l.key === link.key)) {return;}
     try {
       await api('POST', `/${link.linkId}/send`, {to: 'web', items: items.slice(i, i + ITEMS_PER_POST)});
     } catch (e) {
@@ -550,7 +559,7 @@ export function stopLinkEngine(): void {
 export async function flushLinkBounded(ms = 4000): Promise<void> {
   if (flushTimer) {clearTimeout(flushTimer); flushTimer = null;}
   await Promise.race([
-    (async () => { await drainLinkInboxes(); await flushNow(); })(),
+    (async () => { if (snapshotting) {await snapshotting;} await drainLinkInboxes(); await flushNow(); })(),
     new Promise<void>(r => setTimeout(r, ms)),
   ]).catch(() => undefined);
 }
@@ -607,7 +616,11 @@ export async function approveLinkFromQr(qrText: string): Promise<{label: string}
   if (!started) {startLinkEngine();}
   baseline(useMessengerStore.getState());
   // Snapshot in the background: the screen can close straight away.
-  void snapshotFrames().then(f => sendTo(link, f)).catch(e => console.warn('[link] snapshot failed:', (e as Error).message));
+  const snap: Promise<void> = snapshotFrames()
+    .then(f => sendTo(link, f))
+    .catch(e => console.warn('[link] snapshot failed:', (e as Error).message))
+    .finally(() => { if (snapshotting === snap) {snapshotting = null;} });
+  snapshotting = snap;
   return {label: rec.label};
 }
 
