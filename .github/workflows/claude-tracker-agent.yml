@@ -11,6 +11,7 @@
 #   secret   PR_TOKEN            optional: a token whose pull requests trigger your CI (GITHUB_TOKEN's do not)
 #   variable AGENT_SKIP_INSTALL  optional: "true" to skip installing dependencies before Claude starts
 #   variable NODE_VERSION        optional: Node version for the install (default: LTS)
+#   variable ANTHROPIC_WORKSPACE_ID  optional: only for an API key that is not scoped to one workspace (wrkspc_…)
 #
 # Model and turn limit come from the tracker (Admin → Claude agent). For runs started from the Actions tab,
 # the variables CLAUDE_MODEL and CLAUDE_MAX_TURNS are used instead.
@@ -152,6 +153,9 @@ jobs:
       - name: Claude fixes the entry
         id: claude
         uses: anthropics/claude-code-action@v1
+        env:
+          # Keys that work in several workspaces must name one on every request.
+          ANTHROPIC_CUSTOM_HEADERS: "${{ vars.ANTHROPIC_WORKSPACE_ID && format('anthropic-workspace-id: {0}', vars.ANTHROPIC_WORKSPACE_ID) || '' }}"
         with:
           settings: ${{ env.CLAUDE_SETTINGS }}
           # The workflow's own token: no Claude GitHub App needed, because this workflow (not the action)
@@ -271,9 +275,17 @@ jobs:
               # Claude started: say how it ended (turn limit, API error such as low credit or a bad key, ...).
               SUBTYPE=$(jq -r '[.[] | select(.type == "result")] | last | .subtype // "unknown"' "$EXEC" 2>/dev/null || echo unknown)
               DETAIL=$(jq -r '[.[] | select(.type == "result")] | last | (.result // .error // "") | tostring' "$EXEC" 2>/dev/null | tr '\n' ' ' | cut -c1-400)
+              HINT=""
+              case "$DETAIL" in
+                *anthropic-workspace-id*|*"scoped to a workspace"*) HINT="Fix: create an API key scoped to a workspace (Claude Console → API keys → Create key → Workspace) and replace the ANTHROPIC_API_KEY secret — or set the repository variable ANTHROPIC_WORKSPACE_ID to the workspace ID (wrkspc_…)." ;;
+                *"credit balance"*|*"Credit balance"*) HINT="Fix: add credit in the Claude Console → Billing." ;;
+                *invalid*x-api-key*|*authentication_error*|*"Invalid API key"*) HINT="Fix: create a new API key and replace the ANTHROPIC_API_KEY secret." ;;
+                *rate_limit*|*overloaded*) HINT="The API was busy — send the entry again in a few minutes." ;;
+              esac
               case "$SUBTYPE" in
                 error_max_turns) SUMMARY="Claude used all $MAX_TURNS turns before finishing. Raise 'Max turns' in Admin → Claude agent, or split the entry into smaller tasks." ;;
-                *) SUMMARY="Claude stopped with an error (${SUBTYPE}). ${DETAIL}" ;;
+                success) SUMMARY="Claude could not run: ${DETAIL} ${HINT}" ;;
+                *) SUMMARY="Claude stopped with an error (${SUBTYPE}). ${DETAIL} ${HINT}" ;;
               esac
             else
               SUMMARY="Claude could not start (step: ${CLAUDE_STEP:-not started}). Usual causes: an invalid ANTHROPIC_API_KEY, no API credit left, or the action could not get a GitHub token. The exact error is in the run log under 'Claude fixes the entry'."
