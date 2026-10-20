@@ -68,8 +68,14 @@ jobs:
           [[ "$ENTRY" =~ ^[A-Za-z0-9]{1,12}-[A-Za-z0-9]{1,12}$ || "$ENTRY" =~ ^[0-9]+$ ]] || { echo "::error::Bad entry id: $ENTRY"; exit 1; }
           [[ -z "$TRACKER_RUN_ID" || "$TRACKER_RUN_ID" =~ ^[0-9]+$ ]] || { echo "::error::Bad run id"; exit 1; }
           [[ "$BASE_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]] || { echo "::error::Bad base branch"; exit 1; }
-          [[ "$REQ_MAX_TURNS" =~ ^[0-9]{1,3}$ && "$REQ_MAX_TURNS" -ge 5 && "$REQ_MAX_TURNS" -le 200 ]] || { echo "::error::Bad max turns: $REQ_MAX_TURNS"; exit 1; }
-          [[ -z "$REQ_MODEL" || "$REQ_MODEL" =~ ^[A-Za-z0-9._:\[\]-]{1,80}$ ]] || { echo "::error::Bad model id"; exit 1; }
+          # Settings from the tracker: fall back to defaults rather than stopping the run.
+          if ! [[ "$REQ_MAX_TURNS" =~ ^[0-9]{1,3}$ && "$REQ_MAX_TURNS" -ge 5 && "$REQ_MAX_TURNS" -le 200 ]]; then
+            echo "::warning::Ignoring max turns '$REQ_MAX_TURNS' — using 30"; REQ_MAX_TURNS=30
+          fi
+          MODEL_RE='^[][A-Za-z0-9._:-]{1,80}$'
+          if [[ -n "$REQ_MODEL" && ! "$REQ_MODEL" =~ $MODEL_RE ]]; then
+            echo "::warning::Ignoring model '$REQ_MODEL' — using the default"; REQ_MODEL=''
+          fi
           {
             echo "BRANCH=tracker/${ENTRY,,}-run${GITHUB_RUN_ID}"
             echo "MAX_TURNS=$REQ_MAX_TURNS"
