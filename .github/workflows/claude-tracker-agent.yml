@@ -74,6 +74,7 @@ jobs:
             echo "MODEL_ARG=${REQ_MODEL:+--model $REQ_MODEL}"
             echo "PROGRESS_FILE=$RUNNER_TEMP/tracker-events.jsonl"
             echo "RUN_FILE=$RUNNER_TEMP/tracker-run.json"
+            echo "FAIL_REASON_FILE=$RUNNER_TEMP/fail-reason.txt"
           } >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v6
@@ -94,6 +95,21 @@ jobs:
           KEY=$(jq -r '.progress_key // empty' "$RUN_FILE")
           [[ -n "$KEY" ]] && echo "::add-mask::$KEY"
           true
+
+      # Fails early, with a reason the tracker can show, instead of a silent failure inside the Claude step.
+      - name: Check Claude credentials
+        env:
+          HAS_API_KEY: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+          HAS_OAUTH: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN != '' }}
+        run: |
+          if [[ "$HAS_API_KEY" != "true" && "$HAS_OAUTH" != "true" ]]; then
+            MSG="Claude could not start: the repository secret ANTHROPIC_API_KEY is missing (Settings → Secrets and variables → Actions)."
+            echo "$MSG" > "$FAIL_REASON_FILE"; echo "::error::$MSG"; exit 1
+          fi
+          if [[ "$HAS_API_KEY" != "true" ]] && grep -q 'anthropic_api_key: \${{ secrets.ANTHROPIC_API_KEY }}' "$GITHUB_WORKSPACE/.github/workflows/claude-tracker-agent.yml" 2>/dev/null; then
+            MSG="Claude could not start: CLAUDE_CODE_OAUTH_TOKEN is set but the workflow still uses ANTHROPIC_API_KEY — change the line marked AUTH."
+            echo "$MSG" > "$FAIL_REASON_FILE"; echo "::error::$MSG"; exit 1
+          fi
 
       - name: Start live progress
         id: live
@@ -138,6 +154,9 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           settings: ${{ env.CLAUDE_SETTINGS }}
+          # The workflow's own token: no Claude GitHub App needed, because this workflow (not the action)
+          # pushes the branch and opens the pull request.
+          github_token: ${{ github.token }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }} # AUTH — or: claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             You are the Claude Agent for the Bravo development tracker, working on entry ${{ env.ENTRY }} in this repository.
@@ -246,7 +265,19 @@ jobs:
           TESTING=$(jq -r '.testing // empty' <<<"$RESULT" 2>/dev/null || true)
           if [[ "$CLAUDE_STEP" != "success" || -z "$OUTCOME" ]]; then
             OUTCOME=failed
-            SUMMARY="The automated run stopped before finishing (step: Claude ${CLAUDE_STEP:-not started}). See the run log for details."
+            if [[ -s "$FAIL_REASON_FILE" ]]; then
+              SUMMARY=$(cat "$FAIL_REASON_FILE")
+            elif [[ -s "$EXEC" ]]; then
+              # Claude started: say how it ended (turn limit, API error such as low credit or a bad key, ...).
+              SUBTYPE=$(jq -r '[.[] | select(.type == "result")] | last | .subtype // "unknown"' "$EXEC" 2>/dev/null || echo unknown)
+              DETAIL=$(jq -r '[.[] | select(.type == "result")] | last | (.result // .error // "") | tostring' "$EXEC" 2>/dev/null | tr '\n' ' ' | cut -c1-400)
+              case "$SUBTYPE" in
+                error_max_turns) SUMMARY="Claude used all $MAX_TURNS turns before finishing. Raise 'Max turns' in Admin → Claude agent, or split the entry into smaller tasks." ;;
+                *) SUMMARY="Claude stopped with an error (${SUBTYPE}). ${DETAIL}" ;;
+              esac
+            else
+              SUMMARY="Claude could not start (step: ${CLAUDE_STEP:-not started}). Usual causes: an invalid ANTHROPIC_API_KEY, no API credit left, or the action could not get a GitHub token. The exact error is in the run log under 'Claude fixes the entry'."
+            fi
           elif [[ -n "$NOCHANGES" ]]; then
             SUMMARY="Claude reported a fix but made no file changes. ${SUMMARY}"
           fi
