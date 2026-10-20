@@ -81,7 +81,8 @@ export function useWorkspaceSwitchRow(dismiss?: () => void): WorkspaceSwitchRow 
     ? {icon: 'forum', label: 'Workspaces', pill: 'ENTERPRISE', go: () => leave(goToWorkspaceHub)}
     : {
       icon: entitlements.hasDeptChannels ? 'forum' : 'lock-outline',
-      label: 'Channels',
+      // APP-040 — founder: the switch row reads "Workspace", not "Channels".
+      label: 'Workspace',
       pill: 'ENTERPRISE',
       dimmed: !entitlements.hasDeptChannels,
       go: () => leave(openDeptChatNow),

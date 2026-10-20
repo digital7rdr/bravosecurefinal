@@ -103,9 +103,9 @@ describe('B-865 — no deferred destination survives the drawer', () => {
   });
 
   it('`openDeptChat` — the third deferral site is cleaned up too', () => {
-    mockUser = {...mockUser, account_kind: 'agency'};   // provider arm renders the Channels row
+    mockUser = {...mockUser, account_kind: 'agency'};   // provider arm renders the Workspace row
     const u = render(<ProfileDrawerModal visible onClose={jest.fn()} />);
-    pressAndConfirm(u, 'Channels');
+    pressAndConfirm(u, 'Workspace');
     u.unmount();
     jest.advanceTimersByTime(5000);
     expect(mockOpenDepartmentChannels).not.toHaveBeenCalled();

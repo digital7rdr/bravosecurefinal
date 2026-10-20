@@ -60,16 +60,17 @@ describe('the CLIENT drawer', () => {
     const text = JSON.stringify(u.toJSON());
     const bookings = text.indexOf('My Bookings');
     const header = text.indexOf('SWITCH DASHBOARD');
-    const row = text.indexOf('Channels');
+    const row = text.indexOf('"Workspace"');
     expect(bookings).toBeGreaterThan(-1);
     expect(header).toBeGreaterThan(bookings);
     // …and the workspace row comes after the section header, i.e. inside it.
     expect(row).toBeGreaterThan(header);
   });
 
-  it('calls the destination "Channels" when the user has no workspace', () => {
+  it('calls the destination "Workspace" when the user has no workspace (APP-040)', () => {
     const u = render(<ProfileDrawerModal visible onClose={jest.fn()} />);
-    expect(u.getByText('Channels')).toBeTruthy();
+    expect(u.getByText('Workspace')).toBeTruthy();
+    expect(u.queryByText('Channels')).toBeNull();
     expect(u.queryByText('Workspaces')).toBeNull();
   });
 
@@ -79,7 +80,7 @@ describe('the CLIENT drawer', () => {
     mockUser = {...mockUser, owns_workspace: true};
     const u = render(<ProfileDrawerModal visible onClose={jest.fn()} />);
     expect(u.getByText('Workspaces')).toBeTruthy();
-    expect(u.queryByText('Channels')).toBeNull();
+    expect(u.queryByText('Workspace')).toBeNull();
   });
 
   it('confirms before going, on BOTH arms of the row', () => {
@@ -89,8 +90,8 @@ describe('the CLIENT drawer', () => {
      * — leaving from the same physical row with no confirm at all.
      */
     const u = render(<ProfileDrawerModal visible onClose={jest.fn()} />);
-    fireEvent.press(u.getByText('Channels'));
-    expect(mockConfirm).toHaveBeenCalledWith('Channels', expect.any(Function));
+    fireEvent.press(u.getByText('Workspace'));
+    expect(mockConfirm).toHaveBeenCalledWith('Workspace', expect.any(Function));
 
     mockConfirm.mockClear();
     mockUser = {...mockUser, owns_workspace: true};
@@ -111,7 +112,7 @@ describe('the PROVIDER drawer keeps its own door', () => {
   it('still lists the workspace row inline — it has no switch section to move it into', () => {
     mockUser = {...mockUser, account_kind: 'agency'};
     const u = render(<ProfileDrawerModal visible onClose={jest.fn()} />);
-    expect(u.getByText('Channels')).toBeTruthy();
+    expect(u.getByText('Workspace')).toBeTruthy();
     expect(u.getByText('Return to Dashboard')).toBeTruthy();
     // …and it reaches neither the switch section nor the gate.
     expect(u.queryByText('Secure Services')).toBeNull();

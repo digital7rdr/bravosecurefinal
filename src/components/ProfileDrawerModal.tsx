@@ -211,8 +211,9 @@ export function ProfileDrawerModal({visible, onClose, switchGuard}: Props) {
       // vs2 item 18 — ONLY the unaffiliated arm is renamed. The hub arm stays
       // "Workspaces": that destination is an organisations / invites / join
       // hub, and calling it "Channels" would both mislabel it and collide with
-      // item 17's "Channels" header one screen away.
-      label: 'Channels',
+      // item 17's "Channels" header one screen away. APP-040 — founder: this
+      // arm reads "Workspace" (kept in step with useWorkspaceSwitchRow).
+      label: 'Workspace',
       pill: 'ENTERPRISE',
       dimmed: !entitlements.hasDeptChannels,
       go: openDeptChat,
