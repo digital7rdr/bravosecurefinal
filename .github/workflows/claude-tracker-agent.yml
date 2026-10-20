@@ -5,7 +5,8 @@
 # to Claude Agent) through repository_dispatch, or by hand from the Actions tab.
 #
 # Repository settings → Secrets and variables → Actions:
-#   secret   ANTHROPIC_API_KEY   (or CLAUDE_CODE_OAUTH_TOKEN — then swap the line marked AUTH below)
+#   secret   ANTHROPIC_API_KEY   pay-as-you-go API key — or CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`)
+#                                to run on a Claude subscription; when both are set, the subscription token is used
 #   secret   TRACKER_TOKEN       agent token from the tracker: Admin → Claude agent → Create
 #   variable TRACKER_URL         https://software.bravosecure.cloud
 #   secret   PR_TOKEN            optional: a token whose pull requests trigger your CI (GITHUB_TOKEN's do not)
@@ -107,10 +108,7 @@ jobs:
             MSG="Claude could not start: the repository secret ANTHROPIC_API_KEY is missing (Settings → Secrets and variables → Actions)."
             echo "$MSG" > "$FAIL_REASON_FILE"; echo "::error::$MSG"; exit 1
           fi
-          if [[ "$HAS_API_KEY" != "true" ]] && grep -q 'anthropic_api_key: \${{ secrets.ANTHROPIC_API_KEY }}' "$GITHUB_WORKSPACE/.github/workflows/claude-tracker-agent.yml" 2>/dev/null; then
-            MSG="Claude could not start: CLAUDE_CODE_OAUTH_TOKEN is set but the workflow still uses ANTHROPIC_API_KEY — change the line marked AUTH."
-            echo "$MSG" > "$FAIL_REASON_FILE"; echo "::error::$MSG"; exit 1
-          fi
+          if [[ "$HAS_OAUTH" == "true" ]]; then echo "Using the Claude subscription token (CLAUDE_CODE_OAUTH_TOKEN)."; else echo "Using the API key (ANTHROPIC_API_KEY)."; fi
 
       - name: Start live progress
         id: live
@@ -161,7 +159,9 @@ jobs:
           # The workflow's own token: no Claude GitHub App needed, because this workflow (not the action)
           # pushes the branch and opens the pull request.
           github_token: ${{ github.token }}
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }} # AUTH — or: claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # Subscription token wins when present; otherwise the pay-as-you-go API key.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          anthropic_api_key: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN == '' && secrets.ANTHROPIC_API_KEY || '' }}
           prompt: |
             You are the Claude Agent for the Bravo development tracker, working on entry ${{ env.ENTRY }} in this repository.
 
@@ -278,7 +278,7 @@ jobs:
               HINT=""
               case "$DETAIL" in
                 *anthropic-workspace-id*|*"scoped to a workspace"*) HINT="Fix: create an API key scoped to a workspace (Claude Console → API keys → Create key → Workspace) and replace the ANTHROPIC_API_KEY secret — or set the repository variable ANTHROPIC_WORKSPACE_ID to the workspace ID (wrkspc_…)." ;;
-                *"credit balance"*|*"Credit balance"*) HINT="Fix: add credit in the Claude Console → Billing." ;;
+                *"credit balance"*|*"Credit balance"*) HINT="Fix: add credit in the Claude Console → Settings → Billing, or run on a Claude subscription by adding the secret CLAUDE_CODE_OAUTH_TOKEN (from 'claude setup-token')." ;;
                 *invalid*x-api-key*|*authentication_error*|*"Invalid API key"*) HINT="Fix: create a new API key and replace the ANTHROPIC_API_KEY secret." ;;
                 *rate_limit*|*overloaded*) HINT="The API was busy — send the entry again in a few minutes." ;;
               esac
