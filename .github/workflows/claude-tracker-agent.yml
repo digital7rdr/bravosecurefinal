@@ -15,6 +15,11 @@
 # Model and turn limit come from the tracker (Admin → Claude agent). For runs started from the Actions tab,
 # the variables CLAUDE_MODEL and CLAUDE_MAX_TURNS are used instead.
 #
+# Live progress: Claude Code hooks write one line per step (tool name, file path or command — never file
+# contents) to a local file, and a background `tracker progress` process streams those lines to the tracker
+# with a per-run key that can only add progress to this run. The entry shows a live log, Claude's task list
+# and an estimated percentage.
+#
 # Claude only edits files here. This workflow — not Claude — pushes the branch, opens the pull request
 # and reports to the tracker, so the tracker token is never visible to Claude. Nothing is merged or closed
 # automatically: a person reviews the PR and closes the entry in the tracker.
@@ -67,6 +72,8 @@ jobs:
             echo "BRANCH=tracker/${ENTRY,,}-run${GITHUB_RUN_ID}"
             echo "MAX_TURNS=$REQ_MAX_TURNS"
             echo "MODEL_ARG=${REQ_MODEL:+--model $REQ_MODEL}"
+            echo "PROGRESS_FILE=$RUNNER_TEMP/tracker-events.jsonl"
+            echo "RUN_FILE=$RUNNER_TEMP/tracker-run.json"
           } >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v6
@@ -82,7 +89,27 @@ jobs:
           echo "TRACKER_CLI=$RUNNER_TEMP/tracker.mjs" >> "$GITHUB_ENV"
           node "$RUNNER_TEMP/tracker.mjs" fetch "$ENTRY" --dir .tracker ${EXTRA_INSTRUCTIONS:+--instructions "$EXTRA_INSTRUCTIONS"}
           git checkout -b "$BRANCH"
-          node "$RUNNER_TEMP/tracker.mjs" start "$ENTRY" --mode github --branch "$BRANCH" --run-url "$RUN_URL" ${TRACKER_RUN_ID:+--run-id "$TRACKER_RUN_ID"}
+          node "$RUNNER_TEMP/tracker.mjs" start "$ENTRY" --mode github --branch "$BRANCH" --run-url "$RUN_URL" ${TRACKER_RUN_ID:+--run-id "$TRACKER_RUN_ID"} \
+            --progress --max-turns "$MAX_TURNS" --out-file "$RUN_FILE"
+          KEY=$(jq -r '.progress_key // empty' "$RUN_FILE")
+          [[ -n "$KEY" ]] && echo "::add-mask::$KEY"
+          true
+
+      - name: Start live progress
+        id: live
+        continue-on-error: true
+        run: |
+          [[ -n "$(jq -r '.progress_key // empty' "$RUN_FILE" 2>/dev/null)" ]] || { echo "Tracker did not issue a progress key — live progress off."; exit 0; }
+          : > "$PROGRESS_FILE"
+          HOOK="node $TRACKER_CLI hook --out $PROGRESS_FILE"
+          jq -n --arg cmd "$HOOK" '{hooks: {
+              PreToolUse:  [{matcher: "Bash", hooks: [{type: "command", command: $cmd, timeout: 10}]}],
+              PostToolUse: [{matcher: "*",    hooks: [{type: "command", command: $cmd, timeout: 10}]}] }}' > "$RUNNER_TEMP/claude-settings.json"
+          echo "CLAUDE_SETTINGS=$RUNNER_TEMP/claude-settings.json" >> "$GITHUB_ENV"
+          # No tracker token in this process: it only holds the per-run progress key.
+          nohup node "$TRACKER_CLI" progress --file "$PROGRESS_FILE" --run-file "$RUN_FILE" > "$RUNNER_TEMP/progress.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/progress.pid"
+          echo "on=1" >> "$GITHUB_OUTPUT"
 
       # Installing here (not inside Claude's session) keeps install logs out of Claude's context — that output
       # would otherwise be re-read on every turn and cost tokens.
@@ -98,12 +125,19 @@ jobs:
         continue-on-error: true
         env:
           HUSKY: '0'
-        run: npm ci --no-audit --no-fund --loglevel=error > "$RUNNER_TEMP/npm-ci.log" 2>&1 || { tail -n 40 "$RUNNER_TEMP/npm-ci.log"; exit 1; }
+        run: |
+          [[ -f "$PROGRESS_FILE" ]] && echo '{"phase":"deps"}' >> "$PROGRESS_FILE"
+          npm ci --no-audit --no-fund --loglevel=error > "$RUNNER_TEMP/npm-ci.log" 2>&1 || { tail -n 40 "$RUNNER_TEMP/npm-ci.log"; exit 1; }
+
+      - name: Mark Claude phase
+        if: steps.live.outputs.on == '1'
+        run: echo '{"phase":"claude"}' >> "$PROGRESS_FILE"
 
       - name: Claude fixes the entry
         id: claude
         uses: anthropics/claude-code-action@v1
         with:
+          settings: ${{ env.CLAUDE_SETTINGS }}
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }} # AUTH — or: claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             You are the Claude Agent for the Bravo development tracker, working on entry ${{ env.ENTRY }} in this repository.
@@ -114,6 +148,8 @@ jobs:
             4. Do not commit, push, create branches or open pull requests — the workflow does that. Do not modify anything under .tracker/ or .github/.
             5. If the entry is unclear, needs a product decision, credentials, a device, or access you do not have, make no changes and return outcome "needs_info" with specific questions in the summary.
             6. If you cannot finish, return outcome "failed" and explain what blocked you.
+
+            Keep a short task list (3–6 items) with your to-do/task tool and mark each item done as you finish it — the tracker shows it as live progress.
 
             Work economically — you have a limited number of turns and every file you read stays in context:
             - Locate code with Grep/Glob first, then read only the files and line ranges you need (use offset/limit on large files).
@@ -129,7 +165,7 @@ jobs:
           claude_args: |
             --max-turns ${{ env.MAX_TURNS }}
             ${{ env.MODEL_ARG }}
-            --allowedTools "Read,Write,Edit,MultiEdit,Glob,Grep,LS,Bash(npm ci),Bash(npm test:*),Bash(npm run:*),Bash(npx jest:*),Bash(npx tsc:*),Bash(npx eslint:*),Bash(git status),Bash(git diff:*),Bash(git log:*)"
+            --allowedTools "Read,Write,Edit,MultiEdit,Glob,Grep,LS,TodoWrite,TaskCreate,TaskUpdate,TaskList,Bash(npm ci),Bash(npm test:*),Bash(npm run:*),Bash(npx jest:*),Bash(npx tsc:*),Bash(npx eslint:*),Bash(git status),Bash(git diff:*),Bash(git log:*)"
             --json-schema '{"type":"object","properties":{"outcome":{"type":"string","enum":["fixed","needs_info","failed"]},"summary":{"type":"string"},"testing":{"type":"string"},"commit_title":{"type":"string"}},"required":["outcome","summary"]}'
 
       - name: Push the branch and open a pull request
@@ -142,6 +178,7 @@ jobs:
           OUTCOME=$(jq -r '.outcome // "failed"' <<<"$RESULT")
           echo "outcome=$OUTCOME" >> "$GITHUB_OUTPUT"
           [[ "$OUTCOME" == "fixed" ]] || { echo "Claude reported $OUTCOME — nothing to push."; exit 0; }
+          [[ -f "$PROGRESS_FILE" ]] && echo '{"phase":"pr"}' >> "$PROGRESS_FILE"
           if [[ -z "$(git status --porcelain)" ]]; then
             echo "outcome=failed" >> "$GITHUB_OUTPUT"
             echo "nochanges=1" >> "$GITHUB_OUTPUT"
@@ -179,6 +216,13 @@ jobs:
           CLAUDE_STEP: ${{ steps.claude.outcome }}
           EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
         run: |
+          # Flush live progress before the final report.
+          if [[ -f "$RUNNER_TEMP/progress.pid" ]]; then
+            printf '%s\n' '{"phase":"report"}' '{"phase":"done"}' >> "$PROGRESS_FILE"
+            PID=$(cat "$RUNNER_TEMP/progress.pid")
+            for _ in $(seq 1 20); do kill -0 "$PID" 2>/dev/null || break; sleep 1; done
+            kill "$PID" 2>/dev/null || true
+          fi
           [[ -n "$RESULT" ]] || RESULT='{}'
           # Token usage from Claude's run log. Only these numbers are sent; the log itself stays here.
           EXEC="${EXEC_FILE:-$RUNNER_TEMP/claude-execution-output.json}"
