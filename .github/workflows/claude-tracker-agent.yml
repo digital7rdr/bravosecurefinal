@@ -60,6 +60,7 @@ jobs:
       BASE_BRANCH: ${{ github.event.client_payload.base_branch || github.event.repository.default_branch }}
       REQ_MODEL: ${{ github.event.client_payload.model || vars.CLAUDE_MODEL }}
       REQ_MAX_TURNS: ${{ github.event.client_payload.max_turns || vars.CLAUDE_MAX_TURNS || '30' }}
+      REQUESTED_BY: ${{ github.event.client_payload.requested_by || github.actor }}
       RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - name: Check inputs
@@ -219,10 +220,20 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -q -m "$TITLE" -m "Tracker entry: $ENTRY" -m "$(jq -r '.summary' <<<"$RESULT")"
+          # Other developers' fixes may have merged while Claude worked: replay this one on the latest base.
+          CONFLICT=""
+          git fetch -q origin "$BASE_BRANCH"
+          if ! git rebase -q "origin/$BASE_BRANCH" > "$RUNNER_TEMP/rebase.log" 2>&1; then
+            git rebase --abort || true
+            CONFLICT=1
+            echo "conflict=1" >> "$GITHUB_OUTPUT"
+          fi
+          git diff --name-only "origin/$BASE_BRANCH...HEAD" > "$RUNNER_TEMP/changed-files.txt" || true
           git push -q origin "HEAD:$BRANCH"
           {
-            echo "Tracker entry **$ENTRY** — $TRACKER_URL"
+            echo "Tracker entry **$ENTRY** — $TRACKER_URL · requested by ${REQUESTED_BY:-unknown}"
             echo
+            [[ -n "$CONFLICT" ]] && { echo "> ⚠️ This branch conflicts with the latest \`$BASE_BRANCH\`. Use **Send back** in the tracker to redo it on the latest code."; echo; }
             jq -r '.summary' <<<"$RESULT"
             echo
             echo "## Testing"
@@ -243,6 +254,7 @@ jobs:
           NOCHANGES: ${{ steps.pr.outputs.nochanges }}
           PR_URL: ${{ steps.pr.outputs.url }}
           CLAUDE_STEP: ${{ steps.claude.outcome }}
+          CONFLICT: ${{ steps.pr.outputs.conflict }}
           EXEC_FILE: ${{ steps.claude.outputs.execution_file }}
         run: |
           # Flush live progress before the final report.
@@ -253,6 +265,8 @@ jobs:
             kill "$PID" 2>/dev/null || true
           fi
           [[ -n "$RESULT" ]] || RESULT='{}'
+          FILES_ARG=()
+          [[ -s "$RUNNER_TEMP/changed-files.txt" ]] && FILES_ARG=(--files-file "$RUNNER_TEMP/changed-files.txt")
           # Token usage from Claude's run log. Only these numbers are sent; the log itself stays here.
           EXEC="${EXEC_FILE:-$RUNNER_TEMP/claude-execution-output.json}"
           USAGE_ARG=()
@@ -303,4 +317,4 @@ jobs:
           printf '%s' "$TESTING" > "$RUNNER_TEMP/testing.txt"
           node "$TRACKER_CLI" report "$ENTRY" --mode github --outcome "$OUTCOME" \
             --summary-file "$RUNNER_TEMP/summary.txt" --testing-file "$RUNNER_TEMP/testing.txt" \
-            --branch "$BRANCH" --run-url "$RUN_URL" ${PR_URL:+--pr "$PR_URL"} ${TRACKER_RUN_ID:+--run-id "$TRACKER_RUN_ID"} "${USAGE_ARG[@]}"
+            --branch "$BRANCH" --run-url "$RUN_URL" ${PR_URL:+--pr "$PR_URL"} ${TRACKER_RUN_ID:+--run-id "$TRACKER_RUN_ID"} "${USAGE_ARG[@]}" "${FILES_ARG[@]}" ${CONFLICT:+--conflict}
