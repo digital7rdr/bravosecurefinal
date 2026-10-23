@@ -24,6 +24,8 @@ const PURGE_KEEPS: Record<string, string> = {
   wallet_transactions: 'payment history', mission_payouts: 'payouts', audit_events: 'audit history',
   gps_pings: 'mission tracking history', incident_reports: 'incident reports', incident_events: 'incident history',
   conversations: 'conversations it started', job_applications: 'job applications',
+  sos_events: 'SOS alerts', org_audit_log: 'organisation audit history', org_members: 'team memberships it manages',
+  incident_attachments: 'incident evidence', family_quota_audit: 'family plan history',
 };
 
 @Injectable()
@@ -254,9 +256,11 @@ export class OpsDataService {
         const row = await tx.qOne<{id: string}>(
           `SELECT id FROM public.users WHERE id = $1 AND deleted_at IS NOT NULL FOR UPDATE`, [userId]);
         if (!row) throw new ConflictException('not_deleted');
-        // Undelivered message envelopes are only a delivery queue to / from
-        // this account; they would otherwise block the removal.
-        await tx.q(`DELETE FROM public.message_envelopes WHERE sender_id = $1 OR recipient_id = $1`, [userId]);
+        // 2026-10-23 — "Remove permanently" always answered "Internal server
+        // error": this also deleted from public.message_envelopes, a table
+        // dropped on 2026-07-07 (envelopes live in the messenger relay now),
+        // so every removal died on "relation does not exist" before it
+        // started. Nothing in Postgres holds envelopes any more.
         await tx.q(`DELETE FROM admin_users WHERE user_id = $1`, [userId]);
         await tx.q(`DELETE FROM public.users WHERE id = $1`, [userId]);
       });

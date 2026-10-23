@@ -30,7 +30,31 @@ describe('purgeUser', () => {
   it('removes an erased account and its private rows', async () => {
     const t = make();
     await expect(t.svc.purgeUser('u-1')).resolves.toEqual({ok: true});
-    expect(t.sql.join('\n')).toMatch(/message_envelopes[\s\S]*DELETE FROM admin_users[\s\S]*DELETE FROM public\.users/);
+    expect(t.sql.join('\n')).toMatch(/DELETE FROM admin_users[\s\S]*DELETE FROM public\.users/);
+  });
+
+  // 2026-10-23 — every removal failed with "Internal server error": the purge
+  // deleted from public.message_envelopes, dropped by migration 20260707061830.
+  // A mocked database cannot see that, so pin it against the migrations: every
+  // table the purge writes must still exist after the last migration.
+  it('touches only tables the migrations still define', async () => {
+    const {readdirSync, readFileSync} = await import('node:fs');
+    const {join} = await import('node:path');
+    const dir = join(__dirname, '..', '..', '..', '..', 'supabase', 'migrations');
+    const files = readdirSync(dir).filter(f => f.endsWith('.sql')).sort();
+    const live = new Set<string>();
+    for (const f of files) {
+      const sql = readFileSync(join(dir, f), 'utf8').toLowerCase();
+      // In statement order, so a drop-then-recreate in one file ends live.
+      for (const m of sql.matchAll(/(create|drop) table (?:if (?:not )?exists )?(?:public\.)?([a-z_]+)/g)) {
+        if (m[1] === 'create') {live.add(m[2]);} else {live.delete(m[2]);}
+      }
+    }
+    const t = make();
+    await t.svc.purgeUser('u-1');
+    const touched = t.sql.flatMap(s => [...s.matchAll(/DELETE FROM (?:public\.)?([a-z_]+)/g)].map(m => m[1]));
+    expect(touched.length).toBeGreaterThan(0);
+    for (const table of touched) {expect([table, live.has(table)]).toEqual([table, true]);}
   });
 
   it('only an already-deleted account can be removed', async () => {
