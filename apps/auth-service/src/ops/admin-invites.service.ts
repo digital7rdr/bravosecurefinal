@@ -74,11 +74,19 @@ export class AdminInvitesService {
     const email = dto.email.trim().toLowerCase();
     const role: AdminRole = dto.role ?? 'OPS';   // least privilege by default
 
+    // 2026-10-23 — one number = one account with several roles: a CPO or a
+    // provider may also be invited to the console. Redemption attaches by
+    // phone (attachOrCreateUser) and never rewrites the existing password, so
+    // only a person who ALREADY has console access is refused here.
     const existingUser = await this.db.qOne<{id: string}>(
       `SELECT id FROM public.users WHERE email = $1 AND deleted_at IS NULL`,
       [email],
     );
-    if (existingUser) throw new ConflictException('user_already_exists');
+    if (existingUser) {
+      const admin = await this.db.qOne<{user_id: string}>(
+        `SELECT user_id FROM admin_users WHERE user_id = $1`, [existingUser.id]);
+      if (admin) throw new ConflictException('already_an_admin');
+    }
 
     const callSignTaken = await this.db.qOne<{user_id: string}>(
       `SELECT user_id FROM admin_users WHERE call_sign = $1`,

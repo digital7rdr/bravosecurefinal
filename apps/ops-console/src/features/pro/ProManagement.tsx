@@ -7,7 +7,7 @@
  * (overlap-safe; each carries the mission code the CPO enters after login).
  * Pro missions carry NO payout — completing just finishes them.
  */
-import {useMemo, useState, type CSSProperties} from 'react';
+import {useMemo, useRef, useState, type CSSProperties} from 'react';
 import {useRouter} from 'next/navigation';
 import {CopyId} from '@/components/CopyId';
 import {PageHeader} from '@/components/PageHeader';
@@ -309,7 +309,9 @@ export function ProManagement({section}: {section: Section}) {
   const [resIdentifier, setResIdentifier] = useState('');
   const [resNotes, setResNotes] = useState('');
   // Last-created credentials surface (shown ONCE so ops can hand them over).
-  const [minted, setMinted] = useState<{kind: string; login: string; password: string} | null>(null);
+  const [minted, setMinted] = useState<{kind: string; login: string; password: string; existing?: boolean} | null>(null);
+  // 2026-10-23 — set by createOrg: the company went onto an account already on that number.
+  const orgExisting = useRef(false);
   // IS-09 — org drill-down: roster + protected members + (SK-08) the org
   // audit log, previously an endpoint with zero consumers.
   const [orgFor, setOrgFor] = useState<ProOrgRow | null>(null);
@@ -418,8 +420,10 @@ export function ProManagement({section}: {section: Section}) {
         }}>
           <span style={{minWidth: 0}}>
             {/* IS-22 — copy affordances: these credentials are shown once. */}
-            {minted.kind} created — login <b style={{fontFamily: 'var(--font-mono)'}}>{minted.login}<CopyId value={minted.login} title="Copy login" /></b>,
-            temp password <b style={{fontFamily: 'var(--font-mono)'}}>{minted.password}<CopyId value={minted.password} title="Copy temp password" /></b> (shown once — hand it over now).
+            {minted.existing
+              ? <>{minted.kind} added to the existing account on that phone number — they sign in with their own password (nothing was reset).</>
+              : <>{minted.kind} created — login <b style={{fontFamily: 'var(--font-mono)'}}>{minted.login}<CopyId value={minted.login} title="Copy login" /></b>,
+                temp password <b style={{fontFamily: 'var(--font-mono)'}}>{minted.password}<CopyId value={minted.password} title="Copy temp password" /></b> (shown once — hand it over now).</>}
           </span>
           <button className="btn btn-ghost btn-sm" onClick={() => setMinted(null)}>DISMISS</button>
         </div>
@@ -1052,12 +1056,15 @@ export function ProManagement({section}: {section: Section}) {
                 <button className="btn btn-ghost" disabled={busy} onClick={() => setOrgOpen(false)}>CANCEL</button>
                 <button className="btn btn-pri" disabled={busy || !orgName.trim() || !orgEmail.trim() || !orgPhone.trim() || orgPass.length < 8 || !/^[A-Z]{2}$/.test(orgCountry)}
                   onClick={() => void run(
-                    () => proMgmtApi.createOrg({
-                      display_name: orgName.trim(), email: orgEmail.trim(),
-                      phone_e164: orgPhone.trim(), temp_password: orgPass, coverage_country: orgCountry,
-                    }),
+                    async () => {
+                      const r = await proMgmtApi.createOrg({
+                        display_name: orgName.trim(), email: orgEmail.trim(),
+                        phone_e164: orgPhone.trim(), temp_password: orgPass, coverage_country: orgCountry,
+                      });
+                      orgExisting.current = !!(r.org as {existing_account?: boolean}).existing_account;
+                    },
                     () => {
-                      setMinted({kind: 'Organization', login: orgEmail.trim(), password: orgPass});
+                      setMinted({kind: 'Organization', login: orgEmail.trim(), password: orgPass, existing: orgExisting.current});
                       setOrgOpen(false); setOrgName(''); setOrgEmail(''); setOrgPhone('');
                       void mutateOrgs();
                     },

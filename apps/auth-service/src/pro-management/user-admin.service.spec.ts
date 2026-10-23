@@ -71,6 +71,23 @@ describe('UserAdminService — accounts as SMS invites, no admin passwords', () 
     expect(proMgmt.createOrg).not.toHaveBeenCalled();
   });
 
+  // 2026-10-23 — one number, one account, several roles.
+  it('an existing account on that number GAINS a provider company — no password reset, no invite SMS', async () => {
+    const {svc, db, proMgmt, sms} = build({existing: true});
+    const out = await svc.createUser(admin, {account_type: 'agency', ...base});
+    expect(proMgmt.createOrg).toHaveBeenCalledTimes(1);
+    expect(out).toMatchObject({existing_account: true, sms_sent: false, invite: null});
+    expect(db.q.mock.calls.some(c => /SET password_hash = NULL/.test(String(c[0])))).toBe(false);
+    expect(sms.sendSms).not.toHaveBeenCalled();
+  });
+
+  it('an existing account cannot be pulled onto a roster as a CPO — they use an invitation code', async () => {
+    const {svc, proMgmt} = build({existing: true});
+    await expect(svc.createUser(admin, {account_type: 'cpo', ...base, agency_user_id: 'agency-9'}))
+      .rejects.toBeInstanceOf(ConflictException);
+    expect(proMgmt.createCpo).not.toHaveBeenCalled();
+  });
+
   it('an SMS failure never fails the creation — the console says it was not sent', async () => {
     const {svc} = build({smsThrows: true});
     await expect(svc.createUser(admin, {account_type: 'individual', ...base})).resolves.toMatchObject({sms_sent: false});

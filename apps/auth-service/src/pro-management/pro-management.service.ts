@@ -1,8 +1,10 @@
 import {
-  BadRequestException, ConflictException, Injectable, Logger, NotFoundException,
+  BadRequestException, ConflictException, Injectable, Logger, NotFoundException, Optional,
 } from '@nestjs/common';
 import * as crypto from 'node:crypto';
 import {DatabaseService} from '../database/database.service';
+import {RedisService} from '../redis/redis.service';
+import {bustAccountGate} from '../common/services/account-gate-cache';
 import {PasswordService} from '../common/services/password.service';
 import {OrgCpoService} from '../org/org-cpo.service';
 import {MissionEventsService} from '../ops/mission-events.service';
@@ -103,6 +105,10 @@ export class ProManagementService {
     private readonly orgCpos: OrgCpoService,
     private readonly events: MissionEventsService,
     private readonly push: BookingPushBridge,
+    // 2026-10-23 — appended LAST and optional (positional spec construction):
+    // only to refresh the cached account gate when an existing account gains
+    // the provider role. RedisModule is @Global, so DI provides it in prod.
+    @Optional() private readonly redis?: RedisService,
   ) {}
 
   // ─── Organisations ─────────────────────────────────────────────────────────
@@ -133,37 +139,66 @@ export class ProManagementService {
    * (mirrorAgentToPool refuses agents without one).
    */
   async createOrg(admin: AdminContext, dto: CreateInternalOrgDto): Promise<{org: Record<string, unknown>}> {
-    const existing = await this.db.qOne<{id: string}>(
-      `SELECT id FROM public.users
-        WHERE (email = $1 OR phone_e164 = $2) AND deleted_at IS NULL`,
-      [dto.email, dto.phone_e164],
+    // 2026-10-23 — one phone number is one account, and that account may hold
+    // several roles (console admin, CPO, provider). An existing account on this
+    // number GAINS the provider company instead of the old "user_already_exists"
+    // refusal; its password is untouched (the temp password applies only to a
+    // brand-new account) and the caller is told which happened.
+    const byPhone = await this.db.qOne<{id: string; email: string | null}>(
+      `SELECT id, email FROM public.users WHERE phone_e164 = $1 AND deleted_at IS NULL`,
+      [dto.phone_e164],
     );
-    if (existing) {throw new ConflictException('user_already_exists');}
-    const pwHash = await this.password.hash(dto.temp_password);
+    const byEmail = await this.db.qOne<{id: string}>(
+      `SELECT id FROM public.users WHERE email = $1 AND deleted_at IS NULL`,
+      [dto.email],
+    );
+    // The email belongs to a DIFFERENT person than the phone — refuse rather
+    // than guess which account was meant.
+    if (byEmail && (!byPhone || byEmail.id !== byPhone.id)) {throw new ConflictException('email_in_use');}
+    if (byPhone) {
+      const agent = await this.db.qOne<{type: string; status: string}>(
+        `SELECT type::text AS type, status::text AS status FROM agents WHERE user_id = $1`, [byPhone.id]);
+      if (agent?.type === 'company') {throw new ConflictException('already_a_provider');}
+      // One officer/provider profile per account today: a CPO cannot also own
+      // a provider company on the same number (see account-responsibilities).
+      if (agent) {throw new ConflictException('cpo_account_cannot_own_provider');}
+    }
+    const pwHash = byPhone ? null : await this.password.hash(dto.temp_password);
     const coverage = JSON.stringify({countries: [dto.coverage_country ?? 'AE'], services: []});
 
     try {
       const org = await this.db.withTransaction(async tx => {
-        const user = await tx.qOne<{id: string}>(
-          `INSERT INTO public.users
-             (id, email, phone_e164, display_name, role, subscription_tier,
-              password_hash, kyc_status, password_set_at)
-           VALUES (gen_random_uuid(), $1, $2, $3, 'service_provider', 'lite', $4, 'approved', NOW())
-           RETURNING id`,
-          [dto.email, dto.phone_e164, dto.display_name, pwHash],
-        );
+        let userId: string;
+        if (byPhone) {
+          userId = byPhone.id;
+          await tx.q(
+            `UPDATE public.users SET role = 'service_provider', email = COALESCE(email, $2), updated_at = NOW() WHERE id = $1`,
+            [userId, dto.email],
+          );
+        } else {
+          const user = await tx.qOne<{id: string}>(
+            `INSERT INTO public.users
+               (id, email, phone_e164, display_name, role, subscription_tier,
+                password_hash, kyc_status, password_set_at)
+             VALUES (gen_random_uuid(), $1, $2, $3, 'service_provider', 'lite', $4, 'approved', NOW())
+             RETURNING id`,
+            [dto.email, dto.phone_e164, dto.display_name, pwHash],
+          );
+          userId = user!.id;
+        }
         await tx.q(
           `INSERT INTO agents (user_id, type, status, display_name, created_by_ops)
            VALUES ($1, 'company', 'ACTIVE', $2, $3)`,
-          [user!.id, dto.display_name, admin.user_id],
+          [userId, dto.display_name, admin.user_id],
         );
         await tx.q(
           `INSERT INTO agent_profiles (user_id, coverage)
            VALUES ($1, $2::jsonb) ON CONFLICT (user_id) DO UPDATE SET coverage = EXCLUDED.coverage`,
-          [user!.id, coverage],
+          [userId, coverage],
         );
-        return {id: user!.id, display_name: dto.display_name, status: 'ACTIVE', internal: true};
+        return {id: userId, display_name: dto.display_name, status: 'ACTIVE', internal: true, existing_account: !!byPhone};
       });
+      if (byPhone) {await bustAccountGate(this.redis, byPhone.id);}
       return {org};
     } catch (e) {
       if ((e as {code?: string}).code === '23505') {

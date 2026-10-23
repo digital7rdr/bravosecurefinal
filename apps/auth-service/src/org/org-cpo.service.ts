@@ -247,7 +247,14 @@ export class OrgCpoService {
       [dto.email, dto.phone_e164],
     );
     if (existing) {
-      throw new ConflictException('user_already_exists');
+      // 2026-10-23 — this number already has a Bravo account (one number, one
+      // account). Adding it here would put a person on a roster without their
+      // say: they join with an invitation code instead, which keeps their
+      // account and password and adds the CPO role to it.
+      throw new ConflictException({
+        error: 'existing_account_use_invite_code',
+        message: 'This number already has a Bravo account. Send them an invitation code — they join your roster from their own account.',
+      });
     }
 
     const pwHash = await this.password.hash(dto.temp_password);

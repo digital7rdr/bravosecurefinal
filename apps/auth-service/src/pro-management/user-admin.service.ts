@@ -64,6 +64,23 @@ export class UserAdminService {
       `SELECT id FROM public.users WHERE (email = $1 OR phone_e164 = $2) AND deleted_at IS NULL`,
       [email, phone],
     );
+    // 2026-10-23 — one number = one account that may hold several roles. An
+    // existing account can GAIN a provider company here (createOrg attaches,
+    // password untouched, no invite); a CPO joins with an invitation code from
+    // their own account; a plain app account on the same number is a duplicate.
+    if (existing && dto.account_type === 'agency') {
+      const {org} = await this.proMgmt.createOrg(admin, {
+        display_name: dto.display_name.trim(), email, phone_e164: phone,
+        temp_password: UserAdminService.throwawayPassword(), coverage_country: dto.coverage_country,
+      });
+      return {user_id: String(org.id), account_type: dto.account_type, existing_account: true, invite: null, sms_sent: false};
+    }
+    if (existing && dto.account_type === 'cpo') {
+      throw new ConflictException({
+        error: 'existing_account_use_invite_code',
+        message: 'This number already has a Bravo account. Send them a provider invitation code — they join from their own account.',
+      });
+    }
     if (existing) {throw new ConflictException('user_already_exists');}
 
     let userId: string;
@@ -97,7 +114,7 @@ export class UserAdminService {
 
     const invite = await this.inviteStatus(userId);
     const sms = await this.sendInviteSms(phone, invite.expires_at);
-    return {user_id: userId, account_type: dto.account_type, invite, sms_sent: sms};
+    return {user_id: userId, account_type: dto.account_type, existing_account: false, invite, sms_sent: sms};
   }
 
   async resendInvite(_admin: AdminContext, userId: string) {

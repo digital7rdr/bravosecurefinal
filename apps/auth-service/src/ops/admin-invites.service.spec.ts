@@ -46,9 +46,21 @@ describe('AdminInvitesService (RS-09)', () => {
   describe('createInvite', () => {
     const dto = {email: 'New.Admin@Bravo.test', display_name: 'New Admin', call_sign: 'OPS-09'};
 
-    it('rejects when a user with that email already exists', async () => {
-      mockDb.qOne.mockResolvedValueOnce({id: 'u-1'}); // users dup check
-      await expect(service.createInvite(ADMIN, dto)).rejects.toBeInstanceOf(ConflictException);
+    // 2026-10-23 — one number = one account with several roles: an existing
+    // CPO / provider / client may be invited; only an existing admin is refused.
+    it('rejects only when that email already belongs to a console admin', async () => {
+      mockDb.qOne
+        .mockResolvedValueOnce({id: 'u-1'})        // users by email
+        .mockResolvedValueOnce({user_id: 'u-1'});  // already an admin
+      await expect(service.createInvite(ADMIN, dto)).rejects.toThrow('already_an_admin');
+    });
+
+    it('an existing non-admin account (e.g. a CPO) can be invited', async () => {
+      mockDb.qOne
+        .mockResolvedValueOnce({id: 'u-1'})  // users by email
+        .mockResolvedValueOnce(null)         // not an admin
+        .mockResolvedValueOnce({user_id: 'u-2'});  // call sign taken — proves it got past the email check
+      await expect(service.createInvite(ADMIN, dto)).rejects.toThrow('call_sign_taken');
     });
 
     it('rejects a call sign already held by any admin account', async () => {

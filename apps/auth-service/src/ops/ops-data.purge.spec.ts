@@ -44,7 +44,8 @@ describe('purgeUser', () => {
     const files = readdirSync(dir).filter(f => f.endsWith('.sql')).sort();
     const live = new Set<string>();
     for (const f of files) {
-      const sql = readFileSync(join(dir, f), 'utf8').toLowerCase();
+      const sql = readFileSync(join(dir, f), 'utf8').toLowerCase()
+        .replace(/--[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, ''); // comments are not statements
       // In statement order, so a drop-then-recreate in one file ends live.
       for (const m of sql.matchAll(/(create|drop) table (?:if (?:not )?exists )?(?:public\.)?([a-z_]+)/g)) {
         if (m[1] === 'create') {live.add(m[2]);} else {live.delete(m[2]);}

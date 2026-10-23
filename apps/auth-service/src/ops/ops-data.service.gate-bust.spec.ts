@@ -37,8 +37,21 @@ function makeSvc(opts: {
       return null;
     }),
   };
+  // 2026-10-23 — eraseUser runs in one transaction (scrub + responsibilities).
+  const tx = {
+    q: jest.fn(async (_sql: string) => []),
+    qOne: jest.fn(async (sql: string) =>
+      /deleted_at IS NULL FOR UPDATE/.test(sql) ? (opts.erasable === false ? null : {id: 'u-1'}) : null),
+  };
+  Object.assign(db, {withTransaction: jest.fn(async (fn: (t: typeof tx) => unknown) => fn(tx))});
   const svc = new OpsDataService(db as never, {client: {del}} as never);
-  return {svc, db, del, cache};
+  return {svc, db, tx, del, cache};
+}
+
+/** Call order of the transaction's account-tombstone write. */
+function tombstoneOrder(tx: {q: jest.Mock}): number {
+  const i = tx.q.mock.calls.findIndex(c => /SET deleted_at = NOW\(\)/.test(String(c[0])));
+  return tx.q.mock.invocationCallOrder[i];
 }
 
 describe('E2E-39 — suspend/restore bust the account gate', () => {
@@ -75,9 +88,10 @@ describe('E2E-39 — suspend/restore bust the account gate', () => {
   });
 
   it('the erase bust runs AFTER the write, like the other two', async () => {
-    const {svc, db, del} = makeSvc();
+    const {svc, tx, del} = makeSvc();
     await svc.eraseUser('adm-1', 'u-1', 'gdpr request');
-    expect(del.mock.invocationCallOrder[0]).toBeGreaterThan(db.qOne.mock.invocationCallOrder[0]);
+    expect(tombstoneOrder(tx)).toBeGreaterThan(0);
+    expect(del.mock.invocationCallOrder[0]).toBeGreaterThan(tombstoneOrder(tx));
   });
 
   it('a refused suspend/restore/erase busts nothing (no write, no invalidation)', async () => {

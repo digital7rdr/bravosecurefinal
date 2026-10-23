@@ -142,7 +142,8 @@ describe('server mirror (source scans)', () => {
     expect(guard).toMatch(/const p = path\.split\('\?'\)\[0\]\.toLowerCase\(\);/);
     // Console admins can be suspended/erased only by a super, never the last one (critic P1).
     const ctrl = code('apps/auth-service/src/ops/ops-data.controller.ts');
-    expect(ctrl.match(/await this\.data\.assertConsoleAdminTarget\(req\.admin, id\);/g)).toHaveLength(2);
+    // suspend, erase, and (2026-10-23) the deletion preview that lists an admin's roles.
+    expect(ctrl.match(/await this\.data\.assertConsoleAdminTarget\(req\.admin, id\);/g)).toHaveLength(3);
     // The login id is validated as E.164 on both provisioning DTOs (critic P1).
     const dto = code('apps/auth-service/src/ops/dto/ops.dto.ts');
     expect(dto.match(/@Matches\(\/\^\\\+\\d\{7,15\}\$\//g)?.length ?? 0).toBeGreaterThanOrEqual(2);

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {useParams, useRouter} from 'next/navigation';
 import {Redacted} from '@/components/Redacted';
 import {ConfirmReasonModal} from '@/components/ConfirmReasonModal';
+import {DeleteAccountModal} from '@/components/DeleteAccountModal';
 import {EditDetailsModal} from '@/components/EditDetailsModal';
 import {ResetPasswordModal} from '@/components/ResetPasswordModal';
 import {ResetAuthenticatorModal} from '@/components/ResetAuthenticatorModal';
@@ -250,9 +251,9 @@ export function UserDetail() {
   }
 
   function confirmErase(reason: string) {
-    // Erase keeps its double-confirm: validated reason first, then a final
-    // irreversible-action gate.
-    if (!window.confirm('This cannot be undone. Delete this account permanently now?')) return;
+    // 2026-10-23 — the DeleteAccountModal is the irreversible gate now: it lists
+    // every role and responsibility that goes, says it cannot be restored and
+    // needs DELETE typed, so the extra window.confirm is gone.
     setEraseOpen(false);
     void runAccountAction(() => opsDataApi.eraseUser(id, reason));
   }
@@ -654,14 +655,10 @@ export function UserDetail() {
         onConfirm={confirmSuspend}
         onCancel={() => setSuspendOpen(false)}
       />
-      <ConfirmReasonModal
+      <DeleteAccountModal
         open={eraseOpen}
-        title="Delete account permanently"
-        description="Super Admin only. Signs the person out everywhere and blocks sign-in for good; removes their name, email, phone, photo and ID documents (the email and phone can then be used for a new account). A console admin also loses console access. Booking, payment and audit history is kept. This cannot be undone."
-        reasonLabel="Reason (kept in the audit log)"
-        reasonPlaceholder="e.g. Customer asked to close the account, ticket #…"
-        confirmLabel="DELETE ACCOUNT"
-        danger
+        userId={id}
+        name={user.display_name ?? 'this account'}
         busy={acctBusy}
         onConfirm={confirmErase}
         onCancel={() => setEraseOpen(false)}

@@ -57,7 +57,13 @@ export function AddUserModal({onClose, onCreated}: {onClose: () => void; onCreat
       onCreated();
     } catch (e) {
       const msg = e instanceof ApiError ? e.message : 'Could not create the account';
-      setErr(/already_exists/.test(msg) ? 'That email or phone number already belongs to an account.' : msg);
+      // 2026-10-23 — one number, one account: a provider company is added to an
+      // existing account; for a CPO the server explains the invitation code.
+      setErr(/already_exists/.test(msg) ? 'That email or phone number already belongs to an account.'
+        : /email_in_use/.test(msg) ? 'That email belongs to a different account than this phone number.'
+        : /already_a_provider/.test(msg) ? 'The account on this number already runs a provider company.'
+        : /cpo_account_cannot_own_provider/.test(msg) ? 'The account on this number is a CPO; one account cannot be a CPO and own a provider company yet.'
+        : msg);
     } finally {setBusy(false);}
   }
 
@@ -77,7 +83,14 @@ export function AddUserModal({onClose, onCreated}: {onClose: () => void; onCreat
           )}
         </div>
 
-        {done ? (
+        {done?.existing_account ? (
+          <div className="space-y-3 px-5 py-4 text-sm">
+            <p className="text-t1">
+              <span className="font-mono">{phone.trim()}</span> already had a Bravo account, so the provider company was
+              added to that account. They sign in with their own password — nothing was reset and no SMS was sent.
+            </p>
+          </div>
+        ) : done ? (
           <div className="space-y-3 px-5 py-4 text-sm">
             <p className="text-t1">
               {done.sms_sent

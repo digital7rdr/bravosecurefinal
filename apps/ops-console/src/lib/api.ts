@@ -98,8 +98,24 @@ export interface CreateAppUserBody {
 export interface CreateAppUserResult {
   user_id: string;
   account_type: AppAccountType;
-  invite: InviteStatus;
+  /** null when an existing account gained the role (2026-10-23 — no invite). */
+  invite: InviteStatus | null;
   sms_sent: boolean;
+  /** 2026-10-23 — one number, one account: the role was added to the account already on this number. */
+  existing_account?: boolean;
+}
+
+/** 2026-10-23 — what "Delete account" removes, keeps and is blocked by. */
+export interface DeletionPreviewItem {key: string; group: 'role' | 'responsibility' | 'data'; label: string; count: number}
+export interface DeletionPreview {
+  user: {id: string; display_name: string; deleted: boolean};
+  roles: DeletionPreviewItem[];
+  responsibilities: DeletionPreviewItem[];
+  data: DeletionPreviewItem[];
+  kept: Array<{key: string; label: string; count: number}>;
+  blockers: Array<{key: string; label: string; count: number}>;
+  wallet_credits: number;
+  devices: number;
 }
 
 export class ApiError extends Error {
@@ -2274,7 +2290,7 @@ export const proMgmtApi = {
   requests: () => fetchJson<{requests: ProMissionRequestRow[]; reserved_today?: ProReservedTodayRow[]}>(`/ops/pro-management/requests`),
   listOrgs: () => fetchJson<{orgs: ProOrgRow[]}>(`/ops/pro-management/orgs`),
   createOrg: (body: {display_name: string; email: string; phone_e164: string; temp_password: string; coverage_country?: string}) =>
-    fetchJson<{org: ProOrgRow}>(`/ops/pro-management/orgs`,
+    fetchJson<{org: ProOrgRow & {existing_account?: boolean}}>(`/ops/pro-management/orgs`,
       {method: 'POST', body: JSON.stringify(body), idempotencyKey: newIdempotencyKey()} as RequestInit & {idempotencyKey?: string}),
   orgDetail: (id: string) =>
     fetchJson<{org: ProOrgRow; roster: Array<{user_id: string; display_name: string; member_role: string; status: string; call_sign: string | null; agent_status: string | null}>; protected_members: Array<{application_id: string; member_name: string; application_status: string}>}>(
@@ -3291,8 +3307,10 @@ export const opsDataApi = {
   // 2026-10-12 — remove an already-deleted account for good (Super Admin).
   purgeUser: (userId: string) =>
     fetchJson<{ok: true}>(`/ops/users/${userId}/purge`, {method: 'POST'}),
+  deletionPreview: (userId: string) =>
+    fetchJson<DeletionPreview>(`/ops/users/${userId}/deletion-preview`),
   eraseUser: (userId: string, reason: string) =>
-    fetchJson<{ok: true; revoked_sessions: number}>(`/ops/users/${userId}/erase`, {
+    fetchJson<{ok: true; revoked_sessions: number; unlinked_members?: number}>(`/ops/users/${userId}/erase`, {
       method: 'POST', body: JSON.stringify({reason}),
       idempotencyKey: newIdempotencyKey(),
     } as RequestInit & {idempotencyKey?: string}),

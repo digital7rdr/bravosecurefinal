@@ -3,7 +3,7 @@
 import {useState} from 'react';
 import useSWR from 'swr';
 import {opsApi, opsDataApi, useOpsMe, type AdminAccountRow, type AdminInviteRow} from '@/lib/api';
-import {ConfirmReasonModal} from '@/components/ConfirmReasonModal';
+import {DeleteAccountModal} from '@/components/DeleteAccountModal';
 import {EditDetailsModal} from '@/components/EditDetailsModal';
 import {ResetPasswordModal} from '@/components/ResetPasswordModal';
 import {ResetAuthenticatorModal} from '@/components/ResetAuthenticatorModal';
@@ -128,7 +128,9 @@ export default function AdminsPage() {
   // 2026-10-11 — delete a console admin's account for good (Super Admin).
   async function confirmDelete(reason: string) {
     const a = deleting;
-    if (!a || !window.confirm(`This cannot be undone. Delete ${a.call_sign}'s account permanently now?`)) return;
+    // 2026-10-23 — DeleteAccountModal is the irreversible gate (roles listed,
+    // "cannot be restored", DELETE typed).
+    if (!a) return;
     setDeleteBusy(true);
     try {
       await opsDataApi.eraseUser(a.user_id, reason);
@@ -168,7 +170,7 @@ export default function AdminsPage() {
     } catch (e) {
       const msg = (e as Error).message;
       setFormErr(
-        /user_already_exists/.test(msg) ? 'A user with that email already exists.'
+        /already_an_admin/.test(msg) ? 'That email already belongs to a console admin — change its level in the table instead.'
         : /call_sign_taken/.test(msg) ? 'That call sign is already in use.'
         : /invite_already_pending/.test(msg) ? 'A pending invite for that email already exists — revoke it first.'
         : msg,
@@ -455,14 +457,10 @@ export default function AdminsPage() {
           </>
         )}
       </div>
-      <ConfirmReasonModal
+      <DeleteAccountModal
         open={deleting !== null}
-        title={deleting ? `Delete ${deleting.call_sign} permanently` : 'Delete admin'}
-        description="Super Admin only. Removes their console access and signs them out everywhere, blocks sign-in for good and removes their name, email, phone, photo and ID documents. Audit history is kept. To only pause access, use DEACTIVATE instead. This cannot be undone."
-        reasonLabel="Reason (kept in the audit log)"
-        reasonPlaceholder="e.g. Left the company"
-        confirmLabel="DELETE ACCOUNT"
-        danger
+        userId={deleting?.user_id ?? null}
+        name={deleting?.call_sign ?? 'this admin'}
         busy={deleteBusy}
         onConfirm={reason => void confirmDelete(reason)}
         onCancel={() => setDeleting(null)}

@@ -10,6 +10,19 @@ import {escapeLike} from '../common/sql-like';
 import type {AdminContext} from './admin.guard';
 import {assertRegionScope, isGlobalAdmin, isSuperAdmin} from './admin.guard';
 import {IDENTITY_FACTS_UNKNOWN, resolveIdentityDocument} from '../identity/identityGate';
+import {BLOCKERS, previewResponsibilities, releaseResponsibilities, type DeletionPreview} from './account-responsibilities';
+import {rm} from 'node:fs/promises';
+import {join} from 'node:path';
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Delete an erased account's uploaded files (best effort; never blocks the erase). */
+async function removeUploads(userId: string): Promise<void> {
+  if (!UUID_RE.test(userId)) {return;}
+  try {
+    await rm(join(process.cwd(), 'uploads', userId), {recursive: true, force: true});
+  } catch { /* the database side is already done; a leftover folder is not a reason to fail */ }
+}
 
 /**
  * Read-only ops data surfaces added by the 2026-07-07 webapp data-coverage
@@ -522,33 +535,67 @@ export class OpsDataService {
    * referential integrity) + scrub PII + revoke sessions. Irreversible.
    * deleted_at is already the login tombstone across auth.service.
    */
+  /**
+   * 2026-10-23 — what deleting this account removes (every role and
+   * responsibility), what stays anonymised, and what blocks it. The console
+   * shows this before the irreversible confirm (account-responsibilities.ts).
+   */
+  async deletionPreview(userId: string): Promise<DeletionPreview> {
+    const u = await this.db.qOne<{display_name: string; deleted_at: Date | null}>(
+      `SELECT display_name, deleted_at FROM public.users WHERE id = $1`, [userId]);
+    if (!u) throw new NotFoundException('user_not_found');
+    return previewResponsibilities(
+      (sql, params) => this.db.q(sql, params), userId,
+      {display_name: u.display_name, deleted: !!u.deleted_at});
+  }
+
   async eraseUser(adminId: string, userId: string, reason: string) {
-    const row = await this.db.qOne<{id: string}>(
-      `UPDATE users
-          SET deleted_at = NOW(),
-              display_name = 'Deleted User',
-              email = NULL,
-              phone_e164 = NULL,
-              avatar_url = NULL,
-              bio = NULL,
-              password_hash = NULL,
-              suspended_at = NULL, suspended_reason = NULL, suspended_by = NULL
-        WHERE id = $1 AND deleted_at IS NULL
-        RETURNING id`,
-      [userId],
-    );
-    if (!row) throw new NotFoundException('user_not_erasable');
-    // B-867 — accounts are soft-deleted, so the identity_documents CASCADE never
-    // fires on its own: erase the sealed ID / passport explicitly. The read route
-    // also refuses a deleted user, so a failed delete here is not a disclosure.
-    await this.db.q(`DELETE FROM public.identity_documents WHERE user_id = $1`, [userId]);
-    // 2026-10-10 — and every earlier (replaced) version of it.
-    await this.db.q(`DELETE FROM public.identity_document_versions WHERE user_id = $1`, [userId]);
-    // 2026-10-11 — a deleted console admin also loses console access for good
-    // (the row stays for the audit trail; Internal → Admins hides it).
-    // 2026-10-12 — and its console copy of the phone is freed too (unique), so
-    // the number can be used for a new account or admin.
-    await this.db.q(`UPDATE admin_users SET active = FALSE, phone_e164 = NULL WHERE user_id = $1`, [userId]);
+    // 2026-10-23 — one transaction: the personal-data scrub AND the release of
+    // every role and responsibility the account holds (admin access, CPO
+    // profile, provider company and its roster, workspace, memberships,
+    // channels, invitations, fleet, areas, upcoming shifts, open offers,
+    // family links, documents, messenger keys and backups…). Before this only
+    // the profile was scrubbed, so a deleted provider still "had" its CPOs,
+    // vehicles and dispatch areas, and a deleted CPO stayed on rosters.
+    const affected = await this.db.withTransaction(async tx => {
+      const row = await tx.qOne<{id: string}>(
+        `SELECT id FROM users WHERE id = $1 AND deleted_at IS NULL FOR UPDATE`, [userId]);
+      if (!row) throw new NotFoundException('user_not_erasable');
+      const q = (sql: string, params: unknown[]) => tx.q(sql, params);
+      // Live work first: a deleted crew member or provider mid-mission would
+      // strand the client. The console lists these before the confirm.
+      const blockers: Array<{key: string; label: string; count: number}> = [];
+      for (const b of BLOCKERS) {
+        const n = Number((await q(b.count, [userId]) as Array<{n: number}>)[0]?.n ?? 0);
+        if (n > 0) {blockers.push({key: b.key, label: b.label(n), count: n});}
+      }
+      if (blockers.length > 0) {
+        throw new ConflictException({error: 'has_active_work', blockers,
+          message: `Not deleted: ${blockers.map(x => x.label).join('; ')}.`});
+      }
+      // People whose access is derived from this account (its roster / team):
+      // their cached account gate must be refreshed after the commit.
+      const linked = await q(
+        `SELECT member_user_id AS id FROM public.org_members WHERE org_user_id = $1 AND member_user_id <> $1
+         UNION SELECT user_id FROM public.agents WHERE managed_by_org_id = $1 AND user_id <> $1`, [userId]) as Array<{id: string}>;
+      await q(
+        `UPDATE users
+            SET deleted_at = NOW(),
+                display_name = 'Deleted User',
+                email = NULL,
+                phone_e164 = NULL,
+                avatar_url = NULL,
+                bio = NULL,
+                password_hash = NULL,
+                suspended_at = NULL, suspended_reason = NULL, suspended_by = NULL
+          WHERE id = $1`,
+        [userId],
+      );
+      // Every role and responsibility, plus the ID documents (B-867) and the
+      // console phone copy (2026-10-12) the earlier version handled one by one.
+      await releaseResponsibilities(q, userId);
+      return linked.map(l => l.id);
+    });
     const revoked = await this.revokeAllDevices(userId);
     // E2E-39 — erasure is the STRONGEST of the three account actions, so it must
     // not be the one that leaves a stale gate. It is also the only one the cache
@@ -557,7 +604,11 @@ export class OpsDataService {
     // but a gate entry cached seconds earlier still answers with their old
     // account_kind until the TTL lapses. Bust AFTER the write, like the others.
     await bustAccountGate(this.redis, userId);
-    return {ok: true as const, revoked_sessions: revoked, reason};
+    for (const id of affected) {await bustAccountGate(this.redis, id);}
+    // Files uploaded through /agents/me/upload (licence, passport, insurance
+    // scans) live on disk under uploads/<id>/, outside the database.
+    await removeUploads(userId);
+    return {ok: true as const, revoked_sessions: revoked, reason, unlinked_members: affected.length};
   }
 
   // ─── SOS log (DC-06) — includes mission-less client/VBG panics ────

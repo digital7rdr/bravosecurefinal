@@ -213,7 +213,9 @@ describe('IdentityDocumentService.readForOps', () => {
     const read = body(src('identity/identity-document.service.ts'), /async readForOps\(/);
     expect(read).toMatch(/JOIN public\.users u ON u\.id = d\.user_id AND u\.deleted_at IS NULL/);
     const erase = body(src('ops/ops-data.service.ts'), /async eraseUser\(adminId: string, userId: string, reason: string\)/);
-    expect(erase).toMatch(/DELETE FROM public\.identity_documents WHERE user_id = \$1/);
+    // 2026-10-23 — erase releases everything through account-responsibilities.ts.
+    expect(erase).toMatch(/await releaseResponsibilities\(q, userId\);/);
+    expect(src('ops/account-responsibilities.ts')).toMatch(/DELETE FROM public\.identity_documents WHERE user_id = \$1/);
   });
 
   it('a passport (no back) yields one image', async () => {
@@ -382,7 +384,9 @@ describe('identity document history (2026-10-10 — keep every upload)', () => {
 
   it('erasure deletes the history too; the version routes are SUPERVISOR+ under the ops user path', () => {
     const erase = body(src('ops/ops-data.service.ts'), /async eraseUser\(adminId: string, userId: string, reason: string\)/);
-    expect(erase).toMatch(/DELETE FROM public\.identity_document_versions WHERE user_id = \$1/);
+    // 2026-10-23 — erase releases everything through account-responsibilities.ts.
+    expect(erase).toMatch(/await releaseResponsibilities\(q, userId\);/);
+    expect(src('ops/account-responsibilities.ts')).toMatch(/DELETE FROM public\.identity_document_versions WHERE user_id = \$1/);
     const ctl = src('ops/ops-data.controller.ts');
     expect(ctl).toMatch(/@Get\('users\/:id\/identity-document\/versions'\)\s+@RequireRoles\('SUPERVISOR', 'ADMIN'\)/);
     expect(ctl).toMatch(/@Get\('users\/:id\/identity-document\/versions\/:versionId'\)\s+@RequireRoles\('SUPERVISOR', 'ADMIN'\)/);

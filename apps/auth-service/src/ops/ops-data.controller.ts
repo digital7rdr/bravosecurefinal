@@ -458,6 +458,15 @@ export class OpsDataController {
     return r;
   }
 
+  // 2026-10-23 — what "Delete account" would remove / keep / be blocked by,
+  // shown in the confirm dialog before the irreversible step.
+  @Get('users/:id/deletion-preview')
+  @RequireRoles('ADMIN')
+  async deletionPreview(@Param('id', ParseUUIDPipe) id: string, @Req() req: OpsReq) {
+    await this.data.assertConsoleAdminTarget(req.admin, id);
+    return this.data.deletionPreview(id);
+  }
+
   // DC-04 — GDPR erasure (irreversible: soft-delete + PII scrub). ADMIN only.
   @Post('users/:id/erase')
   @RequireRoles('ADMIN')
