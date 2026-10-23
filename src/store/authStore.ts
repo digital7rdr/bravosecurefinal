@@ -1034,6 +1034,12 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         clearDiscoveredContactsCache();
       } catch { /* module not loaded yet — fine */ }
       try {
+        // 2026-10-23 — the manually added contacts and issued invite links
+        // held in memory (their keystore copies go with wipeAtRest).
+        (require('@/modules/messenger/contacts/manualContacts') as typeof import('@/modules/messenger/contacts/manualContacts')).resetManualContacts();
+        (require('@/modules/messenger/groups/groupInvites') as typeof import('@/modules/messenger/groups/groupInvites')).stopGroupInvites();
+      } catch { /* module not loaded yet — fine */ }
+      try {
 
         const {lockIdentityBackup} = require('@/modules/messenger/backup/identityBackup') as typeof IdentityBackupModule;
         lockIdentityBackup();

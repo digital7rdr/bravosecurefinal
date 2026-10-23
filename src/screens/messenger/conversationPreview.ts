@@ -11,6 +11,7 @@
  * Returns null when there is no last message at all — each caller owns its
  * own empty-state copy ("start chatting" vs "tap to start").
  */
+import {withoutJoinMarker} from '@bravo/messenger-core/link/groupInvite';
 
 interface PreviewableMessage {
   type?: string;
@@ -30,5 +31,5 @@ export function lastMessagePreview(last: PreviewableMessage | undefined | null):
   // System rows carry a human-readable body already (decrypt-failure notice,
   // group membership changes); show it rather than pretending it's ciphertext.
   if (last.type === 'system') {return last.content || 'Encryption update';}
-  return last.content || '(encrypted)';
+  return (last.content ? withoutJoinMarker(last.content) : '') || '(encrypted)';
 }

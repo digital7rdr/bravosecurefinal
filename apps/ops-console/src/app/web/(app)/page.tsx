@@ -2,21 +2,13 @@
 
 /**
  * Chats (Bravo Web App home): the encrypted Messenger, full page, like a
- * desktop messenger. Same Signal sessions, Sealed Sender and relay as the app;
- * this browser is its own device with its own keys and its own vault, so it
- * receives messages sent after it was set up. Text only for now.
+ * desktop messenger. Accounts with the Bravo app link this browser to their
+ * phone with a QR code (WhatsApp Web style) and see their chats, groups and
+ * contacts here; accounts without a phone use this browser as their own
+ * device. Text only for now.
  */
-import {useMemo} from 'react';
-import {useWeb} from '@/components/web/WebShell';
-import {ChatWorkspace} from '@/features/messenger/ChatWorkspace';
-import {webChatDirectory} from '@/lib/web/directory';
+import {WebMessenger} from '@/components/web/WebMessenger';
 
 export default function WebChats() {
-  const {me} = useWeb();
-  const directory = useMemo(() => webChatDirectory(me.user.id), [me.user.id]);
-  return (
-    <div className="web-chat-page">
-      <ChatWorkspace directory={directory}/>
-    </div>
-  );
+  return <WebMessenger view="chats"/>;
 }

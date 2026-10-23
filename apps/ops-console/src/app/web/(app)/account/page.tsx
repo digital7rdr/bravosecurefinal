@@ -1,9 +1,10 @@
 'use client';
 
 /**
- * Account (Bravo Web App): who is signed in, the credits balance (top-ups stay
- * in the app: card payments are off on the web), the one-time ID document a
- * client needs before booking, the password, and the messenger vault.
+ * Account (Bravo Web App): who is signed in, the one-time ID document a client
+ * needs before booking in the app, the password, and the messenger on this
+ * browser (linked to the phone, or its own device). Owner 2026-10-23: booking
+ * and credits left the web app.
  */
 import {useState} from 'react';
 import useSWR, {useSWRConfig} from 'swr';
@@ -11,25 +12,21 @@ import {useWeb} from '@/components/web/WebShell';
 import {Empty, PvCard, PvPage, Stat} from '@/components/provider/ui';
 import {useMessenger} from '@/components/messenger/MessengerProvider';
 import {useToast} from '@/components/Toast';
-import {expireWebCsrf, useBalance, webApi, webAuth, WEB_EXPIRES_KEY, WEB_PW_CHANGED_KEY} from '@/lib/web/api';
+import {expireWebCsrf, webApi, webAuth, WEB_EXPIRES_KEY, WEB_PW_CHANGED_KEY} from '@/lib/web/api';
 import {webErrorText} from '@/lib/web/labels';
-import {credits} from '@/lib/provider/labels';
 import {webRoutes} from '@/lib/web/routes';
 
 const MAX_BYTES = 4 * 1024 * 1024;
 
 export default function WebAccount() {
   const {me, client, signOut} = useWeb();
-  const {data: balance} = useBalance(client);
   const messenger = useMessenger();
   return (
     <PvPage title="Account">
       <div className="kpi-row" style={{gridTemplateColumns: 'repeat(3, minmax(0, 1fr))'}}>
         <Stat label="Name" value={me.user.display_name ?? '—'}/>
         <Stat label="Phone" value={me.user.phone_e164 ?? '—'}/>
-        {client
-          ? <Stat label="Bravo credits" value={balance ? credits(balance.bravo_credits) : '—'} sub="Top up in the Bravo Secure app (Wallet)" tone="ok"/>
-          : <Stat label="Account" value={me.account_kind === 'cpo' ? 'Officer' : 'Service provider'}/>}
+        <Stat label="Account" value={client ? 'Client' : me.account_kind === 'cpo' ? 'Officer' : 'Service provider'}/>
       </div>
       <div className="pv-grid">
         {client && <IdentityCard/>}
@@ -38,7 +35,7 @@ export default function WebAccount() {
           {messenger.mode === 'linked' ? (
             <p className="pv-hint" style={{marginTop: 0}}>
               {messenger.state === 'unlocked'
-                ? 'This browser mirrors the Bravo app on your phone: the same chats and contacts, kept in sync. Messages you send here go out from your phone. Log this browser out here or from the app (Messenger → Settings → Linked devices).'
+                ? 'This browser mirrors the Bravo app on your phone: the same chats, groups and contacts, kept in sync. Messages you send here go out from your phone. Log this browser out here or from the app (Messenger → Settings → Linked devices).'
                 : 'Open Messenger and scan the code with the Bravo app on your phone to use your chats here.'}
             </p>
           ) : (
@@ -84,7 +81,7 @@ function IdentityCard() {
     setBusy(true); setErr(null);
     try {
       await webApi.submitIdentity(docType, front, docType === 'national_id' ? back : null);
-      push({kind: 'ok', text: 'ID received. You can book now.'});
+      push({kind: 'ok', text: 'ID received. You can book in the Bravo app now.'});
       void mutate(['web', 'identity']); void mutate(['web', 'me']);
       setFront(null); setBack(null);
     } catch (e) { setErr(webErrorText(e)); }

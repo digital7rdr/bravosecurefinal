@@ -38,7 +38,7 @@ export function LinkPhonePanel() {
             <li>Tap <b>Link a browser</b> and point your phone at this code.</li>
           </ol>
           <p style={{opacity: 0.75, fontSize: 13, margin: 0}}>
-            Your chats and contacts appear here and stay in sync with your phone. Messages stay end-to-end
+            Your chats, groups and contacts appear here and stay in sync with your phone. Messages stay end-to-end
             encrypted; the code works once and only for your account.
           </p>
           {(pairing?.error || error) && (

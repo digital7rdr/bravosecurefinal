@@ -2,16 +2,15 @@
  * Every path of the Bravo Web App as the BROWSER sees it on the web host (the
  * middleware maps them onto app/web/*). One list, so a moved page cannot leave
  * dead links.
+ *
+ * Owner 2026-10-23 — the web app is a messenger only: Book, Bookings and
+ * Secure Pro were removed (their old paths redirect to Chats).
  */
 export const webRoutes = {
   home: '/',
   login: '/login',
   chats: '/',
-  book: '/book',
-  bookLite: '/book?product=lite',
-  bookExecutive: '/book?product=executive',
-  bookings: '/bookings',
-  booking: (id: string) => `/bookings/${encodeURIComponent(id)}`,
-  pro: '/pro',
+  contacts: '/contacts',
+  groups: '/groups',
   account: '/account',
 } as const;

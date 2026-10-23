@@ -271,16 +271,23 @@
       {
         "displayName": "ops-console",
         "testEnvironment": "node",
+        "transformIgnorePatterns": [
+          "/node_modules/(?!(@noble/hashes)/)"
+        ],
         "testMatch": [
           "<rootDir>/apps/ops-console/src/__tests__/**/*.test.ts"
         ],
         "moduleNameMapper": {
-          "^@/(.*)$": "<rootDir>/apps/ops-console/src/$1"
+          "^@/(.*)$": "<rootDir>/apps/ops-console/src/$1",
+          "^@bravo/messenger-core$": "<rootDir>/packages/messenger-core/src",
+          "^@bravo/messenger-core/(.*)$": "<rootDir>/packages/messenger-core/src/$1"
         },
         "transform": {
           "^.+\\.(ts|tsx|js|jsx)$": [
             "babel-jest",
             {
+              "configFile": false,
+              "babelrc": false,
               "presets": [
                 [
                   "@babel/preset-env",

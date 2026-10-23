@@ -105,18 +105,43 @@ describe('web pages stay on the web session', () => {
   });
 });
 
-describe('who can book', () => {
-  it('clients only; officers, agencies and managers get Messenger', () => {
+describe('who is a client', () => {
+  it('clients only; officers, agencies and managers are not', () => {
     expect(canBook(me())).toBe(true);
     expect(canBook(me({account_kind: 'cpo'}))).toBe(false);
     expect(canBook(me({account_kind: 'agency'}))).toBe(false);
     expect(canBook(me({is_org_manager: true}))).toBe(false);
     expect(canBook(me({role: 'service_provider'}))).toBe(false);
     expect(canBook(undefined)).toBe(false);
-    expect(WEB_NAV.filter(i => !i.clientsOnly).map(i => i.label)).toEqual(['Chats', 'Account']);
+  });
+});
+
+describe('the web app is the messenger (owner 2026-10-23)', () => {
+  it('the rail is Chats, Contacts, Groups, Account — the same for every account', () => {
+    expect(WEB_NAV.map(i => [i.label, i.href])).toEqual([
+      ['Chats', '/'], ['Contacts', '/contacts'], ['Groups', '/groups'], ['Account', '/account'],
+    ]);
     expect(webNavActive('/', '/')).toBe(true);
-    expect(webNavActive('/bookings', '/bookings/abc')).toBe(true);
-    expect(webNavActive('/book', '/bookings')).toBe(false);
+    expect(webNavActive('/groups', '/groups')).toBe(true);
+    expect(webNavActive('/contacts', '/groups')).toBe(false);
+    const shell = stripComments(read('components/web/WebShell.tsx'));
+    expect(shell).not.toMatch(/clientsOnly|ClientsOnly|useBalance|Credits/);
+  });
+
+  it('Book, Bookings and Secure Pro are gone: their old paths redirect to Chats', () => {
+    for (const p of ['book', 'bookings', 'bookings/[id]', 'pro']) {
+      const page = stripComments(read(`app/web/(app)/${p}/page.tsx`));
+      expect([p, /redirect\(webRoutes\.chats\)/.test(page)]).toEqual([p, true]);
+      expect([p, /webApi|PvPage|book\(/.test(page)]).toEqual([p, false]);
+    }
+    const routes = stripComments(read('lib/web/routes.ts'));
+    expect(routes).not.toMatch(/\bbook|\bpro:/);
+  });
+
+  it('Contacts and Groups open the same chat workspace on their tab', () => {
+    expect(stripComments(read('app/web/(app)/contacts/page.tsx'))).toMatch(/<WebMessenger view="contacts"\/>/);
+    expect(stripComments(read('app/web/(app)/groups/page.tsx'))).toMatch(/<WebMessenger view="groups"\/>/);
+    expect(stripComments(read('app/web/(app)/page.tsx'))).toMatch(/<WebMessenger view="chats"\/>/);
   });
 });
 

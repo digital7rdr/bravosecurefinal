@@ -6105,6 +6105,59 @@ export async function buildProductionRuntime(
     },
 
     /**
+     * 2026-10-23 — group description. Same shape as `renameGroup` (admin gate,
+     * per-group lock, signed epoch-bound action, best-effort fan-out, local
+     * apply through the shared reducer); the action is a `rename` that keeps
+     * the current name, so older receivers still advance their epoch.
+     */
+    setGroupDescription: async ({groupId, description}) => {
+      return runWithGroupAdminLock(groupId, async () => {
+        const store = useMessengerStore.getState();
+        const cur = store.groups[groupId];
+        if (!cur) {throw new Error(`setGroupDescription: unknown group ${groupId}`);}
+        if (!cur.members[ownAddress.userId]?.admin) {throw new Error('only admins can change the group description');}
+        const {GROUP_DESCRIPTION_MAX} = require('@bravo/messenger-core') as typeof import('@bravo/messenger-core');
+        const clean = String(description ?? '').replace(/\r\n/g, '\n').trim().slice(0, GROUP_DESCRIPTION_MAX);
+        if (clean === (cur.description ?? '')) {return {newEpoch: cur.epoch};}
+
+        const action = {type: 'rename' as const, name: cur.name, description: clean, atEpoch: cur.epoch};
+        const issuedCert = await certCache.getIssued();
+        const cert = issuedCert.cert;
+        const failures: string[] = [];
+        try {
+          await broadcastToGroup({
+            group:   cur,
+            self:    ownAddress,
+            cert,
+            body:    '',
+            admin:   action,
+            session: own,
+            ensureSession: async (peer: SessionAddress) => {
+              await ensureOutgoingSession(own, keys, peer, ownStore);
+            },
+            deliver: async (peer, ct, clientMsgId) => {
+              try {
+                await deliverGroupAdminEnvelope({
+                  peer, cert, certExpSec: issuedCert.expiresAt, ct, clientMsgId, groupId,
+                });
+              } catch (e) {
+                failures.push(`${peer.userId}: ${asErrorMessage(e)}`);
+              }
+            },
+          });
+        } catch (e) {
+          failures.push(asErrorMessage(e));
+        }
+        const next = applyAdminAction(cur, action, ownAddress.userId);
+        useMessengerStore.getState().setGroupState(next);
+        if (failures.length > 0) {
+          console.warn(`[group-description:runtime] ${failures.length} peer(s) missed the description; they re-sync on next group-state refresh`);
+        }
+        return {newEpoch: next.epoch};
+      });
+    },
+
+    /**
      * B-291 — set or clear the group picture.
      *
      * Shape follows `renameGroup` exactly (admin gate, per-group lock, signed

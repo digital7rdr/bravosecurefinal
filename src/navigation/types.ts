@@ -105,7 +105,7 @@ export type VaultNewPinParams = ({next?: 'Files' | 'MessengerHome' | 'MessengerS
  * pushed Files screen hosts the same footer and hands one of these back as a
  * route param when a tab is pressed there (consumed once, then cleared).
  */
-export type MessengerHomeTab = 'Chats' | 'Calls' | 'News';
+export type MessengerHomeTab = 'Chats' | 'Calls' | 'Contacts' | 'News';
 
 export type MessengerStackParamList = {
   MessengerHome: {tab?: MessengerHomeTab} | undefined;

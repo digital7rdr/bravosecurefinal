@@ -19,6 +19,7 @@ import {
   useDiscoveredContacts,
   type DiscoveredRow,
 } from '@/modules/messenger/contacts/useDiscoveredContacts';
+import {useManualContacts, withManualContacts} from '@/modules/messenger/contacts/useManualContacts';
 import {normalizeBatch, regionFromOwnPhone} from '@/modules/messenger/contacts/phoneNormalize';
 import {filterContacts} from '@/modules/messenger/contacts/contactSearch';
 import {recentDirectPeers} from '@/modules/messenger/contacts/recentPeers';
@@ -187,11 +188,14 @@ export default function NewChatScreen() {
     [],
   );
 
-  const {permission, loading, error, matches, refresh} = useDiscoveredContacts({
+  const {permission, loading, error, matches: phoneMatches, refresh} = useDiscoveredContacts({
     users:        usersClient,
     ownPhoneE164: currentUser?.phone_e164 ?? null,
     enabled:      true,
   });
+  // 2026-10-23 — contacts added by hand on the Contacts tab are pickable too.
+  const manualContacts = useManualContacts();
+  const matches = useMemo(() => withManualContacts(phoneMatches, manualContacts), [phoneMatches, manualContacts]);
 
   // Live filtering for the search bar. Matching rules (name fragments,
   // digits-only phone comparison so "0552…" finds "+971552…") live in
@@ -952,7 +956,8 @@ function RealContactsSection(props: {
     );
   }
 
-  if (permission === 'denied') {
+  // Hand-added contacts (2026-10-23) still list without address-book access.
+  if (permission === 'denied' && matches.length === 0) {
     return (
       <View style={styles.blockWrap}>
         <Icon name="book-lock-outline" size={32} color="#3BA6FF" />
@@ -969,7 +974,7 @@ function RealContactsSection(props: {
     );
   }
 
-  if (permission === 'unavailable') {
+  if (permission === 'unavailable' && matches.length === 0) {
     return (
       <View style={styles.blockWrap}>
         <Icon name="cellphone-off" size={32} color="#3BA6FF" />

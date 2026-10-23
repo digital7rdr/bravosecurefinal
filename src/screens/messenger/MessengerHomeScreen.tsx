@@ -63,6 +63,7 @@ import {formatListTimestamp} from '@utils/helpers';
 import {scaleTextStyles} from '@utils/scaling';
 import {openConversation} from './openConversation';
 import {CallsLogBody} from './CallsLogScreen';
+import {ContactsBody} from './ContactsBody';
 import {NewsHubBody} from '@screens/news/NewsHubScreen';
 import {MessengerTabBar, MSG_TAB_HEIGHT, type MsgLocalTab as MessengerLocalTab} from './MessengerTabBar';
 import {useIsDeptConversation} from './useDeptConversationFilter';
@@ -1266,6 +1267,7 @@ export default function MessengerHomeScreen() {
           being display-toggled. Wrapping the JSX in parens breaks that read. */}
       {activeTab === 'Calls' && <CallsLogBody embedded bottomPad={MSG_TAB_HEIGHT} onExit={tabExit?.onPress} exitLabel={tabExit?.label} />}
       {activeTab === 'News' && <NewsHubBody embedded bottomPad={MSG_TAB_HEIGHT} onExit={tabExit?.onPress} exitLabel={tabExit?.label} />}
+      {activeTab === 'Contacts' && <ContactsBody bottomPad={MSG_TAB_HEIGHT} onExit={tabExit?.onPress} exitLabel={tabExit?.label} />}
 
       {/* ── Messenger Footer Tabs (always mounted — the persistent bar) ─────── */}
       <MessengerTabBar

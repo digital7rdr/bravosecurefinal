@@ -4,10 +4,10 @@
  * Chrome of the Bravo Web App (web.bravosecure.cloud): rail, top bar, silent
  * session refresh and the idle sign-out.
  *
- * Everyone with a Bravo account may sign in. GET /auth/me says who they are:
- * client accounts see Book, Bookings and Secure Pro; officers, agencies and
- * agency managers see Messenger and Account only. The server is still the gate
- * for every booking call; hiding the pages is a convenience.
+ * Everyone with a Bravo account may sign in. GET /auth/me says who they are.
+ * Owner 2026-10-23: the web app is the messenger — Chats, Contacts, Groups and
+ * Account for every account. Booking (Book, Bookings, Secure Pro) lives in the
+ * Bravo app only.
  */
 
 import Link from 'next/link';
@@ -15,13 +15,12 @@ import {usePathname} from 'next/navigation';
 import {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import {useSWRConfig} from 'swr';
 import {
-  webAuth, readWebCsrf, useWebMe, useBalance, canBook, WEB_EXPIRES_KEY, WEB_IDLE_KEY, type WebMe,
+  webAuth, readWebCsrf, useWebMe, canBook, WEB_EXPIRES_KEY, WEB_IDLE_KEY, type WebMe,
 } from '@/lib/web/api';
 import {HomeSiteLink} from '@/components/HomeSiteLink';
 import {WEB_NAV, webNavActive, type WebNavIcon} from '@/lib/web/nav';
 import {webRoutes} from '@/lib/web/routes';
 import {useMessenger} from '@/components/messenger/MessengerProvider';
-import {credits} from '@/lib/provider/labels';
 
 const REFRESH_LEAD_SEC = 60;
 // Longer than the consoles: a chat window is often left open and idle.
@@ -30,7 +29,7 @@ const RAIL_KEY = 'bravo_web_rail_collapsed';
 
 interface WebCtx {
   me: WebMe;
-  /** True for client accounts: booking pages are theirs. */
+  /** True for client accounts (personal Bravo accounts). */
   client: boolean;
   signOut: () => void;
 }
@@ -48,9 +47,8 @@ const ic = {width: 18, height: 18, viewBox: '0 0 24 24', fill: 'none', stroke: '
 
 const ICONS: Record<WebNavIcon, ReactNode> = {
   chat: <svg {...ic}><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>,
-  plus: <svg {...ic}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v6M9 11h6"/></svg>,
-  list: <svg {...ic}><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>,
-  star: <svg {...ic}><path d="m12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>,
+  contacts: <svg {...ic}><rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7.5 17c.8-1.8 2.5-3 4.5-3s3.7 1.2 4.5 3"/></svg>,
+  group: <svg {...ic}><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.7-3.2 3.1-5 6-5s5.3 1.8 6 5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.2c2.4.2 4 1.8 4.5 4.8"/></svg>,
   user: <svg {...ic}><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>,
 };
 
@@ -78,7 +76,6 @@ export function WebShell({children}: {children: ReactNode}) {
 
   const {data: me, error: meError} = useWebMe(hasSession === true);
   const client = canBook(me);
-  const {data: balance} = useBalance(hasSession === true && client);
 
   const {wipe: wipeMessenger} = useMessenger();
   const signOut = useCallback(() => {
@@ -132,8 +129,8 @@ export function WebShell({children}: {children: ReactNode}) {
 
   const name = me.user.display_name ?? me.user.phone_e164 ?? 'Signed in';
   const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase() || 'BS';
-  const nav = WEB_NAV.filter(i => !i.clientsOnly || client);
-  const chatPage = path === '/' || path === '';
+  const nav = WEB_NAV;
+  const chatPage = path === '/' || path === '' || webNavActive(webRoutes.contacts, path) || webNavActive(webRoutes.groups, path);
 
   return (
     <Ctx.Provider value={value}>
@@ -173,16 +170,10 @@ export function WebShell({children}: {children: ReactNode}) {
         <header className="topbar">
           <div className="pv-org">
             <span className="pv-org-cap">Bravo Secure</span>
-            <span className="pv-org-name">{client ? 'Messenger & booking' : 'Messenger'}</span>
+            <span className="pv-org-name">Messenger</span>
           </div>
           <div style={{flex: 1}}/>
           <HomeSiteLink/>
-          {client && (
-            <Link href={webRoutes.account} className="web-balance" title="Your Bravo credits">
-              <span className="pv-hint">Credits</span>
-              <span className="pv-strong">{balance ? credits(balance.bravo_credits) : '—'}</span>
-            </Link>
-          )}
           <div className="topbar-admin" style={{cursor: 'default'}}>
             <div className="topbar-admin-av">{initials}</div>
             <div>
@@ -198,18 +189,5 @@ export function WebShell({children}: {children: ReactNode}) {
         </main>
       </div>
     </Ctx.Provider>
-  );
-}
-
-/** A booking page opened by an account that cannot book. */
-export function ClientsOnly() {
-  return (
-    <div className="card" style={{padding: 28, maxWidth: 560}}>
-      <h2 style={{margin: '0 0 8px', fontSize: 18}}>Booking is for client accounts</h2>
-      <p className="text-sm text-t3" style={{margin: 0, lineHeight: 1.6}}>
-        This account belongs to an officer or a service provider, so it uses Bravo Secure for
-        messaging only. Book protection with a personal client account.
-      </p>
-    </div>
   );
 }

@@ -74,6 +74,16 @@ interface Ctx {
   beginPairing: () => () => void;
   /** Linked mode: log this browser out of the phone (clears the mirror). */
   unlinkBrowser: () => Promise<void>;
+  /**
+   * 2026-10-23 — the account has the Bravo app on a phone, so this browser
+   * can be linked to it (QR code) instead of being its own device.
+   */
+  canLink: boolean;
+  /**
+   * Replace this browser's own messenger (passphrase vault, its browser-only
+   * chats) with a link to the phone: shows the QR code. Only when canLink.
+   */
+  linkInstead: () => Promise<void>;
   /** Open the unlock dialog. Resolves when state becomes 'unlocked'. */
   requestUnlock: () => void;
   /** Forget the current key + close DB. UI snaps back to 'locked'. */
@@ -124,6 +134,7 @@ export function MessengerProvider({children}: {children: ReactNode}) {
   // The unlocked vault while waiting for the phone to approve the link.
   const vaultRef = useRef<{db: MessengerDb; wrapKey: WrapKey} | null>(null);
   const pairingRef = useRef<LinkPairing | null>(null);
+  const [canLink, setCanLink] = useState(false);
 
   const startLinked = useCallback(async (lr: LinkedRuntime): Promise<void> => {
     lr.onUnlinked(() => {
@@ -201,6 +212,44 @@ export function MessengerProvider({children}: {children: ReactNode}) {
     })();
     return () => { cancelled = true; pairingRef.current?.stop(); pairingRef.current = null; };
   }, [userId, startLinked]);
+
+  // 2026-10-23 — whether "Link with your phone" can be offered.
+  useEffect(() => {
+    if (!userId || mode === 'linked') { setCanLink(false); return; }
+    let live = true;
+    void import('@/lib/api')
+      .then(m => m.messengerAccountHasPhone())
+      .then(v => { if (live) setCanLink(!!v); })
+      .catch(() => { if (live) setCanLink(false); });
+    return () => { live = false; };
+  }, [userId, mode]);
+
+  const linkInstead = useCallback(async () => {
+    if (!userId) return;
+    setError(null);
+    // Close this browser's own messenger, delete its vault, and start again
+    // with a device-bound vault that goes straight to the QR code.
+    try { runtimeRef.current?.setActivity('away'); } catch { /* ignore */ }
+    try { runtimeRef.current?.close(); } catch { /* ignore */ }
+    runtimeRef.current = null;
+    pairingRef.current?.stop();
+    try { vaultRef.current?.db.close(); } catch { /* ignore */ }
+    vaultRef.current = null;
+    setPairing(null);
+    setState('unlocking');
+    try {
+      await new Promise<void>((res, rej) => {
+        const req = indexedDB.deleteDatabase(`bravo-messenger-${userId}`);
+        req.onsuccess = () => res(); req.onerror = () => rej(req.error); req.onblocked = () => res();
+      });
+      const {MessengerRuntime} = await import('@/lib/messenger/runtime');
+      const rt = await MessengerRuntime.createDeviceVault(userId);
+      await bootFromVault(rt, userId);
+    } catch (e) {
+      setError((e as Error).message || 'Could not switch to the phone link.');
+      setState('locked');
+    }
+  }, [userId, bootFromVault]);
 
   const unlinkBrowser = useCallback(async () => {
     const rt = runtimeRef.current;
@@ -351,10 +400,10 @@ export function MessengerProvider({children}: {children: ReactNode}) {
       state, error, userId,
       runtime: rt,
       signalRuntime: signal,
-      mode, pairing, beginPairing, unlinkBrowser,
+      mode, pairing, beginPairing, unlinkBrowser, canLink, linkInstead,
       requestUnlock, lock, wipe,
     };
-  }, [state, error, userId, mode, pairing, beginPairing, unlinkBrowser, requestUnlock, lock, wipe]);
+  }, [state, error, userId, mode, pairing, beginPairing, unlinkBrowser, canLink, linkInstead, requestUnlock, lock, wipe]);
 
   // Tear down the runtime on unmount. Mirror the lock() cleanup so the
   // last 'away' frame goes out before we close the socket.

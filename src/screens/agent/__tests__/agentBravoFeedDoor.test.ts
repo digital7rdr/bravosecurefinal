@@ -61,7 +61,7 @@ describe('B-799 — the agent Bravo Feed doors land on the News HUB, not the liv
     expect(end).toBeGreaterThan(start);
     const agentStack = TYPES.slice(start, end);
     expect(agentStack).toMatch(/^\s*MessengerHome: \{tab\?: MessengerHomeTab\} \| undefined;/m);
-    expect(TYPES).toMatch(/export type MessengerHomeTab = 'Chats' \| 'Calls' \| 'News';/);
+    expect(TYPES).toMatch(/export type MessengerHomeTab = 'Chats' \| 'Calls' \| 'Contacts' \| 'News';/);
   });
 
   it('the News tab IS the hub body — filter + My Feed + Bravo Feed ("these page")', () => {

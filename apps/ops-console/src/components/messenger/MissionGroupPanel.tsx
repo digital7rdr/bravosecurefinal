@@ -18,6 +18,18 @@ import {opsApi} from '@/lib/api';
 import {useGroupMessages, useMessenger, usePresence, useTyping, useReadReceipts} from './MessengerProvider';
 import {broadcastToGroup} from '@/lib/messenger/groupClientAdapter';
 import type {PresenceState} from '@/lib/messenger/runtime';
+import type {LinkedRuntime} from '@/lib/messenger/linkedRuntime';
+import {groupCid} from '@bravo/messenger-core/link/linkProtocol';
+
+/**
+ * 2026-10-23 — in a browser linked to the phone, the mission room is the
+ * phone's copy of the group (`group:<conversation id>` in the mirror): read
+ * and sent through the phone like every other linked chat.
+ */
+function useLinkedRuntime(): LinkedRuntime | null {
+  const {runtime, mode} = useMessenger();
+  return mode === 'linked' && runtime && 'kind' in runtime && runtime.kind === 'linked' ? runtime : null;
+}
 
 interface Props {
   conversationId: string | null;
@@ -26,7 +38,9 @@ interface Props {
 
 export function MissionGroupPanel({conversationId, missionShortCode}: Props) {
   const messenger = useMessenger();
-  const {messages} = useGroupMessages(conversationId);
+  const linked = useLinkedRuntime();
+  const threadId = conversationId && linked ? groupCid(conversationId) : conversationId;
+  const {messages} = useGroupMessages(threadId);
   const [open, setOpen] = useState(false);
   const [seenCount, setSeenCount] = useState(0);
 
@@ -86,7 +100,7 @@ export function MissionGroupPanel({conversationId, missionShortCode}: Props) {
         {messenger.mode === 'linked' ? (
           <div style={unlockBanner}>
             <span style={{fontFamily:'var(--font-mono)', fontSize:10.5, color:'var(--tx-2)'}}>
-              📱 This browser mirrors your phone. Mission group chat is in the Bravo app.
+              📱 Mirrored from your phone. Messages here go out from the Bravo app.
             </span>
           </div>
         ) : messenger.state !== 'unlocked' ? (
@@ -163,7 +177,7 @@ export function MissionGroupPanel({conversationId, missionShortCode}: Props) {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            disabled={messenger.state !== 'unlocked' || !messenger.signalRuntime}
+            disabled={messenger.state !== 'unlocked' || (!messenger.signalRuntime && !linked)}
             style={openBtn(messenger.state !== 'unlocked')}>
             {messenger.state !== 'unlocked'
               ? 'UNLOCK FIRST'
@@ -173,7 +187,7 @@ export function MissionGroupPanel({conversationId, missionShortCode}: Props) {
       </div>
 
       {/* Floating dock — portal'd to body so sidebar overflow can't hide it */}
-      {open && messenger.state === 'unlocked' && messenger.signalRuntime && (
+      {open && messenger.state === 'unlocked' && (messenger.signalRuntime || linked) && (
         <MissionGroupDock
           conversationId={conversationId}
           missionShortCode={missionShortCode}
@@ -194,7 +208,9 @@ function MissionGroupDock({
   onClose: () => void;
 }) {
   const messenger = useMessenger();
-  const {messages, hasOlder, loadOlder} = useGroupMessages(conversationId);
+  const linked = useLinkedRuntime();
+  const threadId = linked ? groupCid(conversationId) : conversationId;
+  const {messages, hasOlder, loadOlder} = useGroupMessages(threadId);
   // localId — generated before the broadcast so the bubble can render
   // optimistically with "SENDING" while the await is in flight.
   // clientMsgId — set when broadcastToGroup resolves; used to dedupe
@@ -246,6 +262,7 @@ function MissionGroupDock({
   // runtime fans the receipt back per-peer; receiptedIdsRef stops us
   // from re-firing on every render after the first.
   useEffect(() => {
+    if (linked && messages.some(m => m.senderUserId !== messenger.userId)) { linked.markRead(threadId); return; }
     if (!messenger.signalRuntime || messages.length === 0) return;
     const fresh = messages
       .filter(m => m.senderUserId !== messenger.userId)
@@ -254,7 +271,7 @@ function MissionGroupDock({
     if (fresh.length === 0) return;
     for (const id of fresh) receiptedIdsRef.current.add(id);
     messenger.signalRuntime.markRead(conversationId, fresh);
-  }, [messenger.signalRuntime, messenger.userId, messages, conversationId]);
+  }, [messenger.signalRuntime, messenger.userId, messages, conversationId, linked, threadId]);
 
   // Typing indicator sender — debounced by the 6s server-side auto-stop
   // so we only fire on transitions. Fan out to every other member; the
@@ -334,6 +351,14 @@ function MissionGroupDock({
   }, [display.length]);
 
   const send = async () => {
+    if (linked) {
+      // Linked: the phone sends it; the mirrored row (sending → sent) is the bubble.
+      const body = text.trim();
+      if (!body) return;
+      setText(''); setSendErr(null);
+      try { await linked.sendGroup(threadId, body); } catch (e) { setSendErr((e as Error).message || 'send failed'); }
+      return;
+    }
     if (!text.trim() || !convo || !messenger.signalRuntime) return;
     setSending(true); setSendErr(null);
     const body = text.trim();

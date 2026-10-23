@@ -2,7 +2,8 @@
  * Linked devices — the phone side (2026-10-12).
  *
  * This phone stays the account's only Signal device. Each browser it is
- * linked to gets a mirror of the 1:1 chats: the phone forwards decrypted
+ * linked to gets a mirror of the chats — 1:1 and (2026-10-23) groups, plus
+ * the contacts (address book + added by hand): the phone forwards decrypted
  * conversations, contacts and every new / updated message, and sends what the
  * browser asks it to send. The channel is the messenger-service link inbox,
  * sealed with the per-link key the browser showed in its QR code (see
@@ -19,8 +20,9 @@
 import {AppState} from 'react-native';
 import {
   linkCipher, parseLinkQr, chunkRows, LinkReplayGuard, newLinkMsgId, b64uEncode, b64uDecode,
+  groupCid, groupIdOfCid,
   type LinkCipher, type LinkMsgRow, type LinkMsgStatus, type PhoneToWeb, type WebToPhone,
-  type LinkConversation, type LinkPeer,
+  type LinkConversation, type LinkPeer, type LinkGroup, type LinkFeature,
 } from '@bravo/messenger-core/link/linkProtocol';
 import type {ServerFrame, TransportClient} from '@bravo/messenger-core';
 import {MSG_BASE_URL} from '@utils/constants';
@@ -34,6 +36,17 @@ import {
 } from '../store/messengerStore';
 import type {LocalMessage, LocalConversation} from '../store/types';
 import {directSlotId, isDirectPrefixed, peerFromDirectSlot} from '../conversationIds';
+import {resolveDeptConversation} from '../push/deptChannelTarget';
+import {withoutJoinMarker} from '@bravo/messenger-core/link/groupInvite';
+import {
+  loadManualContacts, manualContacts, onManualContactsChange, upsertManualContact, removeManualContact,
+} from '../contacts/manualContacts';
+
+/**
+ * What this phone's link engine understands (2026-10-23). A browser shows the
+ * group and contact controls only when the phone it mirrors says so.
+ */
+export const LINK_FEATURES: LinkFeature[] = ['groups', 'contacts.manual', 'groups.manage', 'groups.invite', 'groups.join'];
 
 // ── types ────────────────────────────────────────────────────────────────────
 
@@ -73,6 +86,9 @@ let appStateSub: {remove: () => void} | null = null;
 const seen = new Map<string, Set<string>>();     // cid → message ids already forwarded / baselined
 const pending = new Map<string, {peerUserId: string; rows: Map<string, LinkMsgRow>}>();
 let convsDirty = false;
+let groupsDirty = false;
+let contactsDirty = false;
+let unsubContacts: (() => void) | null = null;
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let flushing: Promise<void> | null = null;
 /**
@@ -167,12 +183,12 @@ function mediaLabel(m: LocalMessage): string {
   }
 }
 
-function toRow(m: LocalMessage): LinkMsgRow | null {
+function toRow(m: LocalMessage, group = false): LinkMsgRow | null {
   const at = Date.parse(m.created_at);
   if (!Number.isFinite(at)) {return null;}
   let body: string;
   if (m.deleted_for_all) {body = '🚫 This message was deleted';}
-  else if (m.type === 'text' || m.type === 'system') {body = m.content ?? '';}
+  else if (m.type === 'text' || m.type === 'system') {body = withoutJoinMarker(m.content ?? '');}
   else {
     const label = mediaLabel(m);
     const caption = m.type === 'call' ? '' : (m.content ?? '').trim();
@@ -187,7 +203,79 @@ function toRow(m: LocalMessage): LinkMsgRow | null {
     status: ['sending', 'sent', 'delivered', 'read', 'failed'].includes(status) ? status : 'sent',
     kind: m.type,
     replyToId: m.reply_to_msg_id ?? null,
+    ...(group && m.sender_id !== 'self' ? {from: m.sender_id || m.peer?.userId || null} : {}),
   };
+}
+
+/**
+ * The phone conversation id of a group this phone mirrors, or null. Plain
+ * group chats and mission rooms are mirrored; department channels are not
+ * (they live in the workspace, like on the phone).
+ */
+function mirroredGroupId(state: MessengerSnapshot, cid: string): string | null {
+  const c = state.conversations[cid];
+  if (!c || c.type !== 'group') {return null;}
+  const dept = resolveDeptConversation(cid, {
+    deptConversationIds: state.deptConversationIds, deptGroupByChannel: state.deptGroupByChannel,
+  });
+  return dept ? null : cid;
+}
+
+/** userId → the best name / number this phone knows (sync, no network). */
+function nameBook(state: MessengerSnapshot): Map<string, {name: string | null; phone: string | null}> {
+  const out = new Map<string, {name: string | null; phone: string | null}>();
+  const put = (userId: string | null | undefined, name: string | null | undefined, phone: string | null | undefined) => {
+    if (!userId) {return;}
+    const prev = out.get(userId);
+    out.set(userId, {name: prev?.name || name || null, phone: prev?.phone || phone || null});
+  };
+  for (const r of manualContacts()) {put(r.userId, r.name, r.phoneE164);}
+  try {
+    const dc = require('../contacts/useDiscoveredContacts') as typeof import('../contacts/useDiscoveredContacts');
+    for (const r of dc.latestDiscoveredContacts() ?? []) {put(r.userId, r.localName || r.displayName, r.phoneE164);}
+  } catch { /* optional */ }
+  for (const c of Object.values(state.conversations)) {
+    if (c.type === 'direct' && c.peer?.userId) {
+      put(c.peer.userId, c.name && !c.name.startsWith('Bravo · ') ? c.name : null, c.phoneE164 ?? null);
+    }
+  }
+  return out;
+}
+
+function groupsView(state: MessengerSnapshot): LinkGroup[] {
+  const self = state._ownAuthUserId ?? null;
+  const names = nameBook(state);
+  const out: LinkGroup[] = [];
+  for (const id of state.conversationOrder) {
+    if (!mirroredGroupId(state, id)) {continue;}
+    const c = state.conversations[id];
+    const g = state.groups[id];
+    const ids = g ? Object.keys(g.members) : [...new Set([...(c.rosterUserIds ?? []), ...(c.participants ?? [])])];
+    const overrides = state.groupMemberNames?.[id] ?? {};
+    const admin = !!(self && g?.members[self]?.admin);
+    const lastAt = c.last_message ? Date.parse(c.last_message.created_at) : Date.parse(c.created_at);
+    out.push({
+      cid: groupCid(id),
+      name: c.name || g?.name || 'Group',
+      description: g?.description ?? null,
+      members: ids.filter(Boolean).map(uid => ({
+        userId: uid,
+        name: overrides[uid] ?? names.get(uid)?.name ?? null,
+        phone: names.get(uid)?.phone ?? null,
+        admin: !!g?.members[uid]?.admin,
+      })),
+      admin,
+      manageable: admin && !!g?.saltB64,
+      unread: c.unread_count ?? 0,
+      lastAt: Number.isFinite(lastAt) ? lastAt : 0,
+      pinned: !!c.is_pinned,
+    });
+  }
+  return out.sort((a, b) => b.lastAt - a.lastAt);
+}
+
+function groupRows(state: MessengerSnapshot, groupId: string): LocalMessage[] {
+  return [...(state.messages[groupId] ?? [])].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
 }
 
 function directPeer(state: MessengerSnapshot, cid: string): string | null {
@@ -236,15 +324,22 @@ async function contactsView(state: MessengerSnapshot): Promise<LinkPeer[]> {
       rows = await dc.discoverContactsPassive(getDirectoryUsersClient(), useAuthStore.getState().user?.phone_e164 ?? null);
     }
     for (const r of rows ?? []) {
-      out.set(r.userId, {userId: r.userId, name: r.localName || r.displayName, phone: r.phoneE164});
+      out.set(r.userId, {userId: r.userId, name: r.localName || r.displayName, phone: r.phoneE164, source: 'phone'});
     }
   } catch (e) {
     console.warn('[link] contacts unavailable:', (e as Error).message);
   }
-  for (const c of conversationsView(state)) {
-    if (!out.has(c.peer.userId)) {out.set(c.peer.userId, c.peer);}
+  // Added by hand in Messenger: their own name wins over the address book's.
+  try { await loadManualContacts(ownerKey()); } catch { /* optional */ }
+  const notOnBravo: LinkPeer[] = [];
+  for (const r of manualContacts()) {
+    const peer: LinkPeer = {userId: r.userId ?? '', name: r.name, phone: r.phoneE164, source: 'manual', contactId: r.id};
+    if (r.userId) {out.set(r.userId, peer);} else {notOnBravo.push(peer);}
   }
-  return [...out.values()];
+  for (const c of conversationsView(state)) {
+    if (!out.has(c.peer.userId)) {out.set(c.peer.userId, {...c.peer, source: 'chat'});}
+  }
+  return [...out.values(), ...notOnBravo];
 }
 
 // ── sending to browsers ──────────────────────────────────────────────────────
@@ -292,14 +387,21 @@ async function snapshotFrames(perConversation = SNAPSHOT_PER_CONVERSATION): Prom
     const u = useAuthStore.getState().user as {full_name?: string; name?: string} | null;
     selfName = u?.full_name ?? u?.name ?? null;
   } catch { /* optional */ }
-  frames.push(stamp({t: 'hello' as const, self: {userId: state._ownAuthUserId ?? '', name: selfName}}));
+  frames.push(stamp({t: 'hello' as const, self: {userId: state._ownAuthUserId ?? '', name: selfName}, features: LINK_FEATURES}));
   frames.push(stamp({t: 'contacts' as const, contacts: await contactsView(state)}));
   const convs = conversationsView(state).slice(0, SNAPSHOT_MAX_CONVERSATIONS);
   frames.push(stamp({t: 'convs' as const, conversations: convs, full: true}));
+  const groups = groupsView(state).slice(0, SNAPSHOT_MAX_CONVERSATIONS);
+  frames.push(stamp({t: 'groups' as const, groups, full: true}));
   const n = Math.max(1, Math.min(200, perConversation));
   for (const c of convs) {
-    const rows = peerRows(state, c.cid).slice(-n).map(toRow).filter((r): r is LinkMsgRow => !!r);
+    const rows = peerRows(state, c.cid).slice(-n).map(m => toRow(m)).filter((r): r is LinkMsgRow => !!r);
     if (rows.length) {frames.push(...msgsFrames(c.cid, c.peer.userId, rows, true));}
+  }
+  for (const g of groups) {
+    const id = groupIdOfCid(g.cid)!;
+    const rows = groupRows(state, id).slice(-n).map(m => toRow(m, true)).filter((r): r is LinkMsgRow => !!r);
+    if (rows.length) {frames.push(...msgsFrames(g.cid, '', rows, true));}
   }
   return frames;
 }
@@ -313,12 +415,11 @@ function baseline(state: MessengerSnapshot): void {
   }
 }
 
-function queueRow(cid: string, peerUserId: string, row: LinkMsgRow): void {
-  const key = directSlotId(peerUserId);
+/** `key` is the browser thread id: `direct:<peer>` or `group:<id>`. */
+function queueRow(key: string, peerUserId: string, row: LinkMsgRow): void {
   let q = pending.get(key);
   if (!q) {q = {peerUserId, rows: new Map()}; pending.set(key, q);}
   q.rows.set(row.id, row);
-  void cid;
   scheduleFlush();
 }
 
@@ -328,10 +429,10 @@ function scheduleFlush(): void {
 }
 
 async function flushNow(): Promise<void> {
-  if (flushing) {await flushing; if (pending.size === 0 && !convsDirty) {return;}}
+  if (flushing) {await flushing; if (pending.size === 0 && !convsDirty && !groupsDirty && !contactsDirty) {return;}}
   flushing = (async () => {
     try {
-      if (links.length === 0) {pending.clear(); convsDirty = false; return;}
+      if (links.length === 0) {pending.clear(); convsDirty = false; groupsDirty = false; contactsDirty = false; return;}
       const frames: PhoneToWeb[] = [];
       const batch = [...pending.entries()];
       pending.clear();
@@ -341,6 +442,14 @@ async function flushNow(): Promise<void> {
       if (convsDirty) {
         convsDirty = false;
         frames.push(stamp({t: 'convs' as const, conversations: conversationsView(useMessengerStore.getState()).slice(0, SNAPSHOT_MAX_CONVERSATIONS), full: false}));
+      }
+      if (groupsDirty) {
+        groupsDirty = false;
+        frames.push(stamp({t: 'groups' as const, groups: groupsView(useMessengerStore.getState()).slice(0, SNAPSHOT_MAX_CONVERSATIONS), full: true}));
+      }
+      if (contactsDirty) {
+        contactsDirty = false;
+        frames.push(stamp({t: 'contacts' as const, contacts: await contactsView(useMessengerStore.getState())}));
       }
       if (frames.length) {await broadcast(frames);}
     } finally {
@@ -355,14 +464,21 @@ function onStoreChange(state: MessengerSnapshot, prev: MessengerSnapshot): void 
   if (state.hydrationGeneration !== prev.hydrationGeneration) {baseline(state); return;}
   if (state.conversations !== prev.conversations || state.conversationOrder !== prev.conversationOrder) {
     convsDirty = true;
+    groupsDirty = true;
+    scheduleFlush();
+  }
+  if (state.groups !== prev.groups || state.groupMemberNames !== prev.groupMemberNames) {
+    groupsDirty = true;
     scheduleFlush();
   }
   if (state.messages === prev.messages) {return;}
   for (const [cid, list] of Object.entries(state.messages)) {
     const before = prev.messages[cid];
     if (list === before) {continue;}
-    const peerUserId = directPeer(state, cid);
-    if (!peerUserId) {continue;}
+    const groupId = mirroredGroupId(state, cid);
+    const peerUserId = groupId ? '' : directPeer(state, cid);
+    if (!groupId && !peerUserId) {continue;}
+    const key = groupId ? groupCid(groupId) : directSlotId(peerUserId!);
     let ids = seen.get(cid);
     if (!ids) {ids = new Set(); seen.set(cid, ids);}
     const prevById = new Map((before ?? []).map(m => [m.id, m]));
@@ -372,8 +488,8 @@ function onStoreChange(state: MessengerSnapshot, prev: MessengerSnapshot): void 
       const changed = !!p && (p.status !== m.status || p.content !== m.content || p.deleted_for_all !== m.deleted_for_all);
       if (!isNew && !changed) {continue;}
       ids.add(m.id);
-      const row = toRow(m);
-      if (row) {queueRow(cid, peerUserId, row);}
+      const row = toRow(m, !!groupId);
+      if (row) {queueRow(key, peerUserId ?? '', row);}
     }
   }
 }
@@ -392,7 +508,25 @@ async function runCommand(link: ActiveLink, cmd: WebToPhone): Promise<void> {
     }
     case 'send': {
       const text = String(cmd.text ?? '').slice(0, 20_000);
-      if (!text.trim() || !cmd.peerUserId || !cmd.ref) {return;}
+      if (!text.trim() || !cmd.ref) {return;}
+      const gid = cmd.cid ? groupIdOfCid(cmd.cid) : null;
+      if (gid) {
+        try {
+          if (!mirroredGroupId(useMessengerStore.getState(), gid)) {throw new Error('group_not_found');}
+          const rt = await getMessengerRuntime('production');
+          let replyTo: {messageId: string; preview: string} | undefined;
+          if (cmd.replyToId) {
+            const q = groupRows(useMessengerStore.getState(), gid).find(m => m.id === cmd.replyToId);
+            if (q) {replyTo = {messageId: q.id, preview: (q.content ?? '').slice(0, 120)};}
+          }
+          await rt.sendText(gid, text, {isGroup: true, stableMsgId: cmd.ref, ...(replyTo ? {replyTo} : {})});
+          await reply(link, stamp({t: 'sent' as const, ref: cmd.ref, ok: true}));
+        } catch (e) {
+          await reply(link, stamp({t: 'sent' as const, ref: cmd.ref, ok: false, error: (e as Error).message?.slice(0, 200) ?? 'send_failed'}));
+        }
+        return;
+      }
+      if (!cmd.peerUserId) {return;}
       try {
         const rt = await getMessengerRuntime('production');
         const st = useMessengerStore.getState();
@@ -414,6 +548,13 @@ async function runCommand(link: ActiveLink, cmd: WebToPhone): Promise<void> {
       return;
     }
     case 'read': {
+      const gid = groupIdOfCid(cmd.cid);
+      if (gid) {
+        if (!mirroredGroupId(useMessengerStore.getState(), gid)) {return;}
+        try { (await getMessengerRuntime('production')).markRead(gid); } catch { /* best-effort */ }
+        try { useMessengerStore.getState().clearUnreadForConversation(gid); } catch { /* ignore */ }
+        return;
+      }
       const peerUserId = cmd.cid && isDirectPrefixed(cmd.cid) ? peerFromDirectSlot(cmd.cid) : null;
       if (!peerUserId) {return;}
       const st = useMessengerStore.getState();
@@ -428,6 +569,20 @@ async function runCommand(link: ActiveLink, cmd: WebToPhone): Promise<void> {
       return;
     }
     case 'history': {
+      const gid = groupIdOfCid(cmd.cid);
+      if (gid) {
+        if (!mirroredGroupId(useMessengerStore.getState(), gid)) {return;}
+        const limit = Math.max(1, Math.min(200, Number(cmd.limit) || 50));
+        const older = (): LocalMessage[] => groupRows(useMessengerStore.getState(), gid).filter(m => Date.parse(m.created_at) < cmd.before);
+        if (older().length < limit) {
+          try { await (await getMessengerRuntime('production')).loadOlderMessages?.(gid, limit); } catch { /* send what we have */ }
+        }
+        const rows = older().slice(-limit).map(m => toRow(m, true)).filter((r): r is LinkMsgRow => !!r);
+        await sendTo(link, rows.length
+          ? msgsFrames(cmd.cid, '', rows, true)
+          : [stamp({t: 'msgs' as const, cid: cmd.cid, peerUserId: '', rows: [], history: true})]);
+        return;
+      }
       const peerUserId = cmd.cid && isDirectPrefixed(cmd.cid) ? peerFromDirectSlot(cmd.cid) : null;
       if (!peerUserId) {return;}
       const limit = Math.max(1, Math.min(200, Number(cmd.limit) || 50));
@@ -439,15 +594,154 @@ async function runCommand(link: ActiveLink, cmd: WebToPhone): Promise<void> {
           await rt.loadOlderMessages?.(cid, limit);
         } catch { /* send what we have */ }
       }
-      const rows = older().slice(-limit).map(toRow).filter((r): r is LinkMsgRow => !!r);
+      const rows = older().slice(-limit).map(m => toRow(m)).filter((r): r is LinkMsgRow => !!r);
       const frames = rows.length
         ? msgsFrames(directSlotId(peerUserId), peerUserId, rows, true)
         : [stamp({t: 'msgs' as const, cid: directSlotId(peerUserId), peerUserId, rows: [], history: true})];
       await sendTo(link, frames);
       return;
     }
+    case 'groupCreate': case 'groupAdd': case 'groupRemove': case 'groupEdit': case 'groupLeave':
+    case 'groupInvite': case 'groupJoin': case 'contactSave': case 'contactRemove': {
+      if (!cmd.ref) {return;}
+      try {
+        const out = await runManageCommand(cmd);
+        await reply(link, stamp({t: 'result' as const, ref: cmd.ref, ok: true, ...out}));
+      } catch (e) {
+        await reply(link, stamp({t: 'result' as const, ref: cmd.ref, ok: false, error: manageErrorText(e)}));
+      }
+      return;
+    }
     default:
       return;
+  }
+}
+
+type ManageCmd = Extract<WebToPhone, {t: 'groupCreate' | 'groupAdd' | 'groupRemove' | 'groupEdit' | 'groupLeave' | 'groupInvite' | 'groupJoin' | 'contactSave' | 'contactRemove'}>;
+
+/** A short, human reason for the browser (never a stack or an id dump). */
+function manageErrorText(e: unknown): string {
+  const msg = e instanceof Error ? e.message : String(e ?? '');
+  if ((e as {code?: string} | null)?.code === 'GROUP_MEMBERS_UNREACHABLE') {
+    return "The people you picked haven't opened Bravo Messenger yet, so they can't receive the group key.";
+  }
+  if (/transport not open|network|timed? ?out|offline/i.test(msg)) {return 'Your phone is offline. Try again when it is connected.';}
+  if (/only admins|only a group admin/i.test(msg)) {return 'Only a group admin can do that.';}
+  if (/already a member|already in group/i.test(msg)) {return 'Already in the group.';}
+  if (/not a member/i.test(msg)) {return 'They are no longer in the group.';}
+  // Messages written for people (ContactInputError, JoinLinkError) pass through.
+  if (msg && msg.length <= 160 && !/[{}]|\b[0-9a-f]{8}-[0-9a-f]{4}/i.test(msg) && /^[A-Z]/.test(msg)) {return msg;}
+  return 'Your phone could not do that. Try again.';
+}
+
+function groupForCmd(cid: string): string {
+  const gid = groupIdOfCid(cid);
+  if (!gid || !mirroredGroupId(useMessengerStore.getState(), gid)) {throw new Error('That group is not on your phone any more.');}
+  return gid;
+}
+
+function manageableGroup(cid: string): string {
+  const gid = groupForCmd(cid);
+  const st = useMessengerStore.getState();
+  const self = st._ownAuthUserId;
+  const g = st.groups[gid];
+  if (!g || !self || !g.members[self]?.admin) {throw new Error('Only a group admin can do that.');}
+  if (!g.saltB64) {throw new Error('Members of this group are managed by dispatch.');}
+  return gid;
+}
+
+async function runManageCommand(cmd: ManageCmd): Promise<{cid?: string | null; link?: string | null}> {
+  const rt = await getMessengerRuntime('production');
+  switch (cmd.t) {
+    case 'groupCreate': {
+      const name = String(cmd.name ?? '').trim();
+      const members = [...new Set((cmd.members ?? []).filter(x => typeof x === 'string' && x))].slice(0, 256);
+      if (!name) {throw new Error('Enter a group name.');}
+      if (members.length === 0) {throw new Error('Pick at least one member.');}
+      const res = await rt.createGroupChat({name, members});
+      const desc = String(cmd.description ?? '').trim();
+      if (desc && rt.setGroupDescription) {
+        try { await rt.setGroupDescription({groupId: res.groupId, description: desc}); } catch { /* the group exists; the description can be set later */ }
+      }
+      groupsDirty = true; scheduleFlush();
+      return {cid: groupCid(res.conversationId)};
+    }
+    case 'groupAdd': {
+      const gid = manageableGroup(cmd.cid);
+      if (!rt.addGroupMember) {throw new Error('Update the Bravo app on your phone to add members from here.');}
+      const failed: string[] = [];
+      for (const userId of [...new Set(cmd.userIds ?? [])].slice(0, 50)) {
+        if (useMessengerStore.getState().groups[gid]?.members[userId]) {continue;}
+        try { await rt.addGroupMember({groupId: gid, newMember: {userId, deviceId: 1}}); } catch { failed.push(userId); }
+      }
+      groupsDirty = true; scheduleFlush();
+      if (failed.length) {
+        throw new Error(failed.length === 1
+          ? 'One person could not be added — they may not have opened Bravo Messenger yet.'
+          : `${failed.length} people could not be added — they may not have opened Bravo Messenger yet.`);
+      }
+      return {cid: cmd.cid};
+    }
+    case 'groupRemove': {
+      const gid = manageableGroup(cmd.cid);
+      if (!rt.removeGroupMember) {throw new Error('Update the Bravo app on your phone to remove members from here.');}
+      await rt.removeGroupMember({groupId: gid, removedUserId: cmd.userId});
+      groupsDirty = true; scheduleFlush();
+      return {cid: cmd.cid};
+    }
+    case 'groupEdit': {
+      const gid = groupForCmd(cmd.cid);
+      const st = useMessengerStore.getState();
+      if (!st.groups[gid]?.members[st._ownAuthUserId ?? '']?.admin) {throw new Error('Only a group admin can do that.');}
+      if (typeof cmd.name === 'string' && cmd.name.trim() && cmd.name.trim() !== (st.conversations[gid]?.name ?? st.groups[gid]?.name)) {
+        if (!rt.renameGroup) {throw new Error('Update the Bravo app on your phone to rename groups from here.');}
+        await rt.renameGroup({groupId: gid, name: cmd.name});
+      }
+      if (typeof cmd.description === 'string') {
+        if (!rt.setGroupDescription) {throw new Error('Update the Bravo app on your phone to edit descriptions from here.');}
+        await rt.setGroupDescription({groupId: gid, description: cmd.description});
+      }
+      groupsDirty = true; scheduleFlush();
+      return {cid: cmd.cid};
+    }
+    case 'groupLeave': {
+      const gid = groupForCmd(cmd.cid);
+      if (!rt.leaveGroup) {throw new Error('Update the Bravo app on your phone to leave groups from here.');}
+      await rt.leaveGroup({groupId: gid});
+      groupsDirty = true; scheduleFlush();
+      return {cid: cmd.cid};
+    }
+    case 'groupInvite': {
+      const gid = manageableGroup(cmd.cid);
+      const inv = require('../groups/groupInvites') as typeof import('../groups/groupInvites');
+      if (cmd.action === 'revoke') {await inv.revokeGroupInvite(gid); return {cid: cmd.cid, link: null};}
+      const linkText = cmd.action === 'reset' ? await inv.resetGroupInvite(gid) : await inv.issueGroupInvite(gid);
+      return {cid: cmd.cid, link: linkText};
+    }
+    case 'groupJoin': {
+      const inv = require('../groups/groupInvites') as typeof import('../groups/groupInvites');
+      const r = await inv.requestToJoinGroup(String(cmd.link ?? ''));
+      if (r.alreadyMember) {throw new Error('You are already in that group.');}
+      return {};
+    }
+    case 'contactSave': {
+      const {useAuthStore} = require('@store/authStore') as typeof import('@store/authStore');
+      const {getDirectoryUsersClient} = require('../contacts/directoryNames') as typeof import('../contacts/directoryNames');
+      await loadManualContacts(ownerKey());
+      const users = getDirectoryUsersClient();
+      const saved = await upsertManualContact({name: cmd.name, phone: cmd.phone}, {
+        ownPhoneE164: (useAuthStore.getState().user as {phone_e164?: string | null} | null)?.phone_e164 ?? null,
+        lookup: users ? (phones => users.lookup(phones)) : null,
+      });
+      contactsDirty = true; scheduleFlush();
+      return {cid: saved.userId ? directSlotId(saved.userId) : null};
+    }
+    case 'contactRemove': {
+      await loadManualContacts(ownerKey());
+      await removeManualContact(cmd.contactId);
+      contactsDirty = true; scheduleFlush();
+      return {};
+    }
   }
 }
 
@@ -530,6 +824,12 @@ export function startLinkEngine(): void {
       }
     });
     unsubTransport = onTransport(attachTransport);
+    unsubContacts = onManualContactsChange(() => {
+      if (links.length) {contactsDirty = true; scheduleFlush();}
+    });
+    try {
+      (require('../groups/groupInvites') as typeof import('../groups/groupInvites')).startGroupInvites();
+    } catch (e) { console.warn('[link] group invites unavailable:', (e as Error).message); }
     pollTimer = setInterval(() => {
       if (links.length && AppState.currentState === 'active') {void drainLinkInboxes();}
     }, POLL_MS);
@@ -549,6 +849,7 @@ export function stopLinkEngine(): void {
   unsubStore?.(); unsubStore = null;
   unsubTransport?.(); unsubTransport = null;
   unsubFrames?.(); unsubFrames = null;
+  unsubContacts?.(); unsubContacts = null;
   if (pollTimer) {clearInterval(pollTimer); pollTimer = null;}
   appStateSub?.remove(); appStateSub = null;
   if (flushTimer) {clearTimeout(flushTimer); flushTimer = null;}
@@ -650,4 +951,4 @@ export async function unlinkDevice(linkId: string): Promise<void> {
 }
 
 /** Test seam. */
-export const _linkEngineInternals = {toRow, conversationsView, onStoreChange, baseline, pending, seen};
+export const _linkEngineInternals = {toRow, conversationsView, groupsView, onStoreChange, baseline, pending, seen};

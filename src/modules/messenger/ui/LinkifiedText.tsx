@@ -19,6 +19,7 @@
  * quietly show plain text — the same "author sees something different from
  * everyone else" shape that let B-144 survive manual testing.
  */
+import {withoutJoinMarker} from '@bravo/messenger-core/link/groupInvite';
 import React from 'react';
 import {StyleSheet, Text, Linking, type StyleProp, type TextStyle} from 'react-native';
 import {splitByUrls} from './linkPreview';
@@ -56,7 +57,8 @@ interface Props {
 export function LinkifiedText({
   text, style, linkColor, mentions, selfUserId, mentionColor, mentionChipColor, onLongPress,
 }: Props) {
-  const body = text ?? '';
+  // 2026-10-23 — a group join request shows its readable line, not the token.
+  const body = withoutJoinMarker(text ?? '');
 
   if (!mentions?.length) {
     return <LinkRun text={body} style={style} linkColor={linkColor} onLongPress={onLongPress} />;

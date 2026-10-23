@@ -393,6 +393,9 @@ export async function parseGroupMessage(
  * a missed action OR a swapped action between Alice and Bob produces a
  * divergent hash on the very next transition they share.
  */
+/** Longest group description kept (characters). */
+export const GROUP_DESCRIPTION_MAX = 512;
+
 function canonicalActionBytes(action: GroupAdminAction): Uint8Array {
   const enc = new TextEncoder();
   switch (action.type) {
@@ -403,7 +406,11 @@ function canonicalActionBytes(action: GroupAdminAction): Uint8Array {
     case 'add':    return enc.encode(`add|${action.atEpoch}|${action.member.userId}|${action.member.deviceId}`);
     case 'remove': return enc.encode(`remove|${action.atEpoch}|${action.userId}`);
     case 'rekey':  return enc.encode(`rekey|${action.atEpoch}|${action.newMasterKeyB64}`);
-    case 'rename': return enc.encode(`rename|${action.atEpoch}|${action.name}`);
+    // The description is only part of the bytes when present, so a rename
+    // without one hashes exactly as it always has.
+    case 'rename': return enc.encode(action.description === undefined
+      ? `rename|${action.atEpoch}|${action.name}`
+      : `rename|${action.atEpoch}|${action.name}|d:${action.description}`);
     // B-291 — every field that affects what a member DECRYPTS is signed:
     // objectKey, key and IV. Signing only the objectKey would let an attacker
     // who can replay a stale envelope swap in a different key for the same
@@ -531,6 +538,9 @@ export function applyAdminAction(
       if (action.atEpoch !== state.epoch) {return state;}
       return {
         ...state, name: action.name, epoch: state.epoch + 1, updatedAt: now,
+        ...(typeof action.description === 'string'
+          ? {description: action.description.slice(0, GROUP_DESCRIPTION_MAX) || null}
+          : {}),
         transcriptHash: extendTranscript(state.transcriptHash, action),
       };
     // B-291 — set or clear the group picture. Epoch-gated exactly like rename,

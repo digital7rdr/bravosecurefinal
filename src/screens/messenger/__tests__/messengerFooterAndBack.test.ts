@@ -66,9 +66,9 @@ describe('N5 — MessengerHome footer tabs', () => {
     expect(code()).toMatch(/import\s*\{[^}]*\bMessengerTabBar\b[^}]*\}\s*from\s*'\.\/MessengerTabBar'/);
   });
 
-  it('labels are exactly Chats / Calls / Files / Channels / News, in order (founder 2026-09-02: News far right)', () => {
+  it('labels are exactly Chats / Calls / Files / Channels / Contacts / News, in order (founder 2026-09-02: News far right; owner 2026-10-23: Contacts tab)', () => {
     const labels = [...tabsBlock().matchAll(/label:\s*'([^']+)'/g)].map(m => m[1]);
-    expect(labels).toEqual(['Chats', 'Calls', 'Files', 'Channels', 'News']);
+    expect(labels).toEqual(['Chats', 'Calls', 'Files', 'Channels', 'Contacts', 'News']);
   });
 
   it('the Groups footer tab is GONE (no Groups label or bare route in MSG_TABS)', () => {
@@ -85,7 +85,7 @@ describe('N5 — MessengerHome footer tabs', () => {
     expect(routes).toEqual(['Files']);
     // The local tabs carry `tab:` markers instead of a bare navigate.
     const tabs = [...tabsBlock().matchAll(/tab:\s*'([A-Za-z]+)'/g)].map(m => m[1]);
-    expect(tabs).toEqual(['Chats', 'Calls', 'News']);
+    expect(tabs).toEqual(['Chats', 'Calls', 'Contacts', 'News']);
   });
 
   it('Channels is an EXIT-HOP through the shell resolver, never a bare navigate', () => {

@@ -63,7 +63,7 @@ export default function LinkedDevicesScreen(): React.JSX.Element {
     setScanning(false);
     Alert.alert(
       'Link this browser?',
-      'Your chats and contacts will appear in that browser, and messages you send there will go out from this phone. Only link a computer you trust.',
+      'Your chats, groups and contacts will appear in that browser, and messages you send or groups you change there go out from this phone. Only link a computer you trust.',
       [
         {text: 'Cancel', style: 'cancel'},
         {
@@ -139,7 +139,7 @@ export default function LinkedDevicesScreen(): React.JSX.Element {
         <View style={styles.intro}>
           <Icon name="monitor-cellphone" size={40} color="#1E88FF" />
           <Text style={styles.introText}>
-            Use Bravo Messenger in a browser. Open Messenger on web.bravosecure.cloud (or the ops console) and scan the code it shows.
+            Use Bravo Messenger in a browser — your chats, groups and contacts. Open Messenger in the Bravo web app (web.bravosecure.cloud), the provider console or the ops console and scan the code it shows.
           </Text>
         </View>
         <TouchableOpacity style={styles.linkBtn} onPress={startScan} disabled={busy} activeOpacity={0.8}>

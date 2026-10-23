@@ -30,7 +30,7 @@ const E164_RE = /^\+(\d{7,15})$/;
 
 /** Known calling codes, sorted longest-first so "880" wins over "88" or "8". */
 const KNOWN_CALLING_CODES: readonly string[] = (() => {
-  const set = new Set(DIAL_CODES.map(c => c.dial.replace(/^\+/, '')));
+  const set = new Set((DIAL_CODES ?? []).map(c => c.dial.replace(/^\+/, '')));
   return Array.from(set).sort((a, b) => b.length - a.length);
 })();
 

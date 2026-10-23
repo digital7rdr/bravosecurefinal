@@ -23,6 +23,7 @@ jest.mock('../runtime/keychain', () => ({
   destroyMerkleSeqHmacKey: jest.fn(() => Promise.resolve()),
   clearMirrorMasterKey: jest.fn(() => Promise.resolve()),
   clearLinkSecrets: jest.fn(() => Promise.resolve()),
+  clearSecureDocs: jest.fn(() => Promise.resolve()),
 }));
 
 import {wipeUserAtRest} from '../runtime/wipeAtRest';

@@ -493,6 +493,17 @@ export interface MessengerRuntime {
   }): Promise<{newEpoch: number}>;
 
   /**
+   * 2026-10-23 — set or clear a group's description (Telegram/WhatsApp "group
+   * description"). Sent as a `rename` admin action that keeps the current name
+   * and carries `description`, so phones that predate it stay in epoch step.
+   * Caller MUST be a current admin. No rekey; best-effort fan-out like rename.
+   */
+  setGroupDescription?(args: {
+    groupId:     string;
+    description: string;
+  }): Promise<{newEpoch: number}>;
+
+  /**
    * B-291 — set or clear a group's picture.
    *
    * `imageUri` is a local file/content uri from the picker; pass `null` to

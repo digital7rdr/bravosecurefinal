@@ -43,13 +43,61 @@ export interface LinkMsgRow {
   status:     LinkMsgStatus;
   kind?:      'text' | 'image' | 'audio' | 'video' | 'file' | 'call' | 'system';
   replyToId?: string | null;
+  /** Group rows (2026-10-23): who wrote an incoming message. */
+  from?:      string | null;
 }
 
 export interface LinkPeer {
+  /** '' for a hand-added contact whose number is not on Bravo yet. */
   userId:     string;
   name?:      string | null;
   phone?:     string | null;
+  /**
+   * 2026-10-23 — where the phone knows them from: its address book, a
+   * contact added by hand in Messenger (`contactId` = that entry), or only
+   * from a chat. Absent from older phones.
+   */
+  source?:    'phone' | 'manual' | 'chat';
+  contactId?: string | null;
 }
+
+/** A group member as the browser shows it. */
+export interface LinkGroupMember {
+  userId: string;
+  name?:  string | null;
+  phone?: string | null;
+  admin:  boolean;
+}
+
+/**
+ * 2026-10-23 — a group chat mirrored to the browser. `cid` is
+ * `group:<conversation id on the phone>`.
+ */
+export interface LinkGroup {
+  cid:          string;
+  name:         string;
+  description?: string | null;
+  members:      LinkGroupMember[];
+  /** This account is an admin of the group. */
+  admin:        boolean;
+  /**
+   * Members can be added / removed and an invite link shared from a linked
+   * browser: a group people made themselves where this account is an admin.
+   * False for mission rooms and channels, whose crew is set by dispatch.
+   */
+  manageable:   boolean;
+  unread:       number;
+  lastAt:       number;
+  pinned?:      boolean;
+}
+
+/** What a phone's link engine can do — older phones send none. */
+export type LinkFeature = 'groups' | 'contacts.manual' | 'groups.manage' | 'groups.invite' | 'groups.join';
+
+export const GROUP_CID_PREFIX = 'group:';
+export const isGroupCid = (cid: string): boolean => typeof cid === 'string' && cid.startsWith(GROUP_CID_PREFIX);
+export const groupIdOfCid = (cid: string): string | null => (isGroupCid(cid) ? cid.slice(GROUP_CID_PREFIX.length) || null : null);
+export const groupCid = (groupId: string): string => `${GROUP_CID_PREFIX}${groupId}`;
 
 export interface LinkConversation {
   /** Browser-side thread id: always `direct:<peerUserId>`. */
@@ -64,20 +112,35 @@ interface Base { id: string; ts: number }
 
 /** Phone → browser. */
 export type PhoneToWeb =
-  | (Base & {t: 'hello'; self: {userId: string; name?: string | null}; phoneLabel?: string | null})
+  | (Base & {t: 'hello'; self: {userId: string; name?: string | null}; phoneLabel?: string | null; features?: LinkFeature[]})
   | (Base & {t: 'contacts'; contacts: LinkPeer[]})
   | (Base & {t: 'convs'; conversations: LinkConversation[]; full: boolean})
   | (Base & {t: 'msgs'; cid: string; peerUserId: string; rows: LinkMsgRow[]; history?: boolean})
   | (Base & {t: 'status'; cid: string; msgId: string; status: LinkMsgStatus})
   | (Base & {t: 'sent'; ref: string; ok: boolean; error?: string | null})
+  /** 2026-10-23 — every group (full) or the ones that changed. */
+  | (Base & {t: 'groups'; groups: LinkGroup[]; full: boolean})
+  /** The answer to a group / contact command (`ref` = the command's ref). */
+  | (Base & {t: 'result'; ref: string; ok: boolean; error?: string | null; cid?: string | null; link?: string | null})
   | (Base & {t: 'bye'});
 
 /** Browser → phone. */
 export type WebToPhone =
   | (Base & {t: 'sync'; perConversation?: number})
-  | (Base & {t: 'send'; ref: string; peerUserId: string; text: string; replyToId?: string | null})
+  /** `cid` (2026-10-23) addresses a group (`group:…`); then peerUserId is ''. */
+  | (Base & {t: 'send'; ref: string; peerUserId: string; text: string; replyToId?: string | null; cid?: string | null})
   | (Base & {t: 'read'; cid: string})
-  | (Base & {t: 'history'; cid: string; before: number; limit: number});
+  | (Base & {t: 'history'; cid: string; before: number; limit: number})
+  // ── 2026-10-23: groups and contacts, answered with `result` ──
+  | (Base & {t: 'groupCreate'; ref: string; name: string; members: string[]; description?: string | null})
+  | (Base & {t: 'groupAdd'; ref: string; cid: string; userIds: string[]})
+  | (Base & {t: 'groupRemove'; ref: string; cid: string; userId: string})
+  | (Base & {t: 'groupEdit'; ref: string; cid: string; name?: string | null; description?: string | null})
+  | (Base & {t: 'groupLeave'; ref: string; cid: string})
+  | (Base & {t: 'groupInvite'; ref: string; cid: string; action: 'get' | 'reset' | 'revoke'})
+  | (Base & {t: 'groupJoin'; ref: string; link: string})
+  | (Base & {t: 'contactSave'; ref: string; name: string; phone: string})
+  | (Base & {t: 'contactRemove'; ref: string; contactId: string});
 
 export type LinkMessage = PhoneToWeb | WebToPhone;
 

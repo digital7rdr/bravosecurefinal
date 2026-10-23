@@ -1,5 +1,5 @@
 /**
- * The Messenger footer bar — Chats · Calls · Files · News · Channels (PDF-2 N5),
+ * The Messenger footer bar — Chats · Calls · Files · Channels · Contacts · News (PDF-2 N5),
  * PERSISTENT (N1): MessengerHome keeps it always mounted and swaps tab bodies
  * inline; and, since the client's 2026-08-22 feedback ("No Nav bar?" on Files),
  * the pushed Files screen renders the SAME bar with Files lit, so the footer
@@ -66,6 +66,9 @@ export const MSG_TABS: MsgTab[] = [
   {icon: 'phone-outline',             label: 'Calls',    tab: 'Calls'},
   {icon: 'folder-outline',            label: 'Files',    route: 'Files'},
   {icon: 'pound-box-outline',         label: 'Channels', exit: 'DepartmentChannels'},
+  // Owner 2026-10-23 — a Contacts tab (phone-book + added by hand). After
+  // Channels so the first four slots still line up with the VBS/Channels bars.
+  {icon: 'account-box-outline',       label: 'Contacts', tab: 'Contacts'},
   {icon: 'newspaper-variant-outline', label: 'News',     tab: 'News'},
 ];
 

@@ -363,6 +363,37 @@ export async function clearLinkSecrets(userId: string): Promise<void> {
 }
 
 /**
+ * 2026-10-23 — small per-user JSON documents kept with the same protection as
+ * the link keys (hardware keystore, this device only), wiped on sign-out:
+ *  - 'contacts' — contacts the user added by hand in Messenger (name + number)
+ *  - 'invites'  — the group invite links this phone issued (their tokens)
+ */
+export type SecureDoc = 'contacts' | 'invites';
+const SECURE_DOCS: readonly SecureDoc[] = ['contacts', 'invites'];
+
+function secureDocService(doc: SecureDoc, userId: string): string {
+  return `bravo.messenger.${doc}.${userId}`;
+}
+
+export async function saveSecureDoc(doc: SecureDoc, userId: string, json: string): Promise<void> {
+  if (!userId) {return;}
+  await setStrictGenericPassword(`messenger-${doc}`, json, secureDocService(doc, userId));
+}
+
+export async function loadSecureDoc(doc: SecureDoc, userId: string): Promise<string | null> {
+  if (!userId) {return null;}
+  const existing = await readKeychainWithRetry(secureDocService(doc, userId), 2);
+  return existing && existing.password ? existing.password : null;
+}
+
+export async function clearSecureDocs(userId: string): Promise<void> {
+  if (!userId) {return;}
+  for (const d of SECURE_DOCS) {
+    await Keychain.resetGenericPassword({service: secureDocService(d, userId)});
+  }
+}
+
+/**
  * Audit P0-S5 — fetch (or generate) the per-user GROUP-KEY-WRAP secret.
  *
  * Lives in its OWN keychain entry, separate from the SQLCipher DB key.

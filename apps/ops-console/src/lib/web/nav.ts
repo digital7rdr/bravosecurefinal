@@ -4,21 +4,23 @@
  */
 import {webRoutes} from './routes';
 
-export type WebNavIcon = 'chat' | 'plus' | 'list' | 'star' | 'user';
+export type WebNavIcon = 'chat' | 'contacts' | 'group' | 'user';
 
 export interface WebNavItem {
   href: string;
   label: string;
   icon: WebNavIcon;
-  /** Booking pages are for client accounts only (see canBook). */
-  clientsOnly?: boolean;
 }
 
+/**
+ * Owner 2026-10-23: "remove book, bookings, secure pro. keep chats and
+ * contacts … groups". The web app is the messenger: the same for every
+ * account (clients, officers, providers).
+ */
 export const WEB_NAV: WebNavItem[] = [
   {href: webRoutes.chats, label: 'Chats', icon: 'chat'},
-  {href: webRoutes.book, label: 'Book', icon: 'plus', clientsOnly: true},
-  {href: webRoutes.bookings, label: 'Bookings', icon: 'list', clientsOnly: true},
-  {href: webRoutes.pro, label: 'Secure Pro', icon: 'star', clientsOnly: true},
+  {href: webRoutes.contacts, label: 'Contacts', icon: 'contacts'},
+  {href: webRoutes.groups, label: 'Groups', icon: 'group'},
   {href: webRoutes.account, label: 'Account', icon: 'user'},
 ];
 

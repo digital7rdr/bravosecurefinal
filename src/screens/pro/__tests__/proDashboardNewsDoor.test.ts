@@ -109,7 +109,7 @@ describe('B-801 — the Pro dashboard has a Bravo Feed tile that goes straight t
   it('the nested payload is one the destination actually understands', () => {
     // MessengerHome accepts {tab?: MessengerHomeTab} and 'News' is a member —
     // asserted INSIDE the messenger list's block, not anywhere after it.
-    expect(TYPES).toMatch(/export type MessengerHomeTab = 'Chats' \| 'Calls' \| 'News';/);
+    expect(TYPES).toMatch(/export type MessengerHomeTab = 'Chats' \| 'Calls' \| 'Contacts' \| 'News';/);
     expect(typeBlock(TYPES, 'MessengerStackParamList')).toMatch(/^\s*MessengerHome: \{tab\?: MessengerHomeTab\} \| undefined;/m);
     // ...and the route is registered where the payload will be resolved.
     expect(MSG_NAV).toMatch(/name="MessengerHome"/);

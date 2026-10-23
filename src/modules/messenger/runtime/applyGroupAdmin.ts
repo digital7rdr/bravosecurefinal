@@ -578,7 +578,9 @@ export async function applyGroupAdmin(
     // was invisible on every member's device, permanently. Same
     // `next !== args.existing` gate as its siblings, so a stale-epoch or
     // non-admin no-op writes nothing, and the same helper the sender runs.
-    if (action.type === 'rename' && next !== args.existing) {
+    // 2026-10-23 — a description-only change rides on `rename` with the same
+    // name: no "renamed the group" line for that.
+    if (action.type === 'rename' && next !== args.existing && next.name !== args.existing?.name) {
       applyGroupRenameToUi({
         groupId:      next.groupId,
         newName:      next.name,

@@ -118,6 +118,7 @@ export {
   signGroupCreate,
   verifyGroupCreateSignature,
   canonicalCreateBytes,
+  GROUP_DESCRIPTION_MAX,
   type BroadcastParams,
   type BroadcastResult,
   type ParseGroupResult,

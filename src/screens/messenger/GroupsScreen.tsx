@@ -25,6 +25,7 @@ import {goBackOnce} from '@navigation/tapGuard';
 import {sameIdSet} from '@utils/setEquals';
 import {avatarColorFor} from './avatarColors';
 import {openConversation} from './openConversation';
+import {JoinGroupModal} from './GroupInviteModals';
 
 type Nav = NativeStackNavigationProp<MessengerStackParamList, 'Groups'>;
 
@@ -192,6 +193,8 @@ export default function GroupsScreen() {
   // for the whole session if it fails or DEPT_CHAT_V2 is off). The destination
   // has to ask the LOCAL store as well, or that window opens ChatScreen — with
   // its unconditional call buttons — on a department channel.
+  const [joinOpen, setJoinOpen] = useState(false);
+
   const openGroup = (g: GroupItem) => {
     openConversation(navigation, {conversationId: g.id, name: g.name, isGroup: true});
   };
@@ -210,6 +213,16 @@ export default function GroupsScreen() {
           <Icon name="arrow-left" size={20} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, {flex: 1}]}>Groups</Text>
+        {/* 2026-10-23 — join with a group QR code / invite link. */}
+        <TouchableOpacity
+          onPress={() => setJoinOpen(true)}
+          activeOpacity={0.8}
+          hitSlop={{top: 8, left: 8, right: 8, bottom: 8}}
+          accessibilityRole="button"
+          accessibilityLabel="Join a group with a link or QR code"
+          style={{marginRight: 12}}>
+          <Icon name="qrcode-scan" size={19} color="#FFFFFF" />
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.newGroupBtn}
           activeOpacity={0.8}
@@ -268,6 +281,7 @@ export default function GroupsScreen() {
         onPress={() => navigation.navigate('NewChat', {startGroup: true})}>
         <Icon name="account-multiple-plus" size={22} color="#FFF" />
       </TouchableOpacity>
+      <JoinGroupModal visible={joinOpen} onClose={() => setJoinOpen(false)} />
     </View>
   );
 }

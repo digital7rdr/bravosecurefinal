@@ -8,6 +8,7 @@ import {
   destroyMerkleSeqHmacKey,
   clearMirrorMasterKey,
   clearLinkSecrets,
+  clearSecureDocs,
   getOrCreateDbKey,
   ALL_COMPARTMENTS,
 } from './keychain';
@@ -153,6 +154,12 @@ export async function wipeUserAtRest(ownerKey: string): Promise<WipeReport> {
     await clearLinkSecrets(ownerKey);
   } catch (e) {
     report.errors.push('link keys clear: ' + ((e as Error).message ?? String(e)));
+  }
+  // Step 4a' — manually added contacts and issued group invite tokens.
+  try {
+    await clearSecureDocs(ownerKey);
+  } catch (e) {
+    report.errors.push('contacts/invites clear: ' + ((e as Error).message ?? String(e)));
   }
 
   // Step 4b — F11: destroy the per-compartment SQLCipher keys (id/rt/msg,

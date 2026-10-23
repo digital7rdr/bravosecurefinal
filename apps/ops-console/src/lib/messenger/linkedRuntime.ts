@@ -16,7 +16,9 @@
 import {io, type Socket} from 'socket.io-client';
 import {
   linkCipher, encodeLinkQr, newLinkKey, newLinkMsgId, b64uEncode, b64uDecode, LinkReplayGuard,
+  isGroupCid,
   type LinkCipher, type PhoneToWeb, type WebToPhone, type LinkPeer, type LinkMsgRow,
+  type LinkGroup, type LinkFeature,
 } from '@bravo/messenger-core/link/linkProtocol';
 import {getMessengerTicket} from '@/lib/api';
 import {MessageStore, type StoredMessage, type ConversationSummary} from './messageStore';
@@ -48,7 +50,19 @@ const META_LINK = 'link_record_v1';
 const META_PEERS = 'link_peers_v1';
 const META_SELF = 'link_self_v1';
 const META_SYNCED = 'link_synced_v1';
+const META_GROUPS = 'link_groups_v1';
+const META_CONTACTS = 'link_contacts_v1';
 const POLL_MS = 20_000;
+/** How long a group / contact command waits for the phone's answer. */
+const COMMAND_TIMEOUT_MS = 60_000;
+
+/** A command the phone did not (or could not) carry out. */
+export class LinkCommandError extends Error {}
+
+type ManageCommand = Extract<WebToPhone, {t: 'groupCreate' | 'groupAdd' | 'groupRemove' | 'groupEdit' | 'groupLeave' | 'groupInvite' | 'groupJoin' | 'contactSave' | 'contactRemove'}>;
+type CommandBody<T> = T extends unknown ? Omit<T, 'id' | 'ts' | 'ref'> : never;
+type ManageInput = CommandBody<ManageCommand>;
+interface CommandResult { cid?: string | null; link?: string | null }
 
 function genRef(): string {
   const b = new Uint8Array(16);
@@ -139,6 +153,12 @@ export class LinkedRuntime {
   private readTimers = new Map<string, ReturnType<typeof setTimeout>>();
   private closed = false;
   private phoneSeenAt = 0;
+  private features = new Set<LinkFeature>();
+  private groupMap = new Map<string, LinkGroup>();
+  /** The phone's contact list as last sent in full (address book, added by hand, chat partners). */
+  private contactBook: LinkPeer[] = [];
+  private pendingResults = new Map<string, {resolve: (r: CommandResult) => void; reject: (e: Error) => void; timer: ReturnType<typeof setTimeout>}>();
+  private groupsListeners = new Set<() => void>();
 
   private incomingListeners = new Set<(m: LinkedIncoming) => void>();
   private historyListeners = new Set<(cid: string) => void>();
@@ -161,6 +181,10 @@ export class LinkedRuntime {
   async startListening(): Promise<void> {
     this.cipher = await linkCipher(this.link.linkId, b64uDecode(this.link.key));
     this.peers = new Map(Object.entries((await getMetaWrapped<Record<string, LinkPeer>>(this.db, this.wrapKey, META_PEERS)) ?? {}));
+    const self = await getMetaWrapped<{features?: LinkFeature[]}>(this.db, this.wrapKey, META_SELF);
+    this.features = new Set(self?.features ?? []);
+    for (const g of (await getMetaWrapped<LinkGroup[]>(this.db, this.wrapKey, META_GROUPS)) ?? []) this.groupMap.set(g.cid, g);
+    this.contactBook = (await getMetaWrapped<LinkPeer[]>(this.db, this.wrapKey, META_CONTACTS)) ?? [];
     const synced = await this.db.get('meta', META_SYNCED);
     this.openSocket();
     this.pollTimer = setInterval(() => void this.drain(), POLL_MS);
@@ -184,6 +208,7 @@ export class LinkedRuntime {
     this.closed = true;
     this.stopListening();
     for (const t of this.readTimers.values()) clearTimeout(t);
+    this.failPending('closed');
     try { this.db.close(); } catch { /* ignore */ }
   }
 
@@ -199,8 +224,10 @@ export class LinkedRuntime {
     this.stopListening();
     const tx = this.db.transaction(['messages', 'meta'], 'readwrite');
     await tx.objectStore('messages').clear();
-    for (const k of [META_LINK, META_PEERS, META_SELF, META_SYNCED]) await tx.objectStore('meta').delete(k);
+    for (const k of [META_LINK, META_PEERS, META_SELF, META_SYNCED, META_GROUPS, META_CONTACTS]) await tx.objectStore('meta').delete(k);
     await tx.done;
+    this.groupMap.clear(); this.contactBook = []; this.features.clear();
+    this.failPending('unlinked');
     for (const fn of [...this.unlinkedListeners]) { try { fn(); } catch { /* ignore */ } }
   }
 
@@ -280,19 +307,45 @@ export class LinkedRuntime {
     for (const fn of [...this.statusListeners]) { try { fn(); } catch { /* ignore */ } }
     switch (msg.t) {
       case 'hello':
-        await putMetaWrapped(this.db, this.wrapKey, META_SELF, msg.self);
+        this.features = new Set(msg.features ?? []);
+        await putMetaWrapped(this.db, this.wrapKey, META_SELF, {...msg.self, features: msg.features ?? []});
+        this.emitGroups();
         return;
       case 'contacts':
         for (const c of msg.contacts) this.mergePeer(c);
+        // Every contacts frame is the phone's whole list (older phones too).
+        this.contactBook = msg.contacts.filter(c => c && (c.userId || c.phone));
+        await putMetaWrapped(this.db, this.wrapKey, META_CONTACTS, this.contactBook);
         await this.savePeers();
         return;
+      case 'groups': {
+        if (msg.full) this.groupMap.clear();
+        for (const g of msg.groups) {
+          if (!isGroupCid(g.cid)) continue;
+          this.groupMap.set(g.cid, g);
+          for (const m of g.members) this.mergePeer({userId: m.userId, name: m.name, phone: m.phone});
+        }
+        await putMetaWrapped(this.db, this.wrapKey, META_GROUPS, [...this.groupMap.values()]);
+        await this.savePeers();
+        this.emitGroups();
+        return;
+      }
+      case 'result': {
+        const p = this.pendingResults.get(msg.ref);
+        if (!p) return;
+        this.pendingResults.delete(msg.ref);
+        clearTimeout(p.timer);
+        if (msg.ok) p.resolve({cid: msg.cid ?? null, link: msg.link ?? null});
+        else p.reject(new LinkCommandError(msg.error || 'Your phone could not do that.'));
+        return;
+      }
       case 'convs':
         for (const c of msg.conversations) this.mergePeer(c.peer);
         await this.savePeers();
         return;
       case 'msgs': {
-        if (!msg.cid.startsWith('direct:')) return;
-        for (const r of msg.rows) await this.upsertRow(msg.cid, msg.peerUserId, r, !!msg.history);
+        if (!msg.cid.startsWith('direct:') && !isGroupCid(msg.cid)) return;
+        for (const r of msg.rows) await this.upsertRow(msg.cid, isGroupCid(msg.cid) ? (r.from ?? '') : msg.peerUserId, r, !!msg.history);
         this.emitHistory(msg.cid);
         return;
       }
@@ -320,7 +373,8 @@ export class LinkedRuntime {
   private mergePeer(p: LinkPeer): void {
     if (!p?.userId) return;
     const prev = this.peers.get(p.userId);
-    this.peers.set(p.userId, {userId: p.userId, name: p.name || prev?.name || null, phone: p.phone || prev?.phone || null});
+    this.peers.set(p.userId, {userId: p.userId, name: p.name || prev?.name || null, phone: p.phone || prev?.phone || null,
+      ...(p.source || prev?.source ? {source: p.source ?? prev?.source} : {})});
   }
 
   private async savePeers(): Promise<void> {
@@ -389,6 +443,90 @@ export class LinkedRuntime {
     return {id: ref, envelopeId: ref};
   }
 
+  /** 2026-10-23 — send to a mirrored group (`group:<id>`); the phone sends it. */
+  async sendGroup(cid: string, body: string): Promise<{id: string; envelopeId: string | null}> {
+    const text = body.trim();
+    if (!text) throw new Error('empty message');
+    if (!isGroupCid(cid)) throw new Error('not a group');
+    const ref = genRef();
+    await this.messages.upsert({
+      conversationId: cid, id: ref, senderUserId: this.userId, direction: 'out', body: text, sentAt: Date.now(),
+      envelopeId: ref, clientMsgId: ref, status: 'sending', reactions: null, replyToId: null,
+    });
+    this.refToCid.set(ref, cid);
+    this.emitHistory(cid);
+    try {
+      await this.command({t: 'send', id: newLinkMsgId(), ts: Date.now(), ref, peerUserId: '', cid, text});
+    } catch (e) {
+      await this.messages.patch(cid, ref, {status: 'failed'});
+      this.emitHistory(cid);
+      throw e;
+    }
+    return {id: ref, envelopeId: ref};
+  }
+
+  // ── groups and contacts (2026-10-23) ───────────────────────────────────
+
+  /** What the linked phone's app supports (older apps: nothing below). */
+  hasFeature(f: LinkFeature): boolean { return this.features.has(f); }
+
+  groups(): LinkGroup[] { return [...this.groupMap.values()].sort((a, b) => b.lastAt - a.lastAt); }
+  group(cid: string): LinkGroup | null { return this.groupMap.get(cid) ?? null; }
+
+  /** The phone's contacts: address book, added by hand (some not on Bravo yet), chat partners. */
+  contactList(): LinkPeer[] { return this.contactBook.length ? [...this.contactBook] : [...this.peers.values()]; }
+
+  /** Ask the phone to do something and wait for its answer. */
+  private request(cmd: ManageInput): Promise<CommandResult> {
+    const ref = genRef();
+    return new Promise<CommandResult>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingResults.delete(ref);
+        reject(new LinkCommandError('Your phone did not answer. Make sure it is on and connected to the internet, then try again.'));
+      }, COMMAND_TIMEOUT_MS);
+      this.pendingResults.set(ref, {resolve, reject, timer});
+      this.command({...cmd, id: newLinkMsgId(), ts: Date.now(), ref} as WebToPhone).catch(e => {
+        clearTimeout(timer);
+        this.pendingResults.delete(ref);
+        reject(e instanceof Error ? e : new Error(String(e)));
+      });
+    });
+  }
+
+  private failPending(why: string): void {
+    for (const [ref, p] of this.pendingResults) {
+      clearTimeout(p.timer);
+      p.reject(new LinkCommandError(why === 'unlinked' ? 'This browser is no longer linked to your phone.' : 'Closed.'));
+      this.pendingResults.delete(ref);
+    }
+  }
+
+  async createGroup(name: string, members: string[], description?: string): Promise<string> {
+    const r = await this.request({t: 'groupCreate', name, members, description: description ?? null});
+    return r.cid ?? '';
+  }
+  async addGroupMembers(cid: string, userIds: string[]): Promise<void> { await this.request({t: 'groupAdd', cid, userIds}); }
+  async removeGroupMember(cid: string, userId: string): Promise<void> { await this.request({t: 'groupRemove', cid, userId}); }
+  async editGroup(cid: string, edit: {name?: string; description?: string}): Promise<void> {
+    await this.request({t: 'groupEdit', cid, name: edit.name ?? null, description: edit.description ?? null});
+  }
+  async leaveGroup(cid: string): Promise<void> { await this.request({t: 'groupLeave', cid}); }
+  /** The group's invite link ('get' issues one when there is none); null after 'revoke'. */
+  async groupInvite(cid: string, action: 'get' | 'reset' | 'revoke'): Promise<string | null> {
+    return (await this.request({t: 'groupInvite', cid, action})).link ?? null;
+  }
+  async joinGroup(link: string): Promise<void> { await this.request({t: 'groupJoin', link}); }
+  /** Saved on the phone (never on the server); returns the chat id when they are on Bravo. */
+  async saveContact(name: string, phone: string): Promise<string | null> {
+    return (await this.request({t: 'contactSave', name, phone})).cid ?? null;
+  }
+  async removeContact(contactId: string): Promise<void> { await this.request({t: 'contactRemove', contactId}); }
+
+  onGroupsChange(fn: () => void): () => void { this.groupsListeners.add(fn); return () => { this.groupsListeners.delete(fn); }; }
+  private emitGroups(): void {
+    for (const fn of [...this.groupsListeners]) { try { fn(); } catch { /* ignore */ } }
+  }
+
   async discardMessage(conversationId: string, id: string): Promise<void> {
     await this.messages.remove(conversationId, id);
     this.emitHistory(conversationId);
@@ -396,7 +534,7 @@ export class LinkedRuntime {
 
   /** Mark read on the phone (it sends the read receipts). Debounced per chat. */
   markRead(conversationId: string, _envelopeIds?: string[]): void {
-    if (!conversationId.startsWith('direct:')) return;
+    if (!conversationId.startsWith('direct:') && !isGroupCid(conversationId)) return;
     const prev = this.readTimers.get(conversationId);
     if (prev) clearTimeout(prev);
     this.readTimers.set(conversationId, setTimeout(() => {

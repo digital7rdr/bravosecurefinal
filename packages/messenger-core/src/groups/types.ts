@@ -58,6 +58,14 @@ export interface GroupState {
    * would weaken the model, so it is not done.
    */
   photo?:    GroupPhotoRef | null;
+  /**
+   * 2026-10-23 — the group's description ("what this group is for"), shown
+   * in group info. Set by an admin through the `rename` action's optional
+   * `description` field, so a client that predates it still applies the
+   * action (and its epoch bump) and simply ignores the text. Optional and
+   * additive: older state rows decode unchanged.
+   */
+  description?: string | null;
   /** Owner's userId. Owner has admin rights. */
   owner:     string;
   /** Members (incl. owner). Keyed by userId; value carries the Signal device id. */
@@ -141,7 +149,13 @@ export type GroupAdminAction =
   | {type: 'add';      member: {userId: string; deviceId: number}; atEpoch: number}
   | {type: 'remove';   userId: string; atEpoch: number}
   | {type: 'rekey';    newMasterKeyB64: string; atEpoch: number}
-  | {type: 'rename';   name: string; atEpoch: number}
+  /**
+   * `description` (2026-10-23) is optional: absent = leave the description as
+   * it is, '' = clear it. Riding on `rename` instead of a new action type keeps
+   * older phones in step — they apply the rename (same name) and bump the
+   * epoch, so the next admin action still lines up for them.
+   */
+  | {type: 'rename';   name: string; atEpoch: number; description?: string}
   /**
    * B-291 — set or clear the group picture. `photo: null` removes it.
    *

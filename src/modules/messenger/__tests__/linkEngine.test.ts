@@ -25,7 +25,7 @@ jest.mock('react-native', () => ({
   AppState: {currentState: 'active', addEventListener: jest.fn(() => ({remove: jest.fn()}))},
 }));
 
-jest.mock('@utils/constants', () => ({__esModule: true, MSG_BASE_URL: 'https://relay.test', API_BASE_URL: 'https://auth.test'}));
+jest.mock('@utils/constants', () => ({__esModule: true, MSG_BASE_URL: 'https://relay.test', API_BASE_URL: 'https://auth.test', DIAL_CODES: [{dial: '+971'}, {dial: '+44'}]}));
 
 const mockSecrets = new Map<string, string>();
 jest.mock('../runtime/keychain', () => ({
@@ -33,13 +33,22 @@ jest.mock('../runtime/keychain', () => ({
   saveLinkSecrets:  async (u: string, j: string) => { mockSecrets.set(u, j); },
   loadLinkSecrets:  async (u: string) => mockSecrets.get(u) ?? null,
   clearLinkSecrets: async (u: string) => { mockSecrets.delete(u); },
+  saveSecureDoc:    async (d: string, u: string, j: string) => { mockSecrets.set(`${d}:${u}`, j); },
+  loadSecureDoc:    async (d: string, u: string) => mockSecrets.get(`${d}:${u}`) ?? null,
 }));
 
 const mockSendText = jest.fn(async () => undefined);
+const mockCreateGroup = jest.fn(async () => ({conversationId: 'g-new', groupId: 'g-new'}));
+const mockAddMember = jest.fn(async () => ({newEpoch: 3}));
+const mockSetDescription = jest.fn(async () => ({newEpoch: 2}));
 jest.mock('../runtime/runtime', () => ({
   __esModule: true,
   getActiveOwnerKey: () => 'owner-1',
-  getMessengerRuntime: async () => ({sendText: mockSendText, markRead: jest.fn(), loadOlderMessages: jest.fn()}),
+  getMessengerRuntime: async () => ({
+    sendText: mockSendText, markRead: jest.fn(), loadOlderMessages: jest.fn(),
+    createGroupChat: mockCreateGroup, addGroupMember: mockAddMember, setGroupDescription: mockSetDescription,
+    removeGroupMember: jest.fn(), renameGroup: jest.fn(), leaveGroup: jest.fn(),
+  }),
 }));
 
 jest.mock('../runtime/transportRegistry', () => ({__esModule: true, onTransport: () => () => undefined}));
@@ -62,6 +71,7 @@ const mockFetchWithRefresh = jest.fn(async (url: string, init: {method?: string;
   if (url.endsWith('/link/approve')) {return json({linkId: LINK, label: 'Chrome on Mac', approvedAt: 1, role: 'phone'});}
   if (url.includes('/inbox')) {const items = inbox; inbox = []; return json({items, more: false});}
   if (url.endsWith('/link/mine')) {return json({links: []});}
+  if (url.endsWith('/users/lookup')) {return json({matches: [{userId: 'peer-9', phone: '+971500000009', displayName: 'Nine'}]});}
   if (init.method === 'DELETE' || url.endsWith('/ack')) {return {ok: true, status: 204, json: async () => ({})};}
   return json({seq: 1});
 });
@@ -109,6 +119,7 @@ describe('linkEngine (phone side of linked devices)', () => {
 
   beforeEach(async () => {
     calls.length = 0; inbox = []; mockSecrets.clear(); mockSendText.mockClear();
+    mockCreateGroup.mockClear(); mockAddMember.mockClear(); mockSetDescription.mockClear();
     stopLinkEngine();
     const st = useMessengerStore.getState();
     st.reset();
@@ -203,5 +214,111 @@ describe('linkEngine (phone side of linked devices)', () => {
     expect(frames.map(f => f.t)).toContain('bye');
     expect(calls.some(c => c.method === 'DELETE' && c.url.endsWith(`/link/${LINK}`))).toBe(true);
     expect(mockSecrets.has('owner-1')).toBe(false);
+  });
+
+  describe('groups and contacts (2026-10-23)', () => {
+    const GROUP = 'g-1';
+    const groupState = (admin: boolean, extra: Record<string, unknown> = {}) => ({
+      groupId: GROUP, name: 'Ops Team', owner: admin ? 'me-1' : PEER,
+      members: {'me-1': {deviceId: 1, admin, joinedAt: 1}, [PEER]: {deviceId: 1, admin: !admin, joinedAt: 1}},
+      masterKeyB64: 'k', epoch: 1, createdAt: 1, updatedAt: 1, saltB64: 'salt', description: 'Night shift', ...extra,
+    });
+    function addGroup(admin = true, extra: Record<string, unknown> = {}) {
+      const st = useMessengerStore.getState();
+      st.upsertConversation({
+        id: GROUP, type: 'group', name: 'Ops Team', participants: ['me-1', PEER], peer: {userId: GROUP, deviceId: 1},
+        session_state: 'established', unread_count: 1, is_muted: false, created_at: new Date(1_760_000_000_000).toISOString(),
+      } as LocalConversation);
+      st.setGroupState(groupState(admin, extra) as never);
+      st.appendMessage(GROUP, msg('g1', {conversation_id: GROUP, sender_id: PEER} as Partial<LocalMessage>));
+    }
+    async function command(c: Record<string, unknown>, seq: number) {
+      inbox = [{seq, data: await web.seal('w2p', {id: `c${seq}`, ts: 1, ...c} as never)}];
+      await drainLinkInboxes();
+      await flushLinkBounded(2000);
+    }
+
+    it('the snapshot carries the groups, their members and description, and group messages with their sender', async () => {
+      addGroup();
+      await approveLinkFromQr(encodeLinkQr(LINK, key));
+      await flushLinkBounded(2000);
+      for (let i = 0; i < 5; i++) {await settle();}
+      const frames = await sentFrames(web);
+      const hello = frames.find(f => f.t === 'hello') as Extract<PhoneToWeb, {t: 'hello'}>;
+      expect(hello.features).toEqual(expect.arrayContaining(['groups', 'contacts.manual', 'groups.manage', 'groups.invite']));
+      const g = frames.find(f => f.t === 'groups') as Extract<PhoneToWeb, {t: 'groups'}>;
+      expect(g.groups).toEqual([expect.objectContaining({
+        cid: `group:${GROUP}`, name: 'Ops Team', description: 'Night shift', admin: true, manageable: true,
+      })]);
+      expect(g.groups[0].members).toEqual(expect.arrayContaining([
+        expect.objectContaining({userId: PEER, name: 'Bobby', admin: false}),
+        expect.objectContaining({userId: 'me-1', admin: true}),
+      ]));
+      const gm = frames.find(f => f.t === 'msgs' && f.cid === `group:${GROUP}`) as Extract<PhoneToWeb, {t: 'msgs'}>;
+      expect(gm.rows).toEqual([expect.objectContaining({id: 'g1', dir: 'in', from: PEER})]);
+    });
+
+    it('a department channel is not mirrored', async () => {
+      addGroup();
+      useMessengerStore.setState(s => ({...s, deptConversationIds: {[GROUP]: true}}));
+      await approveLinkFromQr(encodeLinkQr(LINK, key));
+      await flushLinkBounded(2000);
+      for (let i = 0; i < 5; i++) {await settle();}
+      const frames = await sentFrames(web);
+      expect((frames.find(f => f.t === 'groups') as Extract<PhoneToWeb, {t: 'groups'}>).groups).toEqual([]);
+      expect(frames.some(f => f.t === 'msgs' && f.cid === `group:${GROUP}`)).toBe(false);
+    });
+
+    it('sends to a group, creates a group and answers each command', async () => {
+      addGroup();
+      await approveLinkFromQr(encodeLinkQr(LINK, key));
+      await flushLinkBounded(2000);
+      calls.length = 0;
+      await command({t: 'send', ref: 'r-g', peerUserId: '', cid: `group:${GROUP}`, text: 'hello team'}, 11);
+      expect(mockSendText).toHaveBeenCalledWith(GROUP, 'hello team', expect.objectContaining({isGroup: true, stableMsgId: 'r-g'}));
+      await command({t: 'groupCreate', ref: 'r-c', name: 'Night crew', members: [PEER], description: 'Gate 3'}, 12);
+      expect(mockCreateGroup).toHaveBeenCalledWith({name: 'Night crew', members: [PEER]});
+      expect(mockSetDescription).toHaveBeenCalledWith({groupId: 'g-new', description: 'Gate 3'});
+      const frames = await sentFrames(web);
+      expect(frames.find(f => f.t === 'sent')).toMatchObject({ref: 'r-g', ok: true});
+      expect(frames.find(f => f.t === 'result' && f.ref === 'r-c')).toMatchObject({ok: true, cid: 'group:g-new'});
+    });
+
+    it('refuses member changes when this account is not an admin, without calling the runtime', async () => {
+      addGroup(false);
+      await approveLinkFromQr(encodeLinkQr(LINK, key));
+      await flushLinkBounded(2000);
+      calls.length = 0;
+      await command({t: 'groupAdd', ref: 'r-a', cid: `group:${GROUP}`, userIds: ['peer-9']}, 21);
+      expect(mockAddMember).not.toHaveBeenCalled();
+      const frames = await sentFrames(web);
+      expect(frames.find(f => f.t === 'result')).toMatchObject({ref: 'r-a', ok: false, error: 'Only a group admin can do that.'});
+    });
+
+    it('refuses member changes in a mission room (crew set by dispatch)', async () => {
+      addGroup(true, {saltB64: undefined});
+      await approveLinkFromQr(encodeLinkQr(LINK, key));
+      await flushLinkBounded(2000);
+      calls.length = 0;
+      await command({t: 'groupAdd', ref: 'r-m', cid: `group:${GROUP}`, userIds: ['peer-9']}, 31);
+      expect(mockAddMember).not.toHaveBeenCalled();
+      const frames = await sentFrames(web);
+      expect(frames.find(f => f.t === 'result')).toMatchObject({ref: 'r-m', ok: false, error: 'Members of this group are managed by dispatch.'});
+    });
+
+    it('saves a contact added in the browser on the phone (sealed, never on the server) and sends it back', async () => {
+      await approveLinkFromQr(encodeLinkQr(LINK, key));
+      await flushLinkBounded(2000);
+      calls.length = 0;
+      await command({t: 'contactSave', ref: 'r-s', name: 'Hana', phone: '+971 50 000 0009'}, 41);
+      const stored = JSON.parse(mockSecrets.get('contacts:owner-1') ?? '[]');
+      expect(stored).toEqual([expect.objectContaining({name: 'Hana', phoneE164: '+971500000009'})]);
+      const frames = await sentFrames(web);
+      expect(frames.find(f => f.t === 'result')).toMatchObject({ref: 'r-s', ok: true});
+      const contacts = frames.filter(f => f.t === 'contacts').pop() as Extract<PhoneToWeb, {t: 'contacts'}>;
+      expect(contacts.contacts).toEqual(expect.arrayContaining([expect.objectContaining({name: 'Hana', source: 'manual'})]));
+      // The name only ever travelled sealed.
+      expect(JSON.stringify(calls.filter(c => c.url.includes('/link/')))).not.toContain('Hana');
+    });
   });
 });

@@ -40,6 +40,9 @@ import * as Clipboard from 'expo-clipboard';
 import {scaleTextStyles} from '@utils/scaling';
 import {goBackOnce} from '@navigation/tapGuard';
 import {displayRoomName} from '@utils/missionRoomName';
+import {GROUP_DESCRIPTION_MAX} from '@bravo/messenger-core';
+import {canInviteToGroup} from '@/modules/messenger/groups/groupInvites';
+import {GroupInviteModal} from './GroupInviteModals';
 
 type Props = MessengerScreenProps<'ChatInfo'>;
 
@@ -200,6 +203,11 @@ export default function ChatInfoScreen({navigation, route}: Props) {
   const [groupNameOpen,  setGroupNameOpen]  = useState(false);
   const [groupNameValue, setGroupNameValue] = useState('');
   const [groupNameBusy,  setGroupNameBusy]  = useState(false);
+  // 2026-10-23 — group description and invite link.
+  const [descOpen,  setDescOpen]  = useState(false);
+  const [descValue, setDescValue] = useState('');
+  const [descBusy,  setDescBusy]  = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [ttlPickerOpen, setTtlPickerOpen] = useState(false);
   const [fingerprintOpen, setFingerprintOpen] = useState(false);
   const [safetyNumber, setSafetyNumber] = useState<string | null>(null);
@@ -587,6 +595,23 @@ export default function ChatInfoScreen({navigation, route}: Props) {
     })();
   };
 
+  /** 2026-10-23 — save the group description (admins; '' clears it). */
+  const saveDescription = () => {
+    const fn = runtime?.setGroupDescription;
+    if (!fn || descBusy) {return;}
+    void (async () => {
+      setDescBusy(true);
+      try {
+        await fn({groupId: conversationId, description: descValue});
+        setDescOpen(false);
+      } catch (e) {
+        Alert.alert('Could not save', (e as Error).message);
+      } finally {
+        setDescBusy(false);
+      }
+    })();
+  };
+
   // GRP-20/25 — admin removes a member. removeGroupMember rekeys the group
   // (remove @ epoch E, fresh master key @ E+1) and fails fast BEFORE any
   // state change, so a failure here leaves the group intact.
@@ -930,6 +955,25 @@ export default function ChatInfoScreen({navigation, route}: Props) {
         {/* Divider */}
         <View style={styles.divider} />
 
+        {/* 2026-10-23 — group description (everyone reads; admins edit). */}
+        {isGroup && (!!groupState?.description || (isAdmin && !!runtime?.setGroupDescription)) && (
+          <TouchableOpacity
+            style={styles.descRow}
+            activeOpacity={isAdmin ? 0.7 : 1}
+            disabled={!isAdmin || !runtime?.setGroupDescription}
+            onPress={() => { setDescValue(groupState?.description ?? ''); setDescOpen(true); }}
+            accessibilityRole={isAdmin ? 'button' : 'text'}
+            accessibilityLabel={groupState?.description ? `Description: ${groupState.description}` : 'Add a group description'}>
+            <View style={{flex: 1}}>
+              <Text style={styles.descLabel}>Description</Text>
+              <Text style={groupState?.description ? styles.descText : styles.descPlaceholder}>
+                {groupState?.description || 'Add a description — what this group is for'}
+              </Text>
+            </View>
+            {isAdmin && <Icon name="pencil-outline" size={16} color="rgba(180,188,204,0.55)" />}
+          </TouchableOpacity>
+        )}
+
         {/* Members — groups only */}
         {isGroup && (
           <>
@@ -952,6 +996,20 @@ export default function ChatInfoScreen({navigation, route}: Props) {
                   <Icon name="account-plus" size={20} color={Colors.primary} />
                 </View>
                 <Text style={styles.addMemberText}>Add member</Text>
+              </TouchableOpacity>
+            )}
+            {/* 2026-10-23 — invite with a link / QR code (groups people made). */}
+            {canInviteToGroup(useMessengerStore.getState(), conversationId, currentUser?.id ?? null) && (
+              <TouchableOpacity
+                style={styles.addMemberRow}
+                activeOpacity={0.8}
+                onPress={() => setInviteOpen(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Invite with a link or QR code">
+                <View style={styles.addMemberIcon}>
+                  <Icon name="link-variant" size={20} color={Colors.primary} />
+                </View>
+                <Text style={styles.addMemberText}>Invite with link or QR code</Text>
               </TouchableOpacity>
             )}
             {members.map(m => (
@@ -1234,6 +1292,41 @@ export default function ChatInfoScreen({navigation, route}: Props) {
       </Modal>
       )}
 
+      {/* 2026-10-23 — admin: the group description */}
+      {descOpen && (
+      <Modal visible transparent animationType="fade" onRequestClose={() => setDescOpen(false)}>
+        <View style={[styles.modalOverlay, {paddingBottom: keyboardOverlap}]}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Group description</Text>
+            <Text style={styles.modalSub}>Everyone in the group sees this. Leave it empty to remove it.</Text>
+            <TextInput
+              style={[styles.modalInput, {minHeight: 90, textAlignVertical: 'top'}]}
+              value={descValue}
+              onChangeText={setDescValue}
+              placeholder="What this group is for"
+              placeholderTextColor="rgba(180,188,204,0.45)"
+              autoFocus
+              multiline
+              maxLength={GROUP_DESCRIPTION_MAX}
+            />
+            <View style={styles.modalRow}>
+              <View style={{flex: 1}} />
+              <TouchableOpacity style={styles.modalCancel} onPress={() => setDescOpen(false)} activeOpacity={0.8}>
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalSave, descBusy && {opacity: 0.5}]} onPress={saveDescription} disabled={descBusy} activeOpacity={0.85}>
+                <Text style={styles.modalSaveText}>{descBusy ? 'Saving…' : 'Save'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      )}
+
+      {isGroup && (
+        <GroupInviteModal visible={inviteOpen} groupId={conversationId} groupName={title} onClose={() => setInviteOpen(false)} />
+      )}
+
       {/* Admin: rename member in this group */}
       <Modal
         visible={renameOpen}
@@ -1361,6 +1454,11 @@ const styles = StyleSheet.create(scaleTextStyles({
   memberRow: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10},
   memberAvatar: {width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', flexShrink: 0},
   memberInitials: {color: '#FFF', fontSize: 12, fontWeight: '800'},
+  // 2026-10-23 — group description row.
+  descRow: {flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingHorizontal: 16, paddingVertical: 12},
+  descLabel: {fontSize: 9, fontWeight: '800', letterSpacing: 3, textTransform: 'uppercase', color: 'rgba(180,188,204,0.45)'},
+  descText: {color: '#FFFFFF', fontSize: 13.5, lineHeight: 19, marginTop: 6},
+  descPlaceholder: {color: 'rgba(180,188,204,0.55)', fontSize: 13, marginTop: 6, fontStyle: 'italic'},
   // BS-GROUP-ADD — "Add member" row.
   addMemberRow: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 10},
   addMemberIcon: {width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30,136,255,0.12)', flexShrink: 0},

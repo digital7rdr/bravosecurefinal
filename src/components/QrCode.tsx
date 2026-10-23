@@ -22,13 +22,13 @@ export function qrPath(value: string, quiet = 2): {size: number; d: string} {
   return {size: n + quiet * 2, d};
 }
 
-export function QrCode({value, size = 196}: {value: string; size?: number}) {
+export function QrCode({value, size = 196, label = 'Authenticator set-up QR code', testID = 'totp-qr'}: {value: string; size?: number; label?: string; testID?: string}) {
   const qr = useMemo(() => {
     try {return qrPath(value);} catch {return null;}
   }, [value]);
   if (!qr) {return null;}
   return (
-    <View style={[s.box, {width: size + 16, height: size + 16}]} accessible accessibilityLabel="Authenticator set-up QR code" testID="totp-qr">
+    <View style={[s.box, {width: size + 16, height: size + 16}]} accessible accessibilityLabel={label} testID={testID}>
       <Svg width={size} height={size} viewBox={`0 0 ${qr.size} ${qr.size}`}>
         <Rect x={0} y={0} width={qr.size} height={qr.size} fill="#FFFFFF"/>
         <Path d={qr.d} fill="#06142B"/>
