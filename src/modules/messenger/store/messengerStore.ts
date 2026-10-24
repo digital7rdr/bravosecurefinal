@@ -478,6 +478,8 @@ interface MessengerActions {
   setOwner: (userId: string, authUserId?: string) => void;
   /** Replace a group's full state (used on admin create + rekey). */
   setGroupState: (state: GroupState) => void;
+  /** Drop one owner key's chats from memory (see forgetOwner). */
+  forgetOwner: (ownerKey: string) => void;
   /** Drop a group entirely (member removed themselves, etc.). */
   removeGroupState: (groupId: string) => void;
   /**
@@ -1870,6 +1872,28 @@ export const useMessengerStore = create<MessengerState & MessengerActions>()(
       }),
 
     reset: () => set(() => ({ ...initialState })),
+
+    /**
+     * 2026-10-24 — drop one owner key's chats from memory (its at-rest data is
+     * wiped separately). Used when a different account takes over the same
+     * phone number on this phone; other owners' slices are untouched.
+     */
+    forgetOwner: (ownerKey: string) =>
+      set(s => {
+        if (s.vaultByOwner && ownerKey in s.vaultByOwner) {delete s.vaultByOwner[ownerKey];}
+        if (s._ownUserId === ownerKey) {
+          s._ownUserId = null;
+          s.conversations = {};
+          s.conversationOrder = [];
+          s.groups = {};
+          s.groupMemberNames = {};
+          s.deptGroupByChannel = {};
+          s.deptConversationIds = {};
+          s.deptOrgByConversation = {};
+          s.messages = {};
+          s.activeConversationId = null;
+        }
+      }),
 
     setOwner: (userId: string, authUserId?: string) =>
       set(s => {

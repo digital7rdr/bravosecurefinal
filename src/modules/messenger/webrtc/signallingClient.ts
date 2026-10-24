@@ -268,6 +268,7 @@ export class CallSignalling {
     // 20s connecting watchdog. `trySend` reports real success so the loop can
     // keep trying across a reconnect instead of failing silently.
     const t0 = Date.now();
+    let kicked = false;
     for (;;) {
       // A call the user already cancelled must not hold the per-callId queue
       // (hangup chains behind offer) — bail so End takes effect immediately.
@@ -279,10 +280,20 @@ export class CallSignalling {
       // emitting into a transport that reports itself down. The change is that
       // a send which THROWS anyway (label leading `socket.connected`) no longer
       // counts as delivered: we keep looping until it genuinely lands.
-      const s = (this.liveTransport() as unknown as {state?: string}).state;
+      const live = this.liveTransport() as unknown as {state?: string; forceReconnect?: () => Promise<void>};
+      const s = live.state;
       if (s === 'connected' && this.trySend(event, data)) {
         latSetupFrameEmitted(event, callId, Date.now() - t0);
         return true;
+      }
+      // 2026-10-24 — the call is being placed / answered right now, so don't
+      // wait for the background reconnect ladder: ask for a fresh connection
+      // once. Text still went out (it does not need this socket), which is
+      // why a dead socket showed up only as "Calling…" with no ring.
+      if (!kicked && s !== 'connected' && typeof live.forceReconnect === 'function') {
+        kicked = true;
+        console.warn(`[bravo.signalling] ${event} — messenger connection is ${s ?? 'unknown'}; reconnecting now`);
+        try { void live.forceReconnect().catch(() => undefined); } catch { /* the loop keeps waiting */ }
       }
       if (Date.now() - t0 >= timeoutMs) {break;}
       await new Promise(r => setTimeout(r, 100));

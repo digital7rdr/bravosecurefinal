@@ -187,6 +187,12 @@ export function shouldRouteCallViaSfu(conversationId: string): boolean {
   const convo = s.conversations[conversationId];
   if (!convo) {return false;}
   if (convo.type === 'group' || convo.type === 'ops_channel') {return true;}
+  // 2026-10-24 — a 1:1 chat is a 1:1 call, always. Its participant list can
+  // carry a stale "me" from another account that used this number on this
+  // phone (deleted, then registered again); counting that as a second member
+  // rang the call as a GROUP call nobody could answer — "Calling…" with the
+  // other phone silent. An ad-hoc multi-party call passes `isGroup` itself.
+  if (convo.type === 'direct') {return false;}
   return otherMembers(conversationId).length >= 2;
 }
 

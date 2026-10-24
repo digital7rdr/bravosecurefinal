@@ -700,6 +700,26 @@ export default function MainNavigator() {
       }
     } catch { /* storage blip — fall back to the computed key (no worse than before) */ }
     if (cancelled) {return;}
+    // 2026-10-24 — a NEW account on a number this phone already used (account
+    // deleted, same number registered again) must not inherit the old
+    // account's chats, sessions and keys: wipe them before the messenger starts.
+    try {
+      const {guardOwnerAccount} = require('@/modules/messenger/runtime/ownerAccountGuard') as
+        typeof import('@/modules/messenger/runtime/ownerAccountGuard');
+      await guardOwnerAccount(ownerKey, userId, {
+        slice: () => {
+          const st = useMessengerStore.getState();
+          return st._ownUserId === ownerKey ? st.conversations : st.vaultByOwner?.[ownerKey]?.conversations;
+        },
+        wipe: async key => {
+          const {wipeUserAtRest} = require('@/modules/messenger/runtime/wipeAtRest') as
+            typeof import('@/modules/messenger/runtime/wipeAtRest');
+          return wipeUserAtRest(key);
+        },
+        dropInMemory: key => useMessengerStore.getState().forgetOwner(key),
+      });
+    } catch (e) { console.warn('[MainNavigator] owner guard failed:', (e as Error).message); }
+    if (cancelled) {return;}
     const store = useMessengerStore.getState();
     // Two DIFFERENT ids on purpose: `ownerKey` scopes the vault/DB (it is an
     // email for most accounts), `userId` is the auth UUID that group
