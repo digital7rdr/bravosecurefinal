@@ -137,6 +137,20 @@ type CacheEntry = {rows: DiscoveredRow[]; at: number};
 const discoveryCache = new Map<string, CacheEntry>();
 
 /**
+ * 2026-10-24 — told whenever a sweep finishes, so a linked browser gets the
+ * phone's current address-book contacts without waiting for a re-link.
+ */
+const discoveryListeners = new Set<() => void>();
+export function onDiscoveredContactsChange(fn: () => void): () => void {
+  discoveryListeners.add(fn);
+  return () => { discoveryListeners.delete(fn); };
+}
+function cacheDiscovery(key: string, entry: CacheEntry): void {
+  discoveryCache.set(key, entry);
+  for (const fn of [...discoveryListeners]) {try { fn(); } catch { /* ignore */ }}
+}
+
+/**
  * Drop every cached sweep. MUST be called on sign-out: the rows are keyed by
  * the signed-in user, but leaving another account's directory matches resident
  * in memory after a logout is exactly the kind of cross-account bleed the
@@ -195,7 +209,7 @@ export async function discoverContactsPassive(
     localName:   phoneToLocalName.get(m.phone) ?? m.displayName,
   }));
   rows.sort((a, b) => a.localName.localeCompare(b.localName));
-  discoveryCache.set(`${ownPhoneE164 ?? 'anon'}:${region ?? ''}`, {rows, at: Date.now()});
+  cacheDiscovery(`${ownPhoneE164 ?? 'anon'}:${region ?? ''}`, {rows, at: Date.now()});
   return rows;
 }
 
@@ -317,7 +331,7 @@ export function useDiscoveredContacts(opts: Options): UseDiscoveredContactsResul
       rows.sort((a, b) => a.localName.localeCompare(b.localName));
       // B-655 — publish BEFORE the conversation-rename walk below, so a
       // consumer mounting during that walk still gets a cache hit.
-      discoveryCache.set(cacheKey, {rows, at: Date.now()});
+      cacheDiscovery(cacheKey, {rows, at: Date.now()});
       setMatches(rows);
 
       // Patch any auto-created conversations that were sitting with a

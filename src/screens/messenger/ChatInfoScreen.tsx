@@ -42,7 +42,7 @@ import {goBackOnce} from '@navigation/tapGuard';
 import {displayRoomName} from '@utils/missionRoomName';
 import {GROUP_DESCRIPTION_MAX} from '@bravo/messenger-core';
 import {canInviteToGroup} from '@/modules/messenger/groups/groupInvites';
-import {GroupInviteModal} from './GroupInviteModals';
+import {GroupInviteSheet} from './GroupInviteSheets';
 
 type Props = MessengerScreenProps<'ChatInfo'>;
 
@@ -1323,8 +1323,8 @@ export default function ChatInfoScreen({navigation, route}: Props) {
       </Modal>
       )}
 
-      {isGroup && (
-        <GroupInviteModal visible={inviteOpen} groupId={conversationId} groupName={title} onClose={() => setInviteOpen(false)} />
+      {isGroup && inviteOpen && (
+        <GroupInviteSheet groupId={conversationId} groupName={title} onClose={() => setInviteOpen(false)} />
       )}
 
       {/* Admin: rename member in this group */}

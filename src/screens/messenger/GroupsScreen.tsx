@@ -25,7 +25,7 @@ import {goBackOnce} from '@navigation/tapGuard';
 import {sameIdSet} from '@utils/setEquals';
 import {avatarColorFor} from './avatarColors';
 import {openConversation} from './openConversation';
-import {JoinGroupModal} from './GroupInviteModals';
+import {JoinGroupSheet} from './GroupInviteSheets';
 
 type Nav = NativeStackNavigationProp<MessengerStackParamList, 'Groups'>;
 
@@ -281,7 +281,7 @@ export default function GroupsScreen() {
         onPress={() => navigation.navigate('NewChat', {startGroup: true})}>
         <Icon name="account-multiple-plus" size={22} color="#FFF" />
       </TouchableOpacity>
-      <JoinGroupModal visible={joinOpen} onClose={() => setJoinOpen(false)} />
+      {joinOpen && <JoinGroupSheet onClose={() => setJoinOpen(false)} />}
     </View>
   );
 }

@@ -89,6 +89,12 @@ let convsDirty = false;
 let groupsDirty = false;
 let contactsDirty = false;
 let unsubContacts: (() => void) | null = null;
+let unsubDiscovery: (() => void) | null = null;
+/** What the browsers were last sent as the contact list (skip identical re-sends). */
+let lastContactsSig = '';
+let lastContactsRefreshAt = 0;
+/** Re-read the address book for the browsers at most this often (app opened). */
+const CONTACTS_REFRESH_MS = 60_000;
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let flushing: Promise<void> | null = null;
 /**
@@ -313,11 +319,15 @@ function conversationsView(state: MessengerSnapshot): LinkConversation[] {
   return [...byPeer.values()].sort((a, b) => b.lastAt - a.lastAt);
 }
 
-async function contactsView(state: MessengerSnapshot): Promise<LinkPeer[]> {
+/**
+ * `fresh` re-reads the address book (passively: never a permission prompt)
+ * instead of using this session's last sweep.
+ */
+async function contactsView(state: MessengerSnapshot, opts: {fresh?: boolean} = {}): Promise<LinkPeer[]> {
   const out = new Map<string, LinkPeer>();
   try {
     const dc = require('../contacts/useDiscoveredContacts') as typeof import('../contacts/useDiscoveredContacts');
-    let rows = dc.latestDiscoveredContacts();
+    let rows = opts.fresh ? null : dc.latestDiscoveredContacts();
     if (!rows) {
       const {getDirectoryUsersClient} = require('../contacts/directoryNames') as typeof import('../contacts/directoryNames');
       const {useAuthStore} = require('@store/authStore') as typeof import('@store/authStore');
@@ -388,7 +398,9 @@ async function snapshotFrames(perConversation = SNAPSHOT_PER_CONVERSATION): Prom
     selfName = u?.full_name ?? u?.name ?? null;
   } catch { /* optional */ }
   frames.push(stamp({t: 'hello' as const, self: {userId: state._ownAuthUserId ?? '', name: selfName}, features: LINK_FEATURES}));
-  frames.push(stamp({t: 'contacts' as const, contacts: await contactsView(state)}));
+  const contacts = await contactsView(state);
+  lastContactsSig = JSON.stringify(contacts);
+  frames.push(stamp({t: 'contacts' as const, contacts}));
   const convs = conversationsView(state).slice(0, SNAPSHOT_MAX_CONVERSATIONS);
   frames.push(stamp({t: 'convs' as const, conversations: convs, full: true}));
   const groups = groupsView(state).slice(0, SNAPSHOT_MAX_CONVERSATIONS);
@@ -449,7 +461,12 @@ async function flushNow(): Promise<void> {
       }
       if (contactsDirty) {
         contactsDirty = false;
-        frames.push(stamp({t: 'contacts' as const, contacts: await contactsView(useMessengerStore.getState())}));
+        const contacts = await contactsView(useMessengerStore.getState());
+        const sig = JSON.stringify(contacts);
+        if (sig !== lastContactsSig) {
+          lastContactsSig = sig;
+          frames.push(stamp({t: 'contacts' as const, contacts}));
+        }
       }
       if (frames.length) {await broadcast(frames);}
     } finally {
@@ -772,6 +789,28 @@ async function drainOne(link: ActiveLink): Promise<void> {
   }
 }
 
+/**
+ * 2026-10-24 — re-read the phone's address book and send the browsers the
+ * contact list if it changed (someone saved in the phone's Contacts app since
+ * the link was made). Throttled; called when the app comes to the foreground.
+ */
+export async function refreshLinkedContacts(force = false): Promise<void> {
+  await ensureLoaded();
+  if (links.length === 0) {return;}
+  const now = Date.now();
+  if (!force && now - lastContactsRefreshAt < CONTACTS_REFRESH_MS) {return;}
+  lastContactsRefreshAt = now;
+  try {
+    const contacts = await contactsView(useMessengerStore.getState(), {fresh: true});
+    const sig = JSON.stringify(contacts);
+    if (sig === lastContactsSig) {return;}
+    lastContactsSig = sig;
+    await broadcast([stamp({t: 'contacts' as const, contacts})]);
+  } catch (e) {
+    console.warn('[link] contacts refresh failed:', (e as Error).message);
+  }
+}
+
 /** Run whatever the linked browsers have queued for this phone. */
 export async function drainLinkInboxes(): Promise<void> {
   if (draining) {drainAgain = true; return draining;}
@@ -834,8 +873,15 @@ export function startLinkEngine(): void {
       if (links.length && AppState.currentState === 'active') {void drainLinkInboxes();}
     }, POLL_MS);
     appStateSub = AppState.addEventListener('change', st => {
-      if (st === 'active') {void drainLinkInboxes();}
+      if (st === 'active') {void drainLinkInboxes(); void refreshLinkedContacts();}
     });
+    // A sweep on this phone (Contacts tab, New chat) → the browsers get it.
+    try {
+      const dc = require('../contacts/useDiscoveredContacts') as typeof import('../contacts/useDiscoveredContacts');
+      unsubDiscovery = dc.onDiscoveredContactsChange?.(() => {
+        if (links.length) {contactsDirty = true; scheduleFlush();}
+      }) ?? null;
+    } catch { /* optional */ }
     void ensureLoaded().then(() => drainLinkInboxes()).catch(() => undefined);
   } catch (e) {
     started = false;
@@ -850,6 +896,8 @@ export function stopLinkEngine(): void {
   unsubTransport?.(); unsubTransport = null;
   unsubFrames?.(); unsubFrames = null;
   unsubContacts?.(); unsubContacts = null;
+  unsubDiscovery?.(); unsubDiscovery = null;
+  lastContactsSig = ''; lastContactsRefreshAt = 0;
   if (pollTimer) {clearInterval(pollTimer); pollTimer = null;}
   appStateSub?.remove(); appStateSub = null;
   if (flushTimer) {clearTimeout(flushTimer); flushTimer = null;}

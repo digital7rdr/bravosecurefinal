@@ -34,12 +34,11 @@ import {
   type ManualContact,
 } from '@/modules/messenger/contacts/manualContacts';
 import {useManualContacts} from '@/modules/messenger/contacts/useManualContacts';
-import {presentSaveContact} from '@/modules/messenger/contacts/savedContacts';
 import {useMessengerStore, resolveDirectConversationIdFromState} from '@/modules/messenger/store';
 import {launchCall} from '@/modules/messenger/webrtc/launchCall';
 import {openDirectChat} from './openDirectChat';
 import {avatarColorFor} from './avatarColors';
-import {JoinGroupModal} from './GroupInviteModals';
+import {JoinGroupSheet} from './GroupInviteSheets';
 
 interface Row {
   key:       string;
@@ -158,7 +157,11 @@ export function ContactsBody({bottomPad = 0, onExit, exitLabel}: {
       const saved = await upsertManualContact({name: editing.name, phone: editing.phone}, {ownPhoneE164: me?.phone_e164 ?? null, lookup});
       if (prev && prev.id !== saved.id) {await removeManualContact(prev.id);}
       if (saveToPhone) {
-        try { await presentSaveContact({displayName: saved.name, phoneE164: saved.phoneE164}); } catch { /* optional */ }
+        try {
+          // Lazy: expo-contacts is native and only needed for this one action.
+          const {presentSaveContact} = require('@/modules/messenger/contacts/savedContacts') as typeof import('@/modules/messenger/contacts/savedContacts');
+          await presentSaveContact({displayName: saved.name, phoneE164: saved.phoneE164});
+        } catch { /* optional */ }
       }
       setEditing(null);
       if (!saved.userId) {
@@ -280,7 +283,7 @@ export function ContactsBody({bottomPad = 0, onExit, exitLabel}: {
         </View>
       </Modal>
 
-      <JoinGroupModal visible={joinOpen} onClose={() => setJoinOpen(false)} />
+      {joinOpen && <JoinGroupSheet onClose={() => setJoinOpen(false)} />}
     </View>
   );
 }
