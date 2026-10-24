@@ -158,7 +158,28 @@ import {useMessengerStore} from '../store/messengerStore';
 import type {LocalConversation, LocalMessage} from '../store/types';
 import {approveLinkFromQr, drainLinkInboxes, flushLinkBounded, stopLinkEngine, refreshLinkedContacts} from '../link/linkEngine';
 import {loadManualContacts, upsertManualContact, removeManualContact, manualContacts} from '../contacts/manualContacts';
-import {LinkedRuntime} from '../../../../apps/ops-console/src/lib/messenger/linkedRuntime';
+
+/**
+ * The browser half lives in apps/ops-console. Loaded with require() so the
+ * app's typecheck (which has no DOM / console paths) does not pull the console
+ * sources in; the console's own tsc checks them. Typed by what this test uses.
+ */
+interface BrowserSide {
+  startListening(): Promise<void>; drain(): Promise<void>; close(): void;
+  groups(): Array<{cid: string; name: string; description?: string | null; members: Array<{userId: string}>}>;
+  group(cid: string): {name: string; description?: string | null; admin: boolean; manageable: boolean; members: Array<{userId: string}>} | null;
+  contactList(): Array<{userId: string; name?: string | null; source?: string}>;
+  createGroup(name: string, members: string[], description?: string): Promise<string>;
+  addGroupMembers(cid: string, userIds: string[]): Promise<void>;
+  editGroup(cid: string, edit: {name?: string; description?: string}): Promise<void>;
+  saveContact(name: string, phone: string): Promise<string | null>;
+  removeContact(contactId: string): Promise<void>;
+  sendGroup(cid: string, body: string): Promise<unknown>;
+  loadConversation(cid: string): Promise<Array<Record<string, unknown>>>;
+}
+const {LinkedRuntime} = require('../../../../apps/ops-console/src/lib/messenger/linkedRuntime') as {
+  LinkedRuntime: new (userId: string, db: unknown, wrapKey: unknown, link: {linkId: string; key: string; wsDeviceId: number; label: string; linkedAt: number}) => BrowserSide;
+};
 
 const LINK = 'LLLLLLLLLLLLLLLLLLLLLL';
 const PEER = 'peer-2';
@@ -176,7 +197,7 @@ function fakeDb() {
 }
 
 describe('phone ↔ browser stay in sync both ways', () => {
-  let web: LinkedRuntime;
+  let web: BrowserSide;
 
   /** Let both sides process everything queued (phone commands, then the mirror). */
   async function pump() {
@@ -203,7 +224,7 @@ describe('phone ↔ browser stay in sync both ways', () => {
 
     const key = newLinkKey();
     await approveLinkFromQr(encodeLinkQr(LINK, key));
-    web = new LinkedRuntime('me-1', fakeDb() as never, {} as never, {linkId: LINK, key: b64uEncode(key), wsDeviceId: 101, label: 'Chrome', linkedAt: 1});
+    web = new LinkedRuntime('me-1', fakeDb(), {}, {linkId: LINK, key: b64uEncode(key), wsDeviceId: 101, label: 'Chrome', linkedAt: 1});
     await web.startListening();
     await pump();
   });
