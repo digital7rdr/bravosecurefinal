@@ -19,6 +19,8 @@ import {tokenStore} from '@services/api';
 import type {AuthScreenProps} from '@navigation/types';
 import {useKeyboardOverlap} from '@hooks/useKeyboardLayout';
 import {scaleTextStyles} from '@utils/scaling';
+import MIcon from '@expo/vector-icons/MaterialCommunityIcons';
+import {goBackOnce} from '@navigation/tapGuard';
 
 type Props = AuthScreenProps<'Login'>;
 
@@ -384,6 +386,15 @@ export default function LoginScreen({navigation}: Props) {
           bounces={false}>
         <View style={[styles.body, {paddingTop: insets.top + 56, paddingBottom: insets.bottom + 24}]}>
 
+          {/* 2026-10-25 — a visible back (iOS had only the edge swipe). */}
+          {navigation.canGoBack() ? (
+            <TouchableOpacity style={[styles.backBtn, {top: insets.top + 8}]} onPress={() => goBackOnce(navigation)}
+              activeOpacity={0.7} accessibilityRole="button" accessibilityLabel="Back"
+              hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+              <MIcon name="chevron-left" size={22} color="#FFFFFF" />
+            </TouchableOpacity>
+          ) : null}
+
           {/* ── Brand + header ── */}
           <View style={styles.header}>
             <View style={styles.brandTile}>
@@ -534,6 +545,7 @@ export default function LoginScreen({navigation}: Props) {
 }
 
 const styles = StyleSheet.create(scaleTextStyles({
+  backBtn: {position: 'absolute', left: 20, zIndex: 5, width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)'},
   root: {flex: 1, backgroundColor: T.bg},
   flex: {flex: 1},
   heroGlow: {position: 'absolute', top: -100, left: '8%', right: '8%', height: 340, borderRadius: 500},

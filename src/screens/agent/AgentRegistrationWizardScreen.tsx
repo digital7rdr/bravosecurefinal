@@ -22,6 +22,7 @@ import KeyboardAvoidingScreen from '@components/KeyboardAvoidingScreen';
 import {agentApi} from '@services/api';
 import {extractMsg} from './agentFlowHelpers';
 import {scaleTextStyles} from '@utils/scaling';
+import {confirmLeaveToSignIn} from '@navigation/gateExit';
 
 type Nav = NativeStackNavigationProp<AgentStackParamList>;
 
@@ -173,16 +174,17 @@ export default function AgentRegistrationWizardScreen() {
   // B-98a — back steps the INTERNAL wizard first; at the first internal step
   // it pops the route when there is one. Resume entry (status DRAFT) replaces
   // AgentTypeSelect with this screen, so the stack can be empty — falling back
-  // to AgentTypeSelect would just bounce off its status auto-forward, so hide
-  // the chevron instead (NavHeader renders a spacer for undefined onBack).
+  // to AgentTypeSelect would just bounce off its status auto-forward.
+  // 2026-10-25 — instead of hiding the chevron there, it offers to sign out
+  // (the draft is kept; signing in again resumes it).
   const canPop = navigation.canGoBack();
-  const handleBack = stepIndex > 0
+  const handleBack: (() => void) | undefined = stepIndex > 0
     ? () => setStep(STEPS[stepIndex - 1].id)
-    : (canPop ? () => navigation.goBack() : undefined);
+    : (canPop ? () => navigation.goBack() : () => confirmLeaveToSignIn({
+      message: "You'll be signed out. Your registration is saved as a draft — sign in again to continue.",
+    }));
 
-  // B-98a — hardware back mirrors the chevron; when the chevron is hidden
-  // (empty stack at the first internal step) fall through to the default
-  // (background the app — standard Android root behaviour).
+  // B-98a — hardware back mirrors the chevron.
   const handleBackRef = React.useRef(handleBack);
   handleBackRef.current = handleBack;
   useFocusEffect(React.useCallback(() => {

@@ -24,6 +24,7 @@ import {eurPerBcLabel} from '../booking/servicePricingOverrides';
 import {outcomeForSubscribeError} from './proPaywallFlow';
 import {TIER_LABELS, TIER_FEATURES} from './tierMatrix';
 import {usePlanCatalogStore, planCopy} from '@store/planCatalogStore';
+import {useGateHardwareBack} from '@navigation/gateExit';
 
 export type PaidTier = 'pro' | 'enterprise';
 
@@ -131,6 +132,8 @@ function TierPaywall({tier, onDone, standalone = false, onBack}: Props) {
   }, [phase, subscribeToTier, tier, autoRenew, topUpAndCharge, shortfall, loadBalance, stayOnLite, onDone]);
 
   const busy = phase !== 'idle';
+  // Standalone has no screen behind it: the Android back key declines too.
+  useGateHardwareBack(() => { if (!busy) {onDone(false);} return true; }, standalone);
   const busyLabel = phase === 'topup' ? 'Processing payment…' : `Activating ${label}…`;
 
   return (
@@ -138,8 +141,12 @@ function TierPaywall({tier, onDone, standalone = false, onBack}: Props) {
       <StatusBar barStyle="light-content" backgroundColor={T.bg} />
 
       <View style={styles.header}>
-        {!standalone && onBack ? (
-          <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7} disabled={busy}>
+        {/* 2026-10-25 — standalone (right after sign-up) the arrow is the
+            same honest decline as "Start free today": nothing sits behind. */}
+        {standalone || onBack ? (
+          <TouchableOpacity style={styles.backBtn} onPress={standalone ? () => onDone(false) : onBack}
+            activeOpacity={0.7} disabled={busy} accessibilityRole="button"
+            accessibilityLabel={standalone ? 'Not now — start free' : 'Back'}>
             <Icon name="arrow-left" size={20} color="#CBD5E1" />
           </TouchableOpacity>
         ) : <View style={styles.backBtn} />}

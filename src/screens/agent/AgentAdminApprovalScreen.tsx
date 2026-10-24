@@ -110,8 +110,11 @@ export default function AgentAdminApprovalScreen() {
   // screen, which re-showed a "submitted" state and let the applicant bounce
   // between the two. Swallow the hardware/gesture back so it can't pop; the
   // only labelled exit is Sign out (below). Matches the AgentRejected terminal.
+  // 2026-10-25 — the back arrow and the hardware key now both offer that
+  // Sign out (never a pop back to the docs screen).
+  const confirmSignOutRef = React.useRef<() => void>(() => undefined);
   useFocusEffect(React.useCallback(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => { confirmSignOutRef.current(); return true; });
     return () => sub.remove();
   }, []));
 
@@ -126,13 +129,15 @@ export default function AgentAdminApprovalScreen() {
     );
   };
 
+  confirmSignOutRef.current = confirmSignOut;
+
   return (
     <View style={[s.root, {paddingTop: insets.top}]}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
-      {/* No onBack — terminal until ops approves/rejects (NavHeader renders a
-          spacer, never a dead-looking chevron). */}
+      {/* Terminal until ops approves/rejects: back offers Sign out, never a pop. */}
       <NavHeader
         title="Admin Approval"
+        onBack={confirmSignOut}
         stepPill="Under Review"
         stepPillTone="warn"
       />

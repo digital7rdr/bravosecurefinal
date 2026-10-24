@@ -40,17 +40,20 @@ describe('B-199 — CPO onboarding back behaviour (static source scan)', () => {
   });
 
   describe('AgentAdminApproval (post-submit, terminal)', () => {
-    it('D1: no back chevron — NavHeader is rendered without onBack', () => {
+    // 2026-10-25 — owner wants a back everywhere: the chevron now offers Sign
+    // out (still never a pop back to the docs screen, which B-199 forbids).
+    it('D1: the back chevron offers Sign out, never a pop', () => {
       const header = strip(read(APPROVAL));
       const start = header.indexOf('<NavHeader');
       const end = header.indexOf('/>', start);
       expect(start).toBeGreaterThan(-1);
-      expect(header.slice(start, end)).not.toMatch(/onBack/);
+      expect(header.slice(start, end)).toMatch(/onBack=\{confirmSignOut\}/);
+      expect(header).not.toMatch(/goBack\(/);
     });
 
-    it('D2: hardware/gesture back is swallowed', () => {
+    it('D2: hardware back never pops — it offers Sign out', () => {
       const src = strip(read(APPROVAL));
-      expect(src).toMatch(/hardwareBackPress['"],\s*\(\) => true/);
+      expect(src).toMatch(/hardwareBackPress['"],\s*\(\) => \{ confirmSignOutRef\.current\(\); return true; \}/);
     });
 
     it('D3: the "Back to Dashboard" CTA is gone (it looped to submitted)', () => {

@@ -27,6 +27,7 @@ import {identityApi, type IdentityDocType, type IdentityDocumentFacts} from '@se
 import {UI} from '@components/ui/tokens';
 import {scaleTextStyles} from '@utils/scaling';
 import {goBackOnce} from '@navigation/tapGuard';
+import {useGateHardwareBack} from '@navigation/gateExit';
 import {useBottomInset} from '@hooks/useBottomInset';
 
 type Props = {
@@ -109,6 +110,7 @@ export default function IdentityDocumentScreen({onDone}: Props) {
   const {bottomPad} = useBottomInset();
   const navigation = useNavigation();
   const gateMode = !!onDone;
+  useGateHardwareBack(() => { onDone?.(); return true; }, gateMode);
 
   const storeStatus = useAuthStore(s => s.user?.identity_document_status);
   const markIdentitySubmitted = useAuthStore(s => s.markIdentitySubmitted);
@@ -258,10 +260,18 @@ export default function IdentityDocumentScreen({onDone}: Props) {
       <View pointerEvents="none" style={s.ambient} />
 
       <View style={s.header}>
+        {/* 2026-10-25 — gate mode has nothing behind it: the back arrow is
+            the same as "Do this later" (bookings stay locked until done). */}
         {gateMode ? (
-          <View style={s.headerMark}>
-            <Icon name="shield-check-outline" size={20} color={UI.accentSoft} />
-          </View>
+          <TouchableOpacity
+            style={s.back}
+            onPress={onDone}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Do this later"
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <Icon name="chevron-left" size={20} color={UI.text} />
+          </TouchableOpacity>
         ) : (
           <TouchableOpacity
             style={s.back}
@@ -418,7 +428,6 @@ const s = StyleSheet.create(scaleTextStyles({
   },
   header: {flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12},
   back: {width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: UI.surface, borderWidth: 1, borderColor: UI.hair},
-  headerMark: {width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(30,136,255,0.14)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.4)'},
   headerTitle: {fontFamily: UI.fSemi, fontSize: 17, color: UI.text, letterSpacing: -0.2},
   headerSub: {fontFamily: UI.fSans, fontSize: 10.5, letterSpacing: 1.2, color: UI.textMute, marginTop: 2},
 

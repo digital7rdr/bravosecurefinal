@@ -16,6 +16,7 @@ import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import {LinearGradient} from 'expo-linear-gradient';
 import BravoMark from '@components/BravoMark';
 import {goBackOnce} from '@navigation/tapGuard';
+import {confirmLeaveToSignIn, useGateHardwareBack} from '@navigation/gateExit';
 
 type Props = Partial<AuthScreenProps<'Permissions'>> & {onDone?: () => void};
 type PermStatus = 'idle' | 'granted' | 'denied' | 'blocked';
@@ -215,6 +216,15 @@ export default function PermissionsScreen({navigation, onDone}: Props) {
     }
   }, [onDone, completeAuth]);
 
+  // 2026-10-25 — a way back from the permissions gate: pop when there is a
+  // screen behind, otherwise offer to sign out (Android back key too).
+  const canPop = !!navigation?.canGoBack?.();
+  const onBack = useCallback(() => {
+    if (navigation?.canGoBack?.()) {goBackOnce(navigation); return;}
+    confirmLeaveToSignIn();
+  }, [navigation]);
+  useGateHardwareBack(() => { onBack(); return true; }, !canPop);
+
   const handleContinue = useCallback(() => {
     const locStatus = statuses.location;
     if (locStatus !== 'granted') {
@@ -254,11 +264,12 @@ export default function PermissionsScreen({navigation, onDone}: Props) {
             prop at all, so the arrow was a dead (and crash-prone) control on
             the one path everyone actually sees. Optional-chained: prop absent
             on PermGate, present on the (unreachable) AuthNavigator route. */}
-        {navigation?.canGoBack?.() ? (
-          <TouchableOpacity style={s.backBtn} onPress={() => goBackOnce(navigation)} activeOpacity={0.7}>
-            <Icon name="chevron-left" size={22} color="#FFFFFF" />
-          </TouchableOpacity>
-        ) : null}
+        {/* 2026-10-25 — on the PermGate (nothing behind it) the arrow now
+            offers to sign out instead of being hidden. */}
+        <TouchableOpacity style={s.backBtn} onPress={onBack} activeOpacity={0.7}
+          accessibilityRole="button" accessibilityLabel={canPop ? 'Back' : 'Back to sign in'}>
+          <Icon name="chevron-left" size={22} color="#FFFFFF" />
+        </TouchableOpacity>
 
         {/* Hero — the Bravo logo replaces the old guard/shield emblem
             (founder, design import 2026-08-27: Bravo Permissions - Android). */}

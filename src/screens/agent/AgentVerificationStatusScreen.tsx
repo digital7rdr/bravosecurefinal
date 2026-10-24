@@ -16,6 +16,7 @@ import {Colors} from '@theme/index';
 import {useNavigation} from '@react-navigation/native';
 import {scaleTextStyles} from '@utils/scaling';
 import {goBackOnce} from '@navigation/tapGuard';
+import {confirmLeaveToSignIn, useScreenHardwareBack} from '@navigation/gateExit';
 
 const CHECKLIST = [
   {icon: 'check', label: 'Documents received', status: 'Done', statusColor: '#4ADE80', bg: 'rgba(34,197,94,0.15)', iconColor: '#4ADE80'},
@@ -29,6 +30,14 @@ export default function AgentVerificationStatusScreen() {
   const insets = useSafeAreaInsets();
   const {bottomPad} = useBottomInset();
   const [notifyOn, setNotifyOn] = useState(true);
+
+  // 2026-10-25 — reached by reset(), so nothing is behind it: back offers to
+  // sign out (review continues; signing in again returns here).
+  const onBack = () => {
+    if (navigation.canGoBack()) {goBackOnce(navigation); return;}
+    confirmLeaveToSignIn({message: "You'll be signed out. Your application stays under review — sign in again any time to check its status."});
+  };
+  useScreenHardwareBack(() => { onBack(); return true; });
 
   // Pulse ring animations
   const pulse1 = useRef(new Animated.Value(0)).current;
@@ -77,15 +86,12 @@ export default function AgentVerificationStatusScreen() {
       <View style={styles.header}>
         {/* BB-4 (2026-08-15 back audit) — the only live entry is
             AgentInviteCode's reset(), which makes this index 0 of the stack:
-            the arrow was a dead control on every real path. Same
-            render-only-when-poppable pattern as AgentProfileScreen. */}
-        {navigation.canGoBack() ? (
-          <TouchableOpacity style={styles.backBtn} onPress={() => goBackOnce(navigation)}>
-            <Icon name="arrow-left" size={20} color="#94A3B8" />
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.backBtn} />
-        )}
+            the arrow was a dead control on every real path. 2026-10-25 —
+            it now offers to sign out when there is nothing to pop. */}
+        <TouchableOpacity style={styles.backBtn} onPress={onBack}
+          accessibilityRole="button" accessibilityLabel="Back">
+          <Icon name="arrow-left" size={20} color="#94A3B8" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Verification Status</Text>
       </View>
 

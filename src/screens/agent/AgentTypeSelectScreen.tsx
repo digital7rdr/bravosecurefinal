@@ -23,6 +23,7 @@ import {nextStepFor, uiTypeToBackend, isAlreadyExistsError, extractMsg} from './
 import {scaleTextStyles} from '@utils/scaling';
 import {useAuthStore} from '@store/authStore';
 import {pendingProvider} from '@store/pendingProvider';
+import {confirmLeaveToSignIn, useScreenHardwareBack} from '@navigation/gateExit';
 
 type Nav = NativeStackNavigationProp<AgentStackParamList>;
 type AgentType = 'agency' | 'agent';
@@ -80,6 +81,14 @@ export default function AgentTypeSelectScreen() {
   // B-872/N4 — the picker may not render against an unknown agent status: a
   // tap on it races the boot resolver's redirect below.
   const [resolving, setResolving] = useState(true);
+
+  // 2026-10-25 — first screen of provider sign-up, nothing behind it: back
+  // pops when it can, otherwise offers to sign out (Android back key too).
+  const onBack = () => {
+    if (navigation.canGoBack()) {navigation.goBack(); return;}
+    confirmLeaveToSignIn({message: "You'll be signed out. Sign in again any time to continue setting up your provider account."});
+  };
+  useScreenHardwareBack(() => { onBack(); return true; });
   const selectedDef = TYPES.find(t => t.id === selected)!;
   const completeAuth = useAuthStore(st => st.completeAuth);
 
@@ -149,7 +158,7 @@ export default function AgentTypeSelectScreen() {
     return (
       <View style={[s.root, {paddingTop: insets.top}]}>
         <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
-        <NavHeader title="Agent Portal" onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
+        <NavHeader title="Agent Portal" onBack={onBack} />
         <View style={s.resolving}><ActivityIndicator color={Colors.primary} /></View>
       </View>
     );
@@ -161,8 +170,8 @@ export default function AgentTypeSelectScreen() {
       {/* BB-4 (2026-08-15 back audit) — this is AgentNavigator's
           initialRouteName and nothing navigates TO it, so it is always the
           stack's first route: a bare-goBack chevron was a permanently dead
-          control. NavHeader renders its spacer when onBack is undefined. */}
-      <NavHeader title="Agent Portal" onBack={navigation.canGoBack() ? () => navigation.goBack() : undefined} />
+          control. 2026-10-25 — it now offers to sign out instead. */}
+      <NavHeader title="Agent Portal" onBack={onBack} />
 
       <ScrollView
         style={{flex: 1}}

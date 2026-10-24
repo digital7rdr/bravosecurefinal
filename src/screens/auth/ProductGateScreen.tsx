@@ -5,7 +5,8 @@
  * (fresh installs after the product split, and every pre-split account on
  * first launch). Picking a card sets `activeProduct`, and the client shell
  * mounts that product directly — there is deliberately no skip: the spec
- * has no combined home to fall back to.
+ * has no combined home to fall back to. The back arrow returns to the current
+ * product (re-opened gate) or offers to sign out (first choice).
  */
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, StatusBar, ScrollView,
@@ -16,6 +17,7 @@ import {Imagery} from '@theme/imagery';
 import ImageryBackdrop from '@components/ui/ImageryBackdrop';
 import {useProductStore, type BravoProduct} from '@store/productStore';
 import {scaleTextStyles} from '@utils/scaling';
+import {confirmLeaveToSignIn} from '@navigation/gateExit';
 
 const T = {
   bg: '#0A1F3F',
@@ -70,8 +72,25 @@ export default function ProductGateScreen() {
     setActiveProduct(p);
   };
 
+  // 2026-10-25 — a visible way back. Re-opened from inside a product: back to
+  // that product. First choice after sign-in: offer to sign out. (The Android
+  // back key keeps leaving the app here, so it can never loop between the
+  // gate and a product root.)
+  const activeProduct = useProductStore(s => s.activeProduct);
+  const current = PRODUCTS.find(p => p.key === activeProduct);
+  const onBack = () => {
+    if (activeProduct) {useProductStore.getState().closeGate(); return;}
+    confirmLeaveToSignIn();
+  };
+
   return (
-    <View style={[styles.root, {paddingTop: insets.top + 24}]}>
+    <View style={[styles.root, {paddingTop: insets.top + 8}]}>
+      <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={current ? `Back to ${current.title}` : 'Back to sign in'}
+        hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+        <Icon name="arrow-left" size={22} color={T.text} />
+      </TouchableOpacity>
       <StatusBar barStyle="light-content" backgroundColor={T.bg} />
       <ScrollView contentContainerStyle={{paddingBottom: insets.bottom + 32}} showsVerticalScrollIndicator={false}>
         <Text style={styles.eyebrow}>Choose your dashboard</Text>
@@ -121,6 +140,7 @@ export default function ProductGateScreen() {
 
 const styles = StyleSheet.create(scaleTextStyles({
   root: {flex: 1, backgroundColor: T.bg, paddingHorizontal: 24},
+  backBtn: {width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: T.hair, marginBottom: 12},
   eyebrow: {fontFamily: 'monospace', color: T.accent, fontSize: 12, fontWeight: '700', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 12},
   title: {color: T.text, fontSize: 32, fontWeight: '700', letterSpacing: -1, lineHeight: 38},
   subtitle: {color: T.textDim, fontSize: 14, marginTop: 10, lineHeight: 20},

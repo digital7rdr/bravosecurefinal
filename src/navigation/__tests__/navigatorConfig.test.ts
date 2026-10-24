@@ -173,10 +173,11 @@ describe('B-98 — back controls exist and survive an empty stack', () => {
     expect(src).toContain('onBack={handleBack}');
   });
 
-  it('AgentRegistrationWizard steps back internally, hides the chevron on an empty stack', () => {
+  // 2026-10-25 — on an empty stack the chevron now offers to sign out (gateExit).
+  it('AgentRegistrationWizard steps back internally, offers sign-out on an empty stack', () => {
     const src = read('agent/AgentRegistrationWizardScreen.tsx');
     expect(src).toMatch(/stepIndex > 0\s*\n?\s*\? \(?\) => setStep\(STEPS\[stepIndex - 1\]\.id\)/);
-    expect(src).toMatch(/canPop \? \(\) => navigation\.goBack\(\) : undefined/);
+    expect(src).toMatch(/canPop \? \(\) => navigation\.goBack\(\) : \(\) => confirmLeaveToSignIn\(/);
   });
 
   it('NavHeader renders a spacer (not a dead chevron) when onBack is absent', () => {

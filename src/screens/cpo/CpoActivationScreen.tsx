@@ -27,6 +27,7 @@ import {useAuthStore} from '@store/authStore';
 import {authApi} from '@services/api';
 import {useKeyboardLayout, useRevealOnKeyboard} from '@hooks/useKeyboardLayout';
 import {scaleTextStyles} from '@utils/scaling';
+import {confirmLeaveToSignIn, useGateHardwareBack} from '@/navigation/gateExit';
 
 const D = {
   bg: '#0A1F3F', text: '#FFFFFF', textDim: 'rgba(229,233,242,0.62)',
@@ -57,6 +58,7 @@ export default function CpoActivationScreen() {
   const orgName = user?.org?.name ?? 'your agency';
 
   const [step, setStep] = useState<0 | 1 | 2>(0);
+
   const [locOn, setLocOn] = useState(false);
   const [notifOn, setNotifOn] = useState(false);
 
@@ -64,6 +66,19 @@ export default function CpoActivationScreen() {
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // 2026-10-25 — back on step 1 leaves activation (sign out → sign-in screen);
+  // later steps go to the previous step. The Android back key does the same
+  // instead of closing the app.
+  const goBack = useCallback(() => {
+    if (submitting) {return;}
+    if (step > 0) {setStep(p => Math.max(0, p - 1) as 0 | 1 | 2); return;}
+    confirmLeaveToSignIn({
+      title: 'Leave activation?',
+      message: "You'll be signed out. Sign in again with your agency's temporary password to finish activating.",
+    });
+  }, [step, submitting]);
+  useGateHardwareBack(() => { goBack(); return true; });
 
   const askLocation = useCallback(async () => {
     if (Platform.OS === 'android') {
@@ -113,17 +128,17 @@ export default function CpoActivationScreen() {
       <View style={s.header}>
         <View style={s.accentBar} />
         {/* BB-4 (2026-08-15 back audit) — this gate renders OUTSIDE any
-            navigator, so the steps are the only navigation there is. Without
-            a step-back, a guard who denied a permission on step 2 (or wants
-            to re-read step 1) could never return — forward-only, no exit. */}
-        {step > 0 && (
-          <TouchableOpacity
-            disabled={submitting}
-            onPress={() => setStep(p => Math.max(0, p - 1) as 0 | 1 | 2)}
-            hitSlop={{top: 12, bottom: 12, left: 12, right: 12}}>
-            <Icon name="arrow-left" size={20} color={D.accentSoft} />
-          </TouchableOpacity>
-        )}
+            navigator, so the steps are the only navigation there is.
+            2026-10-25 — the arrow shows on every step; on step 1 it leaves
+            activation (sign out). */}
+        <TouchableOpacity
+          disabled={submitting}
+          onPress={goBack}
+          accessibilityRole="button"
+          accessibilityLabel={step > 0 ? 'Previous step' : 'Back to sign in'}
+          hitSlop={{top: 12, bottom: 12, left: 12, right: 12}}>
+          <Icon name="arrow-left" size={20} color={D.accentSoft} />
+        </TouchableOpacity>
         <Text style={s.headerTitle}>ACTIVATE YOUR ACCOUNT</Text>
         <Text style={s.stepTag}>{step + 1}/3</Text>
       </View>

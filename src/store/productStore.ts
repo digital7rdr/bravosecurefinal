@@ -47,6 +47,8 @@ interface ProductState {
   setPendingProduct: (p: BravoProduct | null) => void;
   /** Re-open the post-login "where would you like to start?" gate. */
   requestGate: () => void;
+  /** Close a re-opened gate and return to the current product (2026-10-25). */
+  closeGate: () => void;
   /** First client mount after auth: promote the selector choice, if any. */
   adoptPendingProduct: () => void;
   reset: () => void;
@@ -65,6 +67,7 @@ export const useProductStore = create<ProductState>()(
       setPendingProduct: p => set({pendingProduct: p}),
 
       requestGate: () => set({gateVisible: true, returnProduct: null}),
+      closeGate: () => set({gateVisible: false}),
 
       adoptPendingProduct: () => {
         const {activeProduct, pendingProduct} = get();

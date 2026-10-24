@@ -7,11 +7,11 @@
  * Obsidian + cobalt, matching the shared component library.
  */
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, StatusBar, Animated, Easing} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, StatusBar, Animated, Easing, BackHandler} from 'react-native';
 import {Alert} from '@utils/alert';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useBottomInset} from '@hooks/useBottomInset';
-import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
+import {useNavigation, useRoute, useFocusEffect, type RouteProp} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import type {BookingStackParamList} from '@navigation/types';
@@ -113,12 +113,34 @@ export default function FindingDetailScreen() {
     ]);
   }, [doCancel]);
 
+  // 2026-10-25 — a way out that does NOT cancel: the search keeps running on
+  // the server and the bookings home lists it. Back (arrow or Android key)
+  // returns to the bookings home, never into the finished booking wizard
+  // (same stale-wizard rule as BB-9). Focus-scoped so SOS on top keeps its
+  // own back.
+  const leave = useCallback(() => {
+    runWhenFocused(() => navigation.popToTop());
+  }, [navigation, runWhenFocused]);
+  useFocusEffect(useCallback(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      try { navigation.popToTop(); } catch { /* already at root */ }
+      return true;
+    });
+    return () => sub.remove();
+  }, [navigation]));
+
   const ringScale = pulse.interpolate({inputRange: [0, 1], outputRange: [0.6, 1.8]});
   const ringOpacity = pulse.interpolate({inputRange: [0, 1], outputRange: [0.45, 0]});
 
   return (
     <View style={[s.root, {paddingTop: insets.top}]}>
       <StatusBar barStyle="light-content" backgroundColor={UI.bg} />
+      <TouchableOpacity style={[s.backBtn, {top: insets.top + 10}]} activeOpacity={0.8}
+        hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+        accessibilityRole="button" accessibilityLabel="Back to bookings — the search keeps running"
+        onPress={leave}>
+        <Icon name="arrow-left" size={20} color="#fff" />
+      </TouchableOpacity>
       <TouchableOpacity style={[s.sosBtn, {top: insets.top + 10}]} activeOpacity={0.8}
         hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
         accessibilityRole="button" accessibilityLabel="Emergency SOS"
@@ -142,6 +164,7 @@ export default function FindingDetailScreen() {
           <Icon name="shield-check" size={15} color={UI.signal} importantForAccessibility="no" />
           <Text style={s.trustText}>You won’t be charged until a detail accepts.</Text>
         </View>
+        <Text style={s.leaveHint}>You can go back — the search keeps running.</Text>
       </View>
 
       <View style={[s.footer, {paddingBottom: bottomPad(16)}]}>
@@ -159,6 +182,8 @@ export default function FindingDetailScreen() {
 
 const s = StyleSheet.create(scaleTextStyles({
   root: {flex: 1, backgroundColor: UI.bg},
+  backBtn: {position: 'absolute', left: 20, zIndex: 10, width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)'},
+  leaveHint: {marginTop: 12, fontSize: 12, color: 'rgba(229,233,242,0.55)', textAlign: 'center'},
   sosBtn: {position: 'absolute', right: 20, zIndex: 10, flexDirection: 'row', alignItems: 'center', gap: 5,
     paddingHorizontal: 13, paddingVertical: 8, borderRadius: 999, backgroundColor: UI.alert},
   sosText: {fontFamily: UI.fBold, fontSize: 12, letterSpacing: 0.5, color: '#fff'},

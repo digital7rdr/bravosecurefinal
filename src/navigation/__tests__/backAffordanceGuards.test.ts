@@ -16,34 +16,36 @@ const strip = (src: string): string => src
   .replace(/\/\*[\s\S]*?\*\//g, '')
   .split('\n').map(l => l.replace(/(^|\s)\/\/.*$/, '$1')).join('\n');
 
-describe('BB-4 — agent/CPO onboarding gates own a working (or honestly absent) back', () => {
-  it('AgentTypeSelect hides the chevron when unpoppable (it is ALWAYS the first route)', () => {
+describe('BB-4 — agent/CPO onboarding gates own a working back (2026-10-25: never absent)', () => {
+  it('AgentTypeSelect pops when it can, otherwise offers to sign out', () => {
     const src = strip(read('screens', 'agent', 'AgentTypeSelectScreen.tsx'));
-    expect(src).toMatch(/onBack=\{navigation\.canGoBack\(\) \? \(\) => navigation\.goBack\(\) : undefined\}/);
+    expect(src).toMatch(/if \(navigation\.canGoBack\(\)\) \{navigation\.goBack\(\); return;\}\s*confirmLeaveToSignIn\(/);
+    expect((src.match(/<NavHeader title="Agent Portal" onBack=\{onBack\} \/>/g) ?? []).length).toBe(2);
+    expect(src).toMatch(/useScreenHardwareBack\(/);
   });
 
-  it('AgentVerificationStatus renders the arrow only when poppable (reset() entry = index 0)', () => {
+  it('AgentVerificationStatus always shows the arrow; with nothing to pop it offers to sign out', () => {
     const src = strip(read('screens', 'agent', 'AgentVerificationStatusScreen.tsx'));
-    expect(src).toMatch(/navigation\.canGoBack\(\) \? \(/);
-    expect(src).toMatch(/<View style=\{styles\.backBtn\} \/>/);
+    expect(src).toMatch(/<TouchableOpacity style=\{styles\.backBtn\} onPress=\{onBack\}/);
+    expect(src).toMatch(/goBackOnce\(navigation\); return;\}\s*confirmLeaveToSignIn\(/);
   });
 
-  it('CpoActivation has a step-back (the gate renders OUTSIDE any navigator)', () => {
+  it('CpoActivation shows the arrow on every step; step 1 leaves activation (sign out)', () => {
     const src = strip(read('screens', 'cpo', 'CpoActivationScreen.tsx'));
-    expect(src).toMatch(/\{step > 0 && \(/);
-    expect(src).toMatch(/setStep\(p => Math\.max\(0, p - 1\)/);
+    expect(src).not.toMatch(/\{step > 0 && \(/);
+    expect(src).toMatch(/if \(step > 0\) \{setStep\(p => Math\.max\(0, p - 1\)/);
+    expect(src).toMatch(/confirmLeaveToSignIn\(\{\s*title: 'Leave activation\?'/);
+    expect(src).toMatch(/useGateHardwareBack\(\(\) => \{ goBack\(\); return true; \}\)/);
   });
 });
 
-describe('BB-5 — the PermGate permissions page shows no dead back arrow', () => {
-  it('renders the arrow only when a navigation prop exists AND can pop', () => {
-    // The PermGate mount (navigation/index.tsx) passes NO navigation prop at
-    // all, so the guard must be optional-chained, not just canGoBack-gated.
+describe('BB-5 — the PermGate permissions page has a working back', () => {
+  it('one arrow: pops when it can, otherwise offers to sign out (no navigation prop on PermGate)', () => {
     const src = strip(read('screens', 'auth', 'PermissionsScreen.tsx'));
-    // The guard must DIRECTLY own the arrow — an unguarded copy elsewhere
-    // would re-introduce the dead control.
-    expect(src).toMatch(/navigation\?\.canGoBack\?\.\(\) \? \(\s*<TouchableOpacity style=\{s\.backBtn\}/);
     expect((src.match(/<TouchableOpacity style=\{s\.backBtn\}/g) ?? []).length).toBe(1);
+    expect(src).toMatch(/<TouchableOpacity style=\{s\.backBtn\} onPress=\{onBack\}/);
+    expect(src).toMatch(/if \(navigation\?\.canGoBack\?\.\(\)\) \{goBackOnce\(navigation\); return;\}\s*confirmLeaveToSignIn\(\)/);
+    expect(src).toMatch(/useGateHardwareBack\(\(\) => \{ onBack\(\); return true; \}, !canPop\)/);
   });
 });
 
