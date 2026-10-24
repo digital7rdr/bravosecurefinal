@@ -975,8 +975,25 @@ export function useCall(opts: UseCallOptions): CallHandle {
         });
         // Attach to the existing unregister chain so cleanup tears it
         // down with the rest of the signalling registration.
+        // 2026-10-24 — the server says this call can never ring (the account
+        // was deleted, or no phone is signed in to it). Say so and end the
+        // call instead of leaving the caller on "Calling…" until timeout.
+        const unregisterUnreachable = direction === 'outgoing'
+          ? signalling.onUnreachable(d => {
+            if (d.callId !== callId) {return;}
+            const c = controllerRef.current;
+            if (!c || (c.currentState !== 'calling' && c.currentState !== 'idle')) {return;}
+            try {
+              const {Alert} = require('@utils/alert') as typeof import('@utils/alert');
+              const copy = unreachableCopy(d.reason);
+              Alert.alert(copy.title, copy.message);
+            } catch { /* alert unavailable — the call still ends */ }
+            try { c.hangup('ended'); } catch { /* already ended */ }
+          })
+          : () => undefined;
         const composedUnregister = (): void => {
           try { unregisterMediaState(); } catch { /* ignore */ }
+          try { unregisterUnreachable(); } catch { /* ignore */ }
           try { unregister?.(); } catch { /* ignore */ }
         };
         unregisterRef.current = composedUnregister;
@@ -1702,4 +1719,15 @@ export function useCall(opts: UseCallOptions): CallHandle {
     upgradeToVideo,
     flipCamera: doFlip,
   };
+}
+
+/**
+ * 2026-10-24 — what the caller is told when the server reports the callee
+ * cannot be reached. Exported for tests.
+ */
+export function unreachableCopy(reason: 'account_gone' | 'no_device' | string): {title: string; message: string} {
+  if (reason === 'account_gone') {
+    return {title: 'Account no longer exists', message: 'This Bravo account was deleted, so it can\'t receive calls. If they joined again, call them from Contacts or start a new chat.'};
+  }
+  return {title: 'Not reachable', message: 'This person isn\'t signed in to Bravo on any phone right now, so the call can\'t ring. Try again later or send a message.'};
 }

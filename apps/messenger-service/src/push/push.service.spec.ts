@@ -177,7 +177,8 @@ describe('PushService — audit P0-C5 VoIP wake budget', () => {
 
   it('SRV-06 — a wake with no dispatchable device does not charge', async () => {
     const r = await push.sendVoipWake('u-no-tokens', 'c1', 's1');
-    expect(r).toEqual({sent: 0, stubbed: false});
+    // noDevices lets the gateway tell the caller the call can't ring (call.unreachable)
+    expect(r).toEqual({sent: 0, stubbed: false, noDevices: true});
     expect(await mock.exists(pairKey('s1', 'u-no-tokens'))).toBe(0);
     expect(await mock.exists(recipKey('u-no-tokens'))).toBe(0);
   });

@@ -469,6 +469,16 @@ export interface ServerCallHangup {
 }
 
 /**
+ * 2026-10-24 — to the CALLER: the callee has no live connection and nothing
+ * to wake, so this call can never ring. `account_gone` = the account was
+ * deleted; `no_device` = no phone is signed in to it.
+ */
+export interface ServerCallUnreachable {
+  event: 'call.unreachable';
+  data: {callId: CallId; reason: 'account_gone' | 'no_device'};
+}
+
+/**
  * BS-021 — server-side mirror of the client media-state advisory.
  * `from` is the peer who toggled their track; receiver flips the
  * remote tile placeholder accordingly.
@@ -574,6 +584,7 @@ export type ServerFrame =
   | ServerCallAnswer
   | ServerCallIce
   | ServerCallHangup
+  | ServerCallUnreachable
   | ServerCallMediaState
   | ServerCallReOffer
   | ServerCallReAnswer

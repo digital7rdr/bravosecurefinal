@@ -76,6 +76,7 @@ describe('isCallFrame — runtime dispatcher gate', () => {
       'call.offer',
       'call.reanswer',
       'call.reoffer',
+      'call.unreachable', // 2026-10-24 — caller told the callee can't be reached
     ]);
   });
 });

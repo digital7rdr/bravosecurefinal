@@ -7,6 +7,7 @@ import type {
   ServerCallAnswer,
   ServerCallIce,
   ServerCallHangup,
+  ServerCallUnreachable,
   ServerCallMediaState,
   ServerCallReOffer,
   ServerCallReAnswer,
@@ -69,6 +70,7 @@ export class CallSignalling {
   private answerHandlers:     Array<(f: ServerCallAnswer['data'])     => void> = [];
   private iceHandlers:        Array<(f: ServerCallIce['data'])        => void> = [];
   private hangupHandlers:     Array<(f: ServerCallHangup['data'])     => void> = [];
+  private unreachableHandlers: Array<(f: ServerCallUnreachable['data']) => void> = [];
   /**
    * BS-021 — peer media-state advisory handlers. Receivers register
    * via `onMediaState(...)`; sender path is `sendMediaState(...)`.
@@ -123,6 +125,7 @@ export class CallSignalling {
       case 'call.ice':          for (const h of this.iceHandlers.slice())        {try {h(frame.data);} catch {/* one bad handler must not block */}} return;
       case 'call.hangup':       for (const h of this.hangupHandlers.slice())     {try {h(frame.data);} catch {/* one bad handler must not block */}} return;
       case 'call.media-state':  for (const h of this.mediaStateHandlers.slice()) {try {h(frame.data);} catch {/* one bad handler must not block */}} return;
+      case 'call.unreachable':  for (const h of this.unreachableHandlers.slice()) {try {h(frame.data);} catch {/* one bad handler must not block */}} return;
       case 'call.reoffer':      for (const h of this.reOfferHandlers.slice())    {try {h(frame.data);} catch {/* one bad handler must not block */}} return;
       case 'call.reanswer':     for (const h of this.reAnswerHandlers.slice())   {try {h(frame.data);} catch {/* one bad handler must not block */}} return;
       default:
@@ -146,6 +149,11 @@ export class CallSignalling {
   onHangup(h: (f: ServerCallHangup['data']) => void): () => void {
     this.hangupHandlers.push(h);
     return () => { this.hangupHandlers = this.hangupHandlers.filter(x => x !== h); };
+  }
+  /** 2026-10-24 — the server says the callee cannot be reached (see ServerCallUnreachable). */
+  onUnreachable(h: (f: ServerCallUnreachable['data']) => void): () => void {
+    this.unreachableHandlers.push(h);
+    return () => { this.unreachableHandlers = this.unreachableHandlers.filter(x => x !== h); };
   }
   /**
    * BS-021 — receive peer-mute / peer-camera-off advisories. Returns an

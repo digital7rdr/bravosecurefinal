@@ -1772,12 +1772,20 @@ export class MessengerGateway
     void this.push.sendVoipWake(
       data.to.userId, data.callId, ctx.claims.sub, undefined,
       ((data as {kind?: string}).kind ?? (data as {callType?: string}).callType) === 'video' ? 'video' : 'voice',
-    ).then(r => {
+    ).then(async r => {
       // SRV-06 — a throttled wake means a Dozed/killed callee never rings; the
       // queued pendingOffer (45s) + missed marker are the only remaining paths.
       // Surface it in the operator-facing [CALL] stream, not just push logs.
       if (r?.reason) {
         console.warn(`[CALL] OFFER wake-throttled cid=${data.callId.slice(0, 8)} → ${data.to.userId.slice(0, 8)} reason=${r.reason}`);
+      }
+      // 2026-10-24 — the callee has no live connection AND nothing to wake (no
+      // phone signed in, or the account was deleted): the call can never ring.
+      // Tell the caller why instead of leaving them on "Calling…" until the
+      // ring timeout. A callee with a live socket is never reported.
+      const offline = !!result && result.event === 'error' && result.data.code === 'peer_offline';
+      if (offline && r?.noDevices) {
+        await this.notifyUnreachable(client, data.callId, data.to.userId);
       }
     }).catch(() => { /* swallow */ });
     // Hide peer_offline from the caller when we queued + pushed — their UI
@@ -1787,6 +1795,22 @@ export class MessengerGateway
       return undefined;
     }
     return result;
+  }
+
+  /**
+   * 2026-10-24 — `call.unreachable` to the caller: reason `account_gone`
+   * (deleted / unknown account) or `no_device` (no phone signed in to it).
+   * The caller's app hangs up on it, which ends the session, so the queued
+   * offer is not replayed to a phone that signs in later.
+   */
+  private async notifyUnreachable(client: Socket, callId: string, toUserId: string): Promise<void> {
+    const session = this.callSessions.get(callId);
+    if (!session || session.state === 'ended') return;
+    let gone = false;
+    try { gone = await this.privacy.isAccountGone(toUserId); } catch { /* treat as no_device */ }
+    const reason = gone ? 'account_gone' : 'no_device';
+    console.log(`[CALL] OFFER unreachable cid=${callId.slice(0, 8)} → ${toUserId.slice(0, 8)} reason=${reason}`);
+    try { client.emit('call.unreachable', {callId, reason}); } catch { /* caller gone */ }
   }
 
   @SubscribeMessage('call.answer')

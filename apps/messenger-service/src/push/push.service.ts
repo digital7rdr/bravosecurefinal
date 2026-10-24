@@ -1516,7 +1516,7 @@ export class PushService implements OnModuleInit, OnModuleDestroy, OnApplication
     // unchanged so old APKs keep verifying, and it is dedup-only (admission is
     // still HMAC- + room-token-gated).
     ringId?:      string,
-  ): Promise<{sent: number; stubbed: boolean; reason?: 'pair_budget_exhausted' | 'recipient_budget_exhausted'}> {
+  ): Promise<{sent: number; stubbed: boolean; reason?: 'pair_budget_exhausted' | 'recipient_budget_exhausted'; noDevices?: boolean}> {
     // Audit P0-C5 / row #7 — peek the per-(sender, recipient) wake budget
     // BEFORE doing any of the work below. A stolen JWT or single
     // misbehaving authed account pumping `call.offer` / `sfu.ring` at
@@ -1536,7 +1536,8 @@ export class PushService implements OnModuleInit, OnModuleDestroy, OnApplication
     const records = await this.loadUserTokenRecords(VOIP_KEY_PREFIX, VOIP_INDEX_PREFIX, userId);
     if (records.length === 0) {
       this.logger.warn(`push.voip.no-tokens sub=${userId.slice(0, 8)} call=${callId.slice(0, 8)}`);
-      return {sent: 0, stubbed: false};
+      // 2026-10-24 — nothing to wake: the caller is told (call.unreachable).
+      return {sent: 0, stubbed: false, noDevices: true};
     }
 
     if (!this.fcmReady) {

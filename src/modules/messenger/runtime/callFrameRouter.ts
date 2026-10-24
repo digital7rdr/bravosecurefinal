@@ -35,6 +35,9 @@ export const CALL_FRAME_EVENTS = new Set<string>([
   // while they were offline (the caller gave up) so we can render a
   // "Missed call" record instead of the call vanishing without a trace.
   'call.missed',
+  // 2026-10-24 — to the caller: the callee cannot be reached (deleted account,
+  // or no phone signed in to it). Ends "Calling…" with a reason.
+  'call.unreachable',
 ]);
 
 export function isCallFrame(eventName: string): boolean {

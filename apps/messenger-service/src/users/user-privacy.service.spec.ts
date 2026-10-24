@@ -248,3 +248,36 @@ describe('Scale P0-6 — batch methods', () => {
     expect(vis.get(B)).toBe(true);
   });
 });
+
+// 2026-10-24 — call.unreachable: is the callee's account deleted or unknown?
+describe('UserPrivacyService.isAccountGone', () => {
+  const ID = '22222222-2222-2222-2222-222222222222';
+
+  it('a live account is not gone', async () => {
+    const {svc} = serviceWith(async () => ({data: {deleted_at: null}, error: null}));
+    expect(await svc.isAccountGone(ID)).toBe(false);
+  });
+
+  it('a deleted account is gone', async () => {
+    const {svc} = serviceWith(async () => ({data: {deleted_at: '2026-10-24T07:00:00Z'}, error: null}));
+    expect(await svc.isAccountGone(ID)).toBe(true);
+  });
+
+  it('an unknown account is gone', async () => {
+    const {svc} = serviceWith(async () => ({data: null, error: null}));
+    expect(await svc.isAccountGone(ID)).toBe(true);
+  });
+
+  it('a lookup error or no database never claims an account is gone', async () => {
+    const {svc} = serviceWith(async () => ({data: null, error: {message: 'boom'}}));
+    expect(await svc.isAccountGone(ID)).toBe(false);
+    const degraded = new UserPrivacyService(degradedConfig());
+    expect(await degraded.isAccountGone(ID)).toBe(false);
+  });
+
+  it('ids outside the id charset never reach the query', async () => {
+    const {svc, calls} = serviceWith(async () => ({data: null, error: null}));
+    expect(await svc.isAccountGone('x,deleted_at.is.null')).toBe(false);
+    expect(calls).toEqual([]);
+  });
+});

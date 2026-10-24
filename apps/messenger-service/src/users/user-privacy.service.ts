@@ -68,6 +68,25 @@ export class UserPrivacyService {
     this.log.log(`privacy.init-ok host=${new URL(cfg.supabaseUrl).host}`);
   }
 
+  /**
+   * 2026-10-24 — true when the account was deleted (users.deleted_at set) or
+   * does not exist. Used to tell a caller "this account no longer exists"
+   * instead of ringing out. Fails CLOSED to false (a lookup error never claims
+   * an account is gone). Not cached: asked once per unreachable call.
+   */
+  async isAccountGone(userId: string): Promise<boolean> {
+    if (!this.client || !SAFE_ID.test(userId)) return false;
+    try {
+      const res = await this.client.from('users').select('deleted_at').eq('id', userId).maybeSingle();
+      if (res.error) { this.degrade(res.error.message); return false; }
+      const row = res.data as {deleted_at?: string | null} | null;
+      return !row || !!row.deleted_at;
+    } catch (e) {
+      this.degrade((e as Error).message);
+      return false;
+    }
+  }
+
   /** True unless the user explicitly set users.last_seen_visible=false. */
   async isLastSeenVisible(userId: string): Promise<boolean> {
     if (!this.client || !SAFE_ID.test(userId)) return true;

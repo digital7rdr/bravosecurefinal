@@ -13,7 +13,7 @@
  * server, which is the messenger-service's job, not the client's.
  */
 import type {
-  ServerCallOffer, ServerCallAnswer, ServerCallIce, ServerCallHangup,
+  ServerCallOffer, ServerCallAnswer, ServerCallIce, ServerCallHangup, ServerCallUnreachable,
   ServerCallMediaState, ServerCallReOffer, ServerCallReAnswer, ServerFrame,
 } from '@bravo/messenger-core';
 import type {CallSignalling} from './signallingClient';
@@ -607,6 +607,15 @@ export function dispatchCallFrame(frame: ServerFrame): boolean {
         // controller registered, no point queueing.
         pending.delete(cid);
       });
+      return true;
+    }
+    case 'call.unreachable': {
+      // 2026-10-24 — caller-only notice: the callee has no live connection
+      // and nothing to wake. Only meaningful to the screen placing the call;
+      // with no screen registered it is simply dropped.
+      const f = frame as ServerCallUnreachable;
+      const sig = active.get(f.data.callId);
+      if (sig) {sig.ingest(f);}
       return true;
     }
     case 'call.media-state': {

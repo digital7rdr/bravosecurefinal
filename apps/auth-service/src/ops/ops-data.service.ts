@@ -450,24 +450,55 @@ export class OpsDataService {
 
   /** Revoke one auth device/session. Refresh dies immediately; the access JWT ages out (≤15 min). */
   async revokeUserDevice(userId: string, deviceRowId: string) {
-    const row = await this.db.qOne<{id: string}>(
-      `UPDATE auth_devices SET revoked_at = NOW(), current_jti = NULL
-        WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL
-        RETURNING id`,
+    const row = await this.db.qOne<{id: string; device_id: string | null; old_jti: string | null}>(
+      `WITH old AS (
+         SELECT id, device_id, current_jti FROM auth_devices
+          WHERE id = $1 AND user_id = $2 AND revoked_at IS NULL FOR UPDATE)
+       UPDATE auth_devices d SET revoked_at = NOW(), current_jti = NULL
+         FROM old WHERE d.id = old.id
+       RETURNING d.id, old.device_id, old.current_jti AS old_jti`,
       [deviceRowId, userId],
     );
     if (!row) throw new NotFoundException('device_not_active');
+    await this.endDeviceSessions(userId, [row]);
     return {ok: true as const, device_row_id: row.id};
   }
 
   private async revokeAllDevices(userId: string): Promise<number> {
-    const rows = await this.db.q<{id: string}>(
-      `UPDATE auth_devices SET revoked_at = NOW(), current_jti = NULL
-        WHERE user_id = $1 AND revoked_at IS NULL
-        RETURNING id`,
+    const rows = await this.db.q<{id: string; device_id: string | null; old_jti: string | null}>(
+      `WITH old AS (
+         SELECT id, device_id, current_jti FROM auth_devices
+          WHERE user_id = $1 AND revoked_at IS NULL FOR UPDATE)
+       UPDATE auth_devices d SET revoked_at = NOW(), current_jti = NULL
+         FROM old WHERE d.id = old.id
+       RETURNING d.id, old.device_id, old.current_jti AS old_jti`,
       [userId],
     );
+    await this.endDeviceSessions(userId, rows);
     return rows.length;
+  }
+
+  /**
+   * 2026-10-24 — a console revoke / suspend / delete now ends the sessions the
+   * way a sign-out does: the live access tokens stop working at once (the
+   * messenger socket of a deleted account kept calling for up to 15 minutes),
+   * and the devices' push registrations are dropped, so a call to a deleted
+   * account no longer wakes the phone, which may be signed in to someone else
+   * by now. Best-effort: the database revoke above already happened.
+   */
+  private async endDeviceSessions(userId: string, rows: Array<{device_id?: string | null; old_jti?: string | null}>): Promise<void> {
+    const r = this.redis as (RedisService & Partial<{
+      revokeJtis(jtis: string[]): Promise<void>;
+      markPushRevokedMany(pairs: Array<{userId: string; deviceId: string}>): Promise<void>;
+    }>) | undefined;
+    const jtis = rows.map(x => x.old_jti).filter((j): j is string => !!j);
+    const devices = rows.map(x => x.device_id).filter((d): d is string => !!d);
+    try { if (jtis.length && typeof r?.revokeJtis === 'function') {await r.revokeJtis(jtis);} } catch { /* tokens still expire in ≤15 min */ }
+    try {
+      if (devices.length && typeof r?.markPushRevokedMany === 'function') {
+        await r.markPushRevokedMany(devices.map(deviceId => ({userId, deviceId})));
+      }
+    } catch { /* push GC retries on the next revoke */ }
   }
 
   /**

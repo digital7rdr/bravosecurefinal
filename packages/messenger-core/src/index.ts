@@ -155,6 +155,7 @@ export type {
   ServerCallAnswer,
   ServerCallIce,
   ServerCallHangup,
+  ServerCallUnreachable,
   ServerCallMediaState,
   ServerCallReOffer,
   ServerCallReAnswer,
