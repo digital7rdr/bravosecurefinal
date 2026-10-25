@@ -110,7 +110,10 @@ function TierPaywall({tier, onDone, standalone = false, onBack}: Props) {
       setPhase('topup');
       try {
         const {charged} = await topUpAndCharge({
-          amountFiat: +(bcToUsd(shortfall)).toFixed(2),
+          // 2026-10-25 — whole units, at least 1: the server credits
+          // floor(amount) and refuses < 1 (400), so a fractional shortfall
+          // was either rejected or left the subscribe one credit short.
+          amountFiat: Math.max(1, Math.ceil(bcToUsd(shortfall))),
           currency: 'eur',
         });
         if (!charged) {

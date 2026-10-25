@@ -64,7 +64,14 @@ export function usePaymentFlow() {
     amountFiat: number;
     currency: string;
   }): Promise<{charged: boolean; result: WalletTopUpResponse}> => {
-    const {data} = await walletApi.topUp(opts.amountFiat, opts.currency);
+    let data: WalletTopUpResponse;
+    try {
+      ({data} = await walletApi.topUp(opts.amountFiat, opts.currency));
+    } catch (e) {
+      // 2026-10-25 — users saw "Request failed with status code 400". Nothing
+      // was charged at this point; say so in words.
+      throw new Error(topUpErrorText(e));
+    }
     if (!data.client_secret) {
       // Fallback — server credited the wallet locally, no charge.
       return {charged: true, result: data};
@@ -118,4 +125,25 @@ export function usePaymentFlow() {
   };
 
   return {payWithClientSecret, topUpAndCharge, addCard};
+}
+
+/**
+ * 2026-10-25 — a failed /wallet/topup in words. Nothing has been charged when
+ * this runs (the card sheet never opened). `stripe_disabled` is production
+ * with no card processor connected yet (deploy README §7).
+ */
+export function topUpErrorText(e: unknown): string {
+  const res = (e as {response?: {status?: number; data?: {message?: unknown}}})?.response;
+  const raw = res?.data?.message;
+  const msg = Array.isArray(raw) ? raw.join(' ') : typeof raw === 'string' ? raw : '';
+  if (/stripe_disabled/.test(msg)) {
+    return 'Card payments are not switched on yet, so credits cannot be bought in the app right now. You have not been charged and your plan has not changed.';
+  }
+  if (/amount must not be less than|amount must be > 0/.test(msg)) {
+    return 'That amount is too small to charge by card. You have not been charged.';
+  }
+  if (!res) {
+    return 'Could not reach the payment server. Check your connection and try again. You have not been charged.';
+  }
+  return 'The payment could not be started. You have not been charged — please try again later.';
 }
