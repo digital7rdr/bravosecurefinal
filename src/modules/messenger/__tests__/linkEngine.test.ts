@@ -83,7 +83,7 @@ jest.mock('@/services/api', () => ({
 import {useMessengerStore} from '../store/messengerStore';
 import type {LocalConversation, LocalMessage} from '../store/types';
 import {linkCipher, encodeLinkQr, newLinkKey, type LinkCipher, type PhoneToWeb} from '@bravo/messenger-core/link/linkProtocol';
-import {approveLinkFromQr, drainLinkInboxes, startLinkEngine, stopLinkEngine, unlinkDevice, flushLinkBounded} from '../link/linkEngine';
+import {approveLinkFromQr, drainLinkInboxes, startLinkEngine, stopLinkEngine, unlinkDevice, flushLinkBounded, _linkEngineInternals} from '../link/linkEngine';
 
 const LINK = 'LLLLLLLLLLLLLLLLLLLLLL';
 const PEER = 'peer-2';
@@ -320,5 +320,32 @@ describe('linkEngine (phone side of linked devices)', () => {
       // The name only ever travelled sealed.
       expect(JSON.stringify(calls.filter(c => c.url.includes('/link/')))).not.toContain('Hana');
     });
+  });
+});
+
+// 2026-10-25 — "on the computer I see messages as Bravo user, not the names".
+describe('chat names sent to the browser', () => {
+  beforeEach(() => {
+    const st = useMessengerStore.getState();
+    st.reset();
+    st.setOwner('owner-1', 'me-1');
+  });
+
+  it('a chat still on its placeholder name is sent with the address-book name and number', () => {
+    useMessengerStore.getState().upsertConversation({
+      id: `direct:${PEER}`, type: 'direct', name: `Bravo · ${PEER.slice(0, 8)}`, participants: [PEER], peer: {userId: PEER, deviceId: 1},
+      session_state: 'established', unread_count: 0, is_muted: false, created_at: new Date(1_760_000_000_000).toISOString(),
+    } as LocalConversation);
+    const convs = _linkEngineInternals.conversationsView(useMessengerStore.getState() as never);
+    expect(convs[0].peer).toEqual({userId: PEER, name: 'Bobby', phone: '+971500000002'});
+  });
+
+  it('a real chat name still wins over the address book', () => {
+    useMessengerStore.getState().upsertConversation({
+      id: `direct:${PEER}`, type: 'direct', name: 'Robert (work)', participants: [PEER], peer: {userId: PEER, deviceId: 1},
+      session_state: 'established', unread_count: 0, is_muted: false, created_at: new Date(1_760_000_000_000).toISOString(),
+    } as LocalConversation);
+    const convs = _linkEngineInternals.conversationsView(useMessengerStore.getState() as never);
+    expect(convs[0].peer.name).toBe('Robert (work)');
   });
 });

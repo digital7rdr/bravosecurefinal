@@ -144,6 +144,12 @@ function linkedPerson(linked: LinkedRuntime | null, userId: string | null): Chat
   return p?.name ? {id: p.userId, name: p.name, subtitle: p.phone ?? ''} : null;
 }
 
+/** 2026-10-25 — the phone knows the number but no name: show the number, not "Bravo user". */
+function linkedNumber(linked: LinkedRuntime | null, userId: string | null): ChatPerson | null {
+  const p = linked && userId ? linked.peer(userId) : null;
+  return p?.phone ? {id: p.userId, name: p.phone, subtitle: ''} : null;
+}
+
 function usePeerProfile(userId: string | null, cache: Map<string, ChatPerson>) {
   const dir = useContext(DirectoryCtx);
   const linked = useLinked();
@@ -153,7 +159,7 @@ function usePeerProfile(userId: string | null, cache: Map<string, ChatPerson>) {
   const cached = userId ? cache.get(userId) : undefined;
   const {data} = useSWR(userId && !cached && !fromPhone ? ['chat-peer', dir.seenKey, userId] : null,
     () => dir.get(userId!), {revalidateOnFocus: false, shouldRetryOnError: false});
-  return fromPhone ?? cached ?? data ?? null;
+  return fromPhone ?? cached ?? data ?? linkedNumber(linked, userId) ?? null;
 }
 
 /**

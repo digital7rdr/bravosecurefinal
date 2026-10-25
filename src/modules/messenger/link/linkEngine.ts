@@ -301,16 +301,23 @@ function peerRows(state: MessengerSnapshot, cid: string): LocalMessage[] {
 
 function conversationsView(state: MessengerSnapshot): LinkConversation[] {
   const byPeer = new Map<string, LinkConversation>();
+  // 2026-10-25 — a chat still on its `Bravo · <hex>` placeholder used to go
+  // to the browser with NO name, and the browser showed "Bravo user". Fall
+  // back to every name this phone knows (address book, hand-added contacts,
+  // other slots of the same person) before giving up.
+  const names = nameBook(state);
   for (const id of state.conversationOrder) {
     const c: LocalConversation | undefined = state.conversations[id];
     if (!c || c.type !== 'direct' || !c.peer?.userId) {continue;}
     const peerUserId = c.peer.userId;
     const lastAt = c.last_message ? Date.parse(c.last_message.created_at) : Date.parse(c.created_at);
     const prev = byPeer.get(peerUserId);
-    const name = c.name && !c.name.startsWith('Bravo · ') ? c.name : (prev?.peer.name ?? null);
+    const known = names.get(peerUserId);
+    const name = (c.name && !c.name.startsWith('Bravo · ') ? c.name : null)
+      ?? prev?.peer.name ?? known?.name ?? null;
     byPeer.set(peerUserId, {
       cid: directSlotId(peerUserId),
-      peer: {userId: peerUserId, name, phone: c.phoneE164 ?? prev?.peer.phone ?? null},
+      peer: {userId: peerUserId, name, phone: c.phoneE164 ?? prev?.peer.phone ?? known?.phone ?? null},
       unread: (prev?.unread ?? 0) + (c.unread_count ?? 0),
       lastAt: Math.max(prev?.lastAt ?? 0, Number.isFinite(lastAt) ? lastAt : 0),
       pinned: !!c.is_pinned || !!prev?.pinned,
