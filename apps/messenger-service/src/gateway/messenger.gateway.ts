@@ -9,6 +9,7 @@ import {
   MessageBody,
   ConnectedSocket,
 } from '@nestjs/websockets';
+import {candidateKind, sdpCandidateKinds} from './ice-kinds';
 import {Logger, Injectable, OnModuleInit, OnModuleDestroy, UseGuards, HttpException} from '@nestjs/common';
 import {WsPayloadGuard} from './ws-payload.guard';
 import type {Server, Socket} from 'socket.io';
@@ -1627,7 +1628,7 @@ export class MessengerGateway
     // signal-device-ids leak account identity to anyone with
     // `docker logs` access. Eight-char prefix is enough to correlate a
     // single call across log lines without giving up the full uuid.
-    console.log(`[CALL] OFFER from=${ctx.claims.sub?.slice(0, 8)}/${ctx.signalDeviceId} → ${data.to.userId.slice(0, 8)}/${data.to.deviceId} cid=${data.callId.slice(0, 8)} kind=${data.kind} sdpLen=${data.sdp?.length}`);
+    console.log(`[CALL] OFFER from=${ctx.claims.sub?.slice(0, 8)}/${ctx.signalDeviceId} → ${data.to.userId.slice(0, 8)}/${data.to.deviceId} cid=${data.callId.slice(0, 8)} kind=${data.kind} sdpLen=${data.sdp?.length} cands=${sdpCandidateKinds(data.sdp)}`);
     dumpSdp('OFFER', data.callId, data.sdp);
     // (The session was registered at the top of the handler — B-596. It still
     // rejects duplicate callIds and pins the (caller, callee) pair for
@@ -1822,7 +1823,7 @@ export class MessengerGateway
     if (!ctx) return authMissing();
     const limited = this.rateGate(client, 'call.answer');
     if (limited) return limited;
-    console.log(`[CALL] ANSWER from=${ctx.claims.sub?.slice(0, 8)}/${ctx.signalDeviceId} → ${data.to.userId.slice(0, 8)}/${data.to.deviceId} cid=${data.callId.slice(0, 8)} sdpLen=${data.sdp?.length}`);
+    console.log(`[CALL] ANSWER from=${ctx.claims.sub?.slice(0, 8)}/${ctx.signalDeviceId} → ${data.to.userId.slice(0, 8)}/${data.to.deviceId} cid=${data.callId.slice(0, 8)} sdpLen=${data.sdp?.length} cands=${sdpCandidateKinds(data.sdp)}`);
     dumpSdp('ANSWER', data.callId, data.sdp);
     const auth = this.authorizeCallFrame(ctx.claims.sub, data.callId);
     if (auth.ok === false) {
@@ -1958,7 +1959,7 @@ export class MessengerGateway
     // diagnosis. Length is a useful signal that the candidate isn't
     // empty without leaking the network topology.
     const candLen = (data.candidate ?? '').length;
-    console.log(`[CALL] ICE from=${ctx.claims.sub?.slice(0, 8)}/${ctx.signalDeviceId} → ${data.to.userId.slice(0, 8)}/${data.to.deviceId} cid=${data.callId.slice(0, 8)} mid=${data.sdpMid} idx=${data.sdpMLineIndex} candLen=${candLen}`);
+    console.log(`[CALL] ICE from=${ctx.claims.sub?.slice(0, 8)}/${ctx.signalDeviceId} → ${data.to.userId.slice(0, 8)}/${data.to.deviceId} cid=${data.callId.slice(0, 8)} mid=${data.sdpMid} idx=${data.sdpMLineIndex} candLen=${candLen} kind=${candidateKind(data.candidate) ?? '?'}`);
     const auth = this.authorizeCallFrame(ctx.claims.sub, data.callId);
     if (auth.ok === false) {
       if ('ignore' in auth) {
