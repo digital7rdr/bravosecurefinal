@@ -74,7 +74,13 @@ docker compose -f "$COMPOSE" up -d "${SERVICES[@]}"
 say "Health (waiting up to 90s)"
 for i in $(seq 1 18); do
   sleep 5
-  unhealthy="$(docker compose -f "$COMPOSE" ps --format '{{.Name}} {{.Health}}' | grep -vE 'healthy|^$' | grep -E "$(IFS='|'; echo "${SERVICES[*]}")" || true)"
+  # A container with no healthcheck (coturn) reports an empty Health: it is
+  # fine while it is running. Flag only unhealthy / starting / not running.
+  # Matched on the compose SERVICE name (auth-service…), not the container
+  # name (bravo-auth…), so every deployed service is actually checked.
+  unhealthy="$(docker compose -f "$COMPOSE" ps -a --format '{{.Service}} {{.State}} {{.Health}}' \
+    | awk '!($2=="running" && ($3=="" || $3=="healthy"))' \
+    | grep -E "^($(IFS='|'; echo "${SERVICES[*]}")) " || true)"
   [[ -z "$unhealthy" ]] && break
 done
 docker compose -f "$COMPOSE" ps
