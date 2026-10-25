@@ -582,6 +582,7 @@ export const authApi = {
       // and the client gate stays open (the server refusal is still routed).
       identity_document_status?: 'missing' | 'submitted';
       identity_document_required?: boolean;
+      plan_locked_modules?: string[]; // 2026-10-25: Secure Services needs a paid plan
     }>('/auth/me');
     return res.data;
   },

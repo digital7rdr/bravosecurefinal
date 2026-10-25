@@ -18,6 +18,8 @@ import ImageryBackdrop from '@components/ui/ImageryBackdrop';
 import {useProductStore, type BravoProduct} from '@store/productStore';
 import {scaleTextStyles} from '@utils/scaling';
 import {confirmLeaveToSignIn} from '@navigation/gateExit';
+import {useAuthStore} from '@store/authStore';
+import {secureServicesLocked, promptSecureServicesUpgrade} from '@store/secureServicesAccess';
 
 const T = {
   bg: '#0A1F3F',
@@ -56,7 +58,13 @@ export default function ProductGateScreen() {
   // "Choose dashboard" / hardware back at a product root). Leaving Secure
   // Services with an unfinished booking form still warns first, mirroring
   // SwitchDashboardSection (spec p.26). Fresh logins have no draft → no-op.
+  // 2026-10-25 — Secure Services is for paid plans: locked card + upgrade path.
+  const secureLocked = secureServicesLocked(useAuthStore(s => s.user));
   const pick = (card: GateCard) => {
+    if (card === 'secure' && secureLocked) {
+      promptSecureServicesUpgrade(() => { useProductStore.getState().requestPlansLanding(); });
+      return;
+    }
     const p: BravoProduct = card === 'workspace' ? 'messenger' : card;
     const apply = () => {
       if (card === 'workspace') {useProductStore.getState().openWorkspaceFromGate();}
@@ -116,7 +124,7 @@ export default function ProductGateScreen() {
               style={styles.card}
               activeOpacity={0.85}
               accessibilityRole="button"
-              accessibilityLabel={`Open ${p.title}`}
+              accessibilityLabel={p.key === 'secure' && secureLocked ? `${p.title} — needs a paid plan` : `Open ${p.title}`}
               onPress={() => pick(p.key)}>
               {/* `band`, not `hero`: nothing is written over these photos —
                   the title and description live in `cardBody` below — so the
@@ -135,6 +143,9 @@ export default function ProductGateScreen() {
                     {p.badge ? (
                       <View style={styles.badge}><Text style={styles.badgeText}>{p.badge}</Text></View>
                     ) : null}
+                    {p.key === 'secure' && secureLocked ? (
+                      <View style={styles.lockBadge}><Icon name="lock-outline" size={11} color={T.textDim} /><Text style={styles.lockText}>UPGRADE</Text></View>
+                    ) : null}
                   </View>
                   <Text style={styles.cardDesc}>{p.desc}</Text>
                 </View>
@@ -151,6 +162,8 @@ export default function ProductGateScreen() {
 const styles = StyleSheet.create(scaleTextStyles({
   root: {flex: 1, backgroundColor: T.bg, paddingHorizontal: 24},
   backBtn: {width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: T.hair, marginBottom: 12},
+  lockBadge: {flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)'},
+  lockText: {color: T.textDim, fontSize: 10, fontWeight: '700', letterSpacing: 1},
   eyebrow: {fontFamily: 'monospace', color: T.accent, fontSize: 12, fontWeight: '700', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 12},
   title: {color: T.text, fontSize: 32, fontWeight: '700', letterSpacing: -1, lineHeight: 38},
   subtitle: {color: T.textDim, fontSize: 14, marginTop: 10, lineHeight: 20},

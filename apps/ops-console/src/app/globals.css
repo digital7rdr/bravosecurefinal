@@ -1832,6 +1832,8 @@ textarea.pv-input { resize: vertical; }
 .hub-icon-mark { width: 96px; height: auto; }
 .hub-tile-name { font-size: 21px; font-weight: 700; letter-spacing: -.2px; }
 .hub-tile-tag { font-size: 16px; color: #c7d5f2; line-height: 1.3; max-width: 220px; }
+.hub-tile-upgrade { background: rgba(7,16,38,.96); }
+.hub-tile-upgrade .hub-tile-name, .hub-tile-upgrade .hub-tile-tag, .hub-tile-upgrade .hub-tile-icon { opacity: .55; }
 .hub-tile-inactive, .hub-tile-not_allowed { cursor: not-allowed; background: rgba(7,16,38,.96);
   box-shadow: inset 0 1px 0 rgba(120,180,255,.1); border-color: rgba(90,120,170,.32); }
 .hub-tile-inactive::before, .hub-tile-not_allowed::before { opacity: .25; }

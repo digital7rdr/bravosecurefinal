@@ -16,6 +16,8 @@ export interface WebMe {
   identity_document_status?: 'missing' | 'submitted' | 'unknown';
   identity_document_required?: boolean;
   disabled_modules?: string[];
+  /** 2026-10-25 — modules the PLAN locks (Secure Services on the free plan). */
+  plan_locked_modules?: string[];
 }
 
 /**
@@ -28,4 +30,3 @@ export function canBook(me: WebMe | undefined | null): boolean {
   return me.account_kind === 'individual' && !me.is_org_manager
     && me.user.role !== 'agent' && me.user.role !== 'service_provider';
 }
-

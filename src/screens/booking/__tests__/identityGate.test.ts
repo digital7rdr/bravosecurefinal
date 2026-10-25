@@ -98,7 +98,7 @@ describe('wiring', () => {
     expect(routing).toMatch(/identity_document_status: u\.identity_document_status,/);
     expect(routing).toMatch(/identity_document_required: u\.identity_document_required,/);
     // Every /auth/me consumer carries the two fields (4 sites at the time of writing).
-    const sites = s.match(/owns_agency, identity_document_status, identity_document_required\} = await authApi\.me\(\);/g) ?? [];
+    const sites = s.match(/owns_agency, identity_document_status, identity_document_required, plan_locked_modules\} = await authApi\.me\(\);/g) ?? [];
     expect(sites.length).toBeGreaterThanOrEqual(4);
     expect(s).toMatch(/markIdentitySubmitted: \(\) => \{\s*set\(s => \{ if \(s\.user\) \{s\.user\.identity_document_status = 'submitted';\} \}\);/);
     // signOut drops the flag — the next account on this device never inherits the step.

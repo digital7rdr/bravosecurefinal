@@ -447,12 +447,17 @@ export default function MainNavigator() {
   // frames after the product switch), then clear the request.
   const landing = useProductStore(s => s.landing);
   useEffect(() => {
-    if (landing !== 'workspace' || activeProduct !== 'messenger' || mountedProduct !== 'messenger' || gateVisible) {return;}
+    if (!landing || !activeProduct || mountedProduct !== activeProduct || gateVisible) {return;}
+    if (landing === 'workspace' && activeProduct !== 'messenger') {return;}
     let tries = 0;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const attempt = (): void => {
-      const {openWorkspaceHubFromRoot} = require('./departmentalEntry') as typeof import('./departmentalEntry');
-      if (openWorkspaceHubFromRoot()) {
+      // 'plans' (2026-10-25): the Secure Services upgrade prompt's "View plans".
+      const opened = landing === 'workspace'
+        ? (require('./departmentalEntry') as typeof import('./departmentalEntry')).openWorkspaceHubFromRoot()
+        : (require('./navigationRef') as typeof import('./navigationRef')).mountedTreeHasRoute('SecureTab')
+          && (require('./openPricing') as typeof import('./openPricing')).openPricing();
+      if (opened) {
         useProductStore.getState().clearLanding();
         return;
       }
@@ -462,6 +467,17 @@ export default function MainNavigator() {
     attempt();
     return () => { if (timer) {clearTimeout(timer);} };
   }, [landing, activeProduct, mountedProduct, gateVisible]);
+
+  // 2026-10-25 — Secure Services is for paid plans. A free-plan client whose
+  // saved product is Secure Services (chosen before the rule, or after a plan
+  // lapsed) is moved to Messenger and told why.
+  const secureLocked = (require('@store/secureServicesAccess') as typeof import('@store/secureServicesAccess')).secureServicesLocked(user);
+  useEffect(() => {
+    if (!secureLocked || activeProduct !== 'secure') {return;}
+    useProductStore.getState().setActiveProduct('messenger');
+    (require('@store/secureServicesAccess') as typeof import('@store/secureServicesAccess'))
+      .promptSecureServicesUpgrade(() => { useProductStore.getState().requestPlansLanding(); });
+  }, [secureLocked, activeProduct]);
 
   const navigation = useNavigation<{setParams: (p: object) => void}>();
   // A provider who just signed up is still role='individual' until they create

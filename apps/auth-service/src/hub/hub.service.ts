@@ -1,10 +1,11 @@
-import {BadRequestException, ForbiddenException, Injectable, NotFoundException} from '@nestjs/common';
+import {BadRequestException, ForbiddenException, Injectable, NotFoundException, Optional} from '@nestjs/common';
 import {createHash, randomBytes} from 'node:crypto';
 import {DatabaseService} from '../database/database.service';
 import {RedisService} from '../redis/redis.service';
 import {TotpChallengeService} from '../common/services/totp-challenge.service';
 import {resolveAccountKind, resolveIsOrgManager} from '../auth/account-kind';
 import type {UserRow} from '../auth/auth.service';
+import {ModuleAccessService} from '../module-access/module-access.service';
 
 /**
  * Bravo Secure home (bravosecure.cloud, 2026-10-10): the app launcher and the
@@ -45,7 +46,12 @@ export interface PlatformAppRow {
   updated_by: string | null;
 }
 
-export type TileState = 'open' | 'inactive' | 'not_allowed' | 'needs_totp';
+// 'upgrade' (2026-10-25): the app exists for this person but their plan does
+// not include it — Secure Services on the free plan.
+export type TileState = 'open' | 'inactive' | 'not_allowed' | 'needs_totp' | 'upgrade';
+
+/** Launcher tiles whose use depends on the plan, mapped to the module the plan locks. */
+const PLAN_GATED_APPS: Record<string, 'secure_lite'> = {secure_services: 'secure_lite'};
 
 export interface AppTile {
   key: string;
@@ -92,7 +98,21 @@ export class HubService {
     private readonly db: DatabaseService,
     private readonly redis: RedisService,
     private readonly totp: TotpChallengeService,
+    @Optional() private readonly modules?: ModuleAccessService,
   ) {}
+
+  /**
+   * The tile state including the plan: an otherwise-open Secure Services tile
+   * is 'upgrade' for a client whose plan does not include it. An agency is
+   * sent to its provider console instead, so the plan never applies there.
+   */
+  private async stateWithPlan(app: PlatformAppRow, who: Set<Audience>, totpVerified: boolean, userId: string): Promise<TileState> {
+    const base = HubService.stateFor(app, who, totpVerified);
+    const mod = PLAN_GATED_APPS[app.key];
+    if (base !== 'open' || !mod || !this.modules || !who.has('client')) {return base;}
+    const locked = await this.modules.planLocked(userId);
+    return locked.includes(mod) ? 'upgrade' : base;
+  }
 
   /** The kinds of account this person is, decided on the server every time. */
   async audiences(userId: string): Promise<Set<Audience>> {
@@ -125,9 +145,9 @@ export class HubService {
 
   async tiles(userId: string): Promise<{apps: AppTile[]; audiences: Audience[]; totp: 'none' | 'pending' | 'verified'}> {
     const [apps, who, totp] = await Promise.all([this.listApps(), this.audiences(userId), this.totp.status(userId)]);
+    const states = await Promise.all(apps.map(a => this.stateWithPlan(a, who, totp === 'verified', userId)));
     return {
-      apps: apps.map(a => ({key: a.key, name: a.name, tagline: a.tagline, icon: a.icon,
-        state: HubService.stateFor(a, who, totp === 'verified')})),
+      apps: apps.map((a, i) => ({key: a.key, name: a.name, tagline: a.tagline, icon: a.icon, state: states[i]})),
       audiences: [...who],
       totp,
     };
@@ -138,7 +158,7 @@ export class HubService {
     const app = (await this.listApps()).find(a => a.key === key);
     if (!app) throw new NotFoundException('app_not_found');
     const [who, totp] = await Promise.all([this.audiences(userId), this.totp.status(userId)]);
-    const state = HubService.stateFor(app, who, totp === 'verified');
+    const state = await this.stateWithPlan(app, who, totp === 'verified', userId);
     if (state !== 'open') throw new ForbiddenException(`app_${state}`);
     // Agency owners and managers go to the agency address when there is one
     // (Secure Services → the provider console); everyone else to the main one.
@@ -169,7 +189,7 @@ export class HubService {
     // Access may have been withdrawn in the seconds since launch.
     const app = (await this.listApps()).find(a => a.key === rec.app);
     const [who, totp] = await Promise.all([this.audiences(user.id), this.totp.status(user.id)]);
-    if (!app || HubService.stateFor(app, who, totp === 'verified') !== 'open') throw new ForbiddenException('sso_code_invalid');
+    if (!app || (await this.stateWithPlan(app, who, totp === 'verified', user.id)) !== 'open') throw new ForbiddenException('sso_code_invalid');
     return {user, app: rec.app};
   }
 

@@ -318,7 +318,10 @@ export class AuthController {
       this.auth.getMe(user.sub),
       this.moduleAccess.effectiveOrNull(user.sub),
     ]);
-    return {...me, module_group: modules?.group ?? null, disabled_modules: modules?.disabled ?? []};
+    // 2026-10-25 — modules the PLAN locks (Secure Services on the free plan):
+    // shown locked with an upgrade path, refused by assertEnabled.
+    const planLocked = await this.moduleAccess.planLockedOrEmpty(user.sub, modules?.group);
+    return {...me, module_group: modules?.group ?? null, disabled_modules: modules?.disabled ?? [], plan_locked_modules: planLocked};
   }
 
   // Self-service profile update (display name + avatar). Returns the same

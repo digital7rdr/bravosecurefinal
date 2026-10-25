@@ -82,7 +82,7 @@ const post = <T>(path: string, body?: unknown, init?: Init) =>
 
 /* ── Types ───────────────────────────────────────────────────────────── */
 
-export type TileState = 'open' | 'inactive' | 'not_allowed' | 'needs_totp';
+export type TileState = 'open' | 'inactive' | 'not_allowed' | 'needs_totp' | 'upgrade';
 export interface AppTile {key: string; name: string; tagline: string; icon: string; state: TileState}
 export interface HubApps {
   user: {id: string; display_name: string | null; email_verified: boolean; phone_verified: boolean};

@@ -61,6 +61,10 @@ export interface User {
   identity_document_status?: 'missing' | 'submitted';
   /** B-867 — this account is asked for one at all (role-based + server kill-switch). */
   identity_document_required?: boolean;
+  /** 2026-10-25 — modules the PLAN locks (from /auth/me): 'secure_lite',
+   *  'executive_protection', 'secure_pro' for a client on the free plan.
+   *  Undefined on an older server. */
+  plan_locked_modules?: string[];
   /** Scope v2 Phase 6 — owns an Enterprise workspace (server-authoritative, from
    *  `org_workspaces`). Distinct from `account_kind === 'agency'` on purpose: a
    *  workspace owner is NOT a security-services provider, so gates that mean

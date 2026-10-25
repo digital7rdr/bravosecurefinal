@@ -58,8 +58,9 @@ describe('3 — Workspace on the welcome page', () => {
     expect(gate).toMatch(/key: 'workspace', icon: 'office-building-outline', title: 'Workspace'/);
     expect(gate).toMatch(/if \(card === 'workspace'\) \{useProductStore\.getState\(\)\.openWorkspaceFromGate\(\);\}/);
     const main = read('src/navigation/MainNavigator.tsx');
-    expect(main).toMatch(/if \(openWorkspaceHubFromRoot\(\)\) \{/);
-    expect(main).toMatch(/mountedProduct !== 'messenger'/);
+    expect(main).toMatch(/\.openWorkspaceHubFromRoot\(\)/);
+    expect(main).toMatch(/mountedProduct !== activeProduct/);
+    expect(main).toMatch(/if \(landing === 'workspace' && activeProduct !== 'messenger'\) \{return;\}/);
     expect(read('src/navigation/departmentalEntry.ts')).toMatch(/params: \{screen: 'WorkspaceHub', initial: false\}/);
   });
 

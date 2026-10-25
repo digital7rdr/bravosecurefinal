@@ -54,10 +54,12 @@ interface ProductState {
    * the gate's Workspace card (Workspace lives inside Messenger), consumed by
    * MainNavigator. Ephemeral like gateVisible.
    */
-  landing: 'workspace' | null;
+  landing: 'workspace' | 'plans' | null;
   /** Gate → Workspace: mount Messenger, then open the Workspace hub. */
   openWorkspaceFromGate: () => void;
   clearLanding: () => void;
+  /** Open the subscription plans once the client shell is mounted. */
+  requestPlansLanding: () => void;
   /** First client mount after auth: promote the selector choice, if any. */
   adoptPendingProduct: () => void;
   reset: () => void;
@@ -81,6 +83,10 @@ export const useProductStore = create<ProductState>()(
       openWorkspaceFromGate: () =>
         set({activeProduct: 'messenger', pendingProduct: null, gateVisible: false, returnProduct: null, landing: 'workspace'}),
       clearLanding: () => set({landing: null}),
+      requestPlansLanding: () => set(st => ({
+        landing: 'plans', gateVisible: false,
+        activeProduct: st.activeProduct && st.activeProduct !== 'secure' ? st.activeProduct : 'messenger',
+      })),
 
       adoptPendingProduct: () => {
         const {activeProduct, pendingProduct} = get();
@@ -110,6 +116,15 @@ export const useProductStore = create<ProductState>()(
  * to `returnTo` instead of ejecting to the product gate.
  */
 export function switchProduct(next: BravoProduct, guard?: () => boolean, returnTo?: BravoProduct): boolean {
+  // 2026-10-25 — Secure Services is for paid plans (secureServicesAccess).
+  if (next === 'secure') {
+    const {useAuthStore} = require('@store/authStore') as typeof import('@store/authStore');
+    const access = require('@store/secureServicesAccess') as typeof import('@store/secureServicesAccess');
+    if (access.secureServicesLocked(useAuthStore.getState().user)) {
+      access.promptSecureServicesUpgrade(() => { useProductStore.getState().requestPlansLanding(); });
+      return false;
+    }
+  }
   if (guard && !guard()) {return false;}
   useProductStore.getState().setActiveProduct(next, returnTo ?? null);
   return true;

@@ -16,7 +16,12 @@ const BADGE: Record<Exclude<AppTile['state'], 'open'>, string> = {
   inactive: 'Inactive',
   not_allowed: 'No access',
   needs_totp: 'Needs authenticator',
+  upgrade: 'Upgrade',
 };
+
+/** 2026-10-25 — Secure Services needs a paid plan; plans are bought in the app. */
+const UPGRADE_TEXT = (name: string) =>
+  `${name} is included with Bravo Messenger Pro and Enterprise. Upgrade in the Bravo Secure app: Profile → Messenger Plans.`;
 
 export default function HubHome() {
   const {data, reload} = useHub();
@@ -27,6 +32,7 @@ export default function HubHome() {
   async function open(t: AppTile) {
     if (busy) return;
     if (t.state === 'needs_totp') { router.push(`${hubRoutes.security}?for=${encodeURIComponent(t.name)}`); return; }
+    if (t.state === 'upgrade') { setErr(UPGRADE_TEXT(t.name)); return; }
     if (t.state !== 'open') return;
     setBusy(t.key); setErr(null);
     try {
@@ -51,7 +57,7 @@ export default function HubHome() {
       {err && <div className="hub-err" role="alert">{err}</div>}
       <div className="hub-grid">
         {data.apps.map(t => {
-          const live = t.state === 'open' || t.state === 'needs_totp';
+          const live = t.state === 'open' || t.state === 'needs_totp' || t.state === 'upgrade';
           return (
             <button key={t.key} type="button"
               className={`hub-tile hub-tile-${t.state} ${busy === t.key ? 'hub-tile-busy' : ''}`}

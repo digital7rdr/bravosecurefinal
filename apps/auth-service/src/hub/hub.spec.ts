@@ -292,3 +292,37 @@ describe('home-site sessions and the hand-off endpoints', () => {
       .resolves.toEqual({done: true, signedIn: true, expiresIn: 900});
   });
 });
+
+
+// 2026-10-25 — Secure Services is for paid plans: the tile says Upgrade for a
+// free-plan client and the launch / SSO hand-off refuse it.
+describe('Secure Services tile follows the plan', () => {
+  function hubWithPlan(locked: string[]) {
+    const h = makeHub();
+    const modules = {planLocked: jest.fn(async () => locked)};
+    const hub = new HubService(h.db as never, h.redis as never, {status: jest.fn(async () => 'none')} as never, modules as never);
+    return {...h, hub, modules};
+  }
+
+  it('free plan → upgrade, and launching it is refused', async () => {
+    const {hub} = hubWithPlan(['secure_lite', 'executive_protection', 'secure_pro']);
+    const t = await hub.tiles('u-1');
+    expect(t.apps.find(a => a.key === 'secure_services')?.state).toBe('upgrade');
+    expect(t.apps.find(a => a.key === 'messenger')?.state).toBe('open');
+    await expect(hub.launch('u-1', 'secure_services')).rejects.toThrow('app_upgrade');
+  });
+
+  it('paid plan → open', async () => {
+    const {hub} = hubWithPlan([]);
+    const t = await hub.tiles('u-1');
+    expect(t.apps.find(a => a.key === 'secure_services')?.state).toBe('open');
+  });
+
+  it('an agency (provider console) is never asked about a client plan', async () => {
+    kind.mockResolvedValue({account_kind: 'agency'});
+    const {hub, modules} = hubWithPlan(['secure_lite']);
+    const t = await hub.tiles('u-1');
+    expect(t.apps.find(a => a.key === 'secure_services')?.state).toBe('open');
+    expect(modules.planLocked).not.toHaveBeenCalled();
+  });
+});

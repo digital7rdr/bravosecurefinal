@@ -3,6 +3,8 @@ import {DatabaseService} from '../database/database.service';
 import {RedisService} from '../redis/redis.service';
 import {resolveAccountKind, type AccountKindResult} from '../auth/account-kind';
 import {bumpConfigVersion, readConfigVersion} from '../common/services/config-version';
+import {effectiveTierOf, tierSatisfies, type TierRow} from '../common/guards/tier.guard';
+import {readTierGate, writeTierGate, type CachedTierGate} from '../common/services/account-gate-cache';
 import {
   ACCOUNT_GROUPS, ALWAYS_ON, GROUP_IDS, MODULES, MODULE_BY_KEY, NOT_YET,
   type AccountGroup, type ModuleKey,
@@ -17,6 +19,26 @@ export interface EffectiveModules {
 interface Cell {enabled: boolean; updated_at: string}
 
 const USER_TTL_S = 30;
+
+/**
+ * 2026-10-25 (owner) — Secure Services is for PAID plans. A personal client on
+ * the free plan (Bravo Messenger, internal tier 'lite') cannot start a
+ * booking, a Secure Pro application or a protection session; Bravo Messenger
+ * Pro and Enterprise can. Clients in a company workspace (group 'enterprise')
+ * are covered by the company's plan. Agencies and CPOs never book, so the
+ * rule does not apply to them. Existing bookings, payment, tracking and SOS
+ * are untouched (module-catalog SAFETY RULE): only STARTING is refused.
+ */
+export const SECURE_SERVICES_MODULES: readonly ModuleKey[] = ['secure_lite', 'executive_protection', 'secure_pro'];
+export const SECURE_SERVICES_MIN_TIER = 'pro' as const;
+export const SECURE_SERVICES_PLAN_MESSAGE =
+  'Secure Services is included with Bravo Messenger Pro and Enterprise. Upgrade your plan to book protection.';
+
+/** Pure: which modules this user's PLAN keeps locked. */
+export function planLockedModules(group: AccountGroup, tierRow: TierRow | null | undefined): ModuleKey[] {
+  if (group !== 'individual') {return [];}
+  return tierSatisfies(effectiveTierOf(tierRow), SECURE_SERVICES_MIN_TIER) ? [] : [...SECURE_SERVICES_MODULES];
+}
 const MATRIX_TTL_MS = 15_000;
 const userKey = (ver: number, sub: string) => `modacc:${ver}:${sub}`;
 
@@ -123,6 +145,43 @@ export class ModuleAccessService {
     }
   }
 
+  /**
+   * Modules the user's PLAN keeps locked (see SECURE_SERVICES_MODULES). Read
+   * through the 30 s tier-gate cache that the billing paths bust on upgrade,
+   * so a new subscription opens Secure Services on the next request. Fails
+   * OPEN like the rest of this service.
+   */
+  async planLocked(userId: string, group?: AccountGroup): Promise<ModuleKey[]> {
+    try {
+      const g = group ?? (await this.effective(userId)).group;
+      if (g !== 'individual') {return [];}
+      let row: CachedTierGate | null = await readTierGate(this.redis, userId);
+      if (!row) {
+        row = await this.db.qOne<CachedTierGate>(
+          `SELECT subscription_tier, pro_active_until::text AS pro_active_until
+             FROM public.users WHERE id = $1 AND deleted_at IS NULL`, [userId]);
+        if (row) {await writeTierGate(this.redis, userId, row);}
+      }
+      const locked = planLockedModules(g, row);
+      if (locked.length === 0) {return locked;}
+      // A Bravo Secure Pro plan is a paid Secure Services plan of its own: a
+      // client with one under way (proposal → active) keeps Secure Services.
+      const pro = await this.db.qOne<{n: number}>(
+        `SELECT count(*)::int AS n FROM public.pro_applications
+          WHERE user_id = $1 AND status IN ('PENDING_PROPOSAL','PROPOSAL_CREATED','REVISION_REQUESTED','ACCEPTED','ACTIVE')`, [userId]);
+      return (pro?.n ?? 0) > 0 ? [] : locked;
+    } catch (e) {
+      this.log.warn(`plan check failed OPEN: ${(e as Error).message}`);
+      return [];
+    }
+  }
+
+  /** For /auth/me: never throws. */
+  async planLockedOrEmpty(userId: string, group: AccountGroup | null | undefined): Promise<ModuleKey[]> {
+    if (!group) {return [];}
+    return this.planLocked(userId, group);
+  }
+
   async isEnabled(userId: string, key: ModuleKey): Promise<boolean> {
     try {
       return !(await this.effective(userId)).disabled.includes(key);
@@ -133,12 +192,21 @@ export class ModuleAccessService {
   }
 
   async assertEnabled(userId: string, key: ModuleKey): Promise<void> {
-    if (await this.isEnabled(userId, key)) {return;}
-    const label = MODULE_BY_KEY.get(key)?.label ?? 'This feature';
-    throw new ForbiddenException({
-      error: 'module_disabled', module: key,
-      message: `${label} is not available on your account.`,
-    });
+    if (!(await this.isEnabled(userId, key))) {
+      const label = MODULE_BY_KEY.get(key)?.label ?? 'This feature';
+      throw new ForbiddenException({
+        error: 'module_disabled', module: key,
+        message: `${label} is not available on your account.`,
+      });
+    }
+    if (SECURE_SERVICES_MODULES.includes(key) && (await this.planLocked(userId)).includes(key)) {
+      // `code: tier_insufficient` is what the apps already route to the
+      // upgrade screen (F-05).
+      throw new ForbiddenException({
+        error: 'tier_insufficient', code: 'tier_insufficient', module: key,
+        required_tier: SECURE_SERVICES_MIN_TIER, message: SECURE_SERVICES_PLAN_MESSAGE,
+      });
+    }
   }
 
   // ── admin surface ─────────────────────────────────────────────────────────
