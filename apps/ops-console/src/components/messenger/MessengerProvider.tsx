@@ -18,6 +18,7 @@ import {
   type ReactNode,
 } from 'react';
 import dynamic from 'next/dynamic';
+import {usePathname} from 'next/navigation';
 import type {MessengerRuntime, DecryptedMessage, PresenceState} from '@/lib/messenger/runtime';
 import type {LinkedRuntime, LinkPairing, LinkRecord} from '@/lib/messenger/linkedRuntime';
 import type {MessengerDb} from '@/lib/messenger/idb';
@@ -116,7 +117,14 @@ export function MessengerProvider({children}: {children: ReactNode}) {
     setHost(isProviderHost(h) ? 'provider' : isWebHost(h) ? 'web' : 'ops');
   }, []);
   const onProvider = host === 'provider';
-  const offLogin = typeof window !== 'undefined' && !window.location.pathname.startsWith('/login');
+  // 2026-10-25 — this provider sits in the ROOT layout, so it stays mounted
+  // across the client-side hop from /login to the chats page. The signed-in
+  // checks below (cookie + path) are read during render, and nothing made it
+  // re-render after sign-in: the web messenger stayed on "Loading…" until a
+  // full page reload. Subscribing to the route re-runs them on every
+  // navigation.
+  const pathname = usePathname();
+  const offLogin = typeof window !== 'undefined' && pathname !== undefined && !window.location.pathname.startsWith('/login');
   const pvSignedIn = onProvider && typeof document !== 'undefined' && /(?:^|;\s*)bravo_pv_csrf=/.test(document.cookie) && offLogin;
   const webSignedIn = host === 'web' && typeof document !== 'undefined' && /(?:^|;\s*)bravo_web_csrf=/.test(document.cookie) && offLogin;
   const {data: pvCtx} = useSWR(pvSignedIn ? ['pv', 'context'] : null, pvAuth.context, {refreshInterval: 120_000});

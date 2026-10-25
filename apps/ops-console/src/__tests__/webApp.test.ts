@@ -185,3 +185,22 @@ describe('booking stages and actions', () => {
     expect(webErrorText({body: {message: 'identity_document_required'}})).toMatch(/ID or passport/);
   });
 });
+
+// 2026-10-25 — after signing in on the web app the Chats page stayed on
+// "Loading…": the messenger provider lives in the ROOT layout, survives the
+// client-side hop from /login, and read "am I signed in?" only during render.
+describe('web messenger starts after a client-side sign-in', () => {
+  const src = stripComments(read('components/messenger/MessengerProvider.tsx'));
+  it('re-renders on every route change (usePathname) before the signed-in checks', () => {
+    expect(src).toMatch(/import \{usePathname\} from 'next\/navigation';/);
+    const at = src.indexOf('const pathname = usePathname();');
+    expect(at).toBeGreaterThan(-1);
+    expect(at).toBeLessThan(src.indexOf('const webSignedIn'));
+    expect(src).toMatch(/const offLogin = [^;]*pathname !== undefined/);
+  });
+  it('the chats page never spins forever: a Reload after a few seconds', () => {
+    const cw = stripComments(read('features/messenger/ChatWorkspace.tsx'));
+    expect(cw).toMatch(/if \(state === 'absent'\) return <MessengerStarting \/>;/);
+    expect(cw).toMatch(/window\.location\.reload\(\)/);
+  });
+});

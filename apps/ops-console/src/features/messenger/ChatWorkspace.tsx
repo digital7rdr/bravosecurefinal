@@ -156,12 +156,29 @@ function usePeerProfile(userId: string | null, cache: Map<string, ChatPerson>) {
   return fromPhone ?? cached ?? data ?? null;
 }
 
+/**
+ * 2026-10-25 — "Loading…" used to be permanent when the messenger never
+ * learned who is signed in. After a few seconds, say so and offer a reload
+ * instead of spinning forever.
+ */
+function MessengerStarting() {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setSlow(true), 8000); return () => clearTimeout(t); }, []);
+  if (!slow) return <div className="chat-empty-state">Loading…</div>;
+  return (
+    <div className="chat-empty-state">
+      <p>The messenger is taking longer than usual to start.</p>
+      <button type="button" className="btn btn-sec" onClick={() => window.location.reload()}>Reload</button>
+    </div>
+  );
+}
+
 export function ChatWorkspace({directory = OPS_CHAT_DIRECTORY, initialTab = 'chats'}: {directory?: ChatDirectory; initialTab?: ChatTab} = {}) {
   const messenger = useMessenger();
   const {state, runtime} = messenger;
   const [confirmLink, setConfirmLink] = useState(false);
 
-  if (state === 'absent') return <div className="chat-empty-state">Loading…</div>;
+  if (state === 'absent') return <MessengerStarting />;
   if (state === 'link_required') return <LinkPhonePanel />;
   if (state !== 'unlocked' || !runtime) {
     return (
