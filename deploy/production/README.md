@@ -88,6 +88,27 @@ and 40000-40099 (group-call media), stages
 Supabase, and re-checks DNS. It does **not** touch SSH auth — harden that
 deliberately, per the note it prints, with a second session open.
 
+**Hostinger's own firewall (hPanel → VPS → Security → Firewall) sits in
+front of ufw and must allow the same ports.** 2026-10-25: it allowed only
+SSH and web, so phones could not reach the TURN relay at all — calls rang
+but could not connect, and every phone offered only `host` candidates
+(`kind=host/udp` in the messenger's `[CALL] ICE` log). Accept, from any
+source:
+
+| Protocol | Ports | Purpose |
+|---|---|---|
+| TCP | 22, 80, 443 | SSH, web, apps |
+| UDP | 3478 | TURN / STUN |
+| TCP | 3478 | TURN over TCP |
+| TCP | 5349 | TURN over TLS |
+| UDP | 49160-49200 | TURN relay media |
+| UDP + TCP | 40000-40099 | group-call media (SFU) |
+
+Check from a phone (not from the server — a self-test never crosses this
+firewall): Chrome → webrtc.github.io/samples/src/content/peerconnection/trickle-ice/
+with the `turn:`/`turns:` URLs and a short-lived credential must list
+`relay` rows.
+
 ## 2–3. Supabase: configure, start, migrate — one script
 
 ```bash
