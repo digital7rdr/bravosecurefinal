@@ -202,7 +202,7 @@ async function stopSlot(slot: ToneSlot, label: string): Promise<void> {
 export async function startRingback(throughEarpiece = false): Promise<void> {
   // keepRecordingSessionIOS: the outgoing call already holds the mic — see the
   // BS-CALL-IOSCAT note in startSlot.
-  await startSlot(ringbackSlot, RINGBACK_ASSET, 0.85, 'ringback', throughEarpiece, true);
+  await startSlot(ringbackSlot, RINGBACK_ASSET, 1.0, 'ringback', throughEarpiece, true);
 }
 
 export async function stopRingback(): Promise<void> {

@@ -106,7 +106,8 @@ describe('WI-3.5 — the ring timeout is re-armed per ring', () => {
      * ownership binding follows the room, and the `autoAccept || roomMissing`
      * early return is re-evaluated per ring instead of once per instance.
      */
-    const bind = CODE.indexOf('bindInAppRingOwnership(');
+    // 2026-10-25 — the ring effect now calls startScreenRing (device ringtone).
+    const bind = CODE.indexOf('startScreenRing(roomId');
     expect(bind).toBeGreaterThan(-1);
     const rest = CODE.slice(bind);
     const closing = rest.match(/\}, \[[^\]]*\]\);/);
@@ -131,7 +132,7 @@ describe('WI-3.5 — the ring timeout is re-armed per ring', () => {
   it('the timer effect and the tone effect are SEPARATE effects', () => {
     // If a future edit merges them back, one of the two bugs above returns
     // depending on which dep array survives.
-    const bind  = CODE.indexOf('bindInAppRingOwnership(');
+    const bind  = CODE.indexOf('startScreenRing(roomId');
     const timer = CODE.indexOf('const ringTimeout = setTimeout(');
     expect(bind).toBeGreaterThan(-1);
     expect(timer).toBeGreaterThan(bind);

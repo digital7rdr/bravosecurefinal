@@ -64,6 +64,7 @@ jest.mock(
 
 import {
   startIncomingRingtone,
+  ringIncoming,
   stopIncomingRingtone,
   isNativeRingActive,
   bindInAppRingOwnership,
@@ -80,6 +81,34 @@ beforeEach(() => {
   createdChannels.length = 0;
   deletedChannels.length = 0;
   nativeModules.BravoRingtone = {start: nativeStart, stop: nativeStop};
+});
+
+// 2026-10-25 — the ring only counts as playing when the phone says it is.
+describe('ringIncoming — the native module reports what actually happened', () => {
+  it('"started" claims the ring; "silent" / "failed" / "no-uri" never do', async () => {
+    nativeStart.mockResolvedValueOnce('silent');
+    await expect(ringIncoming('c-1')).resolves.toBe('silent');
+    expect(isNativeRingActive('c-1')).toBe(false);
+    nativeStart.mockResolvedValueOnce('failed');
+    await expect(ringIncoming('c-2')).resolves.toBe('failed');
+    expect(isNativeRingActive('c-2')).toBe(false);
+    nativeStart.mockResolvedValueOnce('no-uri');
+    await expect(ringIncoming('c-3')).resolves.toBe('no-uri');
+    expect(isNativeRingActive('c-3')).toBe(false);
+    nativeStart.mockResolvedValueOnce('started');
+    await expect(ringIncoming('c-4')).resolves.toBe('started');
+    expect(isNativeRingActive('c-4')).toBe(true);
+  });
+
+  it('a rejected native start is "failed", never a throw', async () => {
+    nativeStart.mockRejectedValueOnce(new Error('binder died'));
+    await expect(ringIncoming('c-5')).resolves.toBe('failed');
+  });
+
+  it('no native module is "unavailable" (the ring screen then plays the bundled tone)', async () => {
+    delete nativeModules.BravoRingtone;
+    await expect(ringIncoming('c-6')).resolves.toBe('unavailable');
+  });
 });
 
 describe('incomingRingtone wrapper', () => {
@@ -142,33 +171,33 @@ describe('showIncomingCallNotif — silent v2 channel + native ring', () => {
 });
 
 describe('NA-06 — native ring ownership', () => {
-  it('is unowned before any ring, owned after start, and only for that callId', () => {
+  it('is unowned before any ring, owned after start, and only for that callId', async () => {
     expect(isNativeRingActive('c-77')).toBe(false);
-    startIncomingRingtone('c-77');
+    await ringIncoming('c-77');
     expect(isNativeRingActive('c-77')).toBe(true);
     expect(isNativeRingActive('other')).toBe(false);
   });
 
-  it('stop(callId) and stop(null) both release ownership', () => {
-    startIncomingRingtone('c-77');
+  it('stop(callId) and stop(null) both release ownership', async () => {
+    await ringIncoming('c-77');
     stopIncomingRingtone('c-77', 'test');
     expect(isNativeRingActive('c-77')).toBe(false);
 
-    startIncomingRingtone('c-78');
+    await ringIncoming('c-78');
     stopIncomingRingtone(null, 'sweep');
     expect(isNativeRingActive('c-78')).toBe(false);
   });
 
-  it('stop for a DIFFERENT callId does not release ownership', () => {
-    startIncomingRingtone('c-77');
+  it('stop for a DIFFERENT callId does not release ownership', async () => {
+    await ringIncoming('c-77');
     stopIncomingRingtone('c-99', 'other');
     expect(isNativeRingActive('c-77')).toBe(true);
   });
 
-  it('ownership self-expires at RING_TIMEOUT_MS', () => {
+  it('ownership self-expires at RING_TIMEOUT_MS', async () => {
     const t0 = 1_000_000;
     const now = jest.spyOn(Date, 'now').mockReturnValue(t0);
-    startIncomingRingtone('c-77');
+    await ringIncoming('c-77');
     now.mockReturnValue(t0 + RING_TIMEOUT_MS - 1);
     expect(isNativeRingActive('c-77')).toBe(true);
     now.mockReturnValue(t0 + RING_TIMEOUT_MS);
@@ -176,19 +205,19 @@ describe('NA-06 — native ring ownership', () => {
     now.mockRestore();
   });
 
-  it('missing native module never claims ownership (iOS / old APK still plays the in-app tone)', () => {
+  it('missing native module never claims ownership (iOS / old APK still plays the in-app tone)', async () => {
     delete nativeModules.BravoRingtone;
-    startIncomingRingtone('c-77');
+    await ringIncoming('c-77');
     expect(isNativeRingActive('c-77')).toBe(false);
   });
 
-  it('bindInAppRingOwnership fires immediately, flips on start/stop, and unsubscribes', () => {
+  it('bindInAppRingOwnership fires immediately, flips on start/stop, and unsubscribes', async () => {
     const cb = jest.fn();
     const unbind = bindInAppRingOwnership('c-77', cb);
     expect(cb).toHaveBeenCalledTimes(1);
     expect(cb).toHaveBeenLastCalledWith(true);
 
-    startIncomingRingtone('c-77');
+    await ringIncoming('c-77');
     expect(cb).toHaveBeenLastCalledWith(false);
 
     stopIncomingRingtone('c-77', 'test');
@@ -196,7 +225,7 @@ describe('NA-06 — native ring ownership', () => {
     expect(cb).toHaveBeenCalledTimes(3);
 
     unbind();
-    startIncomingRingtone('c-77');
+    await ringIncoming('c-77');
     expect(cb).toHaveBeenCalledTimes(3);
   });
 
@@ -214,21 +243,21 @@ describe('NA-06 — native ring ownership', () => {
     expect(isNativeRingActive('c-77')).toBe(false);
   });
 
-  it('an undefined callId always owns the in-app tone', () => {
-    startIncomingRingtone('c-77');
+  it('an undefined callId always owns the in-app tone', async () => {
+    await ringIncoming('c-77');
     const cb = jest.fn();
     bindInAppRingOwnership(undefined, cb);
     expect(cb).toHaveBeenLastCalledWith(true);
   });
 
-  it('a throwing listener does not break start/stop', () => {
+  it('a throwing listener does not break start/stop', async () => {
     let armed = false;
     const bad = jest.fn(() => { if (armed) { throw new Error('boom'); } });
     const good = jest.fn();
     const unbindBad = bindInAppRingOwnership('c-77', bad as unknown as (owns: boolean) => void);
     const unbindGood = bindInAppRingOwnership('c-77', good);
     armed = true;
-    expect(() => startIncomingRingtone('c-77')).not.toThrow();
+    await expect(ringIncoming('c-77')).resolves.toBe('started');
     expect(good).toHaveBeenLastCalledWith(false);
     expect(() => stopIncomingRingtone('c-77', 'test')).not.toThrow();
     expect(good).toHaveBeenLastCalledWith(true);

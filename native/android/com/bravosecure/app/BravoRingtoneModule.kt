@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -33,6 +34,10 @@ import com.facebook.react.bridge.ReactMethod
  *   - Respects ringer mode: silent/vibrate-only -> no playback (the
  *     notification channel's vibration pattern still runs).
  *   - Idempotent per callId; a new callId preempts the previous ring.
+ *   - 2026-10-25: start() RESOLVES what actually happened — "started",
+ *     "silent" (ringer is silent/vibrate: deliberately no sound), "no-uri" or
+ *     "failed" — so JS only treats the call as ringing when it really is and
+ *     can fall back to the bundled tone instead of leaving the call silent.
  */
 class BravoRingtoneModule(private val reactCtx: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactCtx) {
@@ -46,26 +51,32 @@ class BravoRingtoneModule(private val reactCtx: ReactApplicationContext) :
   override fun getName(): String = "BravoRingtone"
 
   @ReactMethod
-  fun start(callId: String, timeoutMs: Double) {
+  fun start(callId: String, timeoutMs: Double, promise: Promise?) {
     mainHandler.post {
+      var result = "failed"
       try {
         synchronized(this) {
-          if (activeCallId == callId && player?.isPlaying == true) return@post
+          if (activeCallId == callId && player?.isPlaying == true) {
+            result = "started"
+            return@synchronized
+          }
           stopLocked("preempted")
 
           val audio = reactCtx.getSystemService(android.content.Context.AUDIO_SERVICE) as AudioManager
           // Silent / vibrate-only: the channel vibration still fires; no sound.
           if (audio.ringerMode != AudioManager.RINGER_MODE_NORMAL) {
             Log.i(TAG, "start skipped ringerMode=${audio.ringerMode} call=$callId")
-            return@post
+            result = "silent"
+            return@synchronized
           }
 
           val uri = RingtoneManager.getActualDefaultRingtoneUri(reactCtx, RingtoneManager.TYPE_RINGTONE)
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-            ?: run {
-              Log.w(TAG, "no default ringtone uri — silent ring call=$callId")
-              return@post
-            }
+          if (uri == null) {
+            Log.w(TAG, "no default ringtone uri call=$callId")
+            result = "no-uri"
+            return@synchronized
+          }
 
           val attrs = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
@@ -102,11 +113,14 @@ class BravoRingtoneModule(private val reactCtx: ReactApplicationContext) :
           autoStopRunnable = guard
           mainHandler.postDelayed(guard, timeoutMs.toLong().coerceIn(1_000L, 120_000L))
           Log.i(TAG, "ring started call=$callId")
+          result = "started"
         }
       } catch (t: Throwable) {
         Log.e(TAG, "start failed", t)
         synchronized(this) { stopLocked("start-failed") }
+        result = "failed"
       }
+      try { promise?.resolve(result) } catch (_: Throwable) {}
     }
   }
 

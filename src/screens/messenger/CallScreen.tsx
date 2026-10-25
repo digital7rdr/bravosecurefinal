@@ -1357,35 +1357,14 @@ function CallScreenInner({route, navigation}: Props) {
     if (!isIncoming && liveCall.state === 'connecting') {Vibration.vibrate(12);}
   }, [isIncoming, liveCall.state]);
 
-  // Ringtone for incoming calls. We DELIBERATELY do not use
-  // InCallManager.startRingtone('_DEFAULT_'): its content-resolver
-  // path fails with FileNotFoundException on Android 14+ Pixels
-  // (logcat: "Error setting data source via ContentResolver" →
-  // ENOENT), which silently swallowed all incoming-call audio.
-  // Bravo ships its own WAV asset; see runtime/bravoTones.ts.
-  // Vibration stays as a hardware-guaranteed fallback for silent mode.
+  // Ringtone for incoming calls — 2026-10-25 (owner): the phone's own DEFAULT
+  // RINGTONE at ringer volume, even with Bravo open (runtime/screenRing.ts).
+  // The bundled tone is only the fallback when the device ringtone cannot
+  // play; a silent/vibrate ringer stays silent (vibration still runs).
   useEffect(() => {
-    if (!isRinging) {return;}
-
-    const tones = require('@/modules/messenger/runtime/bravoTones') as typeof import('@/modules/messenger/runtime/bravoTones');
-    const ring  = require('@/modules/messenger/push/incomingRingtone') as typeof import('@/modules/messenger/push/incomingRingtone');
-    // Why: on a warm-background ring the notifee wake path is ALREADY looping
-    // the device-default ringtone for this callId (NA-06). Stay silent while it
-    // owns the call; take over the instant the dismiss funnel stops it.
-    const unbind = ring.bindInAppRingOwnership(callId, owns => {
-      if (owns) {
-        void tones.startRingtone();
-        Vibration.vibrate([0, 800, 1200, 800], true);
-      } else {
-        void tones.stopRingtone();
-        Vibration.cancel();
-      }
-    });
-    return () => {
-      unbind();
-      void tones.stopRingtone();
-      Vibration.cancel();
-    };
+    if (!isRinging || !callId) {return;}
+    const {startScreenRing} = require('@/modules/messenger/runtime/screenRing') as typeof import('@/modules/messenger/runtime/screenRing');
+    return startScreenRing(callId);
   }, [isRinging, callId]);
 
   // Ringback tone for OUTGOING calls — the "calling…" beep the caller

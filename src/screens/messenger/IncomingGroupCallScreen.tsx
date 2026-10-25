@@ -15,7 +15,7 @@
  */
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform, Vibration,
+  View, Text, StyleSheet, TouchableOpacity, StatusBar, Platform,
   BackHandler,
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
@@ -158,27 +158,12 @@ export default function IncomingGroupCallScreen({route, navigation}: Props) {
     // into the call. Also skip entirely when the ring is non-actionable.
     if (autoAccept || roomMissing) {return;}
 
-    const tones = require('@/modules/messenger/runtime/bravoTones') as typeof import('@/modules/messenger/runtime/bravoTones');
-    const ring  = require('@/modules/messenger/push/incomingRingtone') as typeof import('@/modules/messenger/push/incomingRingtone');
-    // Why: the group voip-wake rings natively under the roomId (the gateway
-    // reuses it as the callId), so an in-app tone here would double it (NA-06).
-    let vibTimer: ReturnType<typeof setTimeout> | null = null;
-    const unbindRing = ring.bindInAppRingOwnership(roomId, owns => {
-      if (owns) {
-        void tones.startRingtone();
-        vibTimer = setTimeout(() => { Vibration.vibrate([0, 800, 1200, 800], true); }, 50);
-      } else {
-        if (vibTimer) { clearTimeout(vibTimer); vibTimer = null; }
-        void tones.stopRingtone();
-        Vibration.cancel();
-      }
-    });
-    return () => {
-      if (vibTimer) { clearTimeout(vibTimer); }
-      unbindRing();
-      void tones.stopRingtone();
-      Vibration.cancel();
-    };
+    // 2026-10-25 (owner) — the phone's own default ringtone (screenRing.ts).
+    // The group voip-wake rings natively under the roomId (the gateway reuses
+    // it as the callId); the native module is idempotent per id, so this
+    // joins that ring instead of doubling it.
+    const {startScreenRing} = require('@/modules/messenger/runtime/screenRing') as typeof import('@/modules/messenger/runtime/screenRing');
+    return startScreenRing(roomId, {vibrateDelayMs: 50});
     // B-480 — re-keyed per ring, which is only safe now that the tone slot is.
     //
     // A navigator can hand this mounted instance a NEW ring by swapping

@@ -23,8 +23,13 @@ import {NativeModules, Platform} from 'react-native';
 /** Must match the ring notification's `timeoutAfter` (PUSH-B5, 45s). */
 export const RING_TIMEOUT_MS = 45_000;
 
+/** What the native module actually did (2026-10-25). An older native build returns undefined. */
+export type NativeRingResult = 'started' | 'silent' | 'no-uri' | 'failed';
+/** ringIncoming's verdict: 'unavailable' = no native module (iOS / tests). */
+export type RingResult = NativeRingResult | 'unavailable';
+
 interface BravoRingtoneNative {
-  start(callId: string, timeoutMs: number): void;
+  start(callId: string, timeoutMs: number): Promise<NativeRingResult> | void;
   stop(callId: string | null): void;
 }
 
@@ -81,17 +86,42 @@ export function bindInAppRingOwnership(
   return () => { ringListeners.delete(apply); };
 }
 
-export function startIncomingRingtone(callId: string): void {
+/**
+ * 2026-10-25 (owner: "use the default phone ring for the app") — ring an
+ * incoming call with the DEVICE-DEFAULT ringtone, from every surface: the
+ * notification card AND the in-app ring screens. Resolves what really
+ * happened, so a caller only treats the call as ringing when it is:
+ *   'started'      the phone's ringtone is playing (ringer volume);
+ *   'silent'       ringer is silent / vibrate — deliberately no sound;
+ *   'no-uri' / 'failed' / 'unavailable'  — the caller should fall back to
+ *                  the bundled tone so the call is never silent by accident.
+ * Idempotent per callId on the native side (a second start for the ringing
+ * call resolves 'started' without restarting the sound).
+ */
+export async function ringIncoming(callId: string): Promise<RingResult> {
+  const mod = native();
+  if (!mod) {return 'unavailable';}
+  let result: RingResult;
   try {
-    const mod = native();
-    if (!mod) {return;}
-    mod.start(callId, RING_TIMEOUT_MS);
-    activeRing = {callId, at: Date.now()};
-    console.log('[bravo.ring] start call=' + callId);
-    notifyRingListeners();
+    const r = await mod.start(callId, RING_TIMEOUT_MS);
+    // An older native build has no promise: assume it started (old behaviour).
+    result = r ?? 'started';
   } catch (e) {
     console.warn('[bravo.ring] start failed:', (e as Error).message);
+    result = 'failed';
   }
+  if (result === 'started') {
+    activeRing = {callId, at: Date.now()};
+    notifyRingListeners();
+  } else if (result !== 'silent') {
+    console.warn('[bravo.ring] device ringtone did not start: ' + result + ' call=' + callId);
+  }
+  return result;
+}
+
+/** Fire-and-forget form used by the notification card. */
+export function startIncomingRingtone(callId: string): void {
+  void ringIncoming(callId);
 }
 
 /** callId null = stop whatever is ringing (defensive sweep on logout/teardown). */
