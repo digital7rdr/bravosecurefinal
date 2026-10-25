@@ -708,6 +708,8 @@ export type CpoTabParamList = {
   CpoMission: undefined;
   CpoComms: NavigatorScreenParams<MessengerStackParamList> | undefined;
   CpoDept: undefined;
+  /** 2026-10-25 — Bravo Feed (news) as a guard tab. */
+  CpoFeed: NavigatorScreenParams<NewsStackParamList> | undefined;
   CpoMe: undefined;
 };
 

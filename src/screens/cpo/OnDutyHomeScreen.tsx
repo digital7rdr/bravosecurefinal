@@ -181,8 +181,14 @@ export default function OnDutyHomeScreen() {
       <StatusBar barStyle="light-content" backgroundColor={D.bg} />
       <View style={s.header}>
         <View style={s.accentBar} />
-        <Text style={s.headerTitle}>ON DUTY</Text>
+        <Text style={s.headerTitle}>MISSION</Text>
         <View style={[s.dutyDot, {backgroundColor: !onDuty ? D.textMute : dispatchable ? D.signal : D.amber}]} />
+        {/* 2026-10-25 — the profile left the tab bar; it opens from here. */}
+        <TouchableOpacity onPress={() => navigation.navigate('CpoMe')} style={s.avatarBtn}
+          accessibilityRole="button" accessibilityLabel="My profile"
+          hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+          <Icon name="account-circle-outline" size={24} color={D.accentSoft} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={[s.body, {paddingBottom: insets.bottom + 24}]} showsVerticalScrollIndicator={false}
@@ -200,7 +206,7 @@ export default function OnDutyHomeScreen() {
           <TouchableOpacity activeOpacity={0.9} onPress={() => navigation.navigate('Departmental')} style={s.deptCard}>
             <View style={s.deptIcon}><Icon name="office-building-outline" size={20} color={D.accentSoft} /></View>
             <View style={{flex: 1}}>
-              <Text style={s.deptTitle}>Department</Text>
+              <Text style={s.deptTitle}>Workspace</Text>
               <Text style={s.deptSub}>Attendance · channels · report incident</Text>
             </View>
             <Icon name="chevron-right" size={18} color={D.accentSoft} />
@@ -261,7 +267,8 @@ export default function OnDutyHomeScreen() {
           : mission ? (
             <TouchableOpacity activeOpacity={0.9} onPress={() => navigation.navigate('CpoMission')} style={s.missionCard}>
               <View style={s.missionTop}>
-                <Text style={s.missionCode}>{mission.short_code}</Text>
+                {/* 2026-10-25 — owner: no mission code on the guard's screens. */}
+                <Text style={s.missionCode}>Assigned mission</Text>
                 <View style={[s.chip, mission.is_lead ? {borderColor: 'rgba(245,199,107,0.4)', backgroundColor: 'rgba(245,199,107,0.10)'} : {borderColor: D.hair}]}>
                   <Text style={[s.chipText, {color: mission.is_lead ? D.amber : D.textDim}]}>{mission.is_lead ? '★ LEAD' : 'CREW'}</Text>
                 </View>
@@ -344,6 +351,7 @@ const s = StyleSheet.create(scaleTextStyles({
   sectionLabel: {fontFamily: D.fSemi, fontSize: 10, letterSpacing: 1.5, color: D.textMute, marginTop: 8, marginLeft: 2},
   missionCard: {borderRadius: 18, padding: 16, gap: 4, backgroundColor: 'rgba(255,255,255,0.025)', borderWidth: 1, borderColor: D.hair},
   missionTop: {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'},
+  avatarBtn: {marginLeft: 12, width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.09)'},
   missionCode: {fontFamily: D.fBold, fontSize: 16, color: D.text, letterSpacing: 0.5},
   chip: {paddingHorizontal: 9, paddingVertical: 4, borderRadius: 7, borderWidth: 1},
   chipText: {fontFamily: D.fBold, fontSize: 9.5, letterSpacing: 0.8},

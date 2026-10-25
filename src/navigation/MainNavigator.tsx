@@ -442,6 +442,27 @@ export default function MainNavigator() {
     return () => clearTimeout(t);
   }, [mountedProduct, activeProduct]);
 
+  // 2026-10-25 — the welcome page's Workspace card mounts Messenger and asks
+  // for the Workspace hub. Open it once the Messenger tree is mounted (a few
+  // frames after the product switch), then clear the request.
+  const landing = useProductStore(s => s.landing);
+  useEffect(() => {
+    if (landing !== 'workspace' || activeProduct !== 'messenger' || mountedProduct !== 'messenger' || gateVisible) {return;}
+    let tries = 0;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const attempt = (): void => {
+      const {openWorkspaceHubFromRoot} = require('./departmentalEntry') as typeof import('./departmentalEntry');
+      if (openWorkspaceHubFromRoot()) {
+        useProductStore.getState().clearLanding();
+        return;
+      }
+      if (++tries > 30) {useProductStore.getState().clearLanding(); return;}
+      timer = setTimeout(attempt, 100);
+    };
+    attempt();
+    return () => { if (timer) {clearTimeout(timer);} };
+  }, [landing, activeProduct, mountedProduct, gateVisible]);
+
   const navigation = useNavigation<{setParams: (p: object) => void}>();
   // A provider who just signed up is still role='individual' until they create
   // their company agent. The persisted pendingProvider flag bridges that window

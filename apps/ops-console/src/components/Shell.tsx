@@ -14,6 +14,7 @@ import NotificationBell from './NotificationBell';
 import OpsNotifier from './OpsNotifier';
 import SosAlertBar from './SosAlertBar';
 import {HomeSiteLink} from './HomeSiteLink';
+import {IDLE_SIGN_OUT_MS} from '@/lib/idleSignOut';
 
 // Audit fix 4.1 — refresh the access cookie this many seconds BEFORE it
 // expires so a long-running request doesn't race the rotation. 60s gives
@@ -23,7 +24,8 @@ const REFRESH_LEAD_SEC = 60;
 // Audit fix 4.1 — idle timeout. Q5 decision: 15 minutes of no activity
 // (mouse/keyboard/touch/visibilitychange) → logout. Reset on any input
 // event so an admin reading a long card doesn't get bounced mid-glance.
-const IDLE_TIMEOUT_MS = 15 * 60 * 1000;
+// 2026-10-25 — off unless NEXT_PUBLIC_IDLE_SIGN_OUT_MINUTES is set (lib/idleSignOut).
+const IDLE_TIMEOUT_MS = IDLE_SIGN_OUT_MS;
 
 const RAIL_COLLAPSED_KEY = 'bravo_ops_rail_collapsed';
 
@@ -234,6 +236,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (hasToken !== true) return;
+    if (!IDLE_TIMEOUT_MS) return; // idle sign-out switched off
     if (typeof window === 'undefined') return;
 
     function fire() {

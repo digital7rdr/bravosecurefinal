@@ -93,7 +93,7 @@ export default function AgenciesPage() {
   return (
     <>
       <PageHeader
-        title="Provider Agencies"
+        title="Service Providers"
         subtitle="Organisations that receive Lite dispatch offers and employ the CPOs who run the missions. Their compliance validity and their acceptance record decide whether they keep getting work."
         badges={<span className="pill">{rows.length} LISTED</span>}
       />
@@ -103,7 +103,7 @@ export default function AgenciesPage() {
         tabs={[
           {href: routes.people.clients, label: 'Clients'},
           {href: routes.people.agents, label: 'Agents (CPOs)', prefix: true},
-          {href: routes.people.agencies, label: 'Provider Agencies', prefix: true},
+          {href: routes.people.agencies, label: 'Service Providers', prefix: true},
           {href: routes.people.compliance, label: 'Compliance'},
           {href: routes.people.users, label: 'All Users', prefix: true},
         ]}
@@ -125,7 +125,7 @@ export default function AgenciesPage() {
       </div>
 
       <DataTable
-        ariaLabel="Provider agencies"
+        ariaLabel="Service providers"
         rows={rows}
         columns={columns}
         rowKey={a => a.id}

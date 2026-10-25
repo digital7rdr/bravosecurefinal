@@ -72,6 +72,6 @@ export function browserLabel(): string {
   const os = /Windows/.test(ua) ? 'Windows' : /Mac OS X|Macintosh/.test(ua) ? 'Mac' : /Android/.test(ua) ? 'Android'
     : /iPhone|iPad/.test(ua) ? 'iOS' : /Linux/.test(ua) ? 'Linux' : '';
   const host = typeof window !== 'undefined' ? window.location.hostname.split('.')[0] : '';
-  const where = host === 'web' ? 'Bravo Web' : host === 'ops' ? 'Ops console' : host === 'provider' ? 'Provider console' : '';
+  const where = host === 'web' ? 'Bravo Web' : host === 'ops' ? 'Ops console' : host === 'provider' ? 'Service Provider console' : '';
   return [`${browser}${os ? ` on ${os}` : ''}`, where].filter(Boolean).join(' · ');
 }

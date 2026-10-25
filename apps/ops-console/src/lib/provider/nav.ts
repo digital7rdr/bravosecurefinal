@@ -26,7 +26,7 @@ export const PROVIDER_NAV: PvNavGroup[] = [
   ]},
   {label: 'Crew & fleet', items: [
     {href: pvRoutes.crew, label: 'Officers', icon: 'people', modules: ['roster']},
-    {href: pvRoutes.departments, label: 'Departments', icon: 'tree', modules: ['dept']},
+    {href: pvRoutes.departments, label: 'Workspace', icon: 'tree', modules: ['dept']},
     {href: pvRoutes.vehicles, label: 'Vehicles', icon: 'car', modules: ['fleet']},
     {href: pvRoutes.managers, label: 'Managers', icon: 'key', ownerOnly: true},
   ]},

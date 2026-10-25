@@ -34,7 +34,7 @@ export const BOOKING_STATUS: Record<BookingStatus, StatusMeta> = {
   OPS_APPROVED:    {label: 'Ops Approved',    tone: 'info',  hint: 'Approved — published to the job feed'},
   PAYMENT_PENDING: {label: 'Payment Pending', tone: 'warn',  hint: 'Awaiting the client’s payment'},
   DISPATCHING:     {label: 'Dispatching',     tone: 'info',  hint: 'Auto-dispatch is offering it to agencies'},
-  NO_PROVIDER:     {label: 'No Provider',     tone: 'warn',  hint: 'Auto-dispatch found nobody — needs a human'},
+  NO_PROVIDER:     {label: 'No Service Provider',     tone: 'warn',  hint: 'Auto-dispatch found nobody — needs a human'},
   AGENCY_NO_SHOW:  {label: 'Agency No-Show',  tone: 'err',   hint: 'Accepted then failed to arrive'},
   CONFIRMED:       {label: 'Confirmed',       tone: 'ok',    hint: 'Crew assigned, not started'},
   LIVE:            {label: 'Live',            tone: 'live',  hint: 'Mission in progress'},

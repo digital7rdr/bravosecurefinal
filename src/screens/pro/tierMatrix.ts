@@ -40,7 +40,7 @@ export const PRO_FEATURES = [
 // its routes and `attendanceApi` are untouched.
 export const ENTERPRISE_FEATURES = [
   ...PRO_FEATURES,
-  'Department Channels',
+  'Workspace',
   'Attendance Tracking',
   'Incident Reporting',
 ];
@@ -131,7 +131,7 @@ export const PRODUCT_PLANS: Record<'messenger' | 'secure' | 'vbg', ProductPlan[]
     },
     {
       tier: 'enterprise', title: 'Enterprise', eyebrow: 'Business · Subscription',
-      desc: 'Run your team: Department Channels, attendance and incident reporting.',
+      desc: 'Run your team: Workspace channels, attendance and incident reporting.',
       features: ENTERPRISE_FEATURES,
     },
   ],

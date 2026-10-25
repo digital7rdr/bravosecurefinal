@@ -44,7 +44,7 @@ export default function AgencyDetailPage({params}: {params: Promise<{id: string}
   if (error) {
     return (
       <>
-        <PageHeader title="Provider Agency" back={{href: routes.people.agencies, label: 'Provider agencies'}} />
+        <PageHeader title="Service Provider" back={{href: routes.people.agencies, label: 'Service providers'}} />
         <div className="card" style={{padding: 24, color: 'var(--err)'}}>
           Could not load this agency. It may not exist, or it may be outside your region scope.
         </div>
@@ -71,8 +71,8 @@ export default function AgencyDetailPage({params}: {params: Promise<{id: string}
   return (
     <>
       <PageHeader
-        crumbs={['People', 'Provider Agencies', a?.display_name ?? '…']}
-        back={{href: routes.people.agencies, label: 'Provider agencies'}}
+        crumbs={['People', 'Service Providers', a?.display_name ?? '…']}
+        back={{href: routes.people.agencies, label: 'Service providers'}}
         title={a?.display_name ?? (isLoading ? 'Loading…' : 'Agency')}
         badges={a?.suspended_at
           ? <span className="pill pill-err">SUSPENDED</span>

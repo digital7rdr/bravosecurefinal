@@ -40,7 +40,7 @@ export default function StructurePage({params}: {params: Promise<{id: string}>})
   return (
     <>
       <PageHeader
-        crumbs={['Enterprise', 'Departments', data?.org.display_name ?? '…', 'Structure']}
+        crumbs={['Enterprise', 'Workspaces', data?.org.display_name ?? '…', 'Structure']}
         back={{href: routes.enterprise.org(id), label: data?.org.display_name ?? 'Organisation'}}
         title="Channel structure"
         subtitle={<>Levels, channels and who sits where for <b>{orgName}</b>.</>}

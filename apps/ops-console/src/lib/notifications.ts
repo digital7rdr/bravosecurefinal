@@ -35,7 +35,7 @@ export function notificationTitle(item: Pick<FeedItem, 'kind' | 'severity'>): st
     case 'booking.reject':       return 'Booking rejected';
     case 'booking.dispatch':     return 'Booking dispatched';
     case 'booking.complete':     return 'Booking completed';
-    case 'dispatch.accept':      return 'Provider accepted';
+    case 'dispatch.accept':      return 'Service provider accepted';
     case 'dispatch.no_provider': return 'Dispatch failed';
     case 'job.publish':          return 'Job published';
     case 'application.submit':   return 'New job application';

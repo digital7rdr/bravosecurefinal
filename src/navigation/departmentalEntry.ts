@@ -201,8 +201,8 @@ export function openDepartmentChannels(
   // is a transient "try again" — never a statement about the account type, and
   // never an instruction to open a tab this tree provably does not have.
   Alert.alert(
-    'Department Channels unavailable',
-    'Department Channels couldn’t be opened right now. Please try again.',
+    'Workspace unavailable',
+    'Workspace couldn’t be opened right now. Please try again.',
   );
   return {ok: false, via: 'none'};
 }
@@ -246,6 +246,21 @@ export function openWorkspaceHub(nav: ResolvableNavigation): EntryResult {
     return {ok: true, via: 'sibling'};
   }
   return {ok: false, via: 'none'};
+}
+
+/**
+ * 2026-10-25 — the welcome page's Workspace card: open the Workspace hub from
+ * the ROOT (no screen navigation object exists yet — the Messenger product
+ * tree has only just mounted). Same sibling dispatch as openWorkspaceHub's
+ * client-shell branch. Returns false while the tree is not mounted yet.
+ */
+export function openWorkspaceHubFromRoot(): boolean {
+  if (!navigationRef.isReady() || !mountedTreeHasRoute('MessengerTab')) {return false;}
+  navigationRef.dispatch(CommonActions.navigate('Main', {
+    screen: 'MessengerTab',
+    params: {screen: 'WorkspaceHub', initial: false},
+  }));
+  return true;
 }
 
 /**

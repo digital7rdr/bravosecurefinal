@@ -44,7 +44,7 @@ const ROLES: Array<{label: string; value?: string}> = [
   {label: 'Everyone'},
   {label: 'Clients', value: 'individual'},
   {label: 'Agents (CPOs)', value: 'agent'},
-  {label: 'Provider agencies', value: 'service_provider'},
+  {label: 'Service providers', value: 'service_provider'},
 ];
 
 const LIMIT_MAX = 500;
@@ -178,7 +178,7 @@ export function UsersDirectory({scope}: {scope: DirectoryScope}) {
         tabs={[
           {href: routes.people.clients, label: 'Clients'},
           {href: routes.people.agents, label: 'Agents (CPOs)', prefix: true},
-          {href: routes.people.agencies, label: 'Provider Agencies', prefix: true},
+          {href: routes.people.agencies, label: 'Service Providers', prefix: true},
           {href: routes.people.compliance, label: 'Compliance'},
           {href: routes.people.users, label: 'All Users', prefix: true},
         ]}

@@ -2,7 +2,7 @@ import type {Metadata} from 'next';
 import type {ReactNode} from 'react';
 
 export const metadata: Metadata = {
-  title: 'Bravo Provider Console',
+  title: 'Bravo Service Provider Console',
   description: 'Bravo Secure — run your agency: jobs, officers and earnings',
 };
 

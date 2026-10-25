@@ -7,7 +7,7 @@ import {pvAuth, PV_CSRF_COOKIE, PV_EXPIRES_KEY, PV_IDLE_KEY, PV_PW_CHANGED_KEY} 
 const NOTICES = [{key: PV_PW_CHANGED_KEY, text: 'Password changed. Sign in again with your new password.'}];
 
 const BRAND: AuthBrand = {
-  kicker: 'Provider Console',
+  kicker: 'Service Provider Console',
   headline: 'Run your agency on Bravo',
   lede: 'Accept Lite and Executive jobs, crew and dispatch your officers, track live missions and follow your earnings.',
   points: [

@@ -161,7 +161,7 @@ describe('Issue 28 — the code NEVER influences dispatch', () => {
 describe('Issue 28 — the client field', () => {
   it('sits on the booking flow before final submission', () => {
     const src = code(SCREEN);
-    expect(src).toContain('Provider / referral code (optional)');
+    expect(src).toContain('Service provider / referral code (optional)');
     expect(src).toMatch(/value=\{referralCode\}/);
   });
 

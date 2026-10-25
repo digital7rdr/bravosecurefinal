@@ -157,7 +157,7 @@ export function ReviewHoldAction({
             }}>
               <Fact k="Gross held" v={<span className="dt-val">{Number(hold.gross_credits).toLocaleString()} BC</span>} />
               <Fact k="Client" v={hold.client_name ?? '—'} />
-              <Fact k="Provider" v={hold.provider_name ?? '—'} />
+              <Fact k="Service Provider" v={hold.provider_name ?? '—'} />
               <Fact k="Region" v={hold.region_label || hold.region_code} />
               <Fact k="Held" v={formatDateTimeUtc(hold.held_at)} />
               <Fact k="Finish pressed" v={hold.completed_at ? formatDateTimeUtc(hold.completed_at) : '—'} />

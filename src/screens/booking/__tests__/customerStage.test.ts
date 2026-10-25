@@ -62,7 +62,7 @@ describe('stageFor — the server stage wins, the local mirror only fills a gap'
 describe('the copy', () => {
   it('uses the founder\'s words at each stage', () => {
     expect(stageCopy('finding_provider').headline).toBe('Finding a secure service provider');
-    expect(stageCopy('provider_accepted').headline).toBe('Provider accepted your mission');
+    expect(stageCopy('provider_accepted').headline).toBe('Service provider accepted your mission');
     expect(stageCopy('team_dispatched').headline).toBe('Team dispatched');
     expect(stageCopy('service_started').headline).toBe('Protection service started');
     expect(stageCopy('completed').headline).toBe('Service completed');

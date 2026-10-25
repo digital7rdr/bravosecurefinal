@@ -242,7 +242,7 @@ export function EscrowTab() {
             <thead className={thead}>
               <tr>
                 <th className={th}>Held</th><th className={th}>Booking</th><th className={th}>Region</th>
-                <th className={th}>Client</th><th className={th}>Provider</th>
+                <th className={th}>Client</th><th className={th}>Service Provider</th>
                 <th className={`${th} text-right`}>Gross</th><th className={`${th} text-right`}>Split P/C/Fee</th>
                 <th className={th}>Status</th><th className={th}>Timeline</th>
                 <th className={th} />

@@ -33,10 +33,10 @@ export default function ProviderDepartments() {
     place: pvStructureApi.place,
   }), []);
 
-  if (!allowed) {return <PvPage title="Departments"><NotGranted what="Departments" /></PvPage>;}
+  if (!allowed) {return <PvPage title="Workspace"><NotGranted what="Workspace" /></PvPage>;}
 
   return (
-    <PvPage title="Departments" subtitle="Your levels, their channels, and who sits where. Members see their own level and everything below it.">
+    <PvPage title="Workspace" subtitle="Your levels, their channels, and who sits where. Members see their own level and everything below it.">
       {error && <div className="card" style={{padding: 20, color: 'var(--err)'}}>Could not load your departments.</div>}
       {!data && !error && <div className="card"><div className="skel-row" /><div className="skel-row" /></div>}
       {data && (

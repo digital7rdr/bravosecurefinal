@@ -14,6 +14,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useAuthStore} from '@store/authStore';
 import MessengerNavigator from './MessengerNavigator';
 import DepartmentalNavigator from './DepartmentalNavigator';
+import NewsNavigator from './NewsNavigator';
 import OnDutyHomeScreen from '@screens/cpo/OnDutyHomeScreen';
 import AssignedMissionDetailScreen from '@screens/cpo/AssignedMissionDetailScreen';
 import AgentLiveTrackerScreen from '@screens/agent/AgentLiveTrackerScreen';
@@ -35,13 +36,20 @@ const RootStack = createNativeStackNavigator<CpoRootStackParamList>();
 
 // Icon map for the shared ObsidianTabBar — the SAME renderer the root app
 // shell and DepartmentalNavigator use, so this bar is pixel-identical to those.
+// 2026-10-25 — owner: the guard's bar is Mission · Messenger · Workspace ·
+// Bravo Feed. "Mission" is the duty home (On-duty switch + your mission card);
+// the mission detail and the profile stay registered as HIDDEN tabs (every
+// navigate('CpoMission' / 'CpoMe') keeps working) and are opened from that
+// home — the mission card and the avatar button.
 const TAB_ICONS: Record<string, ObsidianTabIcon> = {
-  CpoDuty:    {default: 'radar',                        active: 'radar',                        label: 'On Duty'},
+  CpoDuty:    {default: 'shield-account-outline',       active: 'shield-account',                label: 'Mission'},
   CpoMission: {default: 'shield-account-outline',       active: 'shield-account',                label: 'Mission'},
-  CpoComms:   {default: 'message-text-outline',         active: 'message-text',                  label: 'Comms'},
-  CpoDept:    {default: 'office-building-outline',      active: 'office-building',                label: 'Dept'},
+  CpoComms:   {default: 'message-text-outline',         active: 'message-text',                  label: 'Messenger'},
+  CpoDept:    {default: 'office-building-outline',      active: 'office-building',                label: 'Workspace'},
+  CpoFeed:    {default: 'newspaper-variant-outline',    active: 'newspaper-variant',              label: 'Bravo Feed'},
   CpoMe:      {default: 'account-circle-outline',       active: 'account-circle',                label: 'Me'},
 };
+const HIDDEN_TAB = {tabBarButton: () => null} as const;
 
 // The Departmental module is its own tab navigator, so it can't be mounted as a
 // nested tab here (double footer). This placeholder never renders content — the
@@ -52,7 +60,7 @@ const DeptTabPlaceholder = () => <View style={styles.root} />;
 // (an inline arrow in `tabBar={…}` is a new type every render and remounts
 // the bar). Reads only module constants, so nothing is lost by hoisting.
 function renderCpoTabBar(props: BottomTabBarProps) {
-  return <ObsidianTabBar {...props} icons={TAB_ICONS} bg={D.bg} accent={D.accent} mute={D.textMute} />;
+  return <ObsidianTabBar {...props} icons={TAB_ICONS} bg={D.bg} accent={D.accent} mute={D.textMute} standInTab="CpoDuty" />;
 }
 const styles = StyleSheet.create({root: {flex: 1, backgroundColor: '#0A1F3F'}});
 
@@ -125,7 +133,7 @@ function CpoTabs() {
       backBehavior="firstRoute"
       tabBar={renderCpoTabBar}>
       <Tab.Screen name="CpoDuty" component={OnDutyHomeScreen} />
-      <Tab.Screen name="CpoMission" component={AssignedMissionDetailScreen} />
+      <Tab.Screen name="CpoMission" component={AssignedMissionDetailScreen} options={HIDDEN_TAB} />
       <Tab.Screen name="CpoComms" component={MessengerNavigator} />
       {/* Dark behind the flag, like every other Dept Chat v2 entry point (the
           agent-dashboard row and the On-Duty home card are already gated). */}
@@ -141,7 +149,8 @@ function CpoTabs() {
             },
           })} />
       ) : null}
-      <Tab.Screen name="CpoMe" component={AgentProfileScreen} />
+      <Tab.Screen name="CpoFeed" component={NewsNavigator} />
+      <Tab.Screen name="CpoMe" component={AgentProfileScreen} options={HIDDEN_TAB} />
     </Tab.Navigator>
   );
 }

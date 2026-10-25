@@ -72,7 +72,7 @@ const KIND_META: Record<string, {title: string; subtitle: string}> = {
   // ('enterprise.join.approved') with no subtitle — page 10 rule 4 asks for
   // readable labels and status text.
   'enterprise.join.requested': {title: 'New join request', subtitle: 'Someone asked to join your workspace.'},
-  'enterprise.join.approved':  {title: 'Access approved',  subtitle: 'You can now open Department Channels.'},
+  'enterprise.join.approved':  {title: 'Access approved',  subtitle: 'You can now open Workspace.'},
   'enterprise.join.declined':  {title: 'Request declined', subtitle: 'Your request to join was not approved.'},
   // A7.3 — a manager set/changed the member's duty status. Metadata-only by
   // contract (P0-N8): the VALUE is read in My Attendance, not carried here.

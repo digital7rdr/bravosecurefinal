@@ -114,14 +114,14 @@ export function showEnterpriseUpgradePrompt(opts?: {onViewPlans?: () => void}): 
   const {Alert} = require('@utils/alert') as typeof import('@utils/alert');
   Alert.alert(
     'Upgrade to Enterprise',
-    'Department Channels are available on Enterprise. Upgrade to organise your team into controlled departmental channels.',
+    'Workspace is available on Enterprise. Upgrade to organise your team into controlled workspace channels.',
     [
       {
         text: 'View Enterprise',
         onPress: opts?.onViewPlans ?? (() => {
           Alert.alert(
             'Enterprise',
-            'Enterprise includes Department Channels, Employee Attendance Tracking and Incident Reporting, on top of everything in Bravo Messenger Pro. Upgrade any time from Profile → Messenger Plans.',
+            'Enterprise includes Workspace, Employee Attendance Tracking and Incident Reporting, on top of everything in Bravo Messenger Pro. Upgrade any time from Profile → Messenger Plans.',
           );
         }),
       },

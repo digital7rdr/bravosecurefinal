@@ -21,10 +21,12 @@ import {HomeSiteLink} from '@/components/HomeSiteLink';
 import {WEB_NAV, webNavActive, type WebNavIcon} from '@/lib/web/nav';
 import {webRoutes} from '@/lib/web/routes';
 import {useMessenger} from '@/components/messenger/MessengerProvider';
+import {IDLE_SIGN_OUT_MS} from '@/lib/idleSignOut';
 
 const REFRESH_LEAD_SEC = 60;
 // Longer than the consoles: a chat window is often left open and idle.
-const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+// 2026-10-25 — off unless NEXT_PUBLIC_IDLE_SIGN_OUT_MINUTES is set (lib/idleSignOut).
+const IDLE_TIMEOUT_MS = IDLE_SIGN_OUT_MS;
 const RAIL_KEY = 'bravo_web_rail_collapsed';
 
 interface WebCtx {
@@ -110,6 +112,7 @@ export function WebShell({children}: {children: ReactNode}) {
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (hasSession !== true) return;
+    if (!IDLE_TIMEOUT_MS) return; // idle sign-out switched off
     const fire = () => { window.sessionStorage.setItem(WEB_IDLE_KEY, '1'); signOut(); };
     const reset = () => { if (idle.current) clearTimeout(idle.current); idle.current = setTimeout(fire, IDLE_TIMEOUT_MS); };
     const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'] as const;

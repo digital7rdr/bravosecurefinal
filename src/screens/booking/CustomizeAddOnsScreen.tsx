@@ -1342,7 +1342,7 @@ export default function CustomizeAddOnsScreen() {
             records it, and it never bypasses availability, licensing or
             operator approval. */}
         <View style={s.refWrap}>
-          <Text style={s.refLabel}>Provider / referral code (optional)</Text>
+          <Text style={s.refLabel}>Service provider / referral code (optional)</Text>
           <TextInput
             style={s.refInput}
             value={referralCode}
@@ -1352,7 +1352,7 @@ export default function CustomizeAddOnsScreen() {
             autoCapitalize="characters"
             autoCorrect={false}
             maxLength={32}
-            accessibilityLabel="Provider or referral code, optional"
+            accessibilityLabel="Service provider or referral code, optional"
           />
           <Text style={s.refNote}>
             From a partner or travel agent. It records who referred you — it does not

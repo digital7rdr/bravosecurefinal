@@ -28,8 +28,12 @@ const T = {
   hair: 'rgba(255,255,255,0.08)',
 };
 
+// 2026-10-25 — Workspace is a door on the welcome page too. It is not a
+// separate product: it opens the Messenger product on the Workspace hub.
+type GateCard = BravoProduct | 'workspace';
+
 const PRODUCTS: Array<{
-  key: BravoProduct;
+  key: GateCard;
   icon: React.ComponentProps<typeof Icon>['name'];
   title: string;
   desc: string;
@@ -39,6 +43,7 @@ const PRODUCTS: Array<{
   shiftY?: number;
 }> = [
   {key: 'messenger', icon: 'message-lock-outline', title: 'Messenger', desc: 'Secure encrypted communications, team chats, calls & news.', img: Imagery.messengerHero},
+  {key: 'workspace', icon: 'office-building-outline', title: 'Workspace', desc: 'Your organisation: channels, attendance and incident reporting.', img: Imagery.deptWorkspaces},
   {key: 'secure', icon: 'shield-check-outline', title: 'Secure Services', desc: 'Secure comms, movement, management and processes.', img: Imagery.heroBookProtection, shiftY: 130},
   {key: 'vbg', icon: 'shield-account-outline', title: 'Bravo GeoRisk', desc: 'AI-powered personal safety monitoring & risk intelligence.', badge: 'AI', img: Imagery.vbgHero},
 ];
@@ -51,7 +56,12 @@ export default function ProductGateScreen() {
   // "Choose dashboard" / hardware back at a product root). Leaving Secure
   // Services with an unfinished booking form still warns first, mirroring
   // SwitchDashboardSection (spec p.26). Fresh logins have no draft → no-op.
-  const pick = (p: BravoProduct) => {
+  const pick = (card: GateCard) => {
+    const p: BravoProduct = card === 'workspace' ? 'messenger' : card;
+    const apply = () => {
+      if (card === 'workspace') {useProductStore.getState().openWorkspaceFromGate();}
+      else {setActiveProduct(p);}
+    };
     const {activeProduct} = useProductStore.getState();
     if (activeProduct === 'secure' && p !== 'secure') {
       const {isBookingDraftDirty} =
@@ -63,13 +73,13 @@ export default function ProductGateScreen() {
           'You have an unfinished booking. Leave Secure Services and discard it?',
           [
             {text: 'Stay', style: 'cancel'},
-            {text: 'Leave', style: 'destructive', onPress: () => setActiveProduct(p)},
+            {text: 'Leave', style: 'destructive', onPress: apply},
           ],
         );
         return;
       }
     }
-    setActiveProduct(p);
+    apply();
   };
 
   // 2026-10-25 — a visible way back. Re-opened from inside a product: back to

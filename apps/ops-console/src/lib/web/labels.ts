@@ -15,7 +15,7 @@ export const STAGE: Record<Stage, {label: string; headline: string; open: boolea
   scheduled:         {label: 'Scheduled',         headline: 'Scheduled', open: true, tone: 'info'},
   payment_pending:   {label: 'Payment due',       headline: 'Approved: pay with your credits to confirm', open: true, tone: 'warn'},
   finding_provider:  {label: 'Finding provider',  headline: 'Finding a secure service provider', open: true, tone: 'info'},
-  provider_accepted: {label: 'Provider accepted', headline: 'A provider accepted your mission', open: true, tone: 'info'},
+  provider_accepted: {label: 'Service provider accepted', headline: 'A service provider accepted your mission', open: true, tone: 'info'},
   team_assigned:     {label: 'Team assigned',     headline: 'Team assigned, not yet dispatched', open: true, tone: 'info'},
   team_dispatched:   {label: 'Team dispatched',   headline: 'Team dispatched', open: true, tone: 'live'},
   team_arrived:      {label: 'Team arrived',      headline: 'Team arrived at pick-up', open: true, tone: 'live'},

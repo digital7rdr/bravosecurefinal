@@ -11,7 +11,7 @@
  */
 const ROLE_LABELS: Record<string, string> = {
   individual: 'Client',
-  service_provider: 'Provider',
+  service_provider: 'Service Provider',
   agent: 'Agent',
 };
 

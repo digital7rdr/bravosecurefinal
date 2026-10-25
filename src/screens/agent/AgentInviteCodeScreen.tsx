@@ -75,7 +75,7 @@ export default function AgentInviteCodeScreen() {
           autoCapitalize="characters"
           autoCorrect={false}
           maxLength={CODE_MAX}
-          accessibilityLabel="Provider invitation code"
+          accessibilityLabel="Service provider invitation code"
           editable={!busy}
         />
 

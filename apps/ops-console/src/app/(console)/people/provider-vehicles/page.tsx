@@ -42,7 +42,7 @@ export default function ProviderVehiclesPage() {
   return (
     <>
       <PageHeader
-        title="Provider Vehicles"
+        title="Service Provider Vehicles"
         subtitle="Vehicles agencies add in the provider console. Check the plate, make and armour against the registration; only verified vehicles can be put on a job. Editing those details sends a vehicle back here."
         badges={data && tab === 'pending' ? <span className={`pill ${rows.length ? 'pill-warn' : ''}`}>{rows.length} WAITING</span> : undefined}
       />

@@ -76,7 +76,7 @@ export const STAGE_COPY: Record<CustomerStage, StageCopy> = {
   scheduled:         {label: 'SCHEDULED',          headline: 'Scheduled',                   open: true},
   payment_pending:   {label: 'PAYMENT DUE',        headline: 'Payment due',                 open: true},
   finding_provider:  {label: 'FINDING PROVIDER',   headline: 'Finding a secure service provider', open: true},
-  provider_accepted: {label: 'PROVIDER ACCEPTED',  headline: 'Provider accepted your mission', open: true},
+  provider_accepted: {label: 'SERVICE PROVIDER ACCEPTED',  headline: 'Service provider accepted your mission', open: true},
   team_assigned:     {label: 'TEAM ASSIGNED',      headline: 'Team assigned · not yet dispatched', open: true},
   team_dispatched:   {label: 'TEAM DISPATCHED',    headline: 'Team dispatched',             open: true},
   team_arrived:      {label: 'TEAM ARRIVED',       headline: 'Team arrived at pickup',      open: true},
@@ -85,7 +85,7 @@ export const STAGE_COPY: Record<CustomerStage, StageCopy> = {
   completed:         {label: 'COMPLETED',          headline: 'Service completed',           open: false},
   cancelled:         {label: 'CANCELLED',          headline: 'Booking cancelled',           open: false},
   no_provider:       {label: 'NO PROVIDER',        headline: 'No provider available',       open: false},
-  agency_no_show:    {label: 'REFUNDED · NO-SHOW', headline: 'Provider did not crew — refunded', open: false},
+  agency_no_show:    {label: 'REFUNDED · NO-SHOW', headline: 'Service provider did not crew — refunded', open: false},
 };
 
 export function stageCopy(stage: CustomerStage): StageCopy {

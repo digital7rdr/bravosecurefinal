@@ -41,13 +41,16 @@ const CHECK_LABELS: Record<string, string> = {
   dress: 'Dress code', vehicle: 'Vehicle ready', equip: 'Equipment', briefing: 'Briefing done',
 };
 
+/** 2026-10-25 — the Pro mission-code entry is hidden on the guard's mission screen. */
+const SHOW_PRO_MISSION_CODE = false;
+
 export default function AssignedMissionDetailScreen() {
   const insets = useSafeAreaInsets();
   const {bottomPad} = useBottomInset();
   // B-184 — the executive hourly-comment TextInput sits in the scroll body; padding
   // the scroll by the IME overlap lets it scroll clear of the keyboard.
   const {overlap} = useKeyboardLayout();
-  const navigation = useNavigation<{navigate: (n: string, p?: Record<string, unknown>) => void}>();
+  const navigation = useNavigation<{navigate: (n: string, p?: Record<string, unknown>) => void; goBack?: () => void; canGoBack?: () => boolean}>();
   const [missionId, setMissionId] = useState<string | null>(null);
   const [dep, setDep] = useState<Deployment | null>(null);
   const [status, setStatus] = useState<string>('');
@@ -436,20 +439,34 @@ export default function AssignedMissionDetailScreen() {
     return (
       <View style={[s.root, {paddingTop: insets.top}]}>
         <StatusBar barStyle="light-content" backgroundColor={D.bg} />
+        {navigation.canGoBack?.() ? (
+          <View style={s.header}>
+            <TouchableOpacity onPress={() => navigation.goBack?.()} accessibilityRole="button" accessibilityLabel="Back"
+              hitSlop={{top: 12, bottom: 12, left: 12, right: 12}}>
+              <Icon name="arrow-left" size={20} color={D.accentSoft ?? '#3BA6FF'} />
+            </TouchableOpacity>
+            <Text style={s.headerTitle}>MISSION</Text>
+          </View>
+        ) : null}
         <View style={s.center}>
           <View style={s.emptyIcon}><Icon name="shield-outline" size={34} color={D.textMute} /></View>
           <Text style={s.emptyTitle}>No active mission</Text>
           <Text style={s.emptySub}>When your agency assigns you to a detail it appears here.</Text>
-          {/* Bravo Secure Pro — operations hands out a mission code instead. */}
-          <TouchableOpacity
-            style={s.proCodeBtn}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="Enter a Pro mission code"
-            onPress={() => navigation.navigate('CpoProMission' as never)}>
-            <Icon name="shield-key-outline" size={16} color={D.accentSoft ?? '#3BA6FF'} />
-            <Text style={s.proCodeBtnText}>Have a Mission Code?</Text>
-          </TouchableOpacity>
+          {/* Bravo Secure Pro — operations hands out a mission code instead.
+              2026-10-25 — owner: no mission code on the guard's mission
+              screen. Hidden, not deleted: flip SHOW_PRO_MISSION_CODE to bring
+              the entry back (the CpoProMission route is still registered). */}
+          {SHOW_PRO_MISSION_CODE ? (
+            <TouchableOpacity
+              style={s.proCodeBtn}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Enter a Pro mission code"
+              onPress={() => navigation.navigate('CpoProMission' as never)}>
+              <Icon name="shield-key-outline" size={16} color={D.accentSoft ?? '#3BA6FF'} />
+              <Text style={s.proCodeBtnText}>Have a Mission Code?</Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       </View>
     );
@@ -492,8 +509,14 @@ export default function AssignedMissionDetailScreen() {
     <View style={[s.root, {paddingTop: insets.top}]}>
       <StatusBar barStyle="light-content" backgroundColor={D.bg} />
       <View style={s.header}>
-        <View style={s.accentBar} />
-        <Text style={s.headerTitle}>{dep?.mission?.short_code ?? 'MISSION'}</Text>
+        {/* 2026-10-25 — opened from the Mission home's card (no tab of its own). */}
+        {navigation.canGoBack?.() ? (
+          <TouchableOpacity onPress={() => navigation.goBack?.()} accessibilityRole="button" accessibilityLabel="Back"
+            hitSlop={{top: 12, bottom: 12, left: 12, right: 12}}>
+            <Icon name="arrow-left" size={20} color={D.accentSoft ?? '#3BA6FF'} />
+          </TouchableOpacity>
+        ) : <View style={s.accentBar} />}
+        <Text style={s.headerTitle}>MISSION</Text>
         <Text style={[s.statusBadge, st === 'SOS' && {color: D.alert}]}>{st}</Text>
       </View>
 

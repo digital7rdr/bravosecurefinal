@@ -112,7 +112,7 @@ export default function DepartmentsPage() {
   return (
     <>
       <PageHeader
-        title="Departments"
+        title="Workspaces"
         subtitle="Every organisation and service provider on the platform. Open one, then CHANNEL STRUCTURE to build its departments, channels and who sits where."
         badges={!isLoading && !error
           ? <span className="pill pill-info">● {rows.length} ORGANISATION{rows.length === 1 ? '' : 'S'}{rows.length >= LIMIT ? ' · FIRST ' + LIMIT : ''}</span>

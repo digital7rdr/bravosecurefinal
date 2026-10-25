@@ -93,7 +93,7 @@ export default function JoinRequestsPage() {
         ariaLabel="Enterprise sections"
         tabs={[
           {href: routes.enterprise.root, label: 'Overview'},
-          {href: routes.enterprise.departments, label: 'Departments'},
+          {href: routes.enterprise.departments, label: 'Workspaces'},
           {href: routes.enterprise.attendance, label: 'Attendance'},
           {href: routes.enterprise.incidents, label: 'Incidents'},
           {href: routes.enterprise.joinRequests, label: 'Join Requests', count: status === 'pending' ? rows.length : 0},

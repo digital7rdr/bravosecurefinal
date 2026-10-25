@@ -819,7 +819,7 @@ export default function DepartmentChannelsScreen() {
           <View style={styles.gateIcon}>
             <Icon name="forum-outline" size={38} color={OB.accentSoft} />
           </View>
-          <Text style={styles.gateTitle}>Department Channels</Text>
+          <Text style={styles.gateTitle}>Workspace channels</Text>
           {/* A7.3 — this is the screen a would-be member lands on, and it said
               "part of a service-provider organisation workspace — managers
               create channels and add their CPOs and staff" / "Managers post;

@@ -71,7 +71,7 @@ export default function EnterpriseOverview() {
             <div className="card-header-title"><span className="bar" />Where each thing is worked</div>
           </div>
           <div style={{padding: '4px 0'}}>
-            <NavRow href={routes.enterprise.departments} label="Departments"
+            <NavRow href={routes.enterprise.departments} label="Workspaces"
               hint="The channel tree per workspace — levels, types and access." />
             <NavRow href={routes.enterprise.attendance} label="Attendance"
               hint="Per-department attendance summaries and CSV export." />

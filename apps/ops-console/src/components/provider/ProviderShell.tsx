@@ -26,9 +26,11 @@ import {pvRoutes} from '@/lib/provider/routes';
 import {ChangePasswordDialog} from './ChangePassword';
 import {HomeSiteLink} from '@/components/HomeSiteLink';
 import {useMessenger} from '@/components/messenger/MessengerProvider';
+import {IDLE_SIGN_OUT_MS} from '@/lib/idleSignOut';
 
 const REFRESH_LEAD_SEC = 60;
-const IDLE_TIMEOUT_MS = 15 * 60 * 1000;
+// 2026-10-25 — off unless NEXT_PUBLIC_IDLE_SIGN_OUT_MINUTES is set (lib/idleSignOut).
+const IDLE_TIMEOUT_MS = IDLE_SIGN_OUT_MS;
 const RAIL_KEY = 'bravo_pv_rail_collapsed';
 
 interface ProviderCtx {
@@ -153,6 +155,7 @@ export function ProviderShell({children}: {children: ReactNode}) {
   const idle = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (hasSession !== true) return;
+    if (!IDLE_TIMEOUT_MS) return; // idle sign-out switched off
     const fire = () => { window.sessionStorage.setItem(PV_IDLE_KEY, '1'); signOut(); };
     const reset = () => { if (idle.current) clearTimeout(idle.current); idle.current = setTimeout(fire, IDLE_TIMEOUT_MS); };
     const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'] as const;
@@ -188,7 +191,7 @@ export function ProviderShell({children}: {children: ReactNode}) {
   return (
     <Ctx.Provider value={value}>
       <div className="app-shell" data-rail={collapsed ? 'collapsed' : 'expanded'}>
-        <nav className="rail" aria-label="Provider console">
+        <nav className="rail" aria-label="Service Provider console">
           <div className="rail-head">
             <div className="rail-logo">
               {/* eslint-disable-next-line @next/next/no-img-element -- static SVG mark */}

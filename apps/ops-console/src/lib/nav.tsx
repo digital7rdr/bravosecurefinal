@@ -140,7 +140,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       {label: 'Overview', href: routes.enterprise.root, icon: iconGauge, exact: true},
       {label: 'Messenger', href: routes.enterprise.messenger, icon: iconChat},
-      {label: 'Departments', href: routes.enterprise.departments, icon: iconTree},
+      {label: 'Workspaces', href: routes.enterprise.departments, icon: iconTree},
       {label: 'Attendance', href: routes.enterprise.attendance, icon: iconCheckSquare},
       {label: 'Incident Reports', href: routes.enterprise.incidents, icon: iconAlertTri},
       {label: 'Join Requests', href: routes.enterprise.joinRequests, icon: iconInbox, badgeKey: 'enterprise'},
@@ -153,8 +153,8 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       {label: 'Clients', href: routes.people.clients, icon: iconPerson, minRole: 'SUPERVISOR'},
       {label: 'Agents (CPOs)', href: routes.people.agents, icon: iconPeople},
-      {label: 'Provider Agencies', href: routes.people.agencies, icon: iconBuilding},
-      {label: 'Provider Vehicles', href: routes.people.providerVehicles, icon: iconBadgeCheck, minRole: 'SUPERVISOR'},
+      {label: 'Service Providers', href: routes.people.agencies, icon: iconBuilding},
+      {label: 'Service Provider Vehicles', href: routes.people.providerVehicles, icon: iconBadgeCheck, minRole: 'SUPERVISOR'},
       {label: 'Compliance', href: routes.people.compliance, icon: iconBadgeCheck},
       {label: 'All Users', href: routes.people.users, icon: iconDoc, minRole: 'SUPERVISOR'},
     ],

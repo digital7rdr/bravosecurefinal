@@ -49,6 +49,15 @@ interface ProductState {
   requestGate: () => void;
   /** Close a re-opened gate and return to the current product (2026-10-25). */
   closeGate: () => void;
+  /**
+   * 2026-10-25 — a screen to open once the chosen product has mounted. Set by
+   * the gate's Workspace card (Workspace lives inside Messenger), consumed by
+   * MainNavigator. Ephemeral like gateVisible.
+   */
+  landing: 'workspace' | null;
+  /** Gate → Workspace: mount Messenger, then open the Workspace hub. */
+  openWorkspaceFromGate: () => void;
+  clearLanding: () => void;
   /** First client mount after auth: promote the selector choice, if any. */
   adoptPendingProduct: () => void;
   reset: () => void;
@@ -68,6 +77,10 @@ export const useProductStore = create<ProductState>()(
 
       requestGate: () => set({gateVisible: true, returnProduct: null}),
       closeGate: () => set({gateVisible: false}),
+      landing: null,
+      openWorkspaceFromGate: () =>
+        set({activeProduct: 'messenger', pendingProduct: null, gateVisible: false, returnProduct: null, landing: 'workspace'}),
+      clearLanding: () => set({landing: null}),
 
       adoptPendingProduct: () => {
         const {activeProduct, pendingProduct} = get();
@@ -76,7 +89,7 @@ export const useProductStore = create<ProductState>()(
         }
       },
 
-      reset: () => set({activeProduct: null, pendingProduct: null, gateVisible: false, returnProduct: null}),
+      reset: () => set({activeProduct: null, pendingProduct: null, gateVisible: false, returnProduct: null, landing: null}),
     }),
     {
       name: 'bravo:product',

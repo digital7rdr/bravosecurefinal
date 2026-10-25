@@ -209,7 +209,7 @@ const AGENT_WAKE_META: Record<string, {
   // subtitle has none). Own channel: a workspace admin can prioritise these
   // independently of booking noise.
   'enterprise.join.requested': {title: 'New join request', body: 'Someone asked to join your workspace. Tap to review.', sos: false, channel: 'enterprise-updates'},
-  'enterprise.join.approved':  {title: 'Access approved', body: 'You can now open Department Channels.', sos: false, channel: 'enterprise-updates'},
+  'enterprise.join.approved':  {title: 'Access approved', body: 'You can now open Workspace.', sos: false, channel: 'enterprise-updates'},
   'enterprise.join.declined':  {title: 'Request declined', body: 'Your request to join was not approved.', sos: false, channel: 'enterprise-updates'},
   // Item E — member invites. `invite.received` fires only when the minted
   // contact matched an existing account (the silent-match rule); the org is

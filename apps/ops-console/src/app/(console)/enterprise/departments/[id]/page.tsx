@@ -155,7 +155,7 @@ export default function OrganisationDetailPage({params}: {params: Promise<{id: s
   if (error) {
     return (
       <>
-        <PageHeader title="Organisation" back={{href: routes.enterprise.departments, label: 'Departments'}} />
+        <PageHeader title="Organisation" back={{href: routes.enterprise.departments, label: 'Workspaces'}} />
         <div className="card" style={{padding: 24, color: 'var(--err)'}}>
           Could not load this organisation. It may not exist, or it may be outside your region scope.
         </div>
@@ -168,8 +168,8 @@ export default function OrganisationDetailPage({params}: {params: Promise<{id: s
   return (
     <>
       <PageHeader
-        crumbs={['Enterprise', 'Departments', org?.display_name ?? '…']}
-        back={{href: routes.enterprise.departments, label: 'Departments'}}
+        crumbs={['Enterprise', 'Workspaces', org?.display_name ?? '…']}
+        back={{href: routes.enterprise.departments, label: 'Workspaces'}}
         title={title}
         badges={org && (
           <>

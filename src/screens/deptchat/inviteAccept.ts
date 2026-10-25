@@ -95,7 +95,7 @@ export async function acceptInviteFlow(code: string): Promise<boolean> {
       // correct: the entry resolver has already pointed at it if it can.
       pointContextAtJoinedWorkspace(before);
       Alert.alert('Already a member',
-        'You already belong to this workspace. Open Department Channels to get started.');
+        'You already belong to this workspace. Open Workspace to get started.');
       return true;
     }
     if (msg === 'already_active_in_another_org') {

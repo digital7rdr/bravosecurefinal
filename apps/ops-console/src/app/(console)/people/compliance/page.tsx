@@ -105,7 +105,7 @@ export default function CompliancePage() {
               <table className="w-full text-sm">
                 <thead className="bg-s2 text-left text-xs uppercase text-t3">
                   <tr>
-                    <th className="px-3 py-2">Type</th><th className="px-3 py-2">Provider</th>
+                    <th className="px-3 py-2">Type</th><th className="px-3 py-2">Service Provider</th>
                     <th className="px-3 py-2">Region</th><th className="px-3 py-2">Ref</th>
                     <th className="px-3 py-2">Doc</th>
                     <th className="px-3 py-2">Expires</th><th className="px-3 py-2 text-right">Action</th>
@@ -175,7 +175,7 @@ export default function CompliancePage() {
           )}
 
         <div>
-          <h2 className="text-base font-bold text-t1">Provider onboarding documents</h2>
+          <h2 className="text-base font-bold text-t1">Service provider onboarding documents</h2>
           <p className="text-sm text-t3">
             Files a provider agency attached when it registered in the mobile app, not yet reviewed.
             VIEW shows the file{canStamp ? ' and marks it reviewed' : ''}; approve or reject the application on the provider&apos;s review page.
@@ -189,7 +189,7 @@ export default function CompliancePage() {
               <table className="w-full text-sm">
                 <thead className="bg-s2 text-left text-xs uppercase text-t3">
                   <tr>
-                    <th className="px-3 py-2">Document</th><th className="px-3 py-2">Provider</th>
+                    <th className="px-3 py-2">Document</th><th className="px-3 py-2">Service Provider</th>
                     <th className="px-3 py-2">Uploaded</th><th className="px-3 py-2">Application</th>
                     <th className="px-3 py-2 text-right">Action</th>
                   </tr>

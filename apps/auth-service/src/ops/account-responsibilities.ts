@@ -266,7 +266,7 @@ export const BLOCKERS: ReadonlyArray<{key: string; label: (n: number) => string;
   {key: 'crew_on_active_mission', label: n => `On the crew of ${plural(n, 'mission')} in progress — finish it or replace them first`,
     count: `SELECT COUNT(*)::int AS n FROM public.mission_crew c JOIN public.missions m ON m.id = c.mission_id
              WHERE c.agent_id = $1 AND m.status IN ${ACTIVE_MISSION_STATUSES}`},
-  {key: 'provider_active_mission', label: n => `Provider of ${plural(n, 'mission')} in progress — finish or reassign first`,
+  {key: 'provider_active_mission', label: n => `Service provider of ${plural(n, 'mission')} in progress — finish or reassign first`,
     count: `SELECT COUNT(DISTINCT m.id)::int AS n
               FROM public.dispatch_offers o JOIN public.missions m ON m.booking_id = o.booking_id
              WHERE o.provider_user_id = $1 AND o.status = 'ACCEPTED' AND m.status IN ${ACTIVE_MISSION_STATUSES}`},

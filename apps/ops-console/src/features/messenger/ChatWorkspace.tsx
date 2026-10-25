@@ -75,7 +75,7 @@ export interface ChatDirectory {
 }
 
 const ROLE_LABEL: Record<string, string> = {
-  individual: 'Client', agent: 'CPO agent', service_provider: 'Provider agency',
+  individual: 'Client', agent: 'CPO agent', service_provider: 'Service provider',
 };
 
 /** The ops console's directory: every app user, Operation/Super Admin search. */

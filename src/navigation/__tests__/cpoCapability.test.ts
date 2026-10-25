@@ -9,9 +9,10 @@ import {join} from 'node:path';
 const SRC = readFileSync(join(__dirname, '..', 'CpoNavigator.tsx'), 'utf8');
 
 describe('CPO capability lockdown (§35A §D)', () => {
-  it('registers EXACTLY the five guard tabs (On Duty / Mission / Comms / Dept / Me)', () => {
+  // 2026-10-25 — + Bravo Feed (news only; no booking/money/roster capability).
+  it('registers EXACTLY the six guard tabs (Mission home / mission detail / Messenger / Workspace / Bravo Feed / Me)', () => {
     const tabs = [...SRC.matchAll(/<Tab\.Screen name="(\w+)"/g)].map(m => m[1]).sort();
-    expect(tabs).toEqual(['CpoComms', 'CpoDept', 'CpoDuty', 'CpoMe', 'CpoMission']);
+    expect(tabs).toEqual(['CpoComms', 'CpoDept', 'CpoDuty', 'CpoFeed', 'CpoMe', 'CpoMission']);
   });
 
   it('does NOT register any forbidden client/agency capability screen', () => {
