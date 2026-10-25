@@ -3,7 +3,7 @@
  * upgrading: production has no card processor connected (`stripe_disabled`).
  * The user now gets words, and is told nothing was charged.
  */
-jest.mock('@stripe/stripe-react-native', () => ({useStripe: () => ({})}), {virtual: true});
+jest.mock('@stripe/stripe-react-native', () => ({useStripe: () => ({})}));
 jest.mock('../api', () => ({walletApi: {}}));
 
 import {readFileSync} from 'node:fs';
