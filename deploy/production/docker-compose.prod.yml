@@ -190,7 +190,12 @@ services:
       - --denied-peer-ip=203.0.113.0-203.0.113.255
       - --denied-peer-ip=224.0.0.0-239.255.255.255
       - --denied-peer-ip=240.0.0.0-255.255.255.255
-      - "--denied-peer-ip=::-::"
+      # 2026-10-25 — `::-::` REMOVED. coturn 4.6 matched EVERY IPv4 peer
+      # against that one-address IPv6 range ("A peer IP … denied in the range:
+      # ::-::"), so every relay permission was refused (403 Forbidden IP):
+      # allocations succeeded but no audio/video was ever relayed, and calls
+      # between phones on different networks connected with no media. The
+      # unspecified address is not routable anyway; the ranges around it stay.
       - "--denied-peer-ip=::1-::1"
       - "--denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
       - "--denied-peer-ip=fe80::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
