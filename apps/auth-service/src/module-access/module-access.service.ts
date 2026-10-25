@@ -24,9 +24,10 @@ const USER_TTL_S = 30;
  * 2026-10-25 (owner) — Secure Services is for PAID plans. A personal client on
  * the free plan (Bravo Messenger, internal tier 'lite') cannot start a
  * booking, a Secure Pro application or a protection session; Bravo Messenger
- * Pro and Enterprise can. Clients in a company workspace (group 'enterprise')
- * are covered by the company's plan. Agencies and CPOs never book, so the
- * rule does not apply to them. Existing bookings, payment, tracking and SOS
+ * Pro and Enterprise can. It is the person's OWN plan that counts (owner
+ * 2026-10-25): an employee in a company's Enterprise workspace on the free
+ * plan is locked too. Agencies and CPOs never book, so the rule does not
+ * apply to them. Existing bookings, payment, tracking and SOS
  * are untouched (module-catalog SAFETY RULE): only STARTING is refused.
  */
 export const SECURE_SERVICES_MODULES: readonly ModuleKey[] = ['secure_lite', 'executive_protection', 'secure_pro'];
@@ -36,7 +37,7 @@ export const SECURE_SERVICES_PLAN_MESSAGE =
 
 /** Pure: which modules this user's PLAN keeps locked. */
 export function planLockedModules(group: AccountGroup, tierRow: TierRow | null | undefined): ModuleKey[] {
-  if (group !== 'individual') {return [];}
+  if (group === 'agency' || group === 'cpo') {return [];}
   return tierSatisfies(effectiveTierOf(tierRow), SECURE_SERVICES_MIN_TIER) ? [] : [...SECURE_SERVICES_MODULES];
 }
 const MATRIX_TTL_MS = 15_000;
@@ -154,7 +155,7 @@ export class ModuleAccessService {
   async planLocked(userId: string, group?: AccountGroup): Promise<ModuleKey[]> {
     try {
       const g = group ?? (await this.effective(userId)).group;
-      if (g !== 'individual') {return [];}
+      if (g === 'agency' || g === 'cpo') {return [];}
       let row: CachedTierGate | null = await readTierGate(this.redis, userId);
       if (!row) {
         row = await this.db.qOne<CachedTierGate>(

@@ -1,8 +1,9 @@
 /**
  * 2026-10-25 (owner) — Secure Services is for PAID plans. A personal client on
  * the free plan (Bravo Messenger, tier 'lite') sees it locked with an upgrade
- * path; Bravo Messenger Pro, Enterprise, company-workspace members and clients
- * with a Bravo Secure Pro plan under way keep it.
+ * path; Bravo Messenger Pro, Enterprise and clients with a Bravo Secure Pro
+ * plan under way keep it. The person's OWN plan counts: an employee of a
+ * company's Enterprise workspace on the free plan is locked too.
  *
  * The server decides (`plan_locked_modules` on /auth/me) and enforces it
  * (403 tier_insufficient on new bookings, Secure Pro applications and

@@ -1,8 +1,9 @@
 /**
  * 2026-10-25 (owner) — Secure Services is for paid plans. A free-plan personal
  * client cannot START a booking, a Secure Pro application or a protection
- * session (403 tier_insufficient); Pro / Enterprise tiers, company-workspace
- * members and clients with a Secure Pro plan under way can.
+ * session (403 tier_insufficient); Pro / Enterprise tiers and clients with a
+ * Secure Pro plan under way can. The person's OWN plan counts: an employee of
+ * a company's Enterprise workspace on the free plan is locked too.
  */
 import {ForbiddenException} from '@nestjs/common';
 import {ModuleAccessService, planLockedModules, SECURE_SERVICES_MODULES} from './module-access.service';
@@ -38,10 +39,14 @@ describe('planLockedModules (pure)', () => {
   it('a lapsed paid window is the free plan', () => {
     expect(planLockedModules('individual', {subscription_tier: 'pro', pro_active_until: past})).toEqual([...SECURE_SERVICES_MODULES]);
   });
-  it('company-workspace members, agencies and CPOs are never plan-locked', () => {
-    for (const g of ['enterprise', 'agency', 'cpo'] as const) {
+  it('agencies and CPOs are never plan-locked', () => {
+    for (const g of ['agency', 'cpo'] as const) {
       expect(planLockedModules(g, {subscription_tier: 'lite', pro_active_until: null})).toEqual([]);
     }
+  });
+  it('a company-workspace member is judged on their OWN plan', () => {
+    expect(planLockedModules('enterprise', {subscription_tier: 'lite', pro_active_until: null})).toEqual([...SECURE_SERVICES_MODULES]);
+    expect(planLockedModules('enterprise', {subscription_tier: 'enterprise', pro_active_until: future})).toEqual([]);
   });
 });
 
@@ -70,10 +75,10 @@ describe('assertEnabled refuses STARTING Secure Services on the free plan', () =
     await expect(s.assertEnabled('u1', 'news')).resolves.toBeUndefined();
   });
 
-  it('a company-workspace member on the free plan passes', async () => {
+  it('a company-workspace member on the free plan is refused (own plan counts)', async () => {
     resolveAccountKind.mockResolvedValue(kind('individual', {workspaces: [{org_user_id: 'o'}]}));
     const {s} = svc({subscription_tier: 'lite', pro_active_until: null});
-    await expect(s.assertEnabled('u1', 'secure_lite')).resolves.toBeUndefined();
+    await expect(s.assertEnabled('u1', 'secure_lite')).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('a database failure fails OPEN (product gate, not auth)', async () => {
