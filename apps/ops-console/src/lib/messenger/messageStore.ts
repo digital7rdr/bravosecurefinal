@@ -14,6 +14,7 @@
 
 import {wrapString, unwrapString, type WrapKey} from './crypto';
 import type {MessengerDb} from './idb';
+import type {WebAttachment} from './mediaClient';
 
 export interface StoredMessage {
   conversationId: string;
@@ -27,6 +28,11 @@ export interface StoredMessage {
   status:         'sending' | 'sent' | 'delivered' | 'read' | 'failed';
   reactions:      Record<string, string> | null;
   replyToId:      string | null;
+  /**
+   * 2026-10-27 — the file on this message (web file sharing). Its per-file
+   * key is wrapped at rest under the vault key, like the body.
+   */
+  attachment?:    WebAttachment | null;
 }
 
 export interface ConversationSummary {
@@ -51,6 +57,9 @@ export class MessageStore {
     const reactionsWrapped = msg.reactions
       ? await wrapString(this.key, JSON.stringify(msg.reactions))
       : null;
+    const attachmentWrapped = msg.attachment
+      ? await wrapString(this.key, JSON.stringify(msg.attachment))
+      : null;
     await this.db.put('messages', {
       pk:              this.pk(msg.conversationId, msg.id),
       conversation_id: msg.conversationId,
@@ -64,6 +73,7 @@ export class MessageStore {
       status:          msg.status,
       reactions_json:  reactionsWrapped,
       reply_to_id:     msg.replyToId,
+      attachment_json: attachmentWrapped,
     });
   }
 
@@ -112,7 +122,13 @@ export class MessageStore {
       const reactions = r.reactions_json
         ? (JSON.parse(await unwrapString(this.key, r.reactions_json)) as Record<string, string>)
         : null;
+      let attachment: WebAttachment | null = null;
+      if (r.attachment_json) {
+        try { attachment = JSON.parse(await unwrapString(this.key, r.attachment_json)) as WebAttachment; }
+        catch { attachment = null; }
+      }
       out.push({
+        attachment,
         conversationId: r.conversation_id,
         id:             r.id,
         senderUserId:   r.sender_user_id,

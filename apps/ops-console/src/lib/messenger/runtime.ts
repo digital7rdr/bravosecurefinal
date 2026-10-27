@@ -42,6 +42,7 @@ import {keysApi} from './keys';
 import {relay, type StoredEnvelope} from './relay';
 import {TransportClient} from './transport';
 import {MessageStore, type StoredMessage, type ConversationSummary} from './messageStore';
+import {uploadFile, grantFile, downloadFile, type WebAttachment} from './mediaClient';
 import {sealDirectText} from './directSeal';
 export type {StoredMessage, ConversationSummary} from './messageStore';
 import {getMessengerTicket} from '@/lib/api';
@@ -1194,7 +1195,10 @@ export class MessengerRuntime {
     const hasText = typeof sealed.body === 'string' && sealed.body.length > 0;
     if (!hasText && !sealed.attachment) return null;
     const directId = directSlotId(sender.userId);
-    const shownBody = hasText ? sealed.body : '📎 Attachment — open it in the Bravo app';
+    // 2026-10-27 — files open in the browser now (web file sharing).
+    const att = toWebAttachment(sealed.attachment);
+    const shownBody = hasText ? sealed.body
+      : att ? `📎 ${att.name || 'File'}` : '📎 Attachment — open it in the Bravo app';
     this.envelopePeerByConvo.set(directId, sender);
     this.envelopePeerById.set(env.envelopeId, sender);
     // Audit fix — AWAIT before returning (see group path above).
@@ -1210,6 +1214,7 @@ export class MessengerRuntime {
       status:         'delivered',
       reactions:      null,
       replyToId:      null,
+      attachment:     att,
     });
     this.notifyHistoryChange(directId);
     return {
@@ -1284,6 +1289,80 @@ export class MessengerRuntime {
       this.notifyHistoryChange(conversationId);
       throw e;
     }
+  }
+
+  /**
+   * 2026-10-27 — send a file 1:1. Encrypted and uploaded here, its key sealed
+   * into the message exactly as the app does, then the peer is granted
+   * download access.
+   */
+  async sendDirectFile(peerUserId: string, file: File): Promise<{id: string; envelopeId: string | null}> {
+    if (peerUserId === this.self.userId) throw new Error('cannot message yourself');
+    const peer: SessionAddress = {userId: peerUserId, deviceId: 1};
+    const conversationId = directSlotId(peerUserId);
+    const id = genId();
+    const clientMsgId = genId();
+    const sentAt = Date.now();
+    const label = `📎 ${file.name || 'File'}`;
+    await this.messages.upsert({
+      conversationId, id, senderUserId: this.userId, direction: 'out', body: label, sentAt,
+      envelopeId: null, clientMsgId, status: 'sending', reactions: null, replyToId: null,
+    });
+    this.notifyHistoryChange(conversationId);
+    try {
+      const att = await uploadFile(file, this.self.deviceId);
+      await this.messages.upsert({
+        conversationId, id, senderUserId: this.userId, direction: 'out', body: label, sentAt,
+        envelopeId: null, clientMsgId, status: 'sending', reactions: null, replyToId: null, attachment: att,
+      });
+      if (!(await this.session.hasSession(peer))) {
+        const bundle = await keysApi.fetchBundle(peer.userId);
+        await this.session.initOutgoingSession({
+          registrationId: bundle.registrationId,
+          address:        peer,
+          identityKey:    bundle.identityKey,
+          signedPreKey: {
+            keyId:     bundle.signedPrekeyId,
+            publicKey: bundle.signedPrekey,
+            signature: bundle.signedPrekeySig,
+          },
+          preKey: bundle.oneTimePrekey
+            ? {keyId: bundle.oneTimePrekey.keyId, publicKey: bundle.oneTimePrekey.publicKey}
+            : undefined,
+        });
+      }
+      // Grant BEFORE the message can arrive, so the recipient's first open works.
+      await grantFile(att.objectKey, [peer.userId], this.self.deviceId);
+      const cert = await this.getSenderCert();
+      const sealed = sealDirectText({
+        cert, text: '', self: this.self, peer, clientMsgId, ts: sentAt,
+        attachment: {
+          objectKey: att.objectKey, keyB64: att.keyB64, ivB64: att.ivB64, mimeType: att.mimeType,
+          size: att.size, kind: att.kind ?? 'file', ...(att.name ? {name: att.name} : {}),
+        },
+      });
+      const ct = await this.session.encrypt(peer, sealed);
+      const cached = await this.store.loadIdentityKey(`${peer.userId}.${peer.deviceId}`);
+      const recipientIdentityKeyB64 = cached
+        ? toBase64(cached)
+        : (await keysApi.fetchBundle(peer.userId)).identityKey;
+      const outerSealed = await wrapOuter({recipientIdentityKeyB64, sender: this.self, ciphertext: ct, cert});
+      const r = await relay.send(this.self.deviceId, {recipient: peer, outerSealed, clientMsgId});
+      const envelopeId = r.envelopeId ?? null;
+      await this.messages.patch(conversationId, id, {status: 'sent', envelopeId});
+      this.envelopePeerByConvo.set(conversationId, peer);
+      this.notifyHistoryChange(conversationId);
+      return {id, envelopeId};
+    } catch (e) {
+      await this.messages.patch(conversationId, id, {status: 'failed'});
+      this.notifyHistoryChange(conversationId);
+      throw e;
+    }
+  }
+
+  /** 2026-10-27 — download and decrypt a file from a message. */
+  async openFile(att: WebAttachment): Promise<Blob> {
+    return downloadFile(att, this.self.deviceId);
   }
 
   /** Drop a local bubble (used when a failed send is retried). */
@@ -1462,4 +1541,19 @@ function genId(): string {
   const b = new Uint8Array(16);
   crypto.getRandomValues(b);
   return Array.from(b, x => x.toString(16).padStart(2, '0')).join('');
+}
+
+
+/** 2026-10-27 — a sealed attachment as the web stores it, or null when malformed. */
+function toWebAttachment(a: unknown): WebAttachment | null {
+  if (!a || typeof a !== 'object') return null;
+  const x = a as Record<string, unknown>;
+  if (typeof x.objectKey !== 'string' || !x.objectKey || typeof x.keyB64 !== 'string'
+      || typeof x.ivB64 !== 'string' || typeof x.mimeType !== 'string') return null;
+  const kind = x.kind === 'image' || x.kind === 'audio' || x.kind === 'video' || x.kind === 'file' ? x.kind : 'file';
+  return {
+    objectKey: x.objectKey, keyB64: x.keyB64, ivB64: x.ivB64, mimeType: x.mimeType.slice(0, 100),
+    size: typeof x.size === 'number' && Number.isFinite(x.size) ? x.size : 0,
+    name: typeof x.name === 'string' ? x.name.slice(0, 255) : null, kind,
+  };
 }

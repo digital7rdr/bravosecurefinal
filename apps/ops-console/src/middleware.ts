@@ -54,6 +54,13 @@ const MSG_BASE     = process.env.NEXT_PUBLIC_MESSENGER_BASE_URL
 // Without the tiles wildcard, dashboard maps render the basemap but
 // every actual tile request 404s in the console — "map doesn't work".
 const MAPBOX_HOSTS = 'https://api.mapbox.com https://events.mapbox.com https://*.tiles.mapbox.com';
+// 2026-10-27 — the media store the messenger's presigned upload/download URLs
+// point at (web file sharing). Empty when unset: no extra host is allowed.
+const MEDIA_ORIGIN = (() => {
+  const raw = process.env.NEXT_PUBLIC_MEDIA_BASE_URL;
+  if (!raw) return '';
+  try { return new URL(raw).origin; } catch { return ''; }
+})();
 const IS_PROD      = process.env.NODE_ENV === 'production';
 
 function wsHost(httpUrl: string): string {
@@ -99,7 +106,7 @@ function buildCsp(nonce: string): string {
     `style-src 'self' 'unsafe-inline' ${MAPBOX_HOSTS}`,
     `img-src 'self' data: blob: ${MAPBOX_HOSTS}`,
     `font-src 'self' data:`,
-    `connect-src 'self' ${API_BASE} ${MSG_BASE} ${wsHost(MSG_BASE)} ${MAPBOX_HOSTS}`,
+    `connect-src 'self' ${API_BASE} ${MSG_BASE} ${wsHost(MSG_BASE)} ${MAPBOX_HOSTS}${MEDIA_ORIGIN ? ` ${MEDIA_ORIGIN}` : ''}`,
     // 2026-10-17 — the document viewer modal shows uploads from blob: URLs
     // (fetched from the API host): a PDF needs a blob: frame, and Chrome's PDF
     // viewer inherits this policy, so object-src admits blob: too. Nothing

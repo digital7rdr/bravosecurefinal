@@ -187,6 +187,50 @@ describe('linkEngine (phone side of linked devices)', () => {
     expect(mockSendText).toHaveBeenCalledTimes(1);
   });
 
+  // 2026-10-27 — web file sharing over the link.
+  const ATT = {objectKey: 'att/abc', keyB64: 'a'.repeat(44), ivB64: 'b'.repeat(24), mimeType: 'application/pdf',
+    size: 1234, name: 'Report.pdf', kind: 'file' as const};
+
+  it('a file the browser uploaded is sealed into the message by the phone', async () => {
+    await approveLinkFromQr(encodeLinkQr(LINK, key));
+    await flushLinkBounded(2000);
+    const cmd = await web.seal('w2p', {t: 'send', id: 'cf', ts: 1, ref: 'ref-f', peerUserId: PEER, text: '', attachment: ATT});
+    inbox = [{seq: 21, data: cmd}];
+    await drainLinkInboxes();
+    expect(mockSendText).toHaveBeenCalledWith(`direct:${PEER}`, '', expect.objectContaining({
+      stableMsgId: 'ref-f',
+      attachment: expect.objectContaining({objectKey: 'att/abc', keyB64: ATT.keyB64, ivB64: ATT.ivB64, name: 'Report.pdf', kind: 'file'}),
+    }));
+  });
+
+  it('a malformed attachment is ignored (an empty send stays a no-op)', async () => {
+    await approveLinkFromQr(encodeLinkQr(LINK, key));
+    await flushLinkBounded(2000);
+    const cmd = await web.seal('w2p', {t: 'send', id: 'cx', ts: 1, ref: 'ref-x', peerUserId: PEER, text: '',
+      attachment: {objectKey: '', keyB64: 1} as never});
+    inbox = [{seq: 22, data: cmd}];
+    await drainLinkInboxes();
+    expect(mockSendText).not.toHaveBeenCalled();
+  });
+
+  it('the browser gets the file key with the row so it can open it, and is told files work', async () => {
+    useMessengerStore.getState().appendMessage(`direct:${PEER}`, msg('mf', {
+      type: 'file', content: '', media_object_key: 'att/k', media_key: 'K'.repeat(44), media_iv: 'I'.repeat(24),
+      media_mime: 'application/pdf', media_meta: {name: 'Plan.pdf', sizeBytes: 99},
+    } as Partial<LocalMessage>));
+    await approveLinkFromQr(encodeLinkQr(LINK, key));
+    await flushLinkBounded(2000);
+    for (let i = 0; i < 5; i++) {await settle();}
+    const frames = await sentFrames(web);
+    const hello = frames.find(f => f.t === 'hello') as Extract<PhoneToWeb, {t: 'hello'}>;
+    expect(hello.features).toEqual(expect.arrayContaining(['files']));
+    const rows = frames.filter(f => f.t === 'msgs').flatMap(f => (f as Extract<PhoneToWeb, {t: 'msgs'}>).rows);
+    const row = rows.find(r => r.id === 'mf');
+    expect(row?.att).toEqual({objectKey: 'att/k', keyB64: 'K'.repeat(44), ivB64: 'I'.repeat(24),
+      mimeType: 'application/pdf', size: 99, name: 'Plan.pdf', kind: 'file'});
+    expect(row?.body).toBe('📎 Plan.pdf');
+  });
+
   it('a snapshot still sealing when the engine stops is never sent (no leak into the next session)', async () => {
     // Pre-push 2026-10-17: on a loaded machine the background snapshot of
     // one test landed in the next test's calls, sealed with the old key.

@@ -96,6 +96,9 @@ services:
         # Public half of the sender-cert keypair make-env.sh generated. Without it
         # the /messenger page verifies sealed-sender certs against a DEV key.
         NEXT_PUBLIC_SENDER_CERT_PUBLIC_KEY_B64: ${NEXT_PUBLIC_SENDER_CERT_PUBLIC_KEY_B64}
+        # 2026-10-27 — web file sharing uploads/downloads encrypted files here
+        # (the presigned media host); the page's CSP must allow it.
+        NEXT_PUBLIC_MEDIA_BASE_URL: https://media.bravosecure.cloud
     image: bravo/ops-console:prod
     container_name: bravo-ops
     restart: unless-stopped

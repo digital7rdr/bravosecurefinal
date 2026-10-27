@@ -34,6 +34,35 @@ export type LinkDir = 'p2w' | 'w2p';
 
 export type LinkMsgStatus = 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
 
+/**
+ * 2026-10-27 — an encrypted file on a message, as both sides need it to open
+ * or send it: the object in media storage plus the per-file key and IV (the
+ * same fields the sealed envelope carries; the link channel is itself
+ * end-to-end encrypted between this phone and this browser).
+ */
+export interface LinkAttachment {
+  objectKey: string;
+  keyB64:    string;
+  ivB64:     string;
+  mimeType:  string;
+  size:      number;
+  name?:     string | null;
+  kind?:     'image' | 'audio' | 'video' | 'file';
+}
+
+/** Shape check for an attachment that crossed the link (either direction). */
+export function isLinkAttachment(a: unknown): a is LinkAttachment {
+  if (!a || typeof a !== 'object') return false;
+  const x = a as Record<string, unknown>;
+  return typeof x.objectKey === 'string' && x.objectKey.length > 0 && x.objectKey.length <= 512
+    && typeof x.keyB64 === 'string' && x.keyB64.length <= 64
+    && typeof x.ivB64 === 'string' && x.ivB64.length <= 32
+    && typeof x.mimeType === 'string' && x.mimeType.length <= 100
+    && typeof x.size === 'number' && Number.isFinite(x.size) && x.size >= 0
+    && (x.name === undefined || x.name === null || (typeof x.name === 'string' && x.name.length <= 255))
+    && (x.kind === undefined || x.kind === 'image' || x.kind === 'audio' || x.kind === 'video' || x.kind === 'file');
+}
+
 /** One message row as the browser stores it. `at` is epoch ms. */
 export interface LinkMsgRow {
   id:         string;
@@ -45,6 +74,8 @@ export interface LinkMsgRow {
   replyToId?: string | null;
   /** Group rows (2026-10-23): who wrote an incoming message. */
   from?:      string | null;
+  /** 2026-10-27 — the file on this message, so the browser can open it. */
+  att?:       LinkAttachment | null;
 }
 
 export interface LinkPeer {
@@ -92,7 +123,9 @@ export interface LinkGroup {
 }
 
 /** What a phone's link engine can do — older phones send none. */
-export type LinkFeature = 'groups' | 'contacts.manual' | 'groups.manage' | 'groups.invite' | 'groups.join';
+export type LinkFeature = 'groups' | 'contacts.manual' | 'groups.manage' | 'groups.invite' | 'groups.join'
+  /** 2026-10-27 — the browser can send files (and open the ones it receives). */
+  | 'files';
 
 export const GROUP_CID_PREFIX = 'group:';
 export const isGroupCid = (cid: string): boolean => typeof cid === 'string' && cid.startsWith(GROUP_CID_PREFIX);
@@ -128,7 +161,9 @@ export type PhoneToWeb =
 export type WebToPhone =
   | (Base & {t: 'sync'; perConversation?: number})
   /** `cid` (2026-10-23) addresses a group (`group:…`); then peerUserId is ''. */
-  | (Base & {t: 'send'; ref: string; peerUserId: string; text: string; replyToId?: string | null; cid?: string | null})
+  /** `attachment` (2026-10-27): a file the browser already encrypted and uploaded. */
+  | (Base & {t: 'send'; ref: string; peerUserId: string; text: string; replyToId?: string | null; cid?: string | null;
+      attachment?: LinkAttachment | null})
   | (Base & {t: 'read'; cid: string})
   | (Base & {t: 'history'; cid: string; before: number; limit: number})
   // ── 2026-10-23: groups and contacts, answered with `result` ──

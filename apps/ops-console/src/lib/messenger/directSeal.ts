@@ -8,7 +8,7 @@
  * Kept pure (messenger-core only, no IDB) so the interop test can run it
  * against the mobile verifier: src/modules/messenger/__tests__/opsDirectInterop.test.ts.
  */
-import {sealPayload, type SessionAddress} from '@bravo/messenger-core';
+import {sealPayload, type SessionAddress, type SealedAttachment} from '@bravo/messenger-core';
 
 /** Same grammar as mobile `aadBinding.directConvoAadId`. */
 export function directConvoAadId(a: string, b: string): string {
@@ -23,9 +23,12 @@ export function sealDirectText(p: {
   peer:        SessionAddress;
   clientMsgId: string;
   ts:          number;
+  /** 2026-10-27 — a file sent from the web (same field the app seals). */
+  attachment?: SealedAttachment;
 }): string {
   return sealPayload(p.cert, p.text, {
     clientMsgId: p.clientMsgId,
+    ...(p.attachment ? {attachment: p.attachment} : {}),
     aad: {
       to:             p.peer,
       ts:             p.ts,

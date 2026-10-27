@@ -15,6 +15,7 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import QRCode from 'qrcode';
 import type {LinkGroup, LinkPeer} from '@bravo/messenger-core/link/linkProtocol';
+import {AttachButton, FileCard, fileSendError, isFileRow} from './ChatFiles';
 import {parseGroupInvite} from '@bravo/messenger-core/link/groupInvite';
 import type {LinkedRuntime} from '@/lib/messenger/linkedRuntime';
 import type {StoredMessage, ConversationSummary} from '@/lib/messenger/runtime';
@@ -146,7 +147,13 @@ export function GroupThread({linked, cid, selfId}: {linked: LinkedRuntime; cid: 
   const retry = async (m: StoredMessage) => {
     setErr(null);
     await linked.discardMessage(m.conversationId, m.id);
+    if (isFileRow(m)) return; // a failed file is picked again, never re-sent as text
     try { await linked.sendGroup(cid, m.body); } catch (e) { setErr(`Not sent: ${errText(e)}`); }
+  };
+  // 2026-10-27 — files in groups go out from the phone too.
+  const sendFile = async (file: File) => {
+    setErr(null);
+    try { await linked.sendFile(cid, file); } catch (e) { setErr(fileSendError(e)); }
   };
 
   const name = group?.name ?? 'Group';
@@ -180,7 +187,9 @@ export function GroupThread({linked, cid, selfId}: {linked: LinkedRuntime; cid: 
                 <div className={`chat-bubble-row${mine ? ' mine' : ''}`}>
                   <div className={`chat-bubble${mine ? ' mine' : ''}${m.status === 'failed' ? ' failed' : ''}`}>
                     {!mine && m.senderUserId && <span className="chat-sender">{personName(linked, m.senderUserId, selfId)}</span>}
-                    <div className="chat-body">{m.body}</div>
+                    {m.attachment
+                      ? <FileCard att={m.attachment} opener={linked} />
+                      : <div className="chat-body">{m.body}</div>}
                     <div className="chat-meta">
                       {new Date(m.sentAt).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
                       {mine && <span className={`chat-tick${m.status === 'read' ? ' read' : ''}`} aria-label={m.status}>
@@ -188,7 +197,7 @@ export function GroupThread({linked, cid, selfId}: {linked: LinkedRuntime; cid: 
                       </span>}
                     </div>
                   </div>
-                  {m.status === 'failed' && <button type="button" className="chat-retry" onClick={() => void retry(m)}>Retry</button>}
+                  {m.status === 'failed' && <button type="button" className="chat-retry" onClick={() => void retry(m)}>{isFileRow(m) ? 'Remove' : 'Retry'}</button>}
                 </div>
               </div>
             );
@@ -199,6 +208,8 @@ export function GroupThread({linked, cid, selfId}: {linked: LinkedRuntime; cid: 
         {err && <div className="chat-error">{err}</div>}
         {group && (
           <form className="chat-composer" onSubmit={e => { e.preventDefault(); void send(); }}>
+            <AttachButton onPick={f => void sendFile(f)} disabled={!linked.canSendFiles()}
+              title={linked.canSendFiles() ? 'Attach a file' : 'Update the Bravo app on your phone to send files'} />
             <textarea value={text} rows={1} placeholder={`Message ${name}`} onChange={e => setText(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); } }}/>
             <button type="submit" className="btn btn-pri chat-send" disabled={!text.trim()} aria-label="Send">

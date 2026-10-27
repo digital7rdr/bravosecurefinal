@@ -250,3 +250,10 @@ export {
   epochToKeyIndex,
   KEY_RING_SIZE as FRAME_CRYPTOR_KEY_RING_SIZE,
 } from './calls/frameCryptorKeys';
+// 2026-10-27 — web attachment encryption (byte-compatible with the app's aesCbc).
+export {
+  encryptAttachmentBlob,
+  encryptAttachmentWith,
+  decryptAttachmentBlob,
+  type EncryptedAttachmentBlob,
+} from './crypto/attachmentCrypto';

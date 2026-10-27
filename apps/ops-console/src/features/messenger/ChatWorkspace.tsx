@@ -25,6 +25,7 @@ import {
 import type {StoredMessage, ConversationSummary} from '@/lib/messenger/runtime';
 import type {LinkedRuntime} from '@/lib/messenger/linkedRuntime';
 import {isGroupCid} from '@bravo/messenger-core/link/linkProtocol';
+import {AttachButton, FileCard, fileSendError, isFileRow} from './ChatFiles';
 import {LinkPhonePanel} from './LinkPhonePanel';
 import {
   GroupsList, GroupThread, GroupsUnavailable, AddContactDialog, useLinkedVersion,
@@ -499,11 +500,25 @@ function Thread({conversationId, directory}: {conversationId: string; directory:
     if (!runtime) return;
     setErr(null);
     await runtime.discardMessage(m.conversationId, m.id);
+    // A failed FILE is not re-sent as text; the user picks the file again.
+    if (isFileRow(m)) return;
     try { await runtime.sendDirect(peerId, m.body); } catch (e) { setErr(sendError(e)); }
   };
 
   // Linked mode: a message waits on the phone; say so if it takes a while.
   const linked = useLinked();
+  // 2026-10-27 — files: a linked browser sends through the phone (when its
+  // app supports it); a browser with its own messenger sends directly.
+  useLinkedVersion(linked);
+  const canAttach = !!runtime && (linked ? linked.canSendFiles() : 'sendDirectFile' in runtime);
+  const sendFile = async (file: File) => {
+    if (!runtime) return;
+    setErr(null);
+    try {
+      if (linked) await linked.sendFile(conversationId, file);
+      else if ('sendDirectFile' in runtime) await runtime.sendDirectFile(peerId, file);
+    } catch (e) { setErr(fileSendError(e)); }
+  };
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (!linked) return;
@@ -541,7 +556,9 @@ function Thread({conversationId, directory}: {conversationId: string; directory:
               {showDay && <div className="chat-day"><span>{new Date(m.sentAt).toLocaleDateString([], {weekday: 'short', day: 'numeric', month: 'short'})}</span></div>}
               <div className={`chat-bubble-row${mine ? ' mine' : ''}`}>
                 <div className={`chat-bubble${mine ? ' mine' : ''}${m.status === 'failed' ? ' failed' : ''}`}>
-                  <div className="chat-body">{m.body}</div>
+                  {m.attachment
+                    ? <FileCard att={m.attachment} opener={runtime} />
+                    : <div className="chat-body">{m.body}</div>}
                   <div className="chat-meta">
                     {new Date(m.sentAt).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}
                     {mine && (
@@ -552,7 +569,7 @@ function Thread({conversationId, directory}: {conversationId: string; directory:
                   </div>
                 </div>
                 {m.status === 'failed' && (
-                  <button type="button" className="chat-retry" onClick={() => void retry(m)}>Retry</button>
+                  <button type="button" className="chat-retry" onClick={() => void retry(m)}>{isFileRow(m) ? 'Remove' : 'Retry'}</button>
                 )}
               </div>
             </div>
@@ -566,6 +583,8 @@ function Thread({conversationId, directory}: {conversationId: string; directory:
       )}
       {err && <div className="chat-error">{err}</div>}
       <form className="chat-composer" onSubmit={e => { e.preventDefault(); void send(); }}>
+        <AttachButton onPick={f => void sendFile(f)} disabled={!canAttach}
+          title={canAttach ? 'Attach a file' : linked ? 'Update the Bravo app on your phone to send files' : 'Attach a file'} />
         <textarea value={text} rows={1} placeholder="Type a message"
           onChange={e => onType(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); } }} />

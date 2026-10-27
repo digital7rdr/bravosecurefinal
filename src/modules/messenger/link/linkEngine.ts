@@ -20,8 +20,8 @@
 import {AppState} from 'react-native';
 import {
   linkCipher, parseLinkQr, chunkRows, LinkReplayGuard, newLinkMsgId, b64uEncode, b64uDecode,
-  groupCid, groupIdOfCid,
-  type LinkCipher, type LinkMsgRow, type LinkMsgStatus, type PhoneToWeb, type WebToPhone,
+  groupCid, groupIdOfCid, isLinkAttachment,
+  type LinkAttachment, type LinkCipher, type LinkMsgRow, type LinkMsgStatus, type PhoneToWeb, type WebToPhone,
   type LinkConversation, type LinkPeer, type LinkGroup, type LinkFeature,
 } from '@bravo/messenger-core/link/linkProtocol';
 import type {ServerFrame, TransportClient} from '@bravo/messenger-core';
@@ -46,7 +46,24 @@ import {
  * What this phone's link engine understands (2026-10-23). A browser shows the
  * group and contact controls only when the phone it mirrors says so.
  */
-export const LINK_FEATURES: LinkFeature[] = ['groups', 'contacts.manual', 'groups.manage', 'groups.invite', 'groups.join'];
+export const LINK_FEATURES: LinkFeature[] = ['groups', 'contacts.manual', 'groups.manage', 'groups.invite', 'groups.join',
+  // 2026-10-27 — the browser sends files and opens the ones in its chats.
+  'files'];
+
+/** 2026-10-27 — the file on a message, for the browser to open (null when none). */
+function attachmentOf(m: LocalMessage): LinkAttachment | null {
+  if (m.deleted_for_all || !m.media_object_key || !m.media_key || !m.media_iv) {return null;}
+  if (m.type !== 'image' && m.type !== 'audio' && m.type !== 'video' && m.type !== 'file') {return null;}
+  return {
+    objectKey: m.media_object_key,
+    keyB64: m.media_key,
+    ivB64: m.media_iv,
+    mimeType: m.media_mime ?? 'application/octet-stream',
+    size: m.media_meta?.sizeBytes ?? 0,
+    name: m.media_meta?.name ?? null,
+    kind: m.type,
+  };
+}
 
 // ── types ────────────────────────────────────────────────────────────────────
 
@@ -198,8 +215,12 @@ function toRow(m: LocalMessage, group = false): LinkMsgRow | null {
   else {
     const label = mediaLabel(m);
     const caption = m.type === 'call' ? '' : (m.content ?? '').trim();
-    body = caption && !caption.startsWith('{') ? `${label}\n${caption}` : `${label} — open it in the Bravo app`;
+    // 2026-10-27 — a file the browser can open needs no "open it in the app".
+    const openable = !!attachmentOf(m);
+    body = caption && !caption.startsWith('{') ? `${label}\n${caption}`
+      : openable || m.type === 'call' ? label : `${label} — open it in the Bravo app`;
   }
+  const att = attachmentOf(m);
   const status: LinkMsgStatus = m.status === 'undelivered' ? 'failed' : (m.status as LinkMsgStatus);
   return {
     id: m.id,
@@ -210,6 +231,7 @@ function toRow(m: LocalMessage, group = false): LinkMsgRow | null {
     kind: m.type,
     replyToId: m.reply_to_msg_id ?? null,
     ...(group && m.sender_id !== 'self' ? {from: m.sender_id || m.peer?.userId || null} : {}),
+    ...(att ? {att} : {}),
   };
 }
 
@@ -532,7 +554,15 @@ async function runCommand(link: ActiveLink, cmd: WebToPhone): Promise<void> {
     }
     case 'send': {
       const text = String(cmd.text ?? '').slice(0, 20_000);
-      if (!text.trim() || !cmd.ref) {return;}
+      // 2026-10-27 — a file the browser encrypted and uploaded itself; the
+      // phone seals its key into the message like any attachment it sends.
+      const attachment = isLinkAttachment(cmd.attachment) ? {
+        objectKey: cmd.attachment.objectKey, keyB64: cmd.attachment.keyB64, ivB64: cmd.attachment.ivB64,
+        mimeType: cmd.attachment.mimeType, size: cmd.attachment.size,
+        kind: cmd.attachment.kind ?? 'file',
+        ...(cmd.attachment.name ? {name: cmd.attachment.name} : {}),
+      } : undefined;
+      if ((!text.trim() && !attachment) || !cmd.ref) {return;}
       const gid = cmd.cid ? groupIdOfCid(cmd.cid) : null;
       if (gid) {
         try {
@@ -543,7 +573,8 @@ async function runCommand(link: ActiveLink, cmd: WebToPhone): Promise<void> {
             const q = groupRows(useMessengerStore.getState(), gid).find(m => m.id === cmd.replyToId);
             if (q) {replyTo = {messageId: q.id, preview: (q.content ?? '').slice(0, 120)};}
           }
-          await rt.sendText(gid, text, {isGroup: true, stableMsgId: cmd.ref, ...(replyTo ? {replyTo} : {})});
+          await rt.sendText(gid, text, {isGroup: true, stableMsgId: cmd.ref, ...(replyTo ? {replyTo} : {}),
+            ...(attachment ? {attachment} : {})});
           await reply(link, stamp({t: 'sent' as const, ref: cmd.ref, ok: true}));
         } catch (e) {
           await reply(link, stamp({t: 'sent' as const, ref: cmd.ref, ok: false, error: (e as Error).message?.slice(0, 200) ?? 'send_failed'}));
@@ -564,7 +595,8 @@ async function runCommand(link: ActiveLink, cmd: WebToPhone): Promise<void> {
           const q = peerRows(useMessengerStore.getState(), cid).find(m => m.id === cmd.replyToId);
           if (q) {replyTo = {messageId: q.id, preview: (q.content ?? '').slice(0, 120)};}
         }
-        await rt.sendText(cid, text, {peer, stableMsgId: cmd.ref, ...(replyTo ? {replyTo} : {})});
+        await rt.sendText(cid, text, {peer, stableMsgId: cmd.ref, ...(replyTo ? {replyTo} : {}),
+          ...(attachment ? {attachment} : {})});
         await reply(link, stamp({t: 'sent' as const, ref: cmd.ref, ok: true}));
       } catch (e) {
         await reply(link, stamp({t: 'sent' as const, ref: cmd.ref, ok: false, error: (e as Error).message?.slice(0, 200) ?? 'send_failed'}));

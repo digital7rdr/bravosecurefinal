@@ -16,7 +16,7 @@
 import {io, type Socket} from 'socket.io-client';
 import {
   linkCipher, encodeLinkQr, newLinkKey, newLinkMsgId, b64uEncode, b64uDecode, LinkReplayGuard,
-  isGroupCid,
+  isGroupCid, isLinkAttachment,
   type LinkCipher, type PhoneToWeb, type WebToPhone, type LinkPeer, type LinkMsgRow,
   type LinkGroup, type LinkFeature,
 } from '@bravo/messenger-core/link/linkProtocol';
@@ -25,6 +25,7 @@ import {MessageStore, type StoredMessage, type ConversationSummary} from './mess
 import {wrapString, unwrapString, type WrapKey} from './crypto';
 import type {MessengerDb} from './idb';
 import {linkApi, messengerBase, browserLabel, LinkHttpError} from './linkClient';
+import {uploadFile, downloadFile, type WebAttachment} from './mediaClient';
 
 export interface LinkRecord {
   linkId:     string;
@@ -397,6 +398,7 @@ export class LinkedRuntime {
       status:         r.status,
       reactions:      null,
       replyToId:      r.replyToId ?? null,
+      attachment:     isLinkAttachment(r.att) ? r.att : null,
     };
     await this.messages.upsert(row);
     if (!existed && !history && r.dir === 'in') {
@@ -464,6 +466,53 @@ export class LinkedRuntime {
     }
     return {id: ref, envelopeId: ref};
   }
+
+  // ── files (2026-10-27) ─────────────────────────────────────────────────
+
+  /**
+   * Send a file to a chat (`direct:<peer>` or `group:<id>`). The browser
+   * encrypts and uploads it; the phone seals its key into the message and
+   * sends it, exactly like a file sent from the app.
+   */
+  async sendFile(cid: string, file: File): Promise<{id: string; envelopeId: string | null}> {
+    if (!this.features.has('files')) throw new Error('phone_app_too_old_for_files');
+    const group = isGroupCid(cid);
+    const peerUserId = group ? '' : cid.startsWith('direct:') ? cid.slice('direct:'.length) : '';
+    if (!group && !peerUserId) throw new Error('not a chat');
+    const ref = genRef();
+    const label = `📎 ${file.name || 'File'}`;
+    await this.messages.upsert({
+      conversationId: cid, id: ref, senderUserId: this.userId, direction: 'out', body: label, sentAt: Date.now(),
+      envelopeId: ref, clientMsgId: ref, status: 'sending', reactions: null, replyToId: null,
+    });
+    this.refToCid.set(ref, cid);
+    this.emitHistory(cid);
+    try {
+      const attachment = await uploadFile(file, this.link.wsDeviceId);
+      await this.messages.upsert({
+        conversationId: cid, id: ref, senderUserId: this.userId, direction: 'out', body: label, sentAt: Date.now(),
+        envelopeId: ref, clientMsgId: ref, status: 'sending', reactions: null, replyToId: null, attachment,
+      });
+      this.emitHistory(cid);
+      await this.command({
+        t: 'send', id: newLinkMsgId(), ts: Date.now(), ref, peerUserId, text: '',
+        ...(group ? {cid} : {}), attachment,
+      });
+    } catch (e) {
+      await this.messages.patch(cid, ref, {status: 'failed'});
+      this.emitHistory(cid);
+      throw e;
+    }
+    return {id: ref, envelopeId: ref};
+  }
+
+  /** Download and decrypt a file from a message in this browser. */
+  async openFile(att: WebAttachment): Promise<Blob> {
+    return downloadFile(att, this.link.wsDeviceId);
+  }
+
+  /** The linked phone's app can take files from this browser. */
+  canSendFiles(): boolean { return this.features.has('files'); }
 
   // ── groups and contacts (2026-10-23) ───────────────────────────────────
 

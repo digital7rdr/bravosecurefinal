@@ -1470,6 +1470,18 @@ a.card-header-act:hover { color: var(--glow); }
 }
 .chat-composer textarea:focus { border-color: var(--act); }
 .chat-send { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 50%; }
+.chat-attach { width: 44px; height: 44px; padding: 0; justify-content: center; border-radius: 50%; flex-shrink: 0; }
+/* Files in the web messenger (2026-10-27) */
+.chat-file { display: flex; flex-direction: column; gap: 6px; min-width: 220px; }
+.chat-file-img { max-width: 100%; max-height: 320px; border-radius: 10px; display: block; }
+.chat-file-row { display: flex; align-items: center; gap: 10px; }
+.chat-file-icon { font-size: 22px; }
+.chat-file-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.chat-file-name { font-size: 13.5px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-file-size { font-size: 11.5px; color: var(--tx-3); }
+.chat-file-btn { font-size: 12px; font-weight: 700; color: var(--glow); background: rgba(30,136,255,0.12); border: 1px solid rgba(76,194,255,0.3); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+.chat-file-btn:disabled { opacity: 0.5; cursor: default; }
+.chat-file-err { font-size: 12px; color: #FFD6D6; }
 .chat-empty-state { margin: auto; text-align: center; font-size: 13.5px; color: var(--tx-3); display: flex; flex-direction: column; gap: 6px; padding: 40px; }
 .chat-empty-title { font-size: 18px; font-weight: 800; color: var(--tx-1); }
 .chat-e2e { margin-top: 10px; font-size: 12px; }

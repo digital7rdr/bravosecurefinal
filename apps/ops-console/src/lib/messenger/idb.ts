@@ -160,6 +160,8 @@ export interface MessengerSchema {
       status:          'sending' | 'sent' | 'delivered' | 'read' | 'failed';
       reactions_json:  Uint8Array | null; // wrapped JSON {[userId]: emoji}
       reply_to_id:     string | null;
+      /** 2026-10-27 — wrapped JSON of the message's file (absent on older rows). */
+      attachment_json?: Uint8Array | null;
     };
   };
 }
