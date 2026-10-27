@@ -41,6 +41,9 @@ export interface WorkspaceAffiliation {
   org_id: string;
   name: string;
   role: 'owner' | 'manager' | 'employee' | 'cpo';
+  /** 2026-10-27 — a manager who is also this workspace's Admin. Kept beside
+   *  `role` (which stays 'manager') so every manager check keeps admitting them. */
+  admin?: boolean;
 }
 
 /** Why the member is locked out, shown on the CPO's AccessEndedScreen. */
@@ -253,7 +256,8 @@ export const WORKSPACE_AFFILIATIONS_SQL = `
   -- display_name directly. Every membership tile in the hub read 'QA Owner'
   -- instead of 'Borealis Ltd', on the one screen this feature exists to draw,
   -- and rendered EMPTY when the owner had no display_name.
-  SELECT om.org_user_id, om.member_role, COALESCE(w.name, u.display_name) AS org_name
+  SELECT om.org_user_id, om.member_role, COALESCE(om.workspace_admin, FALSE) AS workspace_admin,
+         COALESCE(w.name, u.display_name) AS org_name
     FROM public.org_members om
     JOIN public.users u ON u.id = om.org_user_id
     JOIN public.org_workspaces w ON w.owner_user_id = om.org_user_id
@@ -273,6 +277,7 @@ export const WORKSPACE_AFFILIATIONS_SQL = `
 export interface WorkspaceMembershipRow {
   org_user_id: string;
   member_role: string | null;
+  workspace_admin?: boolean | null;
   org_name: string | null;
 }
 
@@ -290,7 +295,15 @@ export function deriveAccountKind(
   const isManagedCpoAgent = row.agent_type === 'cpo' && row.managed_by_org_id !== null;
   const isActiveCpoMember = row.member_role === 'cpo' && row.member_status === 'active';
   const isCompanyAgent    = row.agent_type === 'company';
-  const isActiveManager   = row.member_role === 'manager' && row.member_status === 'active';
+  // 2026-10-27 (owner): a manager of an Enterprise WORKSPACE is not a service
+  // provider. Counting every active manager as 'agency' sent a workspace
+  // manager — invited to run the company's channels — into the security-agency
+  // "Manager Dashboard" (duty toggle, guards, missions). Only a manager of a
+  // non-workspace org (an agency) is an agency operator; a workspace manager
+  // stays an individual and manages the workspace from the Messenger shell
+  // (is_org_manager still admits them to every workspace manager route).
+  const isActiveManager   = row.member_role === 'manager' && row.member_status === 'active'
+    && !row.member_org_is_workspace;
 
   let account_kind: AccountKind;
   if (isManagedCpoAgent || isActiveCpoMember) {
@@ -332,7 +345,10 @@ export function deriveAccountKind(
   if (memberships) {
     for (const m of memberships) {
       if (m.org_user_id === row.user_id) {continue;}
-      workspaces.push({org_id: m.org_user_id, name: m.org_name ?? '', role: asRole(m.member_role)});
+      const role = asRole(m.member_role);
+      workspaces.push(role === 'manager' && m.workspace_admin
+        ? {org_id: m.org_user_id, name: m.org_name ?? '', role, admin: true}
+        : {org_id: m.org_user_id, name: m.org_name ?? '', role});
     }
   } else if (row.org_user_id && row.member_status === 'active' && row.member_org_is_workspace
       && row.org_user_id !== row.user_id) {
@@ -458,6 +474,30 @@ export async function resolveIsOrgManager(
     [userId],
   );
   return !!(row && (row.is_company || row.is_owner || row.is_manager));
+}
+
+/**
+ * 2026-10-27 (owner) — is this person an operator of a SERVICE-PROVIDER org
+ * (a company agent, or an active manager of an org that is NOT an Enterprise
+ * workspace)? resolveIsOrgManager answers "does OrgManagerGuard admit them",
+ * which is also true for workspace owners and workspace managers; the hub's
+ * audience split needs the narrower question, or a workspace manager is
+ * offered the agency console instead of Messenger.
+ */
+export async function resolveIsAgencyManager(
+  db: Pick<DatabaseService, 'qOne'>,
+  userId: string,
+): Promise<boolean> {
+  const row = await db.qOne<{yes: boolean}>(
+    `SELECT (
+       EXISTS(SELECT 1 FROM agents WHERE user_id = $1 AND type = 'company')
+       OR EXISTS(SELECT 1 FROM org_members m
+                  WHERE m.member_user_id = $1 AND m.member_role = 'manager' AND m.status = 'active'
+                    AND NOT EXISTS(SELECT 1 FROM public.org_workspaces w WHERE w.owner_user_id = m.org_user_id))
+     ) AS yes`,
+    [userId],
+  );
+  return !!row?.yes;
 }
 
 /** The org a delegated manager manages, plus what its owner granted them. */

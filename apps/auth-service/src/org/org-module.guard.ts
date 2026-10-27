@@ -21,7 +21,7 @@ import type {OrgManagerContext} from './org-manager.guard';
  *      headcount every manager's home screen shows).
  *   2. The caller IS the org (company account or workspace owner: the org id
  *      OrgManagerGuard stamped equals the caller's own id) → allowed. The owner
- *      decides; the owner is never restricted.
+ *      decides; the owner is never restricted. 2b: a workspace Admin likewise.
  *   3. @OrgOwnerOnly → refused for everyone else.
  *   4. A delegated manager → allowed only if their membership in THE ORG THE
  *      REQUEST RESOLVED TO grants at least ONE of the listed modules. Any-of,
@@ -71,18 +71,21 @@ export class OrgModuleGuard implements CanActivate {
     if (!m) throw new ForbiddenException('org_manager_access_required');
 
     if (m.user_id === m.org_user_id) return true;                       // rule 2
-    if (required.includes(ORG_OWNER_ONLY)) {                             // rule 3
-      throw new ForbiddenException('org_owner_only');
-    }
 
-    const row = await this.db.qOne<{permitted_modules: string[] | null}>(
-      `SELECT permitted_modules FROM org_members
+    const row = await this.db.qOne<{permitted_modules: string[] | null; workspace_admin: boolean | null}>(
+      `SELECT permitted_modules, workspace_admin FROM org_members
         WHERE org_user_id = $1 AND member_user_id = $2
           AND member_role = 'manager' AND status = 'active'
         ORDER BY created_at ASC
         LIMIT 1`,
       [m.org_user_id, m.user_id],
     );
+    // rule 2b (2026-10-27) — a workspace ADMIN stands in for the owner
+    // (org/workspace-roles.ts). The flag can only be set on a workspace.
+    if (row?.workspace_admin) return true;
+    if (required.includes(ORG_OWNER_ONLY)) {                             // rule 3
+      throw new ForbiddenException('org_owner_only');
+    }
     const granted = new Set(row?.permitted_modules ?? []);
     if (required.some(k => granted.has(k))) return true;                 // rule 4
     throw new ForbiddenException(`org_module_not_granted:${required.join('|')}`);

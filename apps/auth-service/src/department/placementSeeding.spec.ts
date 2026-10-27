@@ -168,3 +168,25 @@ describe('applyPlacement', () => {
     await expect(w.svc.applyPlacement(ORG, 'u-jhb', 'nope', 'a')).rejects.toThrow(BadRequestException);
   });
 });
+
+describe('2026-10-27 — channel members chosen at creation', () => {
+  it('seeds only the chosen people (plus managers), and marks the channel explicit', async () => {
+    const w = world();
+    const ch = await w.svc.createChannel(ORG, ORG, {name: 'Board', member_ids: ['u-tsh', 'u-all', 'not-a-member']});
+    const s = w.seeded.find(x => x.channel === ch.id)!;
+    // Placement does not override a hand-picked list; strangers are ignored.
+    expect(s.users.sort()).toEqual(['u-all', 'u-mgr', 'u-tsh']);
+    expect(s.users).not.toContain('not-a-member');
+    expect(w.audit.log).toHaveBeenCalledWith(ORG, ORG, 'channel.create',
+      expect.objectContaining({metadata: expect.objectContaining({explicit_members: 3})}));
+  });
+
+  it('without member_ids nothing changes (every eligible member)', async () => {
+    const w = world();
+    const ch = await w.svc.createChannel(ORG, ORG, {name: 'All hands'});
+    const s = w.seeded.find(x => x.channel === ch.id)!;
+    expect(s.users).toContain('u-all');
+    expect(w.audit.log).toHaveBeenCalledWith(ORG, ORG, 'channel.create',
+      expect.objectContaining({metadata: expect.not.objectContaining({explicit_members: expect.anything()})}));
+  });
+});

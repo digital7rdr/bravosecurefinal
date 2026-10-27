@@ -245,7 +245,7 @@ describe('OrgCpoService', () => {
       expect(r.member_role).toBe('manager');
       const update = mockDb.qOne.mock.calls.find(c => /UPDATE org_members SET member_role/.test(c[0] as string));
       // Conditional on the role we READ — the concurrency claim (MEDIUM-2).
-      expect(update?.[1]).toEqual([ORG, 'emp-1', 'manager', 'employee']);
+      expect(update?.[1]).toEqual([ORG, 'emp-1', 'manager', 'employee', false, false, ['dept', 'roster', 'orgChart', 'msg']]);
     });
 
     // Round-2 (critic MEDIUM-2): a manager who could unmake a peer could then
@@ -283,7 +283,7 @@ describe('OrgCpoService', () => {
       const r = await service.setMemberRole(ORG, 'mgr-2', 'cpo', ORG);
       expect(r.member_role).toBe('employee');
       const update = mockDb.qOne.mock.calls.find(c => /UPDATE org_members SET member_role/.test(String(c[0])));
-      expect(update?.[1]).toEqual([ORG, 'mgr-2', 'employee', 'manager']);
+      expect(update?.[1]).toEqual([ORG, 'mgr-2', 'employee', 'manager', false, false, ['dept', 'roster', 'orgChart', 'msg']]);
       expect(mockOrgAudit.log).toHaveBeenCalledWith(ORG, ORG, 'member.role',
         expect.objectContaining({metadata: {from: 'manager', to: 'employee'}}));
     });
@@ -296,7 +296,7 @@ describe('OrgCpoService', () => {
       const r = await service.setMemberRole(ORG, 'mgr-2', 'employee', ORG);
       expect(r.member_role).toBe('cpo');
       const update = mockDb.qOne.mock.calls.find(c => /UPDATE org_members SET member_role/.test(String(c[0])));
-      expect(update?.[1]).toEqual([ORG, 'mgr-2', 'cpo', 'manager']);
+      expect(update?.[1]).toEqual([ORG, 'mgr-2', 'cpo', 'manager', false, false, ['dept', 'roster', 'orgChart', 'msg']]);
     });
 
     it('a lost concurrency claim surfaces as a conflict, with NO channel sweep', async () => {
@@ -683,7 +683,7 @@ describe('OrgCpoService', () => {
       expect(out).toEqual({member_role: 'manager', stranded_room_claims: []});
 
       const update = mockDb.qOne.mock.calls.find(c => /UPDATE org_members SET member_role/i.test(String(c[0])));
-      expect(update?.[1]).toEqual([ORG, 'cpo-1', 'manager', 'cpo']);
+      expect(update?.[1]).toEqual([ORG, 'cpo-1', 'manager', 'cpo', false, false, ['dept', 'roster', 'orgChart', 'msg']]);
 
       expect(mockOrgAudit.log).toHaveBeenCalledWith(ORG, ORG, 'member.role', expect.objectContaining({
         targetId: 'cpo-1',

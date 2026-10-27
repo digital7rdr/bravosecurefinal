@@ -78,7 +78,8 @@ export interface User {
    *  membership), additive beside the single primary `org`. The Workspace
    *  Hub renders this list. Optional: an older server yields undefined and
    *  the hub falls back to the org/owns_workspace pair. */
-  workspaces?: Array<{org_id: string; name: string; role: 'owner' | 'manager' | 'employee' | 'cpo'}>;
+  /** `admin` (2026-10-27): a manager who is also this workspace's Admin. */
+  workspaces?: Array<{org_id: string; name: string; role: 'owner' | 'manager' | 'employee' | 'cpo'; admin?: boolean}>;
   /** B-417 — this user IS an ACTIVE agency company account (mirrors
    *  OrgManagerGuard Path 1). The direct owner fact for Ops Room key
    *  authority: `account_kind==='agency' && !org` rotted the moment Phase B

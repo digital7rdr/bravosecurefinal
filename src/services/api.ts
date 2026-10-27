@@ -570,7 +570,7 @@ export const authApi = {
       org_is_workspace?: boolean;
       // Phase B — every enterable workspace affiliation. Optional so an older
       // server yields undefined and the hub falls back to org/owns_workspace.
-      workspaces?: Array<{org_id: string; name: string; role: 'owner' | 'manager' | 'employee' | 'cpo'}>;
+      workspaces?: Array<{org_id: string; name: string; role: 'owner' | 'manager' | 'employee' | 'cpo'; admin?: boolean}>;
       // B-417 — ACTIVE agency company account (the direct owner fact for Ops
       // Room key authority). Optional: an older server yields undefined and
       // the predicate's legacy owner arm still admits the un-joined owner.
@@ -1691,6 +1691,8 @@ export interface RosterMember {
   email: string | null;
   call_sign: string | null;
   member_role: 'cpo' | 'manager' | 'employee';
+  /** 2026-10-27 — a manager who is also the workspace's Admin. */
+  workspace_admin?: boolean;
   status: 'invited' | 'active' | 'suspended' | 'removed';
   /** Branch (org_members.department) — NULL = unassigned. Groups the A7.3
    *  batch picker; the PDF's "team" maps to this (no team entity exists). */
@@ -1858,8 +1860,9 @@ export const orgApi = {
   // RS-10 — promote/demote a roster member (owner-only, server-enforced).
   // Q7 — 'employee' is the workspace demote target (employee ⇄ manager);
   // agencies keep cpo ⇄ manager. The server refuses cpo ⇄ employee.
-  setCpoRole: (memberUserId: string, member_role: 'cpo' | 'manager' | 'employee') =>
-    authHttp.patch<{ok: true; member_user_id: string; member_role: 'cpo' | 'manager' | 'employee'; stranded_room_claims?: string[]}>(
+  // 'admin' (2026-10-27, workspaces only): manager + the workspace Admin flag.
+  setCpoRole: (memberUserId: string, member_role: 'cpo' | 'manager' | 'employee' | 'admin') =>
+    authHttp.patch<{ok: true; member_user_id: string; member_role: 'cpo' | 'manager' | 'employee' | 'admin'; stranded_room_claims?: string[]}>(
       `/org/cpos/${memberUserId}/role`, {member_role}),
 
   // Step 13 — the agency mission board (jobs grouped needs-crew / active / recent).
@@ -3199,7 +3202,8 @@ export const departmentApi = {
   // capability probe cannot cover that (a rolling deploy can serve the read from
   // a new instance and the write from an old one), so the echo is the only real
   // signal that the request was honoured.
-  createChannel: (input: ChannelInput & {name: string; parent_id?: string; root?: boolean; lateral?: boolean}) =>
+  // 2026-10-27 — member_ids: the people this channel is for (create only).
+  createChannel: (input: ChannelInput & {name: string; parent_id?: string; root?: boolean; lateral?: boolean; member_ids?: string[]}) =>
     authHttp.post<{id: string; name: string; channel_type: ChannelTypeDto; access: ChannelAccessDto; level: number; is_lateral?: boolean}>(
       '/department/channels', input,
     ),

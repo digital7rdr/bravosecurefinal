@@ -1,4 +1,4 @@
-import {IsBoolean, IsIn, IsOptional, IsString, IsUUID, Length, MaxLength} from 'class-validator';
+import {ArrayMaxSize, IsArray, IsBoolean, IsIn, IsOptional, IsString, IsUUID, Length, MaxLength} from 'class-validator';
 
 // Channels Hub v2 (PDF p.4). Type drives the Board/Department/Incident grouping;
 // access drives the read-only/restricted badges + manager-only seeding. These
@@ -71,6 +71,16 @@ export class CreateChannelDto {
    */
   @IsOptional() @IsBoolean()
   lateral?: boolean;
+
+  /**
+   * 2026-10-27 (owner) — the members this channel is for, chosen at creation.
+   * Present = an EXPLICIT-membership channel: only these people (plus the
+   * creator and the workspace's managers) are added, and nobody is auto-added
+   * later. Omitted = today's behaviour (every eligible member). Ids that are
+   * not active members of this org are ignored.
+   */
+  @IsOptional() @IsArray() @ArrayMaxSize(5000) @IsUUID('4', {each: true})
+  member_ids?: string[];
 }
 
 // Partial update — every field optional; only the supplied ones change

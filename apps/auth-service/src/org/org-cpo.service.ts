@@ -9,6 +9,7 @@ import {DepartmentService} from '../department/department.service';
 import {AuthService} from '../auth/auth.service';
 import {OrgAuditService} from './org-audit.service';
 import {resolveAccountKind} from '../auth/account-kind';
+import {WORKSPACE_MANAGER_MODULES, isWorkspaceOrgSql} from './workspace-roles';
 import type {CreateManagedCpoDto, MintInviteDto, OrgMemberRole, SettableMemberRole} from './dto/org.dto';
 import {
   MAX_OPEN_INVITES, MINT_MAX_ATTEMPTS, clampTtlDays, generateInviteCode, inviteStatus, normalizeCallSign, normalizeInviteCode, normalizeInviteRole,
@@ -29,6 +30,8 @@ export interface RosterMember {
   // 'employee' (M1A rule 16) rides alongside the provider roles; the
   // promote/demote DTO deliberately stays cpo|manager only.
   member_role: OrgMemberRole | 'employee';
+  /** 2026-10-27 — a workspace manager who is also an Admin (workspace-roles.ts). */
+  workspace_admin?: boolean;
   status: string;
   agent_status: string | null;
   missions_completed: number;
@@ -104,10 +107,13 @@ export class OrgCpoService {
         // (access='restricted' OR channel_type='incident') so a normal CPO is
         // never auto-joined into a managers-only channel — incl. an incident
         // channel left at the default 'standard' access.
+        // 2026-10-27 — nor into a channel whose members were chosen by hand
+        // (explicit_members): a new member is added there by a manager.
         ? `SELECT id, post_mode FROM public.department_channels
              WHERE org_id = $1 AND archived_at IS NULL
                AND access IN ('standard', 'read_only')
-               AND channel_type <> 'incident'`
+               AND channel_type <> 'incident'
+               AND NOT COALESCE(explicit_members, FALSE)`
         : `SELECT id, post_mode FROM public.department_channels
              WHERE org_id = $1 AND archived_at IS NULL`,
       [orgUserId],
@@ -619,7 +625,8 @@ export class OrgCpoService {
     await this.expireLapsedSuspensions(orgUserId);
     return this.db.q<RosterMember>(
       `SELECT om.member_user_id, u.display_name, u.email, om.call_sign,
-              om.member_role, om.status, om.department, a.status AS agent_status,
+              om.member_role, COALESCE(om.workspace_admin, FALSE) AS workspace_admin,
+              om.status, om.department, a.status AS agent_status,
               COALESCE(mc_cnt.completed, 0)::int AS missions_completed,
               om.created_at, u.avatar_url,
               om.suspended_from, om.suspended_until, om.suspend_reason,
@@ -1244,17 +1251,29 @@ export class OrgCpoService {
       if (memberUserId === orgUserId) {
         throw new ForbiddenException('cannot_modify_org_owner');
       }
-      const target = await this.db.qOne<{member_role: string}>(
-        `SELECT member_role FROM org_members
-          WHERE org_user_id = $1 AND member_user_id = $2`,
-        [orgUserId, memberUserId],
+      const target = await this.db.qOne<{member_role: string; workspace_admin?: boolean | null; actor_is_admin?: boolean | null}>(
+        `SELECT m.member_role, m.workspace_admin,
+                EXISTS(SELECT 1 FROM org_members a
+                        WHERE a.org_user_id = m.org_user_id AND a.member_user_id = $3
+                          AND a.member_role = 'manager' AND a.status = 'active'
+                          AND a.workspace_admin) AS actor_is_admin
+           FROM org_members m
+          WHERE m.org_user_id = $1 AND m.member_user_id = $2`,
+        [orgUserId, memberUserId, actorId],
       );
       // Q7 — the rank rule protects PEER MANAGERS, stated positively. The old
       // `!== 'cpo'` form was written for the agency tenant and silently swept
       // in 'employee' too, so a workspace co-admin could not suspend or remove
       // a plain employee — their whole roster job.
+      //
+      // 2026-10-27 — a workspace ADMIN outranks managers: they may change a
+      // Manager's status. Another Admin stays owner-only.
       if (target && target.member_role === 'manager') {
-        throw new ForbiddenException('only_org_owner_can_change_manager_status');
+        if (!target.actor_is_admin || target.workspace_admin) {
+          throw new ForbiddenException(target.workspace_admin
+            ? 'only_org_owner_can_change_admin_status'
+            : 'only_org_owner_can_change_manager_status');
+        }
       }
     }
 
@@ -1383,22 +1402,75 @@ export class OrgCpoService {
     if (actorId !== orgUserId && managerDepartment != null) {
       throw new ForbiddenException('scoped_manager_cannot_change_roles');
     }
-    const member = await this.db.qOne<{member_role: SettableMemberRole; status: string}>(
-      `SELECT member_role, status FROM org_members
-        WHERE org_user_id = $1 AND member_user_id = $2`,
-      [orgUserId, memberUserId],
+    // One read: the target row, plus (2026-10-27) whether the org is a
+    // workspace and whether the actor is one of its Admins.
+    const member = await this.db.qOne<{
+      member_role: SettableMemberRole; status: string; workspace_admin?: boolean | null;
+      org_is_workspace?: boolean | null; actor_is_admin?: boolean | null;
+    }>(
+      `SELECT m.member_role, m.status, m.workspace_admin,
+              ${isWorkspaceOrgSql('m.org_user_id')} AS org_is_workspace,
+              EXISTS(SELECT 1 FROM org_members a
+                      WHERE a.org_user_id = m.org_user_id AND a.member_user_id = $3
+                        AND a.member_role = 'manager' AND a.status = 'active'
+                        AND a.workspace_admin) AS actor_is_admin
+         FROM org_members m
+        WHERE m.org_user_id = $1 AND m.member_user_id = $2`,
+      [orgUserId, memberUserId, actorId],
     );
     if (!member) throw new BadRequestException('member_not_found_in_org');
     if (member.status !== 'active') throw new BadRequestException('member_not_active');
+
+    // 2026-10-27 (owner) — workspace roles are User / Manager / Admin
+    // (workspace-roles.ts). On a WORKSPACE, roles are changed by the owner and
+    // Admins only: a Manager runs channels and members, not other people's
+    // roles. An agency keeps the Q7 rule (owner + unscoped managers).
+    const isWorkspace = !!member.org_is_workspace;
+    const actorIsOwner = actorId === orgUserId;
+    const actorIsAdmin = !actorIsOwner && isWorkspace && !!member.actor_is_admin;
+    const targetIsAdmin = !!member.workspace_admin;
+    if (newRole === 'admin' && !isWorkspace) {
+      throw new BadRequestException('role_change_not_allowed');
+    }
+    if (isWorkspace && !actorIsOwner && !actorIsAdmin) {
+      throw new ForbiddenException('only_owner_or_admin_can_change_roles');
+    }
+    // Only the owner unmakes an Admin (the same peer protection managers get).
+    if (targetIsAdmin && newRole !== 'admin' && !actorIsOwner) {
+      throw new ForbiddenException('only_org_owner_can_change_admins');
+    }
+
+    // Manager ⇄ Admin is a flag flip on the manager row: no channel change.
+    if (member.member_role === 'manager' && (newRole === 'admin' || newRole === 'manager')) {
+      const wantAdmin = newRole === 'admin';
+      if (wantAdmin === targetIsAdmin) {return {member_role: newRole, stranded_room_claims: []};}
+      await this.db.q(
+        `UPDATE org_members
+            SET workspace_admin = $3,
+                permitted_modules = COALESCE(permitted_modules, $4::text[])
+          WHERE org_user_id = $1 AND member_user_id = $2 AND member_role = 'manager'`,
+        [orgUserId, memberUserId, wantAdmin, [...WORKSPACE_MANAGER_MODULES]],
+      );
+      await bustAccountGate(this.redis, memberUserId);
+      await this.audit.log(orgUserId, actorId, 'member.role', {
+        targetKind: 'user', targetId: memberUserId,
+        metadata: {from: targetIsAdmin ? 'admin' : 'manager', to: newRole},
+      }).catch(() => {});
+      return {member_role: newRole, stranded_room_claims: []};
+    }
     if (member.member_role === newRole) return {member_role: newRole, stranded_room_claims: []};
     // PEER MANAGERS stay owner-protected (critic MEDIUM-2): letting a manager
     // demote a peer would make setMemberStatus's rank rule decorative — demote
     // first, then suspend/remove with full session revocation. The founder's
     // ask is satisfied without it: co-admins PROMOTE ("assign other as admin")
     // and manage staff; only the owner unmakes managers.
-    if (actorId !== orgUserId && member.member_role === 'manager') {
+    // 2026-10-27 — a workspace Admin may also demote a (non-admin) Manager.
+    if (!actorIsOwner && !actorIsAdmin && member.member_role === 'manager') {
       throw new ForbiddenException('only_org_owner_can_demote_managers');
     }
+    // From here on 'admin' means "promote to manager, then flag".
+    const makeAdmin = newRole === 'admin';
+    newRole = makeAdmin ? 'manager' : newRole;
     // Tenant sanity — only the MANAGER pivot is a role change, and the
     // non-manager role is DECIDED BY THE TENANT, never the caller: a demote on
     // a workspace must land on 'employee' and on an agency on 'cpo'. Without
@@ -1435,24 +1507,31 @@ export class OrgCpoService {
     // interleaving the member ended 'employee' yet channel ADMIN with the
     // restricted-channel keys the demote sweep exists to revoke.
     const updated = await this.db.qOne<{member_role: SettableMemberRole}>(
-      `UPDATE org_members SET member_role = $3
+      `UPDATE org_members SET member_role = $3,
+              -- 2026-10-27 — the Admin flag lives only on a manager row; a
+              -- workspace manager gets the workspace grant if none was set.
+              workspace_admin = ($3::text = 'manager' AND $5::boolean),
+              permitted_modules = CASE WHEN $3::text = 'manager' AND $6::boolean
+                                       THEN COALESCE(permitted_modules, $7::text[])
+                                       ELSE permitted_modules END
         WHERE org_user_id = $1 AND member_user_id = $2 AND member_role = $4
         RETURNING member_role`,
-      [orgUserId, memberUserId, effectiveRole, member.member_role],
+      [orgUserId, memberUserId, effectiveRole, member.member_role,
+        makeAdmin, isWorkspace, [...WORKSPACE_MANAGER_MODULES]],
     );
     if (!updated) throw new ConflictException('role_changed_concurrently');
     await bustAccountGate(this.redis, memberUserId);
 
     await this.audit.log(orgUserId, actorId, 'member.role', {
       targetKind: 'user', targetId: memberUserId,
-      metadata: {from: member.member_role, to: effectiveRole},
+      metadata: {from: targetIsAdmin ? 'admin' : member.member_role, to: makeAdmin ? 'admin' : effectiveRole},
     }).catch(() => {});
 
     if (effectiveRole === 'manager') {
       // Upserts channel admin on ALL org channels + enqueues add intents.
       // Channels the member already belongs to ack idempotently on drain.
       await this.syncMemberToOrgChannels(orgUserId, memberUserId, 'add', true, actorId);
-      return {member_role: effectiveRole, stranded_room_claims: []};
+      return {member_role: makeAdmin ? 'admin' : effectiveRole, stranded_room_claims: []};
     }
     await this.demoteMemberChannels(orgUserId, memberUserId, actorId);
     return {

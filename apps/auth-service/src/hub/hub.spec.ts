@@ -1,11 +1,11 @@
 jest.mock('../auth/account-kind', () => ({
   resolveAccountKind: jest.fn(),
-  resolveIsOrgManager: jest.fn(),
+  resolveIsAgencyManager: jest.fn(),
 }));
 
 import {BadRequestException, ConflictException, ForbiddenException, ServiceUnavailableException} from '@nestjs/common';
 import {createHash} from 'node:crypto';
-import {resolveAccountKind, resolveIsOrgManager} from '../auth/account-kind';
+import {resolveAccountKind, resolveIsAgencyManager} from '../auth/account-kind';
 import {HubService, isAllowedAppUrl, splitAppUrl, type PlatformAppRow} from './hub.service';
 import {SignupService} from './signup.service';
 import {HubController, SsoController, SignupController} from './hub.controller';
@@ -20,7 +20,7 @@ import {
  */
 
 const kind = resolveAccountKind as jest.Mock;
-const manager = resolveIsOrgManager as jest.Mock;
+const manager = resolveIsAgencyManager as jest.Mock;
 
 const app = (o: Partial<PlatformAppRow>): PlatformAppRow => ({
   key: 'x', name: 'X', tagline: '', icon: 'chat', sort: 0, active: true, url: 'https://web.bravosecure.cloud/',

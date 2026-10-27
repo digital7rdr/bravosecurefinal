@@ -10,7 +10,9 @@ export type OrgMemberRole = (typeof ORG_MEMBER_ROLES)[number];
 // role) is a valid demote target for workspace tenants; it is deliberately
 // NOT in ORG_MEMBER_ROLES, which also gates minting managed sub-accounts —
 // an employee is an enrolled EXISTING user, never a minted sub-account.
-export const SETTABLE_MEMBER_ROLES = ['cpo', 'manager', 'employee'] as const;
+// 2026-10-27 — 'admin' (workspace only): a manager with the workspace_admin
+// flag (org/workspace-roles.ts). Never stored as a member_role value.
+export const SETTABLE_MEMBER_ROLES = ['cpo', 'manager', 'employee', 'admin'] as const;
 
 /**
  * B-812 — mint a single-use roster invitation code (agency app and ops console

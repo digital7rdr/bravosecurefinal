@@ -57,6 +57,13 @@ export default function EmployeesScreen() {
   const isOwner = activeCtx
     ? activeCtx.role === 'owner'
     : !!me && (me.org?.id === me.id || (me.account_kind === 'agency' && !me.org));
+  // 2026-10-27 (owner) — workspace roles are User / Manager / Admin. An Admin
+  // acts for the owner (except on other Admins); on a WORKSPACE only the owner
+  // and Admins change roles. Without a workspace context (an agency's
+  // back-office roster) the Q7 rule stands and the server decides.
+  const isAdmin = !!activeCtx && !!me?.workspaces?.find(w => w.org_id === activeCtx.org_id)?.admin;
+  const canChangeRoles = activeCtx ? isOwner || isAdmin : true;
+  const isWorkspaceRoster = !!activeCtx;
   // A demote sends 'employee' as the VERB only — the server substitutes the
   // role the member's own evidence dictates (managed-CPO agents row of this
   // org ⇒ 'cpo', else 'employee'). Round 3 proved no client-side
@@ -177,53 +184,84 @@ export default function EmployeesScreen() {
     );
   }, [load]);
 
-  // Q7 — promote/demote on the workspace roster (employee ⇄ manager). The
-  // server owns authorization: owner + UNSCOPED managers may change roles,
-  // the owner can never be targeted, and cpo ⇄ employee is refused — this
-  // screen only offers the manager pivot.
-  const setRole = useCallback((m: RosterMember, role: 'employee' | 'manager' | 'cpo') => {
+  // Q7 — promote/demote on the workspace roster. 2026-10-27: three roles —
+  // User ('employee'), Manager and Admin. The server owns authorization (owner
+  // + Admins on a workspace; the owner can never be targeted; only the owner
+  // changes another Admin) and decides the demote target from its own evidence.
+  const setRole = useCallback((m: RosterMember, role: 'employee' | 'manager' | 'admin') => {
     const label = m.display_name ?? m.email ?? 'this member';
-    const promote = role === 'manager';
-    Alert.alert(
-      promote ? `Make ${label} a manager?` : `Remove ${label}'s manager role?`,
-      promote
-        ? 'They get the admin dashboard: approvals, attendance, incidents and channel management — everything except removing the workspace owner.'
+    const title = role === 'admin' ? `Make ${label} an admin?`
+      : role === 'manager' ? `Make ${label} a manager?`
+        : `Make ${label} a user?`;
+    const body = role === 'admin'
+      ? 'Admins can do everything the workspace owner can, except change the owner: roles, member status, channels and approvals.'
+      : role === 'manager'
+        ? 'Managers run the workspace channels: create channels, choose their members, add people and approve joins.'
         // Neutral on purpose: the SERVER decides whether they return to the
         // regular-member or CPO role, from its own evidence.
-        : 'They keep their place on the roster; manager-only channels and admin tools are withdrawn.',
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {
-          text: promote ? 'Make manager' : 'Demote',
-          style: promote ? 'default' : 'destructive',
-          onPress: () => {
-            void (async () => {
-              setBusyId(m.member_user_id);
-              try {
-                const {data} = await orgApi.setCpoRole(m.member_user_id, role);
-                warnStrandedClaims(data.stranded_room_claims);
-                await load();
-              } catch (e: unknown) {
-                const code = (e as {response?: {data?: {message?: string}}})?.response?.data?.message;
-                const copy: Record<string, string> = {
-                  cannot_modify_org_owner: 'The workspace owner cannot be changed by anyone.',
-                  scoped_manager_cannot_change_roles: 'Your manager role is scoped to one branch, so you cannot change roles.',
-                  only_org_owner_can_demote_managers: 'Only the owner can remove a manager’s role.',
-                  member_not_active: 'Reinstate this member before changing their role.',
-                  role_change_not_allowed: 'That role does not exist on this kind of organisation.',
-                  role_changed_concurrently: 'Another admin changed this member’s role at the same time — refresh and try again.',
-                };
-                const msg = code ? copy[code] ?? 'Please try again.' : 'Please try again.';
-                Alert.alert('Update failed', msg);
-              } finally {
-                setBusyId(null);
-              }
-            })();
-          },
+        : 'They keep their place on the roster; manager-only channels and admin tools are withdrawn.';
+    const cta = role === 'admin' ? 'Make admin' : role === 'manager' ? 'Make manager' : 'Make user';
+    Alert.alert(title, body, [
+      {text: 'Cancel', style: 'cancel'},
+      {
+        text: cta,
+        style: role === 'employee' ? 'destructive' : 'default',
+        onPress: () => {
+          void (async () => {
+            setBusyId(m.member_user_id);
+            try {
+              const {data} = await orgApi.setCpoRole(m.member_user_id, role);
+              warnStrandedClaims(data.stranded_room_claims);
+              await load();
+            } catch (e: unknown) {
+              const code = (e as {response?: {data?: {message?: string}}})?.response?.data?.message;
+              const copy: Record<string, string> = {
+                cannot_modify_org_owner: 'The workspace owner cannot be changed by anyone.',
+                scoped_manager_cannot_change_roles: 'Your manager role is scoped to one branch, so you cannot change roles.',
+                only_org_owner_can_demote_managers: 'Only the owner or an admin can remove a manager’s role.',
+                only_owner_or_admin_can_change_roles: 'Only the workspace owner or an admin can change roles.',
+                only_org_owner_can_change_admins: 'Only the workspace owner can change another admin.',
+                member_not_active: 'Reinstate this member before changing their role.',
+                role_change_not_allowed: 'That role does not exist on this kind of organisation.',
+                role_changed_concurrently: 'Another admin changed this member’s role at the same time — refresh and try again.',
+              };
+              const msg = code ? copy[code] ?? 'Please try again.' : 'Please try again.';
+              Alert.alert('Update failed', msg);
+            } finally {
+              setBusyId(null);
+            }
+          })();
         },
+      },
+    ]);
+  }, [load]);
+
+  /** The member's current role in User / Manager / Admin terms. */
+  const roleOf = (m: RosterMember): 'employee' | 'manager' | 'admin' =>
+    m.member_role === 'manager' ? (m.workspace_admin ? 'admin' : 'manager') : 'employee';
+
+  /** "Change role" — offers the roles the member does not already have. */
+  const chooseRole = useCallback((m: RosterMember) => {
+    const current = m.member_role === 'manager' ? (m.workspace_admin ? 'admin' : 'manager') : 'employee';
+    const options: Array<{role: 'employee' | 'manager' | 'admin'; text: string}> = [
+      {role: 'employee', text: 'User'},
+      {role: 'manager', text: 'Manager'},
+      // Admin exists only on an Enterprise workspace.
+      ...(isWorkspaceRoster ? [{role: 'admin' as const, text: 'Admin'}] : []),
+    ];
+    Alert.alert(
+      `Role for ${m.display_name ?? m.email ?? 'this member'}`,
+      'User: channels they are added to. Manager: runs channels and members. Admin: everything the owner can do.',
+      [
+        ...options.filter(o => o.role !== current).map(o => ({text: o.text, onPress: () => setRole(m, o.role)})),
+        {text: 'Cancel', style: 'cancel' as const},
       ],
     );
-  }, [load]);
+  }, [isWorkspaceRoster, setRole]);
+
+  /** May I change this manager/admin's role and status? */
+  const canActOnManager = (m: RosterMember): boolean =>
+    isOwner || (isAdmin && !m.workspace_admin);
 
   const employees = members.filter(m => m.member_role === 'employee' && m.status !== 'removed');
   const managers = members.filter(m => m.member_role === 'manager' && m.status !== 'removed');
@@ -318,10 +356,11 @@ export default function EmployeesScreen() {
                 <ActivityIndicator color={OB.accent} size="small" />
               ) : (
                 <View style={s.actions}>
-                  {/* Q7 — promote to manager (active members only). */}
-                  {m.status === 'active' && (
-                    <TouchableOpacity onPress={() => setRole(m, 'manager')} style={s.actBtn}
-                      accessibilityRole="button" accessibilityLabel={`Make ${m.display_name ?? 'member'} a manager`}>
+                  {/* Q7 / 2026-10-27 — change role: User, Manager or Admin
+                      (active members only; owner and Admins on a workspace). */}
+                  {m.status === 'active' && canChangeRoles && (
+                    <TouchableOpacity onPress={() => chooseRole(m)} style={s.actBtn}
+                      accessibilityRole="button" accessibilityLabel={`Change ${m.display_name ?? 'member'}'s role`}>
                       <Icon name="shield-account-outline" size={18} color={OB.accentSoft} />
                     </TouchableOpacity>
                   )}
@@ -352,7 +391,7 @@ export default function EmployeesScreen() {
             member role. */}
         {managers.length > 0 && (
           <>
-            <SectionLabel>{`MANAGERS · ${managers.length}`}</SectionLabel>
+            <SectionLabel>{`${isWorkspaceRoster ? 'MANAGERS & ADMINS' : 'MANAGERS'} · ${managers.length}`}</SectionLabel>
             {managers.map(m => (
               <Card key={m.member_user_id}>
                 <View style={s.memberRow}>
@@ -362,17 +401,36 @@ export default function EmployeesScreen() {
                   <View style={{flex: 1, minWidth: 0}}>
                     <Text style={s.name} numberOfLines={1}>{m.display_name ?? m.email ?? 'Manager'}</Text>
                     <Text style={s.sub} numberOfLines={1}>
-                      {m.email ?? '—'} · Manager{m.department ? ` · ${m.department}` : ''}
+                      {m.email ?? '—'} · {roleOf(m) === 'admin' ? 'Admin' : 'Manager'}{m.department ? ` · ${m.department}` : ''}
                       {m.status === 'suspended' ? ' · Suspended' : ''}
                     </Text>
                   </View>
                   {busyId === m.member_user_id ? (
                     <ActivityIndicator color={OB.accent} size="small" />
-                  ) : isOwner && m.status === 'active' ? (
+                  ) : canActOnManager(m) ? (
                     <View style={s.actions}>
-                      <TouchableOpacity onPress={() => setRole(m, 'employee')} style={s.actBtn}
-                        accessibilityRole="button" accessibilityLabel={`Demote ${m.display_name ?? 'manager'}`}>
-                        <Icon name="shield-off-outline" size={18} color="#F59E0B" />
+                      {m.status === 'active' && (
+                        <TouchableOpacity onPress={() => chooseRole(m)} style={s.actBtn}
+                          accessibilityRole="button" accessibilityLabel={`Change ${m.display_name ?? 'manager'}'s role`}>
+                          <Icon name="shield-edit-outline" size={18} color={OB.accentSoft} />
+                        </TouchableOpacity>
+                      )}
+                      {/* 2026-10-27 — managers' status is changeable too (owner,
+                          or an Admin for a non-admin manager). */}
+                      {m.status === 'suspended' ? (
+                        <TouchableOpacity onPress={() => setStatus(m, 'active')} style={s.actBtn}
+                          accessibilityRole="button" accessibilityLabel="Reinstate">
+                          <Icon name="account-check" size={18} color="#34d399" />
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity onPress={() => setStatus(m, 'suspended')} style={s.actBtn}
+                          accessibilityRole="button" accessibilityLabel="Suspend">
+                          <Icon name="pause-circle-outline" size={18} color="#F59E0B" />
+                        </TouchableOpacity>
+                      )}
+                      <TouchableOpacity onPress={() => setStatus(m, 'removed')} style={s.actBtn}
+                        accessibilityRole="button" accessibilityLabel="Remove">
+                        <Icon name="account-remove-outline" size={18} color="#F87171" />
                       </TouchableOpacity>
                     </View>
                   ) : null}

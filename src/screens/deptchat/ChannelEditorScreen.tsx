@@ -16,7 +16,7 @@ import {deptMemberNoun} from './deptNoun';
 import {useIsWorkspaceTenant} from './workspaceTenant';
 import {activeWorkspaceOrgParam} from '@store/activeWorkspace';
 import {nameForTier, tierFromLevel} from './levelNames';
-import {orgApi} from '@services/api';
+import {orgApi, type RosterMember} from '@services/api';
 
 type Nav = NativeStackNavigationProp<MessengerStackParamList>;
 type Rt = RouteProp<MessengerStackParamList, 'ChannelEditor'>;
@@ -116,6 +116,31 @@ export default function ChannelEditorScreen() {
       .catch(() => {});
     return () => { alive = false; };
   }, []);
+  /**
+   * 2026-10-27 (owner) — "When creating Channels I need to be able to decide
+   * which members are added for each channel." On CREATE the admin picks
+   * Everyone (today's behaviour) or chooses people from the roster. A chosen
+   * list makes the channel explicit-membership on the server: managers are
+   * always in it, and nobody is auto-added later. After creation, Members
+   * (below) adds and removes people as before.
+   */
+  const [memberMode, setMemberMode] = useState<'everyone' | 'choose'>('everyone');
+  const [roster, setRoster] = useState<RosterMember[] | null>(null);
+  const [rosterError, setRosterError] = useState(false);
+  const [chosenIds, setChosenIds] = useState<Set<string>>(() => new Set());
+  React.useEffect(() => {
+    if (editing || memberMode !== 'choose' || roster) {return;}
+    let alive = true;
+    void orgApi.listCpos()
+      .then(r => { if (alive) {setRoster(r.data.filter(m => m.status === 'active')); setRosterError(false);} })
+      .catch(() => { if (alive) {setRosterError(true);} });
+    return () => { alive = false; };
+  }, [editing, memberMode, roster]);
+  const toggleChosen = (id: string) => setChosenIds(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) {next.delete(id);} else {next.add(id);}
+    return next;
+  });
   const [name, setName] = useState(editing?.name ?? '');
   const [department, setDepartment] = useState(editing?.department ?? '');
   const [type, setType] = useState<ChannelTypeDto>(editing?.channel_type ?? 'department');
@@ -296,6 +321,11 @@ export default function ChannelEditorScreen() {
       // 'announcement', and sending 'open' would re-seed its members as posters
       // while the row still read as a broadcast — members posting in the one
       // channel page 10 rule 1 says they cannot.
+      if (!editing && memberMode === 'choose' && chosenIds.size === 0) {
+        Alert.alert('Channel', 'Choose at least one member, or pick Everyone.');
+        setBusy(false);
+        return;
+      }
       const body = {
         name: trimmed,
         // vs2 item 7 — the WORKSPACE form has no DEPARTMENT field, so it sends
@@ -321,10 +351,12 @@ export default function ChannelEditorScreen() {
         // re-parent (the trigger refuses it), and ChannelInput has no such field.
         await departmentApi.configureChannel(editing.id, body);
       } else {
+        // 2026-10-27 — the chosen members, when the admin picked them.
+        const withMembers = memberMode === 'choose' ? {...body, member_ids: [...chosenIds]} : body;
         const {data: created} = await departmentApi.createChannel(
-          parentId ? {...body, parent_id: parentId, ...(asLateral ? {lateral: true} : {})}
-            : asRoot ? {...body, root: true}
-              : body);
+          parentId ? {...withMembers, parent_id: parentId, ...(asLateral ? {lateral: true} : {})}
+            : asRoot ? {...withMembers, root: true}
+              : withMembers);
         /**
          * ⚠️ VERIFY THE ECHO — do not assume the request was honoured.
          *
@@ -629,6 +661,63 @@ export default function ChannelEditorScreen() {
           <Text style={s.note}>Incident channels are managers-only regardless of access.</Text>
         )}
 
+        {!editing && (
+          <>
+            <View style={{height: 18}} />
+            <SectionLabel>MEMBERS</SectionLabel>
+            <View style={s.segRow}>
+              {([['everyone', 'Everyone', 'account-group-outline'], ['choose', 'Choose members', 'account-check-outline']] as const).map(([key, label, icon]) => (
+                <TouchableOpacity
+                  key={key}
+                  style={[s.seg, memberMode === key && s.segOn]}
+                  activeOpacity={0.8}
+                  onPress={() => setMemberMode(key)}
+                  accessibilityRole="button"
+                  accessibilityState={{selected: memberMode === key}}>
+                  <Icon name={icon} size={16} color={memberMode === key ? OB.accent : OB.textMute} />
+                  <Text style={[s.segText, memberMode === key && {color: OB.text}]}>{label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            {memberMode === 'choose' && (
+              <Card style={{marginTop: 10}}>
+                {rosterError ? (
+                  <Text style={s.accHint}>Could not load your members. Go back and try again.</Text>
+                ) : !roster ? (
+                  <Text style={s.accHint}>Loading members…</Text>
+                ) : roster.filter(m => m.member_role !== 'manager').length === 0 ? (
+                  <Text style={s.accHint}>No members yet. Add people to the workspace first.</Text>
+                ) : (
+                  <>
+                    <Text style={[s.accHint, {marginTop: 0, marginBottom: 8}]}>
+                      {`${chosenIds.size} selected · managers are always included`}
+                    </Text>
+                    {roster.filter(m => m.member_role !== 'manager').map(m => {
+                      const on = chosenIds.has(m.member_user_id);
+                      return (
+                        <TouchableOpacity
+                          key={m.member_user_id}
+                          style={s.pickRow}
+                          activeOpacity={0.8}
+                          onPress={() => toggleChosen(m.member_user_id)}
+                          accessibilityRole="checkbox"
+                          accessibilityState={{checked: on}}
+                          accessibilityLabel={m.display_name ?? m.email ?? 'Member'}>
+                          <Icon name={on ? 'checkbox-marked' : 'checkbox-blank-outline'} size={20} color={on ? OB.accent : OB.textMute} />
+                          <View style={{flex: 1, minWidth: 0}}>
+                            <Text style={s.accLabel} numberOfLines={1}>{m.display_name ?? m.email ?? 'Member'}</Text>
+                            {m.email ? <Text style={s.accHint} numberOfLines={1}>{m.email}</Text> : null}
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </>
+                )}
+              </Card>
+            )}
+          </>
+        )}
+
         <View style={{flexGrow: 1, minHeight: 26}} />
         <PrimaryButton label={editing ? 'Save changes' : 'Create channel'} icon="check" onPress={() => { void save(); }} busy={busy} />
 
@@ -707,6 +796,7 @@ const s = StyleSheet.create(scaleTextStyles({
   segOn: {borderColor: OB.accent + '80', backgroundColor: 'rgba(30,136,255,0.12)'},
   segText: {color: OB.textMute, fontFamily: BravoFont.semiBold, fontSize: 12},
   accRow: {flexDirection: 'row', alignItems: 'center', gap: 12},
+  pickRow: {flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 44, paddingVertical: 4},
   accOn: {borderColor: OB.accent + '66'},
   accLabel: {color: OB.textDim, fontFamily: BravoFont.bold, fontSize: 14},
   accHint: {color: OB.textMute, fontFamily: BravoFont.regular, fontSize: 11, marginTop: 2},

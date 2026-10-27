@@ -9,6 +9,7 @@ import {BookingPushBridge} from '../ops/booking-push-bridge.service';
 import {DepartmentService} from './department.service';
 import type {ChannelAccess, ChannelType, ChannelPostMode} from './dto/channel.dto';
 import {resolveSeedScope, type SeedCandidate, type SeedScope} from './seed-path';
+import {WORKSPACE_MANAGER_MODULES, isWorkspaceOrgSql} from '../org/workspace-roles';
 
 /**
  * Enterprise Dept Channels scope v2 — Phase 3: the join → approve loop.
@@ -751,10 +752,18 @@ export class EnterpriseJoinService {
         // writer of org_members.department — OrgManagerGuard Path 2 already
         // reads it into the forced branch filter, so a scoped manager invited
         // this way is scoped from their first request.
+        // 2026-10-27 — a MANAGER of a WORKSPACE starts with the workspace
+        // manager grant. NULL meant "no modules", so an invited workspace
+        // manager 403'd on the member list every channel screen reads and
+        // could not run the channels they were invited to run. An agency
+        // manager keeps NULL: the agency owner grants modules explicitly.
         await tx.q(
-          `INSERT INTO org_members (org_user_id, member_user_id, member_role, department, status, invited_by)
-           VALUES ($1, $2, $3, $4, 'active', $5)`,
-          [orgUserId, memberUserId, role, role === 'manager' ? department : null, grantedBy],
+          `INSERT INTO org_members (org_user_id, member_user_id, member_role, department, status, invited_by, permitted_modules)
+           VALUES ($1, $2, $3, $4, 'active', $5,
+                   CASE WHEN $3::text = 'manager' AND ${isWorkspaceOrgSql('$1::uuid')}
+                        THEN $6::text[] ELSE NULL END)`,
+          [orgUserId, memberUserId, role, role === 'manager' ? department : null, grantedBy,
+            [...WORKSPACE_MANAGER_MODULES]],
         );
       }
     } catch (e: unknown) {

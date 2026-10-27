@@ -643,7 +643,7 @@ export class DepartmentService {
   private async placementRows(orgUserId: string): Promise<PlacementRow[]> {
     return this.db.q<PlacementRow & QueryResultRow>(
       `SELECT id, parent_id, is_lateral, is_broadcast, post_mode, access, channel_type,
-              (archived_at IS NOT NULL) AS archived
+              (archived_at IS NOT NULL) AS archived, explicit_members
          FROM public.department_channels WHERE org_id = $1`,
       [orgUserId],
     );
@@ -731,7 +731,9 @@ export class DepartmentService {
     );
 
     const grant = placementGrant(rows, placementId, asManager, DepartmentService.seedsManagersOnly);
-    const live = rows.filter(r => !r.archived);
+    // 2026-10-27 — an explicit-membership channel's members were chosen by
+    // hand; a placement change neither adds to nor removes from it.
+    const live = rows.filter(r => !r.archived && !(r as {explicit_members?: boolean}).explicit_members);
     const target = new Map<string, {kind: PlacementKind; post_mode: ChannelPostMode}>();
     for (const r of live) {
       const kind: PlacementKind | undefined = grant
@@ -746,7 +748,8 @@ export class DepartmentService {
       `SELECT m.channel_id, m.role
          FROM public.department_channel_members m
          JOIN public.department_channels c ON c.id = m.channel_id
-        WHERE c.org_id = $1 AND m.user_id = $2 AND c.archived_at IS NULL`,
+        WHERE c.org_id = $1 AND m.user_id = $2 AND c.archived_at IS NULL
+          AND NOT COALESCE(c.explicit_members, FALSE)`,
       [orgUserId, memberUserId],
     );
     const have = new Map(current.map(c => [c.channel_id, c.role]));
@@ -1001,7 +1004,8 @@ export class DepartmentService {
   async createChannel(
     orgUserId: string, managerUserId: string,
     input: {name: string; department?: string; channel_type?: ChannelType; access?: ChannelAccess;
-            parent_id?: string; post_mode?: ChannelPostMode; root?: boolean; lateral?: boolean},
+            parent_id?: string; post_mode?: ChannelPostMode; root?: boolean; lateral?: boolean;
+            member_ids?: string[]},
     // The HUMAN the audit rows name when that is not `managerUserId` — the ops
     // console creates channels AS the org (created_by is ON DELETE CASCADE, so
     // it must never be a console account) on behalf of a Bravo admin.
@@ -1205,9 +1209,11 @@ export class DepartmentService {
     // instance behind a rolling deploy strips `lateral` and silently makes a
     // structural child — which is frozen and un-re-parentable, i.e. unfixable.
     // The echo is the only signal that survives that window.
+    // 2026-10-27 — members chosen at creation (CreateChannelDto.member_ids).
+    const explicit = Array.isArray(input.member_ids);
     const ch = await this.db.qOne<{id: string; level: number; is_lateral: boolean}>(
-      `INSERT INTO public.department_channels (org_id, name, department, channel_type, access, created_by, parent_id, post_mode, is_lateral${asRoot ? ', level' : ''})
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9${asRoot ? ', 0' : ''})
+      `INSERT INTO public.department_channels (org_id, name, department, channel_type, access, created_by, parent_id, post_mode, is_lateral${asRoot ? ', level' : ''}${explicit ? ', explicit_members' : ''})
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9${asRoot ? ', 0' : ''}${explicit ? ', TRUE' : ''})
        RETURNING id, level, is_lateral`,
       [orgUserId, input.name, input.department ?? null, channel_type, access, managerUserId,
        input.parent_id ?? null, post_mode, asLateral],
@@ -1216,8 +1222,17 @@ export class DepartmentService {
     // Enterprise placement: a member placed at a node is seeded only when the
     // new channel is inside their grant (placement.ts). Unplaced members keep
     // today's org-wide behaviour.
-    const members = await this.activeOrgMembers(orgUserId);
-    const kindFor = await this.placementFilter(orgUserId, members);
+    const allMembers = await this.activeOrgMembers(orgUserId);
+    // Explicit: only the chosen people, the creator, and the managers who run
+    // the workspace's channels. Ids that are not active members are ignored.
+    const chosen = explicit ? new Set(input.member_ids) : null;
+    const members = chosen
+      ? allMembers.filter(m => chosen.has(m.member_user_id) || m.member_user_id === managerUserId
+          || m.member_role === 'manager')
+      : allMembers;
+    // A hand-picked list is the answer; placement only shapes the default.
+    const kindFor: (m: {member_user_id: string; member_role: string; placement_channel_id?: string | null}, id: string) => PlacementKind | undefined =
+      chosen ? () => 'member' : await this.placementFilter(orgUserId, members);
     const seeded = members
       .map(m => ({m, kind: kindFor(m, ch.id)}))
       .filter(x => x.kind !== undefined)
@@ -1230,7 +1245,7 @@ export class DepartmentService {
     await this.audit.log(orgUserId, auditActor ?? managerUserId, 'channel.create', {
       targetKind: 'channel', targetId: ch.id,
       metadata: {channel_type, access, parent_id: input.parent_id ?? null, level: ch.level, post_mode,
-        is_lateral: ch.is_lateral},
+        is_lateral: ch.is_lateral, ...(explicit ? {explicit_members: members.length} : {})},
     });
     return {id: ch.id, name: input.name, channel_type, access, level: ch.level, post_mode,
       is_lateral: ch.is_lateral};
@@ -1319,7 +1334,9 @@ export class DepartmentService {
       // already-removed members keep their remove+rekey intents, and a retry
       // (members already gone → benign) converges.
       if (failed.length) throw new BadRequestException('channel_tighten_incomplete');
-    } else if (wasManagersOnly && !nowManagersOnly) {
+    } else if (wasManagersOnly && !nowManagersOnly && !current.explicit_members) {
+      // (2026-10-27) An explicit-membership channel is never re-filled with
+      // everyone: its members were chosen.
       // D7-b — loosening back to a standard channel must RE-SEED the CPO viewers the earlier
       // tighten rekeyed out, or the channel stays managers-only forever. Re-add via addMember
       // so each gets an add+rekey intent (the admin device redelivers the master key) — a bare
@@ -1882,13 +1899,13 @@ export class DepartmentService {
   }
 
   /** Tenant guard rail: load the channel and assert the manager owns its org. */
-  private async assertManagesChannel(orgUserId: string, channelId: string): Promise<{org_id: string; channel_type: ChannelType; access: ChannelAccess; name: string; post_mode: ChannelPostMode; is_broadcast: boolean; parent_id: string | null}> {
-    const ch = await this.db.qOne<{org_id: string; channel_type: ChannelType; access: ChannelAccess; name: string; post_mode: ChannelPostMode; is_broadcast: boolean; parent_id: string | null}>(
+  private async assertManagesChannel(orgUserId: string, channelId: string): Promise<{org_id: string; channel_type: ChannelType; access: ChannelAccess; name: string; post_mode: ChannelPostMode; is_broadcast: boolean; parent_id: string | null; explicit_members?: boolean}> {
+    const ch = await this.db.qOne<{org_id: string; channel_type: ChannelType; access: ChannelAccess; name: string; post_mode: ChannelPostMode; is_broadcast: boolean; parent_id: string | null; explicit_members?: boolean}>(
       // Phase 2 — post_mode + is_broadcast come back here so callers resolve a
       // role from the STORED mode instead of re-deriving or hardcoding one.
       // vs2 item 2 — parent_id too: configureChannel cannot tell a ROOT from a
       // child without it, and the restricted-root guard is a rule about roots.
-      `SELECT org_id, channel_type, access, name, post_mode, is_broadcast, parent_id
+      `SELECT org_id, channel_type, access, name, post_mode, is_broadcast, parent_id, explicit_members
          FROM public.department_channels WHERE id = $1`,
       [channelId],
     );

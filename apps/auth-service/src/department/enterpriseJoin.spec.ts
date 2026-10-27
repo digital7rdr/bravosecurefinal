@@ -458,7 +458,7 @@ describe('EnterpriseJoinService', () => {
       // exactly 'employee' with NO branch — an Enterprise joiner is back-office
       // staff, never a deployable CPO (the rule-7 / A7.3 distinction), and only
       // a manager INVITE may carry a department.
-      expect(grantCall?.[1]).toEqual([ORG, APPLICANT, 'employee', null, ADMIN]);
+      expect(grantCall?.[1]).toEqual([ORG, APPLICANT, 'employee', null, ADMIN, ['dept', 'roster', 'orgChart', 'msg']]);
     });
 
     it('DECLINE grants nothing but is still recorded', async () => {
@@ -1303,7 +1303,7 @@ describe('Item E — member invites by phone/email', () => {
       expect(txWrites).toMatch(/'approved'/);
       const grantCall = mockTx.q.mock.calls.find(
         (c: unknown[]) => /INSERT INTO (public\.)?org_members\b/.test(String(c[0])));
-      expect(grantCall?.[1]).toEqual([ORG, APPLICANT, 'employee', null, ORG]);
+      expect(grantCall?.[1]).toEqual([ORG, APPLICANT, 'employee', null, ORG, ['dept', 'roster', 'orgChart', 'msg']]);
       // The invitee's wake reuses the join-approved kind; admins hear an arrival.
       // The applicant's wake stays ORG-LESS on purpose (vs2 edge A2):
       // ApprovalStatus is their own cross-org screen and scoping it to one org
@@ -1455,7 +1455,7 @@ describe('Item E — member invites by phone/email', () => {
       await svc.acceptInvite(APPLICANT, 'somecode');
       const grantCall = mockTx.q.mock.calls.find(
         (c: unknown[]) => /INSERT INTO (public\.)?org_members\b/.test(String(c[0])));
-      expect(grantCall?.[1]).toEqual([ORG, APPLICANT, 'manager', 'Ops', ORG]);
+      expect(grantCall?.[1]).toEqual([ORG, APPLICANT, 'manager', 'Ops', ORG, ['dept', 'roster', 'orgChart', 'msg']]);
       // Managers-only channels are NOT skipped, and the role is admin/'Manager'
       // — mirroring seedChannelMembers' isManager branch.
       const mgrEntries = mockDepartment.addMemberBulk.mock.calls[0][2] as Array<{channelId: string}>;

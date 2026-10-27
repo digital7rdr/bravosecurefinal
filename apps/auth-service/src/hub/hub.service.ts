@@ -3,7 +3,7 @@ import {createHash, randomBytes} from 'node:crypto';
 import {DatabaseService} from '../database/database.service';
 import {RedisService} from '../redis/redis.service';
 import {TotpChallengeService} from '../common/services/totp-challenge.service';
-import {resolveAccountKind, resolveIsOrgManager} from '../auth/account-kind';
+import {resolveAccountKind, resolveIsAgencyManager} from '../auth/account-kind';
 import type {UserRow} from '../auth/auth.service';
 import {ModuleAccessService} from '../module-access/module-access.service';
 
@@ -116,9 +116,11 @@ export class HubService {
 
   /** The kinds of account this person is, decided on the server every time. */
   async audiences(userId: string): Promise<Set<Audience>> {
+    // 2026-10-27 — the AGENCY manager question, not OrgManagerGuard's: a
+    // workspace manager is a Messenger client, not a service provider.
     const [kind, manager, staff] = await Promise.all([
       resolveAccountKind(this.db, userId),
-      resolveIsOrgManager(this.db, userId),
+      resolveIsAgencyManager(this.db, userId),
       this.db.qOne<{n: number}>(`SELECT count(*)::int AS n FROM admin_users WHERE user_id=$1 AND active = TRUE`, [userId]),
     ]);
     const out = new Set<Audience>();
