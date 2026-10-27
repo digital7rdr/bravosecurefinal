@@ -448,14 +448,17 @@ export default function MainNavigator() {
   const landing = useProductStore(s => s.landing);
   useEffect(() => {
     if (!landing || !activeProduct || mountedProduct !== activeProduct || gateVisible) {return;}
-    if (landing === 'workspace' && activeProduct !== 'messenger') {return;}
+    if ((landing === 'workspace' || landing === 'messenger') && activeProduct !== 'messenger') {return;}
     let tries = 0;
     let timer: ReturnType<typeof setTimeout> | null = null;
     const attempt = (): void => {
       // 'plans' (2026-10-25): the Secure Services upgrade prompt's "View plans".
+      const landingTab = useProductStore.getState().landingTab;
       const opened = landing === 'workspace'
         ? (require('./departmentalEntry') as typeof import('./departmentalEntry')).openWorkspaceHubFromRoot()
-        : (require('./navigationRef') as typeof import('./navigationRef')).mountedTreeHasRoute('SecureTab')
+        : landing === 'messenger'
+          ? !landingTab || (require('./departmentalEntry') as typeof import('./departmentalEntry')).openMessengerTabFromRoot(landingTab)
+          : (require('./navigationRef') as typeof import('./navigationRef')).mountedTreeHasRoute('SecureTab')
           && (require('./openPricing') as typeof import('./openPricing')).openPricing();
       if (opened) {
         useProductStore.getState().clearLanding();

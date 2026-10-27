@@ -53,20 +53,20 @@ describe('B-804.2 — a landed Calls/News tab has a visible way out', () => {
     expect(HOME).toMatch(/const tabExit = useMemo</);
   });
 
-  it('a Secure-product client exits to the sibling SecureTab — the Chats chevron\'s hop', () => {
+  it('2026-10-27 — no exit to Secure Services: Messenger is its own product', () => {
     const block = HOME.slice(HOME.indexOf('const tabExit = useMemo<'));
-    const body = block.slice(0, block.indexOf('}, [inSecureProduct, navigation]);'));
-    expect(body).toMatch(/if \(inSecureProduct\)/);
-    expect(body).toMatch(/label: 'Back to Secure Services'/);
-    // N3 — a hot forward/cross-tab press goes through navigateOnce.
-    expect(body).toMatch(/navigateOnce\(navigation, 'SecureTab' as never\)/);
+    const body = block.slice(0, block.indexOf('}, [navigation]);'));
+    expect(body).not.toMatch(/Back to Secure Services/);
+    expect(body).not.toMatch(/'SecureTab'/);
+    // Opening Messenger from Secure Services switches the product instead.
+    expect(HOME).toMatch(/useProductStore\.getState\(\)\.enterMessenger\(/);
   });
 
   it('a shell where MessengerHome was PUSHED (the agency stack) gets a real pop', () => {
     // The agent dashboard's Bravo Feed row pushes this screen, so without this
     // arm B-799's own door was a two-step trap.
     const block = HOME.slice(HOME.indexOf('const tabExit = useMemo<'));
-    const body = block.slice(0, block.indexOf('}, [inSecureProduct, navigation]);'));
+    const body = block.slice(0, block.indexOf('}, [navigation]);'));
     expect(body).toMatch(/if \(navigation\.canGoBack\(\)\)/);
     // N2 — a TAPPABLE back goes through goBackOnce (never a raw goBack).
     expect(body).toMatch(/goBackOnce\(navigation\)/);
@@ -77,7 +77,7 @@ describe('B-804.2 — a landed Calls/News tab has a visible way out', () => {
     // A chevron that dispatches GO_BACK from a stack root is the N1 hazard the
     // embedded bodies suppress theirs for.
     const block = HOME.slice(HOME.indexOf('const tabExit = useMemo<'));
-    const body = block.slice(0, block.indexOf('}, [inSecureProduct, navigation]);'));
+    const body = block.slice(0, block.indexOf('}, [navigation]);'));
     expect(body).toMatch(/return null;/);
   });
 

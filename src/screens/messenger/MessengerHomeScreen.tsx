@@ -193,6 +193,27 @@ export default function MessengerHomeScreen() {
     setActiveTab(requestedTab);
     navigation.setParams({tab: undefined});
   }, [requestedTab, navigation]);
+  /**
+   * 2026-10-27 (owner) — "When I am in Messenger or Workspace I should not see
+   * Secure Services; when I click go back I end up on Secure Services."
+   *
+   * Messenger used to open INSIDE the Secure Services product (its root tab
+   * was SecureTab, so back from Messenger — and the "← Secure Services"
+   * chevron — went there). Opening Messenger now makes it the active product:
+   * the Secure stack is closed, Messenger and Workspace stand on their own,
+   * and back at Messenger's root opens the product chooser. Client shell only
+   * (the one whose tree has a SecureTab); the tab the entry asked for
+   * (Calls / News) is reopened after the switch.
+   */
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+  useFocusEffect(useCallback(() => {
+    if (!inSecureProduct) {return;}
+    const nav = require('@navigation/navigationRef') as typeof import('@navigation/navigationRef');
+    if (!nav.mountedTreeHasRoute('SecureTab')) {return;}
+    const tab = activeTabRef.current;
+    useProductStore.getState().enterMessenger(tab !== 'Chats' ? tab : null);
+  }, [inSecureProduct]));
   // Founder 2026-08-01 — WhatsApp-style chat multi-select: long-press a row
   // (RN's standard 500ms) enters selection mode, tap toggles, then batch
   // pin / mute / delete from the header toolbar. null = normal browsing.
@@ -834,17 +855,13 @@ export default function MessengerHomeScreen() {
    *     that dispatches a GO_BACK from a stack root is the N1 hazard.
    */
   const tabExit = useMemo<{label: string; onPress: () => void} | null>(() => {
-    if (inSecureProduct) {
-      return {
-        label: 'Back to Secure Services',
-        onPress: () => { navigateOnce(navigation, 'SecureTab' as never); },
-      };
-    }
+    // 2026-10-27 — no "Back to Secure Services" arm: Messenger is its own
+    // product now (see the focus effect above).
     if (navigation.canGoBack()) {
       return {label: 'Back', onPress: () => { goBackOnce(navigation); }};
     }
     return null;
-  }, [inSecureProduct, navigation]);
+  }, [navigation]);
 
   const onLongPressRow = useCallback((id: string) => {
     Vibration.vibrate(12);
@@ -1064,22 +1081,6 @@ export default function MessengerHomeScreen() {
         ) : (
         <View style={styles.headerTop}>
           <View style={styles.headerLeft}>
-            {/* N4 (PDF-2) — a client who entered Messenger from the Secure
-                product gets a back chevron to that intact stack. navigate hops
-                up to the Main tab nav's sibling SecureTab (a screen nav has no
-                such route locally, so RN bubbles it). flexShrink:0 so it never
-                eats the title's item-12 shrink (messengerHeaderFit pin). */}
-            {inSecureProduct && (
-              <TouchableOpacity
-                style={styles.headerBackBtn}
-                activeOpacity={0.7}
-                hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
-                accessibilityRole="button"
-                accessibilityLabel="Back to Secure Services"
-                onPress={() => navigateOnce(navigation, 'SecureTab' as never)}>
-                <Icon name="chevron-left" size={22} color={'#FFFFFF'} />
-              </TouchableOpacity>
-            )}
             {/* B-91 M1 R9 — profile drawer entry (spec p.12): account rows +
                 the only sanctioned cross-product switch live behind it. */}
             <TouchableOpacity

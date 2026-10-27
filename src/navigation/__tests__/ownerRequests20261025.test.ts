@@ -60,7 +60,7 @@ describe('3 — Workspace on the welcome page', () => {
     const main = read('src/navigation/MainNavigator.tsx');
     expect(main).toMatch(/\.openWorkspaceHubFromRoot\(\)/);
     expect(main).toMatch(/mountedProduct !== activeProduct/);
-    expect(main).toMatch(/if \(landing === 'workspace' && activeProduct !== 'messenger'\) \{return;\}/);
+    expect(main).toMatch(/if \(\(landing === 'workspace' \|\| landing === 'messenger'\) && activeProduct !== 'messenger'\) \{return;\}/);
     expect(read('src/navigation/departmentalEntry.ts')).toMatch(/params: \{screen: 'WorkspaceHub', initial: false\}/);
   });
 

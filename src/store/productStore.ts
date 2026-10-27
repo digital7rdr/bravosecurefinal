@@ -54,7 +54,16 @@ interface ProductState {
    * the gate's Workspace card (Workspace lives inside Messenger), consumed by
    * MainNavigator. Ephemeral like gateVisible.
    */
-  landing: 'workspace' | 'plans' | null;
+  landing: 'workspace' | 'plans' | 'messenger' | null;
+  /** With landing 'messenger': the Messenger tab to open (Calls / News). */
+  landingTab: string | null;
+  /**
+   * 2026-10-27 (owner) — Messenger and Workspace are their own product, not a
+   * screen inside Secure Services. Entering Messenger from Secure Services
+   * switches the product (back then never lands on Secure Services); `tab`
+   * is the Messenger tab the entry asked for.
+   */
+  enterMessenger: (tab?: string | null) => void;
   /** Gate → Workspace: mount Messenger, then open the Workspace hub. */
   openWorkspaceFromGate: () => void;
   clearLanding: () => void;
@@ -80,9 +89,13 @@ export const useProductStore = create<ProductState>()(
       requestGate: () => set({gateVisible: true, returnProduct: null}),
       closeGate: () => set({gateVisible: false}),
       landing: null,
+      landingTab: null,
+      enterMessenger: tab =>
+        set({activeProduct: 'messenger', pendingProduct: null, gateVisible: false, returnProduct: null,
+          landing: tab ? 'messenger' : null, landingTab: tab ?? null}),
       openWorkspaceFromGate: () =>
         set({activeProduct: 'messenger', pendingProduct: null, gateVisible: false, returnProduct: null, landing: 'workspace'}),
-      clearLanding: () => set({landing: null}),
+      clearLanding: () => set({landing: null, landingTab: null}),
       requestPlansLanding: () => set(st => ({
         landing: 'plans', gateVisible: false,
         activeProduct: st.activeProduct && st.activeProduct !== 'secure' ? st.activeProduct : 'messenger',
@@ -95,7 +108,7 @@ export const useProductStore = create<ProductState>()(
         }
       },
 
-      reset: () => set({activeProduct: null, pendingProduct: null, gateVisible: false, returnProduct: null, landing: null}),
+      reset: () => set({activeProduct: null, pendingProduct: null, gateVisible: false, returnProduct: null, landing: null, landingTab: null}),
     }),
     {
       name: 'bravo:product',

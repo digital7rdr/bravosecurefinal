@@ -103,17 +103,18 @@ describe('N5 — MessengerHome footer tabs', () => {
   });
 });
 
-describe('N4 — conditional "Secure Services" back chevron', () => {
+describe('N4 — Secure Services back chevron (removed 2026-10-27)', () => {
   it('renders gated on activeProduct === secure (client-shell only by construction)', () => {
     expect(code()).toMatch(
       /useProductStore\(\s*s\s*=>\s*s\.activeProduct\s*===\s*'secure'\s*\)/,
     );
   });
 
-  it('the chevron navigates back to the Secure product tab (SecureTab)', () => {
-    // NAV-10 (2026-08-26) — the press now routes through navigateOnce (same
-    // destination, guarded against a mash). Still a SecureTab hop.
-    expect(code()).toMatch(/navigateOnce\(navigation,\s*'SecureTab'/);
+  it('2026-10-27 — the chevron is GONE: opening Messenger leaves Secure Services', () => {
+    // Owner: "when I'm in messenger and I click go back I end up on secure
+    // services". Messenger now becomes the active product on focus instead.
+    expect(code()).not.toMatch(/navigateOnce\(navigation,\s*'SecureTab'/);
+    expect(code()).toMatch(/enterMessenger\(/);
   });
 
   it('the chevron never eats the title shrink (its own style is flexShrink:0)', () => {

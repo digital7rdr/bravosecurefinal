@@ -264,6 +264,19 @@ export function openWorkspaceHubFromRoot(): boolean {
 }
 
 /**
+ * 2026-10-27 — after Secure Services hands over to the Messenger product,
+ * open the Messenger tab the entry asked for (Calls / News).
+ */
+export function openMessengerTabFromRoot(tab: string): boolean {
+  if (!navigationRef.isReady() || !mountedTreeHasRoute('MessengerTab')) {return false;}
+  navigationRef.dispatch(CommonActions.navigate('Main', {
+    screen: 'MessengerTab',
+    params: {screen: 'MessengerHome', params: {tab}, initial: false},
+  }));
+  return true;
+}
+
+/**
  * Scope v2 Phase 3 — open one of the join/approval screens (`Approvals`,
  * `JoinWorkspace`, `ApprovalStatus`) from whichever shell the caller is in.
  *
