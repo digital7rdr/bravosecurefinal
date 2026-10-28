@@ -39,6 +39,14 @@ export interface RouteSignals {
    */
   isOrgManager?: boolean;
   /**
+   * 2026-10-27 (owner) — the AGENCY half of `isOrgManager`: a manager of a
+   * service-provider org, not of an Enterprise workspace. A guard who manages
+   * their company's WORKSPACE keeps the guard app (its Workspace tab carries
+   * the manager tools); only an agency manager gets the agency dashboard.
+   * Undefined (older server) falls back to `isOrgManager`.
+   */
+  isAgencyManager?: boolean;
+  /**
    * vs2 item 4 — does this person belong to ANY workspace, as owner or member?
    *
    * A revoked CPO membership used to mean the account had nowhere left to be,
@@ -52,7 +60,7 @@ export interface RouteSignals {
 
 export function resolveAuthedRoute(sig: RouteSignals): AuthedRoute {
   const {accountKind, mustSetPassword, membershipStatus, cpoNeedsOnboarding, legacyRole, pendingProvider,
-    isOrgManager, hasWorkspaceAffiliation} = sig;
+    isOrgManager, isAgencyManager, hasWorkspaceAffiliation} = sig;
 
   // CPO is the most restrictive door, and the server account_kind is authoritative.
   if (accountKind === 'cpo') {
@@ -75,7 +83,7 @@ export function resolveAuthedRoute(sig: RouteSignals): AuthedRoute {
     if (cpoNeedsOnboarding) {return 'cpo-onboarding';}
     // A promoted manager sees the full agency dashboard (AgentNavigator), same as the
     // owner — still gated behind the suspension/activation/onboarding checks above.
-    if (isOrgManager) {return 'agency';}
+    if (isAgencyManager ?? isOrgManager) {return 'agency';}
     return 'cpo';
   }
 

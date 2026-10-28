@@ -8,7 +8,7 @@ import {PasswordService} from '../common/services/password.service';
 import {OtpService}      from '../common/services/otp.service';
 import {TotpChallengeService, type TotpEnrolment} from '../common/services/totp-challenge.service';
 import {JwtService}      from './jwt.service';
-import {resolveAccountKind, resolveIsOrgManager, resolveManagerContext} from './account-kind';
+import {resolveAccountKind, resolveIsAgencyManager, resolveIsOrgManager, resolveManagerContext} from './account-kind';
 import {IDENTITY_FACTS_UNKNOWN, resolveIdentityDocument} from '../identity/identityGate';
 import type {RegisterDto}       from './dto/register.dto';
 import type {RegisterVerifyDto} from './dto/register-verify.dto';
@@ -889,7 +889,11 @@ export class AuthService {
     // The four resolvers are independent reads — run them in one round-trip
     // wave instead of sequentially (/auth/me fires on every cold start and
     // foreground; 5 serial queries was the measured hot spot at 50k users).
-    const [accountKind, is_org_manager, {managed_org, permitted_modules}, auto_dispatch_enabled, identityDoc] =
+    // is_agency_manager (2026-10-27) — the NARROWER question: a manager of a
+    // SERVICE-PROVIDER org (not of an Enterprise workspace). A guard who also
+    // manages their company's workspace keeps the guard app; only an agency
+    // manager is routed into the agency dashboard.
+    const [accountKind, is_org_manager, {managed_org, permitted_modules}, auto_dispatch_enabled, identityDoc, is_agency_manager] =
       await Promise.all([
         resolveAccountKind(this.db, userId),
         resolveIsOrgManager(this.db, userId),
@@ -900,12 +904,13 @@ export class AuthService {
         // Best-effort HERE only: an unreachable table must not make every cold
         // start 500 (the app is then fail-open; the booking gate stays hard).
         resolveIdentityDocument(this.db, userId).catch(() => IDENTITY_FACTS_UNKNOWN),
+        resolveIsAgencyManager(this.db, userId),
       ]);
     // OP-10 — server-driven Dept Chat v2 flag (the client's EXPO_PUBLIC copy is
     // the fail-open fallback for an older server). Same posture as auto_dispatch.
     const dept_chat_v2_enabled = this.config.get<boolean>('featureFlags.deptChatV2') ?? false;
     return {
-      user, ...accountKind, is_org_manager, managed_org, permitted_modules, auto_dispatch_enabled, dept_chat_v2_enabled,
+      user, ...accountKind, is_org_manager, is_agency_manager, managed_org, permitted_modules, auto_dispatch_enabled, dept_chat_v2_enabled,
       identity_document_status: identityDoc.status,
       identity_document_required: identityDoc.required,
     };

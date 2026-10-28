@@ -35,6 +35,11 @@ export interface User {
    *  who is a CPO of one org but a manager of another still gets manager UI.
    *  Optional — only present after an /auth/me fetch. */
   is_org_manager?: boolean;
+  /** 2026-10-27 — a manager of a SERVICE-PROVIDER org (company account or
+   *  agency manager), NOT of an Enterprise workspace. Routes a guard who also
+   *  manages an agency into the agency dashboard; a guard who manages their
+   *  company's workspace keeps the guard app. Undefined on an older server. */
+  is_agency_manager?: boolean;
   /** The org this account MANAGES as a delegated manager — null for the owner
    *  (who manages their own), for a plain CPO, and for an enterprise
    *  individual. This is the manager discriminator: `account_kind` cannot be,

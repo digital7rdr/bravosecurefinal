@@ -115,4 +115,21 @@ describe('resolveAuthedRoute — §35A root switch (pure)', () => {
         .toBe('cpo-onboarding');
     });
   });
+
+  // 2026-10-27 (owner) — a guard who manages their company's WORKSPACE keeps
+  // the guard app; only a manager of an AGENCY gets the agency dashboard.
+  describe('guard + manager: agency vs workspace', () => {
+    it('workspace manager only (isAgencyManager false) stays a guard', () => {
+      expect(resolveAuthedRoute({accountKind: 'cpo', membershipStatus: 'active', isOrgManager: true, isAgencyManager: false}))
+        .toBe('cpo');
+    });
+    it('agency manager goes to the agency dashboard', () => {
+      expect(resolveAuthedRoute({accountKind: 'cpo', membershipStatus: 'active', isOrgManager: true, isAgencyManager: true}))
+        .toBe('agency');
+    });
+    it('an older server (no isAgencyManager) keeps the old behaviour', () => {
+      expect(resolveAuthedRoute({accountKind: 'cpo', membershipStatus: 'active', isOrgManager: true}))
+        .toBe('agency');
+    });
+  });
 });

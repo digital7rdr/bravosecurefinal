@@ -461,6 +461,7 @@ describe('OrgCpoService', () => {
     it('removes a suspended CPO from every org channel (triggers rekey intent)', async () => {
       notOnMission();
       mockDb.qOne.mockResolvedValueOnce({org_user_id: ORG});     // status update ok
+      mockDb.q.mockResolvedValueOnce([]); // 2026-10-28 explicit-channel hold write
       mockDb.q.mockResolvedValueOnce([{id: 'ch-1'}, {id: 'ch-2'}]); // org owns 2 channels
       await service.setMemberStatus(ORG, 'cpo-1', 'suspended', undefined, SUSPEND);
       expect(mockDept.removeMember).toHaveBeenCalledTimes(2);
@@ -506,6 +507,7 @@ describe('OrgCpoService', () => {
       mockDb.qOne.mockResolvedValueOnce({member_role: 'employee'}); // rank check
       notOnMission();
       mockDb.qOne.mockResolvedValueOnce({org_user_id: ORG});        // status update ok
+      mockDb.q.mockResolvedValueOnce([]); // 2026-10-28 explicit-channel hold write
       mockDb.q.mockResolvedValueOnce([{id: 'ch-1'}]);
       await service.setMemberStatus(ORG, 'emp-1', 'suspended', 'mgr-1', SUSPEND);
       expect(mockAuth.revokeAllUserSessions).toHaveBeenCalled();
@@ -516,6 +518,7 @@ describe('OrgCpoService', () => {
       mockDb.qOne.mockResolvedValueOnce({member_role: 'cpo'});   // rank check
       notOnMission();
       mockDb.qOne.mockResolvedValueOnce({org_user_id: ORG});     // status update ok
+      mockDb.q.mockResolvedValueOnce([]); // 2026-10-28 explicit-channel hold write
       mockDb.q.mockResolvedValueOnce([{id: 'ch-1'}]);            // one org channel
       await service.setMemberStatus(ORG, 'cpo-1', 'suspended', 'mgr-1', SUSPEND);
       expect(mockAuth.revokeAllUserSessions).toHaveBeenCalled();

@@ -142,6 +142,7 @@ interface ShellSignals {
   legacyRole?: string;
   pendingProvider?: boolean;
   isOrgManager?: boolean;
+  isAgencyManager?: boolean;
 }
 
 /**
@@ -182,6 +183,7 @@ export function deptThreadEntersWorkspaceSurface(): boolean {
       cpoNeedsOnboarding: u?.cpo_needs_onboarding,
       legacyRole:         u?.role,
       isOrgManager:       u?.is_org_manager,
+      isAgencyManager:    u?.is_agency_manager,
     } as Parameters<typeof resolveAuthedRoute>[0]) === 'agency';
   } catch {
     return false;   // no store — never adopt on a guess
@@ -351,6 +353,7 @@ export function navigateToMessengerScreen(
       legacyRole:         u?.role,
       pendingProvider:    (s as unknown as {pendingProvider?: boolean}).pendingProvider,
       isOrgManager:       u?.is_org_manager,
+      isAgencyManager:    u?.is_agency_manager,
     };
   } catch {
     // No store yet (cold headless start) — fall through to the client path,

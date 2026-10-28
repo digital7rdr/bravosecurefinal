@@ -217,7 +217,7 @@ async function revalidateUnverifiedSession(
 function routingOf(u: User | null): Parameters<typeof toUser>[1] {
   if (!u) {return undefined;}
   return {
-    account_kind: u.account_kind, is_org_manager: u.is_org_manager,
+    account_kind: u.account_kind, is_org_manager: u.is_org_manager, is_agency_manager: u.is_agency_manager,
     permitted_modules: u.permitted_modules, managed_org: u.managed_org,
     membership_status: u.membership_status, suspension: u.suspension,
     org: u.org, must_set_password: u.must_set_password,
@@ -313,6 +313,8 @@ function toUser(
   kind?: {
     account_kind?: AccountKind;
     is_org_manager?: boolean;
+    /** 2026-10-27 — manager of a SERVICE-PROVIDER org (not a workspace). */
+    is_agency_manager?: boolean;
     // Owner-granted dashboard modules — null for anyone but a promoted
     // manager (owner/plain CPO/enterprise individual are never filtered).
     permitted_modules?: string[] | null;
@@ -353,6 +355,7 @@ function toUser(
     pro_active_until: u.pro_active_until ?? null,
     account_kind: kind?.account_kind,
     is_org_manager: kind?.is_org_manager,
+    is_agency_manager: kind?.is_agency_manager,
     permitted_modules: kind?.permitted_modules ?? null,
     managed_org: kind?.managed_org ?? null,
     owns_workspace: kind?.owns_workspace ?? false,
@@ -531,7 +534,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         // legitimately false, so the flag could not be set).
         let bootMeAbandoned = false;
         const applyMe = async (opts?: {requireLive?: boolean}): Promise<void> => {
-          const {user, account_kind, is_org_manager, permitted_modules, managed_org, org, must_set_password, membership_status, suspension, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules} = await authApi.me();
+          const {user, account_kind, is_org_manager, is_agency_manager, permitted_modules, managed_org, org, must_set_password, membership_status, suspension, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules} = await authApi.me();
           let stored = false;
           set(s => {
             // requireLive (background refresh only): a signOut can land while
@@ -541,7 +544,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
             // this — there isAuthenticated is legitimately still false.
             if (opts?.requireLive && (!s.isAuthenticated || s.isSigningOut)) {return;}
             if (!opts?.requireLive && bootMeAbandoned) {return;}
-            s.user = toUser(user, {account_kind, is_org_manager, permitted_modules, managed_org, membership_status, suspension, org, must_set_password, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules});
+            s.user = toUser(user, {account_kind, is_org_manager, is_agency_manager, permitted_modules, managed_org, membership_status, suspension, org, must_set_password, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules});
             s.isAuthenticated = true;
             // Server truth has landed — whatever we guessed from claims is gone.
             s.sessionUnverified = false;
@@ -759,13 +762,13 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         // org_is_workspace rides EVERY /auth/me lane (the recheckMembership
         // comment says why) — dropping it here left a member's Workspace Hub
         // tile empty until the first recheck tick (toUser defaults it false).
-        const {user, account_kind, is_org_manager, permitted_modules, managed_org, org, must_set_password, membership_status, suspension, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules} = await authApi.me();
+        const {user, account_kind, is_org_manager, is_agency_manager, permitted_modules, managed_org, org, must_set_password, membership_status, suspension, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules} = await authApi.me();
         // TOTP-mode sign-up lands here (register/verify → OtpVerify → verify →
         // completeAuth); same justRegistered rule as the SMS path in verifyRegister.
         const fromSignup = get().pendingJustRegistered;
         const isProvider = fromSignup ? await pendingProvider.get().catch(() => false) : false;
         set(s => {
-          s.user = toUser(user, {account_kind, is_org_manager, permitted_modules, managed_org, membership_status, suspension, org, must_set_password, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules});
+          s.user = toUser(user, {account_kind, is_org_manager, is_agency_manager, permitted_modules, managed_org, membership_status, suspension, org, must_set_password, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules});
           if (fromSignup) {s.justRegistered = user.role === 'individual' && !isProvider;}
           s.pendingJustRegistered = false;
           s.isAuthenticated = true;
@@ -814,9 +817,9 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         // truly expired refresh token raises the usual 401 path.
         await authApi.refresh();
         // org_is_workspace: same rule as completeAuth — every lane carries it.
-        const {user, account_kind, is_org_manager, permitted_modules, managed_org, org, must_set_password, membership_status, suspension, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules} = await authApi.me();
+        const {user, account_kind, is_org_manager, is_agency_manager, permitted_modules, managed_org, org, must_set_password, membership_status, suspension, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules} = await authApi.me();
         set(s => {
-          s.user = toUser(user, {account_kind, is_org_manager, permitted_modules, managed_org, membership_status, suspension, org, must_set_password, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules});
+          s.user = toUser(user, {account_kind, is_org_manager, is_agency_manager, permitted_modules, managed_org, membership_status, suspension, org, must_set_password, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules});
           s.isAuthenticated = true;
           s.sessionUnverified = false;
           s.pendingUserId = null;
@@ -1313,7 +1316,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
 
     recheckMembership: async () => {
       try {
-        const {user, account_kind, is_org_manager, permitted_modules, managed_org, org, must_set_password, membership_status, suspension, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules} = await authApi.me();
+        const {user, account_kind, is_org_manager, is_agency_manager, permitted_modules, managed_org, org, must_set_password, membership_status, suspension, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules} = await authApi.me();
         if (account_kind === 'cpo' && membership_status && membership_status !== 'active') {
           // Agency revoked/suspended this CPO — end their access, handing over
           // the affiliation we JUST fetched. Reading it back off the store here
@@ -1334,7 +1337,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
         // for the rest of the process, making the next boot snapshot-less
         // again (self-perpetuating degraded boots).
         set(s => {
-          s.user = toUser(user, {account_kind, is_org_manager, permitted_modules, managed_org, membership_status, suspension, org, must_set_password, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules});
+          s.user = toUser(user, {account_kind, is_org_manager, is_agency_manager, permitted_modules, managed_org, membership_status, suspension, org, must_set_password, cpo_needs_onboarding, auto_dispatch_enabled, dept_chat_v2_enabled, owns_workspace, org_is_workspace, workspaces, owns_agency, identity_document_status, identity_document_required, plan_locked_modules});
           s.sessionUnverified = false;
         });
         // B-848 — the foreground-resume lane. It is also the one the Workspace

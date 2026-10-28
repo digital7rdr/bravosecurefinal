@@ -1316,6 +1316,12 @@ export class OrgCpoService {
     // AND trigger the remove+rekey (security stop-condition: a removed member
     // keeps the old master key until the rekey broadcasts). Reinstating re-adds.
     if (status === 'suspended' || status === 'removed') {
+      // 2026-10-28 — remember the hand-picked channels a SUSPENDED member is
+      // about to be removed from, so reinstatement puts them back (the
+      // org-wide re-add below skips explicit-membership channels). A REMOVED
+      // member's holds are dropped. Best-effort: never blocks the suspension.
+      await this.holdExplicitChannels(orgUserId, memberUserId, status).catch(e =>
+        this.log.warn(`explicit-channel hold failed for ${memberUserId}: ${(e as Error).message}`));
       // RS-01 — eject the CPO's live sessions the same way DC-04 admin-suspend
       // does (Redis JTI revoke + auth_devices + push revoke), so a suspended/
       // removed CPO can't ride an unexpired access token into the /agents routes or the
@@ -1329,8 +1335,62 @@ export class OrgCpoService {
       };
     } else if (status === 'active') {
       await this.syncMemberToOrgChannels(orgUserId, memberUserId, 'add', undefined, actorId);
+      await this.restoreExplicitChannels(orgUserId, memberUserId, actorId).catch(e =>
+        this.log.warn(`explicit-channel restore failed for ${memberUserId}: ${(e as Error).message}`));
     }
     return {stranded_room_claims: []};
+  }
+
+  /** 2026-10-28 — see setMemberStatus: hold (suspend) or drop (remove). */
+  private async holdExplicitChannels(
+    orgUserId: string, memberUserId: string, status: 'suspended' | 'removed',
+  ): Promise<void> {
+    if (status === 'removed') {
+      await this.db.q(
+        `DELETE FROM public.department_channel_member_holds h
+          USING public.department_channels c
+          WHERE h.channel_id = c.id AND c.org_id = $1 AND h.user_id = $2`,
+        [orgUserId, memberUserId],
+      );
+      return;
+    }
+    await this.db.q(
+      `INSERT INTO public.department_channel_member_holds (channel_id, user_id, role, role_label)
+       SELECT m.channel_id, m.user_id, m.role, m.role_label
+         FROM public.department_channel_members m
+         JOIN public.department_channels c ON c.id = m.channel_id
+        WHERE c.org_id = $1 AND m.user_id = $2
+          AND c.explicit_members AND c.archived_at IS NULL
+       ON CONFLICT (channel_id, user_id)
+         DO UPDATE SET role = EXCLUDED.role, role_label = EXCLUDED.role_label, held_at = NOW()`,
+      [orgUserId, memberUserId],
+    );
+  }
+
+  /** 2026-10-28 — put a reinstated member back into their held channels. */
+  private async restoreExplicitChannels(orgUserId: string, memberUserId: string, actorId?: string): Promise<void> {
+    const held = await this.db.q<{channel_id: string; role: 'admin' | 'viewer'; role_label: string | null}>(
+      `SELECT h.channel_id, h.role, h.role_label
+         FROM public.department_channel_member_holds h
+         JOIN public.department_channels c ON c.id = h.channel_id
+        WHERE c.org_id = $1 AND h.user_id = $2
+          AND c.explicit_members AND c.archived_at IS NULL`,
+      [orgUserId, memberUserId],
+    );
+    if (held.length) {
+      // The same writer as every other add: membership row + add/rekey intent.
+      await this.department.addMemberBulk(
+        orgUserId, memberUserId,
+        held.map(h => ({channelId: h.channel_id, role: h.role, roleLabel: h.role_label})),
+        actorId,
+      );
+    }
+    await this.db.q(
+      `DELETE FROM public.department_channel_member_holds h
+        USING public.department_channels c
+        WHERE h.channel_id = c.id AND c.org_id = $1 AND h.user_id = $2`,
+      [orgUserId, memberUserId],
+    );
   }
 
   /**

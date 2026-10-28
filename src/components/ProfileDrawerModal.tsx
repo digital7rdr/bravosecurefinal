@@ -138,6 +138,10 @@ export function ProfileDrawerModal({visible, onClose, switchGuard}: Props) {
     membershipStatus: user?.membership_status,
     cpoNeedsOnboarding: user?.cpo_needs_onboarding,
     legacyRole: user?.role,
+    // 2026-10-27 — the same manager signals MainNavigator routes on, so a
+    // promoted guard's drawer matches the shell they are actually in.
+    isOrgManager: user?.is_org_manager,
+    isAgencyManager: user?.is_agency_manager,
     hasWorkspaceAffiliation: user?.owns_workspace === true || (user?.workspaces?.length ?? 0) > 0,
   });
   const isProvider = authedRoute === 'agency' || authedRoute === 'cpo';

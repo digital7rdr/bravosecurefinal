@@ -583,6 +583,7 @@ export default function MainNavigator() {
     legacyRole:      user?.role,
     pendingProvider: pendingProv,
     isOrgManager:    user?.is_org_manager,
+    isAgencyManager: user?.is_agency_manager,
     hasWorkspaceAffiliation: user?.owns_workspace === true || (user?.workspaces?.length ?? 0) > 0,
   });
 

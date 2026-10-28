@@ -545,6 +545,8 @@ export const authApi = {
       user: ApiUser;
       account_kind: AccountKind;
       is_org_manager: boolean;
+      // 2026-10-27 — manager of a service-provider org (not a workspace). Optional.
+      is_agency_manager?: boolean;
       // Owner-granted dashboard modules — null for anyone but a promoted
       // manager. Optional so an older server simply yields no filtering.
       permitted_modules?: string[] | null;

@@ -159,3 +159,67 @@ describe('OrgModuleGuard — workspace Admin', () => {
       .rejects.toThrow('org_owner_only');
   });
 });
+
+describe('/auth/me — is_agency_manager', () => {
+  it('getMe reports the agency question beside is_org_manager', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const src = require('fs').readFileSync(require('path').join(__dirname, '../auth/auth.service.ts'), 'utf8') as string;
+    expect(src).toMatch(/resolveIsAgencyManager\(this\.db, userId\),\n\s*\]\);/);
+    expect(src).toMatch(/is_org_manager, is_agency_manager, managed_org/);
+  });
+});
+
+describe('2026-10-28 — hand-picked channels survive a suspension', () => {
+  const ORG = 'ws-owner';
+  const db = {q: jest.fn(), qOne: jest.fn(), withTransaction: jest.fn()};
+  const dept = {addMember: jest.fn(), addMemberBulk: jest.fn(), removeMember: jest.fn(),
+    updateMemberRole: jest.fn(), placementGrantForMember: jest.fn()};
+  let svc: OrgCpoService;
+
+  beforeEach(async () => {
+    jest.resetAllMocks();
+    db.q.mockResolvedValue([]);
+    dept.placementGrantForMember.mockResolvedValue(null);
+    dept.addMemberBulk.mockResolvedValue({added: 1, skipped: 0});
+    const mod = await Test.createTestingModule({providers: [
+      OrgCpoService,
+      {provide: DatabaseService, useValue: db},
+      {provide: PasswordService, useValue: {}},
+      {provide: DepartmentService, useValue: dept},
+      {provide: AuthService, useValue: {revokeAllUserSessions: jest.fn()}},
+      {provide: OrgAuditService, useValue: {log: jest.fn().mockResolvedValue(undefined)}},
+    ]}).compile();
+    svc = mod.get(OrgCpoService);
+  });
+
+  const sqlCalls = (re: RegExp) => db.q.mock.calls.filter(c => re.test(String(c[0])));
+
+  it('suspend: the explicit-channel memberships are held BEFORE the channel removal', async () => {
+    db.qOne.mockResolvedValue({org_user_id: ORG});
+    await svc.setMemberStatus(ORG, 'emp', 'suspended', ORG, {reason: 'leave'});
+    const hold = sqlCalls(/INSERT INTO public\.department_channel_member_holds/);
+    expect(hold).toHaveLength(1);
+    expect(String(hold[0][0])).toMatch(/c\.explicit_members/);
+    const holdAt = db.q.mock.calls.indexOf(hold[0]);
+    const listAt = db.q.mock.calls.findIndex(c => /SELECT id, post_mode FROM public\.department_channels/.test(String(c[0])));
+    expect(holdAt).toBeLessThan(listAt);
+  });
+
+  it('reinstate: held channels are re-added through the add/rekey writer, then the hold is cleared', async () => {
+    db.qOne.mockResolvedValue({org_user_id: ORG});
+    db.q.mockImplementation(async (sql: string) =>
+      /SELECT h\.channel_id, h\.role, h\.role_label/.test(sql)
+        ? [{channel_id: 'ch-x', role: 'viewer', role_label: null}] : []);
+    await svc.setMemberStatus(ORG, 'emp', 'active', ORG);
+    expect(dept.addMemberBulk).toHaveBeenCalledWith(ORG, 'emp',
+      [{channelId: 'ch-x', role: 'viewer', roleLabel: null}], ORG);
+    expect(sqlCalls(/DELETE FROM public\.department_channel_member_holds/)).toHaveLength(1);
+  });
+
+  it('remove: holds are dropped, nothing is held', async () => {
+    db.qOne.mockResolvedValue({org_user_id: ORG});
+    await svc.setMemberStatus(ORG, 'emp', 'removed', ORG);
+    expect(sqlCalls(/INSERT INTO public\.department_channel_member_holds/)).toHaveLength(0);
+    expect(sqlCalls(/DELETE FROM public\.department_channel_member_holds/)).toHaveLength(1);
+  });
+});
