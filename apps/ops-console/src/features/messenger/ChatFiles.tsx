@@ -65,6 +65,7 @@ export function FileCard({att, opener}: {att: WebAttachment; opener: FileOpener 
   return (
     <div className="chat-file">
       {preview && att.kind === 'image'
+        // eslint-disable-next-line @next/next/no-img-element -- a decrypted blob: URL, not an optimisable asset
         ? <img className="chat-file-img" src={preview} alt={name} />
         : null}
       <div className="chat-file-row">

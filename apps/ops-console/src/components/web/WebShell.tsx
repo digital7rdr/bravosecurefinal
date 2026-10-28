@@ -18,7 +18,7 @@ import {
   webAuth, readWebCsrf, useWebMe, canBook, WEB_EXPIRES_KEY, WEB_IDLE_KEY, type WebMe,
 } from '@/lib/web/api';
 import {HomeSiteLink} from '@/components/HomeSiteLink';
-import {WEB_NAV, webNavActive, type WebNavIcon} from '@/lib/web/nav';
+import {webNavFor, webNavActive, type WebNavIcon} from '@/lib/web/nav';
 import {webRoutes} from '@/lib/web/routes';
 import {useMessenger} from '@/components/messenger/MessengerProvider';
 import {IDLE_SIGN_OUT_MS} from '@/lib/idleSignOut';
@@ -52,6 +52,7 @@ const ICONS: Record<WebNavIcon, ReactNode> = {
   contacts: <svg {...ic}><rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7.5 17c.8-1.8 2.5-3 4.5-3s3.7 1.2 4.5 3"/></svg>,
   group: <svg {...ic}><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.7-3.2 3.1-5 6-5s5.3 1.8 6 5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.2c2.4.2 4 1.8 4.5 4.8"/></svg>,
   user: <svg {...ic}><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>,
+  workspace: <svg {...ic}><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>,
 };
 
 function Splash({label}: {label: string}) {
@@ -132,7 +133,7 @@ export function WebShell({children}: {children: ReactNode}) {
 
   const name = me.user.display_name ?? me.user.phone_e164 ?? 'Signed in';
   const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase() || 'BS';
-  const nav = WEB_NAV;
+  const nav = webNavFor(me);
   const chatPage = path === '/' || path === '' || webNavActive(webRoutes.contacts, path) || webNavActive(webRoutes.groups, path);
 
   return (

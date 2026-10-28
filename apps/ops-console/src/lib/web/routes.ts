@@ -13,4 +13,6 @@ export const webRoutes = {
   contacts: '/contacts',
   groups: '/groups',
   account: '/account',
+  /** 2026-10-27 — members, roles and channels of a workspace you run. */
+  workspace: '/workspace',
 } as const;

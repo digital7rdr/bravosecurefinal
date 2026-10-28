@@ -18,6 +18,27 @@ export interface WebMe {
   disabled_modules?: string[];
   /** 2026-10-25 — modules the PLAN locks (Secure Services on the free plan). */
   plan_locked_modules?: string[];
+  /** Every workspace this person belongs to; `admin` (2026-10-27) on a manager. */
+  workspaces?: Array<{org_id: string; name: string; role: 'owner' | 'manager' | 'employee' | 'cpo'; admin?: boolean}>;
+}
+
+/** A workspace this person runs, and how much of it. */
+export interface ManagedWorkspace {
+  org_id: string;
+  name: string;
+  /** owner: everything · admin: all but the owner and other admins · manager: channels and members. */
+  level: 'owner' | 'admin' | 'manager';
+}
+
+/**
+ * 2026-10-27 (owner) — the workspaces this account can manage on the web:
+ * the one it owns and the ones it is a Manager or Admin of.
+ */
+export function managedWorkspaces(me: WebMe | undefined | null): ManagedWorkspace[] {
+  return (me?.workspaces ?? [])
+    .filter(w => w.role === 'owner' || w.role === 'manager')
+    .map(w => ({org_id: w.org_id, name: w.name || 'Workspace',
+      level: w.role === 'owner' ? 'owner' as const : w.admin ? 'admin' as const : 'manager' as const}));
 }
 
 /**

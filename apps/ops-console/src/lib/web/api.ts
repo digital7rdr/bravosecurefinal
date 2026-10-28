@@ -366,6 +366,50 @@ export const webApi = {
     send<{mission: ProMission}>('POST', `/pro-applications/${id}/missions/${missionId}/cancel`, {}),
 };
 
+/* ── Workspace management (2026-10-27) ─────────────────────────────────
+ *
+ * The same /org/* and /department/* routes the app's workspace screens use.
+ * Every call names the workspace in X-Org-Context: the server only uses it to
+ * choose among the caller's OWN memberships; it can never widen access.
+ */
+
+export interface WsMember {
+  member_user_id: string;
+  display_name: string | null;
+  email: string | null;
+  member_role: 'cpo' | 'manager' | 'employee';
+  workspace_admin?: boolean;
+  status: 'invited' | 'active' | 'suspended' | 'removed';
+  suspended_until: string | null;
+  suspend_reason: string | null;
+}
+
+export interface WsChannel {
+  id: string; name: string; parent_id: string | null; level: number;
+  access: 'standard' | 'read_only' | 'restricted';
+  post_mode: 'open' | 'read_only' | 'announcement' | 'admin_only';
+  channel_type: 'board' | 'department' | 'incident';
+  is_broadcast: boolean; is_lateral: boolean;
+  member_count: number; provisioned: boolean; archived: boolean;
+}
+
+export function workspaceApi(orgId: string) {
+  const h = {headers: {'X-Org-Context': orgId}};
+  const call = <T>(method: 'GET' | 'POST' | 'PATCH', path: string, body?: unknown) =>
+    web<T>(path, {method, ...h, ...(body === undefined ? {} : {body: JSON.stringify(body)})});
+  return {
+    members: () => call<WsMember[]>('GET', '/org/cpos'),
+    addMember: (emailOrPhone: string) => call<WsMember>('POST', '/org/employees', {email_or_phone: emailOrPhone}),
+    setRole: (id: string, role: 'employee' | 'manager' | 'admin') =>
+      call<{ok: true; member_role: string}>('PATCH', `/org/cpos/${encodeURIComponent(id)}/role`, {member_role: role}),
+    setStatus: (id: string, status: 'active' | 'suspended' | 'removed', extra?: {suspend_reason?: string; suspended_until?: string | null}) =>
+      call<{ok: true}>('PATCH', `/org/cpos/${encodeURIComponent(id)}/status`, {status, ...extra}),
+    channels: () => call<{workspace_tenant: boolean; channels: WsChannel[]}>('GET', '/department/manage/channels'),
+    createChannel: (body: {name: string; access: WsChannel['access']; post_mode: WsChannel['post_mode'];
+      parent_id?: string; member_ids?: string[]}) => call<{id: string; name: string}>('POST', '/department/channels', body),
+  };
+}
+
 /* ── SWR hooks (keys start with 'web' so sign-out can clear them) ─────── */
 
 const useWebSWR = <T>(key: unknown[] | null, fn: () => Promise<T>, opts?: SWRConfiguration<T>) =>

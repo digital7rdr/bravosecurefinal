@@ -3,8 +3,9 @@
  * can import it without the React tree.
  */
 import {webRoutes} from './routes';
+import {managedWorkspaces, type WebMe} from './access';
 
-export type WebNavIcon = 'chat' | 'contacts' | 'group' | 'user';
+export type WebNavIcon = 'chat' | 'contacts' | 'group' | 'user' | 'workspace';
 
 export interface WebNavItem {
   href: string;
@@ -23,6 +24,16 @@ export const WEB_NAV: WebNavItem[] = [
   {href: webRoutes.groups, label: 'Groups', icon: 'group'},
   {href: webRoutes.account, label: 'Account', icon: 'user'},
 ];
+
+/**
+ * 2026-10-27 (owner) — the rail for THIS account: the messenger items for
+ * everyone, plus Workspace for the owner, Admins and Managers of a workspace.
+ */
+export function webNavFor(me: WebMe | undefined | null): WebNavItem[] {
+  if (managedWorkspaces(me).length === 0) return WEB_NAV;
+  const at = WEB_NAV.findIndex(i => i.href === webRoutes.account);
+  return [...WEB_NAV.slice(0, at), {href: webRoutes.workspace, label: 'Workspace', icon: 'workspace'}, ...WEB_NAV.slice(at)];
+}
 
 export function webNavActive(href: string, path: string): boolean {
   if (href === '/') return path === '/' || path === '';
