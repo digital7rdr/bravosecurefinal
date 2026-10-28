@@ -910,7 +910,7 @@ export class AuthService {
     // the fail-open fallback for an older server). Same posture as auto_dispatch.
     const dept_chat_v2_enabled = this.config.get<boolean>('featureFlags.deptChatV2') ?? false;
     return {
-      user, ...accountKind, is_org_manager, is_agency_manager, managed_org, permitted_modules, auto_dispatch_enabled, dept_chat_v2_enabled,
+      user, ...accountKind, is_org_manager, managed_org, permitted_modules, is_agency_manager, auto_dispatch_enabled, dept_chat_v2_enabled,
       identity_document_status: identityDoc.status,
       identity_document_required: identityDoc.required,
     };

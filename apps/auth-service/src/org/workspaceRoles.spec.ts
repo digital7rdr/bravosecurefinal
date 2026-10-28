@@ -165,7 +165,7 @@ describe('/auth/me — is_agency_manager', () => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const src = require('fs').readFileSync(require('path').join(__dirname, '../auth/auth.service.ts'), 'utf8') as string;
     expect(src).toMatch(/resolveIsAgencyManager\(this\.db, userId\),\n\s*\]\);/);
-    expect(src).toMatch(/is_org_manager, is_agency_manager, managed_org/);
+    expect(src).toMatch(/is_org_manager, managed_org, permitted_modules, is_agency_manager,/);
   });
 });
 
