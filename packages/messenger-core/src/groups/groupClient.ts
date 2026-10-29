@@ -408,9 +408,14 @@ function canonicalActionBytes(action: GroupAdminAction): Uint8Array {
     case 'rekey':  return enc.encode(`rekey|${action.atEpoch}|${action.newMasterKeyB64}`);
     // The description is only part of the bytes when present, so a rename
     // without one hashes exactly as it always has.
-    case 'rename': return enc.encode(action.description === undefined
+    // `admins` likewise: only when present, sorted, so the bytes are stable.
+    case 'rename': return enc.encode((action.description === undefined
       ? `rename|${action.atEpoch}|${action.name}`
-      : `rename|${action.atEpoch}|${action.name}|d:${action.description}`);
+      : `rename|${action.atEpoch}|${action.name}|d:${action.description}`)
+      + (action.admins && action.admins.length
+        ? `|a:${[...action.admins].sort((x, y) => (x.userId < y.userId ? -1 : x.userId > y.userId ? 1 : 0))
+          .map(a => `${a.userId}=${a.admin ? 1 : 0}`).join(',')}`
+        : ''));
     // B-291 — every field that affects what a member DECRYPTS is signed:
     // objectKey, key and IV. Signing only the objectKey would let an attacker
     // who can replay a stale envelope swap in a different key for the same
@@ -438,6 +443,26 @@ function extendTranscript(prev: string | undefined, action: GroupAdminAction): s
   const ab = new ArrayBuffer(hash.byteLength);
   new Uint8Array(ab).set(hash);
   return toBase64(ab);
+}
+
+/**
+ * 2026-10-30 — grant / withdraw group-admin rights (see the `rename` action's
+ * `admins` field). Only CURRENT members change; the owner always stays an
+ * admin; anything malformed is ignored.
+ */
+function applyAdminFlags(
+  state: GroupState,
+  admins: ReadonlyArray<{userId: string; admin: boolean}>,
+): GroupState['members'] {
+  const next = {...state.members};
+  for (const a of admins.slice(0, 256)) {
+    if (!a || typeof a.userId !== 'string' || typeof a.admin !== 'boolean') {continue;}
+    const m = next[a.userId];
+    if (!m) {continue;}
+    if (a.userId === state.owner && !a.admin) {continue;}
+    next[a.userId] = {...m, admin: a.admin};
+  }
+  return next;
 }
 
 export function applyAdminAction(
@@ -534,15 +559,19 @@ export function applyAdminAction(
         updatedAt:    now,
         transcriptHash: extendTranscript(state.transcriptHash, action),
       };
-    case 'rename':
+    case 'rename': {
       if (action.atEpoch !== state.epoch) {return state;}
       return {
         ...state, name: action.name, epoch: state.epoch + 1, updatedAt: now,
         ...(typeof action.description === 'string'
           ? {description: action.description.slice(0, GROUP_DESCRIPTION_MAX) || null}
           : {}),
+        ...(Array.isArray(action.admins) && action.admins.length
+          ? {members: applyAdminFlags(state, action.admins)}
+          : {}),
         transcriptHash: extendTranscript(state.transcriptHash, action),
       };
+    }
     // B-291 — set or clear the group picture. Epoch-gated exactly like rename,
     // and like rename it does NOT touch masterKeyB64: membership is unchanged,
     // so the key still binds the same devices and forcing a redistribution for

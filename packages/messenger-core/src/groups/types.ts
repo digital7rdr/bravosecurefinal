@@ -155,7 +155,15 @@ export type GroupAdminAction =
    * older phones in step — they apply the rename (same name) and bump the
    * epoch, so the next admin action still lines up for them.
    */
-  | {type: 'rename';   name: string; atEpoch: number; description?: string}
+  /**
+   * `admins` (2026-10-30, owner: "make them admin in the group like WhatsApp")
+   * grants or withdraws group-admin rights. It rides on `rename` (same name)
+   * for the same reason `description` does: phones that predate it apply the
+   * rename and bump the epoch, so every member stays in epoch step. The owner
+   * can never be dismissed.
+   */
+  | {type: 'rename';   name: string; atEpoch: number; description?: string;
+      admins?: Array<{userId: string; admin: boolean}>}
   /**
    * B-291 — set or clear the group picture. `photo: null` removes it.
    *

@@ -470,6 +470,14 @@ export default function ChatInfoScreen({navigation, route}: Props) {
       buttons.push({text: 'Save contact', onPress: () => { void saveMemberContact(m.name, phone); }});
     }
     if (isAdmin) {
+      // 2026-10-30 (owner) — WhatsApp-style "Make group admin" / "Dismiss as
+      // admin". The creator can never be dismissed.
+      const memberIsAdmin = !!groupState?.members?.[m.userId]?.admin;
+      if (!memberIsAdmin) {
+        buttons.push({text: 'Make group admin', onPress: () => confirmSetAdmin(m.userId, m.name, true)});
+      } else if (m.userId !== groupState?.owner) {
+        buttons.push({text: 'Dismiss as admin', onPress: () => confirmSetAdmin(m.userId, m.name, false)});
+      }
       buttons.push({text: 'Rename in group', onPress: () => openRename(m.userId, m.name, m.profileName)});
       // Founder bug 1 (2026-08-01) — Remove must be its OWN action, not
       // buried inside the rename modal. confirmRemoveMember shows its own
@@ -478,6 +486,33 @@ export default function ChatInfoScreen({navigation, route}: Props) {
     }
     buttons.push({text: 'Cancel', style: 'cancel'});
     Alert.alert(m.name, m.phone ?? undefined, buttons);
+  };
+
+  /** 2026-10-30 — grant / withdraw group-admin rights. */
+  const confirmSetAdmin = (userId: string, name: string, admin: boolean): void => {
+    const fn = runtime?.setGroupAdmin;
+    if (!fn) {
+      Alert.alert('Not available', 'Update the Bravo app to manage group admins.');
+      return;
+    }
+    Alert.alert(
+      admin ? `Make ${name} a group admin?` : `Dismiss ${name} as admin?`,
+      admin
+        ? 'Group admins can add and remove members, change the group name, description and photo, and make other admins.'
+        : 'They stay in the group as a member.',
+      [
+        {text: 'Cancel', style: 'cancel'},
+        {
+          text: admin ? 'Make admin' : 'Dismiss',
+          style: admin ? 'default' : 'destructive',
+          onPress: () => {
+            void fn({groupId: conversationId, userId, admin}).catch((e: unknown) => {
+              Alert.alert('Not changed', e instanceof Error ? e.message : 'Please try again.');
+            });
+          },
+        },
+      ],
+    );
   };
 
   const saveRename = () => {

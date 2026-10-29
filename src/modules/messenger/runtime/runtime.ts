@@ -504,6 +504,19 @@ export interface MessengerRuntime {
   }): Promise<{newEpoch: number}>;
 
   /**
+   * 2026-10-30 (owner: "make them admin in the group like WhatsApp") — grant
+   * or withdraw group-admin rights. Sent as a `rename` admin action that keeps
+   * the current name and carries `admins`, so phones that predate it stay in
+   * epoch step. Caller MUST be a current admin; the owner cannot be dismissed.
+   * No rekey: membership is unchanged.
+   */
+  setGroupAdmin?(args: {
+    groupId: string;
+    userId:  string;
+    admin:   boolean;
+  }): Promise<{newEpoch: number}>;
+
+  /**
    * B-291 — set or clear a group's picture.
    *
    * `imageUri` is a local file/content uri from the picker; pass `null` to

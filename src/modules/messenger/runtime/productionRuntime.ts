@@ -6157,6 +6157,55 @@ export async function buildProductionRuntime(
       });
     },
 
+    /** 2026-10-30 — grant / withdraw group-admin rights (see runtime.ts). */
+    setGroupAdmin: async ({groupId, userId, admin}) => {
+      return runWithGroupAdminLock(groupId, async () => {
+        const store = useMessengerStore.getState();
+        const cur = store.groups[groupId];
+        if (!cur) {throw new Error(`setGroupAdmin: unknown group ${groupId}`);}
+        if (!cur.members[ownAddress.userId]?.admin) {throw new Error('only admins can change group admins');}
+        const target = cur.members[userId];
+        if (!target) {throw new Error('not a member of this group');}
+        if (userId === cur.owner && !admin) {throw new Error('the group creator is always an admin');}
+        if (!!target.admin === admin) {return {newEpoch: cur.epoch};}
+
+        const action = {type: 'rename' as const, name: cur.name, atEpoch: cur.epoch, admins: [{userId, admin}]};
+        const issuedCert = await certCache.getIssued();
+        const cert = issuedCert.cert;
+        const failures: string[] = [];
+        try {
+          await broadcastToGroup({
+            group:   cur,
+            self:    ownAddress,
+            cert,
+            body:    '',
+            admin:   action,
+            session: own,
+            ensureSession: async (peer: SessionAddress) => {
+              await ensureOutgoingSession(own, keys, peer, ownStore);
+            },
+            deliver: async (peer, ct, clientMsgId) => {
+              try {
+                await deliverGroupAdminEnvelope({
+                  peer, cert, certExpSec: issuedCert.expiresAt, ct, clientMsgId, groupId,
+                });
+              } catch (e) {
+                failures.push(`${peer.userId}: ${asErrorMessage(e)}`);
+              }
+            },
+          });
+        } catch (e) {
+          failures.push(asErrorMessage(e));
+        }
+        const next = applyAdminAction(cur, action, ownAddress.userId);
+        useMessengerStore.getState().setGroupState(next);
+        if (failures.length > 0) {
+          console.warn(`[group-admin:runtime] ${failures.length} peer(s) missed the admin change; they re-sync on next group-state refresh`);
+        }
+        return {newEpoch: next.epoch};
+      });
+    },
+
     /**
      * B-291 — set or clear the group picture.
      *
