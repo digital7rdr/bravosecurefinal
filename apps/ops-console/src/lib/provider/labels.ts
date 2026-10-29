@@ -7,7 +7,7 @@ export type Product = 'lite' | 'executive';
 export function productOf(service: string | null | undefined): Product {
   return service === 'executive_protection' ? 'executive' : 'lite';
 }
-export const PRODUCT_LABEL: Record<Product, string> = {lite: 'Lite', executive: 'Executive'};
+export const PRODUCT_LABEL: Record<Product, string> = {lite: 'Secure Transfer', executive: 'Executive'};
 
 const SERVICE_LABEL: Record<string, string> = {
   secure_transfer: 'Secure transfer',

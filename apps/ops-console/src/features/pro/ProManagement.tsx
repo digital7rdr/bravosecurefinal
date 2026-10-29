@@ -210,7 +210,7 @@ const SECTION_SUBTITLES: Record<(typeof SECTIONS)[number], string> = {
   REQUESTS:      'What protection is running today, and the dates still waiting on officers. Each assignment carries the mission code the CPO enters after login.',
   ASSIGNMENTS:   'Officer-to-member assignments already scheduled. Date-windowed and overlap-safe. Pro missions carry no payout — completing one just finishes it.',
   'CPO POOL':    'Approved officers available to Secure Pro, checked against the date window you are staffing.',
-  ORGANIZATIONS: 'INTERNAL delivery organisations for Secure Pro. Not the provider agencies that receive Lite dispatch offers — those live under People.',
+  ORGANIZATIONS: 'INTERNAL delivery organisations for Secure Pro. Not the provider agencies that receive Secure Transfer dispatch offers — those live under People.',
   FLEET:         'Vehicles assignable to a Secure Pro plan.',
   RESOURCES:     'Non-vehicle inventory assignable to a plan: radios, medical kits, comms equipment.',
 };

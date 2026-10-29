@@ -82,7 +82,7 @@ export default function ProviderEarnings() {
     }),
       ['Date', 'Job', 'Product', 'Service', 'Area', 'Payment', 'Paid on', 'Job value (BC)', 'Platform fee (BC)', 'To agency (BC)'],
       rows.map(r => [
-        r.job_date, r.short_code ?? r.booking_id, productOf(r.service) === 'executive' ? 'Executive' : 'Lite',
+        r.job_date, r.short_code ?? r.booking_id, productOf(r.service) === 'executive' ? 'Executive' : 'Secure Transfer',
         serviceLabel(r), r.region_label, HOLD[r.hold_status]?.label ?? r.hold_status,
         r.settled_at ? r.settled_at.slice(0, 10) : '', r.gross_credits, r.platform_fee_credits ?? '', r.to_provider_credits ?? '',
       ] as unknown[]).concat([['', 'TOTAL PAID OUT', '', '', '', '', '', totals.gross, totals.fee, totals.net]]));
@@ -128,7 +128,7 @@ export default function ProviderEarnings() {
             </button>
           </div>
           <div className="pv-seg">
-            {([['all', 'All'], ['lite', 'Lite'], ['executive', 'Executive']] as const).map(([k, l]) => (
+            {([['all', 'All'], ['lite', 'Secure Transfer'], ['executive', 'Executive']] as const).map(([k, l]) => (
               <button key={k} className={filter === k ? 'on' : ''} onClick={() => setFilter(k)}>{l}</button>
             ))}
           </div>

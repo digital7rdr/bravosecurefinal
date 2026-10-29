@@ -58,7 +58,7 @@ export default function LiteOverview() {
   return (
     <>
       <PageHeader
-        title="Lite · Secure Transfer"
+        title="Secure Transfer"
         subtitle="On-demand transfers, recon and extraction. Booked per job, escrowed, then auto-dispatched to provider agencies or worked by hand from the job feed."
         badges={
           <span className={engineOn ? 'pill pill-ok' : 'pill pill-err'}>
@@ -89,7 +89,7 @@ export default function LiteOverview() {
           rows={needsOps}
           loading={isLoading}
           error={Boolean(error)}
-          empty="Nothing blocked. Every Lite booking is moving on its own."
+          empty="Nothing blocked. Every Secure Transfer booking is moving on its own."
           footer={<Link href={routes.lite.bookings}>Open the full booking list →</Link>}
         />
         <WorkQueue

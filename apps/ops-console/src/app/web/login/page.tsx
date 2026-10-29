@@ -13,7 +13,7 @@ const BRAND: AuthBrand = {
   lede: 'Chat end to end encrypted with your Bravo contacts and book secure transfers and protection, paid with your Bravo credits.',
   points: [
     'End-to-end encrypted chats, like the app',
-    'Book Lite and Executive protection, request Secure Pro',
+    'Book secure transfers and Executive protection, request Secure Pro',
     'Two-step verification on every account',
   ],
   foot: 'Use the same phone number and password as the Bravo Secure app.',

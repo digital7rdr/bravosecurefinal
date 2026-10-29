@@ -421,10 +421,10 @@ export function BookingDetail({id, product}: {id: string; product: BookingProduc
   return (
     <>
       <PageHeader
-        crumbs={[isExec ? 'Executive Protection' : 'Lite · Secure Transfer', 'Bookings', id.slice(-12).toUpperCase()]}
+        crumbs={[isExec ? 'Executive Protection' : 'Secure Transfer', 'Bookings', id.slice(-12).toUpperCase()]}
         back={{
           href: isExec ? routes.executive.bookings : routes.lite.bookings,
-          label: isExec ? 'Executive bookings' : 'Lite bookings',
+          label: isExec ? 'Executive bookings' : 'Secure Transfer bookings',
         }}
         title={<>Booking <span className="mono" style={{color: 'var(--acc)'}}>{id.slice(-12).toUpperCase()}<CopyId value={id} title="Copy booking id" /></span></>}
         badges={<StatusPill domain="booking" value={current} />}

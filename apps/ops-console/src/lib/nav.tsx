@@ -98,7 +98,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     key: 'lite',
     domain: 'operations',
-    label: 'Lite · Secure Transfer',
+    label: 'Secure Transfer',
     items: [
       {label: 'Overview', href: routes.lite.root, icon: iconGauge, exact: true},
       {label: 'Bookings', href: routes.lite.bookings, icon: iconCalendar, badgeKey: 'lite'},

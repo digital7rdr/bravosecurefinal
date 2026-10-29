@@ -69,7 +69,7 @@ export default function ProviderJobs() {
   const count = (t: Tab) => lists[t].filter(m => filter === 'all' || productOf(m.service) === filter).length;
 
   return (
-    <PvPage title="Jobs" subtitle="Lite and Executive jobs your agency has accepted: crew them, dispatch, follow them live and close them.">
+    <PvPage title="Jobs" subtitle="Secure Transfer and Executive jobs your agency has accepted: crew them, dispatch, follow them live and close them.">
       {offers && offer && (
         <PvCard title="Live offer">
           <OfferCard key={offer.offer_id} offer={offer} onDone={(msg, ok) => { push({kind: ok ? 'ok' : 'err', text: msg}); void refresh(); }}/>
@@ -88,7 +88,7 @@ export default function ProviderJobs() {
               ))}
             </div>
             <div className="pv-seg" aria-label="Product">
-              {([['all', 'All'], ['lite', 'Lite'], ['executive', 'Executive']] as const).map(([k, l]) => (
+              {([['all', 'All'], ['lite', 'Secure Transfer'], ['executive', 'Executive']] as const).map(([k, l]) => (
                 <button key={k} className={filter === k ? 'on' : ''} onClick={() => setFilter(k)}>{l}</button>
               ))}
             </div>

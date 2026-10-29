@@ -54,7 +54,7 @@ export default function ProviderOverview() {
                   void mutate((k: unknown) => Array.isArray(k) && k[0] === 'pv');
                 }}/>
               ) : (
-                <Empty>No offer right now. New Lite and Executive jobs near you appear here, and stay open for a short time.</Empty>
+                <Empty>No offer right now. New Secure Transfer and Executive jobs near you appear here, and stay open for a short time.</Empty>
               )}
             </PvCard>
           )}

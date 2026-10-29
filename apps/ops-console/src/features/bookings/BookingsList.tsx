@@ -132,7 +132,7 @@ export function BookingsList({product}: {product: BookingProduct}) {
     ...WHEN_BUCKETS.map(b => ({label: b.label, value: b.value, count: counts[b.value], color: b.color})),
   ];
 
-  const title = isExec ? 'Executive Bookings' : 'Lite Bookings';
+  const title = isExec ? 'Executive Bookings' : 'Secure Transfer Bookings';
   const subtitle = isExec
     ? 'Fixed-block on-site protection details. Priced per unit, with hourly check-ins instead of waypoints.'
     : 'On-demand Secure Transfer, recon and extraction. Escrowed per booking and dispatched to provider agencies.';
@@ -226,7 +226,7 @@ export function BookingsList({product}: {product: BookingProduct}) {
               <>
                 <div className="filter-h">Service</div>
                 <button type="button" className={`filter-ch ${!subService ? 'on' : ''}`} onClick={() => setSubService(undefined)}>
-                  <span>All Lite services</span>
+                  <span>All Secure Transfer services</span>
                 </button>
                 {LITE_SERVICES.map(sv => (
                   <button
@@ -295,7 +295,7 @@ export function BookingsList({product}: {product: BookingProduct}) {
                 )}
                 {!isLoading && !error && rows.length === 0 && (
                   <tr><td colSpan={11} className="dt-state">
-                    No {isExec ? 'executive details' : 'Lite bookings'} match the current filter.
+                    No {isExec ? 'executive details' : 'Secure Transfer bookings'} match the current filter.
                   </td></tr>
                 )}
                 {rows.map(b => (

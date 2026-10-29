@@ -129,7 +129,7 @@ export function MissionsList({product}: {product: BookingProduct}) {
   return (
     <>
       <PageHeader
-        title={isExec ? 'Executive Details & Check-ins' : 'Lite Missions'}
+        title={isExec ? 'Executive Details & Check-ins' : 'Secure Transfer Missions'}
         subtitle={isExec
           ? 'Live on-site protection details. Progress is the hourly check-in record, not waypoints.'
           : 'Live transfers with GPS tracking, waypoints and route control.'}

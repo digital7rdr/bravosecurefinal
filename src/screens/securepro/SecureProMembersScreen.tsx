@@ -69,7 +69,7 @@ const D = {
 };
 
 const INVITE_ERRORS: Record<string, string> = {
-  not_a_bravo_user: 'They need their own Bravo Secure account first (Lite or Pro).',
+  not_a_bravo_user: 'They need their own Bravo Secure account first (free or Pro).',
   not_an_individual_account: 'Only individual accounts can be added as members.',
   // Why: a new APK against a not-yet-deployed server still gets `family_full`.
   family_full: 'Member limit reached — update the app or contact Ops.',
@@ -801,7 +801,7 @@ export default function SecureProMembersScreen() {
         <View style={s.noteCard}>
           <Icon name="shield-check" size={15} color={D.accentSoft} />
           <Text style={s.noteText}>
-            Members need their own Bravo Secure account (Lite or Pro). Active members share your
+            Members need their own Bravo Secure account (free or Pro). Active members share your
             Pro dashboard, and their bookings are paid from your credits — capped by the limit
             you set and visibly marked as under your plan.
           </Text>

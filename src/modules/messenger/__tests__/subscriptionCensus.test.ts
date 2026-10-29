@@ -97,6 +97,9 @@ const SUBSCRIPTION_LEDGER: ReadonlyArray<readonly [string, number]> = [
   ['src/screens/messenger/IncomingGroupCallScreen.tsx', 2],
   ['src/screens/messenger/LinksScreen.tsx', 1],
   ['src/screens/messenger/MessengerHomeScreen.tsx', 8],
+  // 2026-10-30 — unread counts on the Chats / Channels tabs: ONE memoised
+  // selector returning a stable object (no whole-map subscription).
+  ['src/screens/messenger/MessengerTabBar.tsx', 1],
   ['src/screens/messenger/NewChatScreen.tsx', 2],
   ['src/screens/messenger/useDeptConversationFilter.ts', 2],
 ];

@@ -19,7 +19,7 @@
  *             some shells (B-414).
  */
 import React, {useRef} from 'react';
-import {View, TouchableOpacity, StyleSheet} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import Icon from '@expo/vector-icons/MaterialCommunityIcons';
 import FitLine from '@components/ui/FitLine';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -29,6 +29,50 @@ import {openWorkspaceHub} from '@navigation/departmentalEntry';
 import {NAV_GUARD_MS} from '@navigation/tapGuard';
 import {BravoFont} from '@theme/bravo';
 import {scaleTextStyles} from '@utils/scaling';
+import {useMessengerStore} from '@/modules/messenger/store/messengerStore';
+import {resolveDeptConversation} from '@/modules/messenger/push/deptChannelTarget';
+
+/**
+ * 2026-10-30 (owner: "in the respective location there must be a number
+ * indicating the notification") — unread messages behind the Chats and
+ * Channels tabs, so a notification's count is visible where it leads.
+ * Channels = department-channel conversations; Chats = everything else that
+ * is not muted. Pure, so it is testable without React.
+ */
+export function messengerTabCounts(
+  conversations: Record<string, {unread_count?: number; is_muted?: boolean} | undefined>,
+  maps: Parameters<typeof resolveDeptConversation>[1],
+): {chats: number; channels: number} {
+  let chats = 0;
+  let channels = 0;
+  for (const [id, c] of Object.entries(conversations)) {
+    const n = c?.unread_count ?? 0;
+    if (n <= 0) {continue;}
+    if (resolveDeptConversation(id, maps)) {channels += n;}
+    else if (!c?.is_muted) {chats += n;}
+  }
+  return {chats, channels};
+}
+
+/**
+ * ONE store subscription, memoised on the three inputs' identities (the
+ * selectCallMessages pattern): the counts object is stable until a
+ * conversation, or the channel registry, actually changes, so the bar does not
+ * re-render on unrelated store writes (W3(b) census).
+ */
+type TabCounts = {chats: number; channels: number};
+let lastInputs: [unknown, unknown, unknown] | null = null;
+let lastCounts: TabCounts = {chats: 0, channels: 0};
+function selectTabCounts(s: ReturnType<typeof useMessengerStore.getState>): TabCounts {
+  if (lastInputs && lastInputs[0] === s.conversations && lastInputs[1] === s.deptConversationIds
+      && lastInputs[2] === s.deptGroupByChannel) {return lastCounts;}
+  const next = messengerTabCounts(s.conversations, {
+    deptConversationIds: s.deptConversationIds, deptGroupByChannel: s.deptGroupByChannel,
+  });
+  lastInputs = [s.conversations, s.deptConversationIds, s.deptGroupByChannel];
+  if (next.chats !== lastCounts.chats || next.channels !== lastCounts.channels) {lastCounts = next;}
+  return lastCounts;
+}
 
 /** The tabs MessengerHome renders INLINE (local state, no navigation). */
 export type MsgLocalTab = MessengerHomeTab;
@@ -106,6 +150,7 @@ export function MessengerTabBar({
   // mash used to queue one full unmount/remount cycle per tap. A press on a
   // DIFFERENT tab always passes.
   const lastTabTapRef = useRef<{label: string; t: number} | null>(null);
+  const counts = useMessengerStore(selectTabCounts);
   const handlePress = (tab: MsgTab) => {
     const now = Date.now();
     const last = lastTabTapRef.current;
@@ -166,8 +211,27 @@ export function MessengerTabBar({
               hitSlop={{top: 8, bottom: 8, left: 4, right: 4}}
               onPress={() => handlePress(tab)}>
               {active && <View style={msgTabStyles.activeBar} />}
-              <Icon name={tab.icon} size={22} color={active ? '#1E88FF' : 'rgba(180,188,204,0.45)'} />
-              <FitLine style={[msgTabStyles.label, active && msgTabStyles.labelActive]} floorScale={0.75} text={tab.label} />
+              <View>
+                <Icon name={tab.icon} size={22} color={active ? '#1E88FF' : 'rgba(180,188,204,0.45)'} />
+                {(() => {
+                  const n = tab.tab === 'Chats' ? counts.chats : tab.exit === 'DepartmentChannels' ? counts.channels : 0;
+                  return n > 0 ? (
+                    <View style={msgTabStyles.badge} accessibilityLabel={`${n} unread`}>
+                      <Text style={msgTabStyles.badgeText} maxFontSizeMultiplier={1.1}>{n > 99 ? '99+' : n}</Text>
+                    </View>
+                  ) : null;
+                })()}
+              </View>
+              {/* 2026-10-30 (owner screenshot: CHANNELS and CONTACTS ran into each
+                  other). Cause: Android measures a `textTransform: 'uppercase'`
+                  line in its ORIGINAL case and then paints it in capitals, so
+                  the drawn word was wider than both FitLine's measurement and
+                  the slot. The label is upper-cased in the string instead, and
+                  the slot clips (and the label ellipsises)
+                  rather than letting a long word paint over its neighbour. */}
+              <View style={msgTabStyles.labelClip}>
+                <FitLine style={[msgTabStyles.label, active && msgTabStyles.labelActive]} floorScale={0.75} text={tab.label.toUpperCase()} />
+              </View>
             </TouchableOpacity>
           );
         })}
@@ -185,12 +249,18 @@ const msgTabStyles = StyleSheet.create(scaleTextStyles({
   },
   hairline: {},
   row: {flexDirection: 'row', alignItems: 'flex-start'},
-  item: {flex: 1, alignItems: 'center', justifyContent: 'flex-start', gap: 3, position: 'relative'},
+  item: {flex: 1, minWidth: 0, paddingHorizontal: 1, alignItems: 'center', justifyContent: 'flex-start', gap: 3, position: 'relative'},
+  badge: {
+    position: 'absolute', top: -6, right: -12, minWidth: 18, height: 18, borderRadius: 9, paddingHorizontal: 4,
+    alignItems: 'center', justifyContent: 'center', backgroundColor: '#1E88FF', borderWidth: 1.5, borderColor: BAR_BG,
+  },
+  badgeText: {color: '#FFFFFF', fontSize: 10, fontWeight: '800'},
+  labelClip: {alignSelf: 'stretch', minWidth: 0, overflow: 'hidden'},
   activeBar: {
     position: 'absolute', top: -10, width: 28, height: 2.5, borderRadius: 2,
     backgroundColor: '#1E88FF',
     shadowColor: '#1E88FF', shadowOpacity: 1, shadowRadius: 8, shadowOffset: {width: 0, height: 0}, elevation: 4,
   },
-  label: {fontFamily: BravoFont.sans, fontSize: 10, fontWeight: '600', letterSpacing: 0.4, textTransform: 'uppercase', textAlign: 'center', color: 'rgba(180,188,204,0.45)'},
+  label: {fontFamily: BravoFont.sans, fontSize: 10, fontWeight: '600', letterSpacing: 0.2, textAlign: 'center', color: 'rgba(180,188,204,0.45)'},
   labelActive: {color: '#FFFFFF'},
 }));

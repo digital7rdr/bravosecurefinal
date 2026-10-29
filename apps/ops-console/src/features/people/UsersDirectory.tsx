@@ -164,7 +164,7 @@ export function UsersDirectory({scope}: {scope: DirectoryScope}) {
       <PageHeader
         title={isClients ? 'Clients' : 'All Users'}
         subtitle={isClients
-          ? 'People who book Lite and Executive protection or hold a Secure Pro plan. Contact details stay on the detail page behind audited click-to-reveal.'
+          ? 'People who book Secure Transfer and Executive protection or hold a Secure Pro plan. Contact details stay on the detail page behind audited click-to-reveal.'
           : 'Every account on the platform: clients, agents (CPOs) and provider agencies. Contact details stay behind audited click-to-reveal.'}
         badges={<span className="pill">{rows.length} SHOWN</span>}
         actions={canAdd ? (

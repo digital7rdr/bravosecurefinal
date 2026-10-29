@@ -376,7 +376,7 @@ export default function BookingHomeScreen() {
             SECURE SERVICES
           </Text>
           {/* Dynamic plan chip: PRO while a Secure Pro plan is active (own or
-              via a family owner), LITE otherwise — flips back on expiry. This
+              via a family owner), nothing otherwise — flips back on expiry. This
               is the SECURE plan, independent of the messenger subscription
               tier shown in Settings → Pricing. */}
           {proApplication?.status === 'ACTIVE' ? (
@@ -389,9 +389,7 @@ export default function BookingHomeScreen() {
                 {proApplication.via_owner ? 'PRO · MEMBER' : 'PRO'}
               </Text>
             </View>
-          ) : (
-            <View style={styles.liteBadge}><Text style={styles.liteBadgeText} numberOfLines={1} maxFontSizeMultiplier={1.2}>LITE</Text></View>
-          )}
+          ) : null /* 2026-10-30 (owner) — no "LITE" chip: the free plan is just "Secure Services". */}
         </View>
         {/* N-18/GAP-3 — the durable-inbox bell, finally mounted. */}
         <ActivityBell onPress={() => navigateOnce(navigation, 'ActivityCenter')} />
@@ -762,8 +760,6 @@ const styles = StyleSheet.create(scaleTextStyles({
   // B-657 - 16/1.5 rendered ~171dp for 15 uppercase chars and overflowed the
   // row. 13.5/0.6 is ~135dp and still reads as the product title.
   headerTitle: {color: B.text, fontFamily: BravoFont.extraBold, fontSize: 13.5, letterSpacing: 0.6, flexShrink: 1},
-  liteBadge: {paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(30,136,255,0.13)', borderWidth: 1, borderColor: 'rgba(30,136,255,0.3)'},
-  liteBadgeText: {color: B.glow, fontFamily: BravoFont.mono, fontSize: 8.5, fontWeight: '800', letterSpacing: 1.2},
   proBadge: {paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6, backgroundColor: 'rgba(74,222,128,0.12)', borderWidth: 1, borderColor: 'rgba(74,222,128,0.4)'},
   proBadgeText: {color: '#4ADE80', fontFamily: BravoFont.mono, fontSize: 8.5, fontWeight: '800', letterSpacing: 1.2},
   regionBtn: {flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, paddingVertical: 6, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: B.hair2},

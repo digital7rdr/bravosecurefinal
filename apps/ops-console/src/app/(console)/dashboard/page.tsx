@@ -72,7 +72,7 @@ export default function Dashboard() {
       />
 
       {/* ── Lite ─────────────────────────────────────────────────────── */}
-      {ops && <SectionStrip title="Lite · Secure Transfer" href={routes.lite.root} columns={5}>
+      {ops && <SectionStrip title="Secure Transfer" href={routes.lite.root} columns={5}>
         <KpiTile
           label="Waiting on ops" value={lite?.waiting ?? kpis?.pending_approval ?? 0}
           href={routes.lite.bookings} tone="warn" urgent={(lite?.waiting ?? 0) > 0}
@@ -164,14 +164,14 @@ export default function Dashboard() {
       <div className="dash-grid" style={ops ? undefined : {gridTemplateColumns: '1.4fr 1fr'}}>
         {ops && <div className="card" style={{display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
           <div className="card-header">
-            <div className="card-header-title"><span className="bar" />Lite Approval Queue</div>
+            <div className="card-header-title"><span className="bar" />Secure Transfer Approval Queue</div>
             <Link href={routes.lite.bookings} className="card-header-act">
               View all ({lite?.pending_approval ?? kpis?.pending_approval ?? 0}) →
             </Link>
           </div>
           <div style={{flex: 1, overflow: 'auto'}}>
             {approvals.length === 0 && (
-              <div className="q-empty">No Lite bookings awaiting approval.</div>
+              <div className="q-empty">No Secure Transfer bookings awaiting approval.</div>
             )}
             {approvals.map(a => (
               <Link key={a.id} href={bookingHref(a)} style={{textDecoration: 'none', display: 'block'}}>

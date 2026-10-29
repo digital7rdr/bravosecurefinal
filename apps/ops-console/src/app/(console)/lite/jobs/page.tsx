@@ -42,7 +42,7 @@ export default function Jobs() {
     <>
       <div className="page-head">
         <div>
-          <div className="page-crumbs">Lite · Secure Transfer  ·  Manual Dispatch</div>
+          <div className="page-crumbs">Secure Transfer  ·  Manual Dispatch</div>
           <h2>Job Feed</h2>
           <div className="page-sub">
             Every approved Lite booking is published here for agencies to apply. Auto-dispatch may

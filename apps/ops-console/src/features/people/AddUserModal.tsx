@@ -14,7 +14,7 @@ import {routes} from '@/lib/routes';
 import {IssuePassword} from './IssuePassword';
 
 const TYPES: {id: AppAccountType; label: string; hint: string}[] = [
-  {id: 'individual', label: 'Individual client', hint: 'Books Lite / Executive protection; can take Secure Pro later.'},
+  {id: 'individual', label: 'Individual client', hint: 'Books Secure Transfer / Executive protection; can take Secure Pro later.'},
   {id: 'agency', label: 'Service-provider agency', hint: 'An agency owner account, born active (no review queue).'},
   {id: 'cpo', label: 'CPO agent', hint: 'An officer on an agency roster, born deployable.'},
 ];

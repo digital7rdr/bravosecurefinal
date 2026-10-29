@@ -94,7 +94,7 @@ export default function AgenciesPage() {
     <>
       <PageHeader
         title="Service Providers"
-        subtitle="Organisations that receive Lite dispatch offers and employ the CPOs who run the missions. Their compliance validity and their acceptance record decide whether they keep getting work."
+        subtitle="Organisations that receive Secure Transfer dispatch offers and employ the CPOs who run the missions. Their compliance validity and their acceptance record decide whether they keep getting work."
         badges={<span className="pill">{rows.length} LISTED</span>}
       />
 

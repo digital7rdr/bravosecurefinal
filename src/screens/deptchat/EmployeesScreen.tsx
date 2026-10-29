@@ -117,7 +117,7 @@ export default function EmployeesScreen() {
     } catch (e: unknown) {
       const code = (e as {response?: {data?: {message?: string}}})?.response?.data?.message;
       const msg = code === 'user_not_found'
-        ? 'No Bravo account found with that email or phone. Ask them to sign up first (Lite is free).'
+        ? 'No Bravo account found with that email or phone. Ask them to sign up first (it is free).'
         : code === 'already_a_member'
           ? 'They are already on your team.'
           : code === 'member_exists_use_roster_status'
@@ -470,7 +470,7 @@ export default function EmployeesScreen() {
         // The advice differs from the invite screen's on purpose: this endpoint
         // can only enrol an EXISTING Bravo account, so "invite them anyway" —
         // which is true on the invite sheet — would be a dead end here.
-        emptyHint="None of your contacts use Bravo Secure yet. They need a Bravo account (Lite is free) before they can be added."
+        emptyHint="None of your contacts use Bravo Secure yet. They need a Bravo account (it's free) before they can be added."
       />
     </View>
   );
