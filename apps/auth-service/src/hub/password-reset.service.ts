@@ -68,6 +68,11 @@ export class PasswordResetService {
     return this.otp.smsReady() || this.otp.emailReady();
   }
 
+  /** 2026-10-30 — which delivery channels are set up (no account facts). */
+  channels(): {sms: boolean; email: boolean} {
+    return {sms: this.otp.smsReady(), email: this.otp.emailReady()};
+  }
+
   private async load(id: string): Promise<Pending> {
     if (!/^[A-Za-z0-9_-]{20,64}$/.test(id)) throw new BadRequestException({error: 'reset_expired', message: 'This reset has expired. Start again.'});
     const raw = await this.redis.get(`${PREFIX}${id}`);

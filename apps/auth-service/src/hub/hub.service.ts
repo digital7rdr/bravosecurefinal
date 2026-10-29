@@ -6,6 +6,7 @@ import {TotpChallengeService} from '../common/services/totp-challenge.service';
 import {resolveAccountKind, resolveIsAgencyManager} from '../auth/account-kind';
 import type {UserRow} from '../auth/auth.service';
 import {ModuleAccessService} from '../module-access/module-access.service';
+import {hubOrigins} from '../common/http/session-cookies';
 
 /**
  * Bravo Secure home (bravosecure.cloud, 2026-10-10): the app launcher and the
@@ -62,6 +63,12 @@ export interface AppTile {
 }
 
 const CODE_TTL_SEC = 60;
+/**
+ * 2026-10-30 — the code an APP mints to sign its user in to the HOME SITE
+ * ("All apps" in the consoles' top bar). Never an app key: the launcher's
+ * keys match /^[a-z][a-z0-9_]{1,39}$/, which cannot start with '_'.
+ */
+export const HUB_HANDOFF_APP = '__hub__';
 const CODE_PREFIX = 'sso-code:';
 
 interface CodeRecord {u: string; app: string; origin: string}
@@ -174,10 +181,27 @@ export class HubService {
   }
 
   /**
+   * 2026-10-30 (owner: "on the Ops console, navigating to all apps landed on the
+   * login page") — the reverse hand-off: a person signed in to an app (ops,
+   * provider, web) opens the home site already signed in. Same one-time code,
+   * bound to the home site's origin; the home site's /sso page redeems it.
+   */
+  async handoff(userId: string): Promise<{redirect: string}> {
+    const origin = [...hubOrigins()][0];
+    if (!origin) throw new BadRequestException('home_site_not_configured');
+    const code = randomBytes(32).toString('base64url');
+    const rec: CodeRecord = {u: userId, app: HUB_HANDOFF_APP, origin};
+    await this.redis.set(`${CODE_PREFIX}${sha(code)}`, JSON.stringify(rec), CODE_TTL_SEC);
+    return {redirect: `${origin}/sso#code=${encodeURIComponent(code)}&next=%2F`};
+  }
+
+  /**
    * Step 2. Consumes the code (single use, atomically), checks it was minted
    * for THIS origin, re-checks access, and returns the account to sign in.
+   * `forHub` — the home site redeeming a hand-off code: ONLY a hand-off code
+   * is accepted there, and a hand-off code is accepted nowhere else.
    */
-  async exchange(code: string, origin: string | null): Promise<{user: UserRow; app: string}> {
+  async exchange(code: string, origin: string | null, forHub = false): Promise<{user: UserRow; app: string}> {
     if (!origin) throw new ForbiddenException('sso_origin_required');
     const raw = await this.redis.takeOnce(`${CODE_PREFIX}${sha(code)}`);
     if (!raw) throw new ForbiddenException('sso_code_invalid');
@@ -188,6 +212,9 @@ export class HubService {
       `SELECT id,email,display_name,role,subscription_tier,phone_e164 FROM public.users
         WHERE id=$1 AND deleted_at IS NULL AND suspended_at IS NULL`, [rec.u]);
     if (!user) throw new ForbiddenException('sso_code_invalid');
+    if ((rec.app === HUB_HANDOFF_APP) !== forHub) throw new ForbiddenException('sso_code_invalid');
+    // The home site has no access rule of its own: anyone may sign in to it.
+    if (forHub) return {user, app: rec.app};
     // Access may have been withdrawn in the seconds since launch.
     const app = (await this.listApps()).find(a => a.key === rec.app);
     const [who, totp] = await Promise.all([this.audiences(user.id), this.totp.status(user.id)]);

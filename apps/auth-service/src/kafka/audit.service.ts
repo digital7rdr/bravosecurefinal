@@ -15,7 +15,7 @@ export type AuditEventType =
   // Audit P0-A5 — credential rotation.
   | 'auth.password.changed' | 'auth.password.change_denied' | 'auth.password.reset'
   // 2026-10-10 — single sign-on from the Bravo Secure home site.
-  | 'auth.sso.launch' | 'auth.sso.exchange'
+  | 'auth.sso.launch' | 'auth.sso.exchange' | 'auth.sso.handoff'
   // Audit fix 0.7 — client-raised SOS events.
   | 'client.sos.raise' | 'client.sos.cancel';
 

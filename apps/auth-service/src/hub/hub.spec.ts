@@ -121,6 +121,26 @@ describe('single sign-on code', () => {
     await expect(hub.exchange('x'.repeat(43), null)).rejects.toThrow('sso_origin_required');
   });
 
+  it('2026-10-30 — a hand-off code opens the HOME SITE only, and a launch code never does', async () => {
+    const prev = process.env.HUB_ORIGINS;
+    process.env.HUB_ORIGINS = 'https://bravosecure.cloud';
+    try {
+      const {hub} = makeHub();
+      const {redirect} = await hub.handoff('u-1');
+      expect(redirect).toMatch(/^https:\/\/bravosecure\.cloud\/sso#code=[A-Za-z0-9_-]{43}&next=%2F$/);
+      // Not redeemable as an app sign-in, even from the right origin.
+      await expect(hub.exchange(codeOf(redirect), 'https://bravosecure.cloud', false)).rejects.toThrow('sso_code_invalid');
+      const again = await hub.handoff('u-1');
+      await expect(hub.exchange(codeOf(again.redirect), 'https://bravosecure.cloud', true))
+        .resolves.toMatchObject({app: '__hub__', user: {id: 'u-1'}});
+      // And the home site never accepts an APP launch code.
+      const launch = codeOf((await hub.launch('u-1', 'messenger')).redirect);
+      await expect(hub.exchange(launch, 'https://web.bravosecure.cloud', true)).rejects.toThrow('sso_code_invalid');
+    } finally {
+      process.env.HUB_ORIGINS = prev;
+    }
+  });
+
   it('re-checks access at exchange: an app switched off in between does not open', async () => {
     const apps = APPS.map(a => ({...a}));
     const {hub} = makeHub({apps});
@@ -267,18 +287,34 @@ describe('home-site sessions and the hand-off endpoints', () => {
       .resolves.toEqual({redirect: 'r'});
   });
 
-  it('exchange sets the TARGET app cookies and is refused on the home site itself', async () => {
+  it('exchange sets the TARGET app cookies; the home site redeems only hand-off codes', async () => {
     const hub = {exchange: jest.fn(async () => ({user: {id: 'u-1'}, app: 'messenger'}))};
     const auth = {issueSession: jest.fn(async () => ({accessToken: 'a', refreshToken: 'r', expiresIn: 900}))};
     const jwt = {ttlToSeconds: jest.fn(() => 2_592_000)};
     const ctl = new SsoController(hub as never, auth as never, jwt as never, {emit: jest.fn()} as never);
     const cookies: string[] = [];
     const res = {cookie: (n: string) => cookies.push(n), setHeader: jest.fn()} as never;
-    await expect(ctl.exchange({code: 'c'.repeat(43), deviceId: 'd'}, {headers: {origin: 'https://bravosecure.cloud'}} as never, res))
-      .rejects.toThrow('sso_origin_invalid');
     await ctl.exchange({code: 'c'.repeat(43), deviceId: 'd'}, {headers: {origin: 'https://web.bravosecure.cloud'}} as never, res);
     expect(cookies).toEqual(['bravo_web_token', 'bravo_web_csrf', 'bravo_web_refresh']);
     expect(auth.issueSession).toHaveBeenCalledWith({id: 'u-1'}, 'd', 'web', false);
+    expect(hub.exchange).toHaveBeenLastCalledWith('c'.repeat(43), 'https://web.bravosecure.cloud', false);
+    // 2026-10-30 — on the home site the service is told to accept ONLY a hand-off code.
+    cookies.length = 0;
+    await ctl.exchange({code: 'c'.repeat(43), deviceId: 'd'}, {headers: {origin: 'https://bravosecure.cloud'}} as never, res);
+    expect(hub.exchange).toHaveBeenLastCalledWith('c'.repeat(43), 'https://bravosecure.cloud', true);
+    expect(cookies).toEqual(['bravo_hub_token', 'bravo_hub_csrf', 'bravo_hub_refresh']);
+  });
+
+  it('"All apps" hand-off: only from an APP cookie session, never the home site or a Bearer token', async () => {
+    const hub = {handoff: jest.fn(async () => ({redirect: 'https://bravosecure.cloud/sso#code=x&next=%2F'}))};
+    const ctl = new HubController(hub as never, {} as never, {} as never, {emit: jest.fn()} as never);
+    const user = {sub: 'u-1', deviceId: 'd'} as never;
+    await expect(ctl.handoff(user, {headers: {origin: 'https://bravosecure.cloud'}, cookies: {bravo_hub_token: 't'}} as never))
+      .rejects.toThrow('handoff_requires_app_session');
+    await expect(ctl.handoff(user, {headers: {origin: 'https://web.bravosecure.cloud', authorization: 'Bearer x'}} as never))
+      .rejects.toThrow('handoff_requires_app_session');
+    await expect(ctl.handoff(user, {headers: {origin: 'https://ops.bravosecure.cloud'}, cookies: {bravo_ops_token: 't'}} as never))
+      .resolves.toEqual({redirect: 'https://bravosecure.cloud/sso#code=x&next=%2F'});
   });
 
   it('sign-up only signs in on the home site', async () => {
@@ -324,5 +360,16 @@ describe('Secure Services tile follows the plan', () => {
     const t = await hub.tiles('u-1');
     expect(t.apps.find(a => a.key === 'secure_services')?.state).toBe('open');
     expect(modules.planLocked).not.toHaveBeenCalled();
+  });
+});
+
+describe('password reset status names the channels (2026-10-30)', () => {
+  it('reports sms / email so the pages can ask for the email when texts are off', () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const {PasswordResetService} = require('./password-reset.service') as typeof import('./password-reset.service');
+    const otp = {smsReady: () => false, emailReady: () => true};
+    const svc = new PasswordResetService({} as never, {} as never, {} as never, {} as never, otp as never, {} as never, {} as never);
+    expect(svc.available()).toBe(true);
+    expect(svc.channels()).toEqual({sms: false, email: true});
   });
 });

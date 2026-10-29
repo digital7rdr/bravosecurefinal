@@ -62,6 +62,11 @@ export default function ForgotPasswordScreen({navigation, route}: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  // 2026-10-30 (owner: "password reset does not work") — with texts not set
+  // up, a code reaches a PHONE number only when the account's email is
+  // confirmed; most aren't, so the reset silently sent nothing. Ask for the
+  // email address instead whenever the server says texts are off.
+  const [emailOnly, setEmailOnly] = useState(false);
   const codeRef = useRef<TextInput>(null);
 
   // Tell the person up front when Bravo has no way to send a code yet,
@@ -69,7 +74,11 @@ export default function ForgotPasswordScreen({navigation, route}: Props) {
   useEffect(() => {
     let live = true;
     authApi.passwordResetStatus()
-      .then(r => { if (live && r.available === false) {setUnavailable(true);} })
+      .then(r => {
+        if (!live) {return;}
+        if (r.available === false) {setUnavailable(true);}
+        if (r.sms === false && r.email === true) {setEmailOnly(true);}
+      })
       .catch(() => undefined);
     return () => { live = false; };
   }, []);
@@ -77,6 +86,10 @@ export default function ForgotPasswordScreen({navigation, route}: Props) {
   const sendCode = async () => {
     const problem = resetIdentifierProblem(identifier);
     if (problem) {setError(problem); return;}
+    if (emailOnly && !identifier.includes('@')) {
+      setError('Text messages are not available yet, so the code comes by email. Type the email address on your account.');
+      return;
+    }
     const parsed = parseLoginIdentifier(identifier);
     const value = parsed && 'email' in parsed ? parsed.email : parsed?.phoneE164 ?? identifier.trim();
     setBusy(true); setError(null);
@@ -127,7 +140,9 @@ export default function ForgotPasswordScreen({navigation, route}: Props) {
   const title = step === 'identify' ? 'Reset your password'
     : step === 'reset' ? 'Choose a new password' : 'Password changed';
   const subtitle = step === 'identify'
-    ? 'Type the mobile number or email on your Bravo Secure account. We will send you a 6-digit code.'
+    ? (emailOnly
+      ? 'Type the email address on your Bravo Secure account. We will email you a 6-digit code.'
+      : 'Type the mobile number or email on your Bravo Secure account. We will send you a 6-digit code.')
     : step === 'reset'
       ? `If ${identifier.trim()} belongs to an account, a code is on its way. Codes last 15 minutes.`
       : 'You are signed out on every device. Sign in with your new password.';
@@ -170,9 +185,9 @@ export default function ForgotPasswordScreen({navigation, route}: Props) {
             <View style={styles.form}>
               {step === 'identify' && (
                 <>
-                  <Input label="Mobile number or email" value={identifier} onChangeText={t => { setIdentifier(t); setError(null); }}
+                  <Input label={emailOnly ? 'Email address' : 'Mobile number or email'} value={identifier} onChangeText={t => { setIdentifier(t); setError(null); }}
                     keyboardType="email-address" autoComplete="username" textContentType="username"
-                    placeholder="+971 50 123 4567 or you@company.com" onSubmitEditing={() => { void sendCode(); }}
+                    placeholder={emailOnly ? 'you@company.com' : '+971 50 123 4567 or you@company.com'} onSubmitEditing={() => { void sendCode(); }}
                     returnKeyType="send" />
                   <Cta label="Send code" busy={busy} disabled={busy || unavailable || !identifier.trim()} onPress={() => { void sendCode(); }} />
                 </>

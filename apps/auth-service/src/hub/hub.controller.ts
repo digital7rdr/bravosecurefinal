@@ -122,9 +122,14 @@ export class SignupController {
 export class PasswordResetController {
   constructor(private readonly reset: PasswordResetService) {}
 
+  /**
+   * `sms` / `email` (2026-10-30): which ways a code can be sent. With texts
+   * off, a reset typed as a phone number reaches only an account whose email
+   * is CONFIRMED (audit no_channel); the pages ask for the email instead.
+   */
   @Get('status')
   status() {
-    return {available: this.reset.available()};
+    return {available: this.reset.available(), ...this.reset.channels()};
   }
 
   @Throttle({default: {limit: 5, ttl: 600_000}})
@@ -184,6 +189,24 @@ export class HubController {
     return out;
   }
 
+  /**
+   * 2026-10-30 — "All apps" from an app: sign this person in to the home site.
+   * Only from an APP's own cookie session (ops / provider / web): never from
+   * the home site itself, and never from a phone's Bearer token.
+   */
+  @Throttle({default: {limit: 30, ttl: 60_000}})
+  @Post('handoff')
+  @HttpCode(200)
+  async handoff(@CurrentUser() user: AccessClaims, @Req() req: Request & {cookies?: Record<string, string>}) {
+    const names = sessionCookiesFor(req);
+    if (names.console === 'hub' || !req.cookies?.[names.token]) {
+      throw new ForbiddenException('handoff_requires_app_session');
+    }
+    const out = await this.hub.handoff(user.sub);
+    await this.audit.emit({event_type: 'auth.sso.handoff', user_id: user.sub, device_id: user.deviceId, ip: clientIp(req), outcome: 'success', detail: names.console});
+    return out;
+  }
+
   /** Optional authenticator, started from the home site after registration. */
   @Post('security/totp/start')
   @HttpCode(200)
@@ -227,9 +250,10 @@ export class SsoController {
     const raw = req.headers?.['origin'];
     const origin = typeof raw === 'string' ? raw : null;
     const names = sessionCookiesFor(req);
-    if (names.console === 'hub') throw new ForbiddenException('sso_origin_invalid');
+    // 2026-10-30 — the home site redeems only hand-off codes ("All apps").
+    const forHub = names.console === 'hub';
     try {
-      const {user, app} = await this.hub.exchange(dto.code, origin);
+      const {user, app} = await this.hub.exchange(dto.code, origin, forHub);
       const s = await this.auth.issueSession(user, dto.deviceId, 'web', false);
       setSessionCookies(res, names, s.accessToken, s.expiresIn, s.refreshToken, refreshTtlSec(this.jwt));
       await this.audit.emit({event_type: 'auth.sso.exchange', user_id: user.id, device_id: dto.deviceId, ip: clientIp(req), outcome: 'success', detail: app});

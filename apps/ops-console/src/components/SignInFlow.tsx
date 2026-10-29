@@ -14,6 +14,7 @@ import {useRouter} from 'next/navigation';
 import {ApiError, type LoginStartResult} from '@/lib/api';
 import QRCode from 'qrcode';
 import {AuthLayout, Field, Note, Err, authCol, type AuthBrand} from '@/components/auth-primitives';
+import {homeSiteUrl} from '@/lib/sso';
 
 export interface SignInFlowProps {
   api: {
@@ -36,6 +37,22 @@ export interface SignInFlowProps {
   afterSignIn?: () => Promise<string | null>;
   /** Shown under the first step's form (the home site's "Create an account"). */
   footer?: ReactNode;
+}
+
+/**
+ * 2026-10-30 (owner: "password reset function does not work") — the web app
+ * and the consoles had no way to reach it at all. The reset lives on the
+ * home site (bravosecure.cloud/forgot); this links there.
+ */
+function ForgotPasswordLink() {
+  const [href, setHref] = useState<string | null>(null);
+  useEffect(() => { setHref(`${homeSiteUrl(window.location)}forgot`); }, []);
+  if (!href) return null;
+  return (
+    <p className="auth-hint" style={{textAlign: 'center', margin: 0}}>
+      <a href={href} style={{color: 'var(--glow)', fontWeight: 600}}>Forgot password?</a>
+    </p>
+  );
 }
 
 /** "+971 50-123 4567" → "+971501234567": the API takes E.164 without separators. */
@@ -225,7 +242,7 @@ export function SignInFlow({
           {/* Audit fix 0.1 — public admin self-registration removed. New
               admins are added by an existing ADMIN via an invite flow
               (see auth.controller.ts admin-register/verify). */}
-          {footer}
+          {footer ?? <ForgotPasswordLink/>}
         </form>
       )}
 

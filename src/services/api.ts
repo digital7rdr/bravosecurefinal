@@ -439,8 +439,9 @@ export const authApi = {
    * matched; `complete` may ask for an authenticator code ({done:false,
    * needTotp:true}) and signs the account out everywhere on success.
    */
-  passwordResetStatus: async (): Promise<{available: boolean}> =>
-    (await authHttp.get<{available: boolean}>('/auth/password/reset/status')).data,
+  // `sms` / `email` (2026-10-30) — undefined on an older server.
+  passwordResetStatus: async (): Promise<{available: boolean; sms?: boolean; email?: boolean}> =>
+    (await authHttp.get<{available: boolean; sms?: boolean; email?: boolean}>('/auth/password/reset/status')).data,
   passwordResetStart: async (identifier: string): Promise<{resetId: string}> =>
     (await authHttp.post<{resetId: string}>('/auth/password/reset/start', {identifier})).data,
   passwordResetComplete: async (dto: {resetId: string; code: string; newPassword: string; totpCode?: string}):

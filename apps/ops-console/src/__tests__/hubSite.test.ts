@@ -10,7 +10,7 @@ import {
   PROVIDER_PUBLIC_PATHS, WEB_PUBLIC_PATHS,
 } from '../lib/provider/host';
 import {PUBLIC_PATHS, isPublicAsset} from '../lib/publicRoutes';
-import {homeSiteUrl, safeNext} from '../lib/sso';
+import {homeSiteUrl, isHomeSiteRedirect, safeNext} from '../lib/sso';
 import {routes} from '../lib/routes';
 
 const SRC = path.join(__dirname, '..');
@@ -35,7 +35,7 @@ describe('home site host routing', () => {
     expect(toInternalHubPath('/security')).toBe('/hub/security');
     expect(isInternalHubPath('/hub/security')).toBe(true);
     expect(isInternalHubPath('/hubs')).toBe(false);
-    expect(HUB_PUBLIC_PATHS).toEqual(['/login', '/register', '/forgot']);
+    expect(HUB_PUBLIC_PATHS).toEqual(['/login', '/register', '/forgot', '/sso']);
   });
 
   it('the middleware gates the home site on its own cookie and 404s /hub on every other host', () => {
@@ -100,5 +100,35 @@ describe('Super Admin Apps page', () => {
     const page = strip(read('app/(console)/internal/apps/page.tsx'));
     expect(page).toMatch(/canManagePlatformApps\(me\?\.admin\.role\)/);
     expect(page).toMatch(/opsApi\.updatePlatformApp\(/);
+  });
+});
+
+describe('"All apps" signs the person in to the home site (2026-10-30)', () => {
+  it('follows only the home site\'s own /sso page', () => {
+    const home = 'https://bravosecure.cloud/';
+    expect(isHomeSiteRedirect('https://bravosecure.cloud/sso#code=abc&next=%2F', home)).toBe(true);
+    expect(isHomeSiteRedirect('https://evil.example/sso#code=abc', home)).toBe(false);
+    expect(isHomeSiteRedirect('https://bravosecure.cloud/login', home)).toBe(false);
+    expect(isHomeSiteRedirect(42, home)).toBe(false);
+  });
+
+  it('the link asks for a hand-off and falls back to the plain address', () => {
+    const src = read('components/HomeSiteLink.tsx');
+    expect(src).toMatch(/\/hub\/handoff/);
+    expect(src).toMatch(/isHomeSiteRedirect\(target, href\) \? target : href/);
+    expect(read('app/hub/sso/page.tsx')).toMatch(/<SsoLanding expiresKey=\{HUB_EXPIRES_KEY\}\/>/);
+  });
+});
+
+describe('password reset is reachable and works without texts (2026-10-30)', () => {
+  it('the web app and console sign-in pages link to the home site reset', () => {
+    const src = read('components/SignInFlow.tsx');
+    expect(src).toMatch(/\{footer \?\? <ForgotPasswordLink\/>\}/);
+    expect(src).toMatch(/`\$\{homeSiteUrl\(window\.location\)\}forgot`/);
+  });
+  it('the reset page asks for the email when texts are off', () => {
+    const src = read('app/hub/forgot/page.tsx');
+    expect(src).toMatch(/setEmailOnly\(s\.sms === false && s\.email === true\)/);
+    expect(src).toMatch(/Text messages are not available yet, so the code comes by email\./);
   });
 });

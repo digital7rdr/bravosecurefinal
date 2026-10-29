@@ -45,13 +45,19 @@ export default function ForgotPasswordPage() {
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  // 2026-10-30 — texts not set up: a code reaches a phone number only when the
+  // account's email is confirmed, so ask for the email address instead.
+  const [emailOnly, setEmailOnly] = useState(false);
 
   useEffect(() => {
-    hubPasswordReset.status().then(s => setAvailable(s.available)).catch(() => setAvailable(true));
+    hubPasswordReset.status().then(s => {
+      setAvailable(s.available);
+      setEmailOnly(s.sms === false && s.email === true);
+    }).catch(() => setAvailable(true));
   }, []);
 
   const isEmail = who.includes('@');
-  const whoValid = isEmail ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(who.trim()) : /^\+\d{7,15}$/.test(normalisePhone(who));
+  const whoValid = emailOnly ? isEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(who.trim()) : isEmail ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(who.trim()) : /^\+\d{7,15}$/.test(normalisePhone(who));
   const pwShort = pw.length > 0 && pw.length < 10;
   const pwMismatch = pw2.length > 0 && pw2 !== pw;
   const codeClean = code.replace(/\s/g, '');
@@ -131,7 +137,9 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthLayout subtitle="Reset your password" brand={HUB_BRAND}
-      description="Enter the mobile number or email of your Bravo Secure account. We will send you a code to choose a new password.">
+      description={emailOnly
+        ? 'Enter the email address of your Bravo Secure account. We will email you a code to choose a new password.'
+        : 'Enter the mobile number or email of your Bravo Secure account. We will send you a code to choose a new password.'}>
       {available === false ? (
         <div style={authCol(16)}>
           <Note>Password reset is not available yet. Contact Bravo Secure support to reset your password.</Note>
@@ -139,8 +147,13 @@ export default function ForgotPasswordPage() {
         </div>
       ) : (
         <form onSubmit={start} style={authCol(16)}>
-          <Field label="Mobile number or email" placeholder="+971 50 123 4567 or you@example.com" autoComplete="username"
-            hint="A mobile number needs its country code." value={who} onChange={setWho} autoFocus/>
+          {emailOnly ? (
+            <Field label="Email address" placeholder="you@example.com" autoComplete="username"
+              hint="Text messages are not available yet, so the code comes by email." value={who} onChange={setWho} autoFocus/>
+          ) : (
+            <Field label="Mobile number or email" placeholder="+971 50 123 4567 or you@example.com" autoComplete="username"
+              hint="A mobile number needs its country code." value={who} onChange={setWho} autoFocus/>
+          )}
           {err && <Err msg={err}/>}
           <button className="btn btn-pri auth-submit" type="submit" disabled={busy || !whoValid}>
             {busy ? <><span className="spinner" aria-hidden="true"/>Sending code…</> : 'Send code'}

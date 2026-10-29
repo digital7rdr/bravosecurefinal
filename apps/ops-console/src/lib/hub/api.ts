@@ -123,7 +123,8 @@ export const hubSignup = {
 
 // "Forgot your password?" (2026-10-11). The same answer whether or not an account matches.
 export const hubPasswordReset = {
-  status: () => hub<{available: boolean}>('/auth/password/reset/status', {noBoot: true}),
+  // `sms` / `email` (2026-10-30): which ways a code can be sent; absent on an older server.
+  status: () => hub<{available: boolean; sms?: boolean; email?: boolean}>('/auth/password/reset/status', {noBoot: true}),
   start: (identifier: string) => post<{resetId: string}>('/auth/password/reset/start', {identifier}, {noBoot: true}),
   complete: (resetId: string, b: {code: string; newPassword: string; totpCode?: string}) =>
     post<{done: true} | {done: false; needTotp: true}>('/auth/password/reset/complete', {resetId, ...b}, {noBoot: true}),
