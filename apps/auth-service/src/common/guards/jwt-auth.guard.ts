@@ -34,7 +34,12 @@ export class JwtAuthGuard implements CanActivate {
       const names = sessionCookiesFor(req);
       if (req.cookies?.[names.token]) {
         token = req.cookies[names.token];
-        if (names.console === 'web' || names.console === 'hub') assertWebCsrf(req, names.csrf);
+        // 2026-10-31 — the provider console now reaches app routes without
+        // a CsrfGuard of their own (/agents, /compliance, /attendance,
+        // /incidents, /enterprise), so its cookie session gets the same
+        // double-submit rule as the web app and home site. The console sends
+        // the header on every write.
+        if (names.console === 'web' || names.console === 'hub' || names.console === 'provider') assertWebCsrf(req, names.csrf);
       }
     }
     if (!token) throw new UnauthorizedException('missing_token');

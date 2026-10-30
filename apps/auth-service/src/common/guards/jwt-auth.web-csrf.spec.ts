@@ -55,6 +55,21 @@ describe('JwtAuthGuard — web app CSRF', () => {
     await expect(guard.canActivate(ctx(ops))).resolves.toBe(true);
   });
 
+  it('the provider console (bravo_pv_*) gets the same CSRF rule (2026-10-31)', async () => {
+    const before = process.env.PROVIDER_CONSOLE_ORIGINS;
+    process.env.PROVIDER_CONSOLE_ORIGINS = 'https://provider.bravosecure.cloud';
+    try {
+      const req = (method: string, h: Record<string, string>) => ({method, headers: {origin: 'https://provider.bravosecure.cloud', ...h},
+        cookies: {bravo_pv_token: 'tok', bravo_pv_csrf: 'c-p'}});
+      await expect(guard.canActivate(ctx(req('GET', {})))).resolves.toBe(true);
+      await expect(guard.canActivate(ctx(req('POST', {})))).rejects.toThrow('csrf_token_invalid');
+      await expect(guard.canActivate(ctx(req('PATCH', {'x-csrf-token': 'nope'})))).rejects.toThrow('csrf_token_invalid');
+      await expect(guard.canActivate(ctx(req('POST', {'x-csrf-token': 'c-p'})))).resolves.toBe(true);
+    } finally {
+      process.env.PROVIDER_CONSOLE_ORIGINS = before;
+    }
+  });
+
   it('the home site (bravo_hub_*) gets the same CSRF rule', async () => {
     const before = process.env.HUB_ORIGINS;
     process.env.HUB_ORIGINS = 'https://bravosecure.cloud';

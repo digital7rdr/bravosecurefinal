@@ -66,7 +66,8 @@ export const MODULE_LABEL: Record<ModuleKey, string> = {
 
 /** The modules this console uses, in the order the permissions screen lists them. */
 // 'dept' (2026-10-15): the Departments page — levels, channels, placement.
-export const CONSOLE_MODULES: ModuleKey[] = ['jobs', 'portal', 'pro', 'roster', 'fleet', 'msg', 'dept', 'earn'];
+// 2026-10-31 (owner) — every app module is on the web too.
+export const CONSOLE_MODULES: ModuleKey[] = ['jobs', 'portal', 'pro', 'roster', 'orgChart', 'compliance', 'fleet', 'region', 'msg', 'intel', 'dept', 'earn'];
 
 export function credits(n: number | null | undefined): string {
   if (n === null || n === undefined || !Number.isFinite(n)) return '—';

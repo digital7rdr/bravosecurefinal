@@ -80,7 +80,8 @@ function safeParse(s: string): unknown {
 
 type Init = RequestInit & {idempotencyKey?: string; noBoot?: boolean};
 
-async function pv<T>(path: string, init?: Init): Promise<T> {
+/** Exported 2026-10-31 for the area clients (lib/provider/api-*.ts). */
+export async function pv<T>(path: string, init?: Init): Promise<T> {
   const {idempotencyKey, noBoot, ...rest} = init ?? {};
   const csrf = readPvCsrf();
   const res = await fetch(`${BASE}${path}`, {
@@ -107,8 +108,8 @@ async function pv<T>(path: string, init?: Init): Promise<T> {
   return body as T;
 }
 
-const get = <T>(path: string) => pv<T>(path);
-const send = <T>(method: 'POST' | 'PATCH' | 'PUT' | 'DELETE', path: string, body?: unknown, idempotencyKey?: string) =>
+export const get = <T>(path: string) => pv<T>(path);
+export const send = <T>(method: 'POST' | 'PATCH' | 'PUT' | 'DELETE', path: string, body?: unknown, idempotencyKey?: string) =>
   pv<T>(path, {method, body: body === undefined ? undefined : JSON.stringify(body), idempotencyKey});
 
 /** A fresh key per user action; the server collapses retries of the same one. */
@@ -428,7 +429,7 @@ export const pvApi = {
 const POLL = 15_000;
 
 /** Keys include the agency so switching agency never shows the previous one's data. */
-function useOrgSWR<T>(name: string | null, org: string | null, fetcher: () => Promise<T>, cfg?: SWRConfiguration<T>) {
+export function useOrgSWR<T>(name: string | null, org: string | null, fetcher: () => Promise<T>, cfg?: SWRConfiguration<T>) {
   return useSWR<T>(name && org ? ['pv', org, name] : null, fetcher, {refreshInterval: POLL, ...cfg});
 }
 

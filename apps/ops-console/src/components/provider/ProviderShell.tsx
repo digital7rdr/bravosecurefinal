@@ -63,6 +63,14 @@ const ICONS: Record<NavIcon, ReactNode> = {
   key:      <svg {...ic}><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/><path d="m17 3 1.5 1.5L21 2"/></svg>,
   chart:    <svg {...ic}><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg>,
   tree:     <svg {...ic}><rect x="9" y="3" width="6" height="4" rx="1"/><rect x="3" y="17" width="6" height="4" rx="1"/><rect x="15" y="17" width="6" height="4" rx="1"/><path d="M12 7v5M6 17v-5h12v5"/></svg>,
+  briefcase: <svg {...ic}><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><circle cx="16.5" cy="15.5" r="2.5"/><path d="m18.3 17.3 2.2 2.2"/></svg>,
+  check:    <svg {...ic}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>,
+  sitemap:  <svg {...ic}><rect x="9" y="3" width="6" height="5" rx="1"/><rect x="2" y="16" width="6" height="5" rx="1"/><rect x="9" y="16" width="6" height="5" rx="1"/><rect x="16" y="16" width="6" height="5" rx="1"/><path d="M12 8v4M5 16v-4h14v4M12 12v4"/></svg>,
+  globe:    <svg {...ic}><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>,
+  clock:    <svg {...ic}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>,
+  alert:    <svg {...ic}><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></svg>,
+  inbox:    <svg {...ic}><path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5 5h14l2 8v6H3v-6z"/></svg>,
+  news:     <svg {...ic}><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h6M7 16h10"/></svg>,
 };
 
 function Splash({label}: {label: string}) {

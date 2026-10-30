@@ -17,4 +17,15 @@ export const pvRoutes = {
   /** The agency's levels, channels and who sits where (2026-10-15). */
   departments: '/departments',
   earnings: '/earnings',
+  /* 2026-10-31 (owner: "the Service provider, agent web portal should have
+     the same functions as the Mobile app") — the app's agency dashboard rows. */
+  portal: '/portal',
+  compliance: '/compliance',
+  orgChart: '/org-chart',
+  region: '/region',
+  attendance: '/attendance',
+  incidents: '/incidents',
+  incident: (id: string) => `/incidents/${encodeURIComponent(id)}`,
+  approvals: '/approvals',
+  feed: '/feed',
 } as const;

@@ -10,7 +10,6 @@ import {pvApi, usePvManagers, type ModuleKey} from '@/lib/provider/api';
 import {CONSOLE_MODULES, MODULE_LABEL, errorText} from '@/lib/provider/labels';
 import {pvRoutes} from '@/lib/provider/routes';
 
-const APP_ONLY: ModuleKey[] = ['compliance', 'orgChart', 'intel', 'region'];
 
 const HELP: Partial<Record<ModuleKey, string>> = {
   jobs: 'Crew, dispatch, track and complete jobs; answer offers',
@@ -20,7 +19,11 @@ const HELP: Partial<Record<ModuleKey, string>> = {
   msg: 'Encrypted chat with officers, here and in the app',
   fleet: 'Add, edit and retire agency vehicles',
   pro: 'See officers on Secure Pro duty',
-  dept: 'Build departments and channels, and place people (also in the app)',
+  dept: 'Attendance review, incidents, join requests, channels and placement',
+  compliance: 'Licence, insurance and agency documents',
+  orgChart: 'Owner, managers and officers at a glance',
+  intel: 'Risk intelligence and threat alerts',
+  region: 'The dispatch region the agency works in',
 };
 
 export default function ProviderManagers() {
@@ -61,7 +64,6 @@ export default function ProviderManagers() {
                   <tr>
                     <th>Manager</th>
                     {CONSOLE_MODULES.map(k => <th key={k} title={HELP[k]}>{MODULE_LABEL[k]}</th>)}
-                    <th>In the app only</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -83,9 +85,6 @@ export default function ProviderManagers() {
                           </td>
                         );
                       })}
-                      <td className="pv-cell-sub">
-                        {APP_ONLY.filter(k => m.permitted_modules.includes(k)).map(k => MODULE_LABEL[k]).join(', ') || 'None'}
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -94,7 +93,7 @@ export default function ProviderManagers() {
           )}
       </PvCard>
       <p className="pv-hint" style={{marginTop: 12}}>
-        Org chart, departmental, Bravo Feed, compliance and region are set in the app under Manager Permissions. Messenger covers chat in the app and here.
+        Messenger covers chat in the app and here.
       </p>
     </PvPage>
   );
