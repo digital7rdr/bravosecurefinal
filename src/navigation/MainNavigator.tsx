@@ -102,7 +102,7 @@ const ICONS: Record<string, {default: IconName; active: IconName; label: string}
 
 // VBG screens render fullscreen (no root tab bar). Keep in sync with the
 // VBG* routes registered in BookingNavigator.
-const VBG_FULLSCREEN_ROUTES = new Set(['VBGHome', 'VBGMap', 'VBGSRA', 'VBGOSINT', 'VBGNearby', 'VBGGeoRisk', 'VBGEmergency']);
+const VBG_FULLSCREEN_ROUTES = new Set(['VBGHome', 'VBGMap', 'VBGNavigate', 'VBGSRA', 'VBGOSINT', 'VBGNearby', 'VBGGeoRisk', 'VBGEmergency']);
 
 // Wave 5d — the LITE Secure shell (SecureShell → SecureTabNavigator) renders its
 // OWN ObsidianTabBar, so the root CustomTabBar must hide while it is the focused

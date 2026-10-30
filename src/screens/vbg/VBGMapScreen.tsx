@@ -4,12 +4,12 @@
  * "View on Map" lands here: the key-points map fills the screen (>70%
  * visible area), Mapbox GL gestures (pinch/pan/rotate) work inside the
  * canvas, and selecting a pin opens a compact details card with name,
- * category, distance and a Navigate action that hands off to the device
- * maps app. Back returns to the Home dashboard (its scroll state survives —
+ * category, distance and a Navigate action that opens Bravo's own
+ * turn-by-turn (VBGNavigateScreen — 2026-10-30, never an outside maps app). Back returns to the Home dashboard (its scroll state survives —
  * the screen stays mounted beneath this push).
  */
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Linking, Platform} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import Svg, {Path} from 'react-native-svg';
 import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -33,14 +33,9 @@ const KIND_COLOR: Record<VbgKeyPoint['kind'], string> = {
   police: VBG.accent, hospital: VBG.signal, embassy: VBG.amber, fire: '#FF7A5C',
 };
 
-function openInMaps(kp: VbgKeyPoint) {
-  const label = encodeURIComponent(kp.label);
-  const url = Platform.select({
-    ios: `http://maps.apple.com/?q=${label}&ll=${kp.lat},${kp.lng}`,
-    android: `geo:${kp.lat},${kp.lng}?q=${kp.lat},${kp.lng}(${label})`,
-    default: `https://maps.google.com/?q=${kp.lat},${kp.lng}`,
-  });
-  Linking.openURL(url).catch(() => {});
+/** 2026-10-30 (owner) — navigation stays in Bravo: in-app turn-by-turn with voice. */
+function navParams(kp: VbgKeyPoint) {
+  return {dest: {lat: kp.lat, lng: kp.lng, label: kp.label}};
 }
 
 export default function VBGMapScreen() {
@@ -121,7 +116,7 @@ export default function VBGMapScreen() {
             activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel={`Navigate to ${selected.label}`}
-            onPress={() => openInMaps(selected)}>
+            onPress={() => navigation.navigate('VBGNavigate', navParams(selected))}>
             <Text style={styles.navBtnText}>NAVIGATE</Text>
           </TouchableOpacity>
         </View>

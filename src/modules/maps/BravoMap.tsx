@@ -84,6 +84,8 @@ export interface RoutePayload {
   dropoff?: {lat: number; lng: number} | null;
   /** Mapbox-ENCODED polyline string (precision 6), as the API returns it. */
   polyline?: string | null;
+  /** Pin caption for the drop-off (WebView map; default "Dropoff"). */
+  dropoffLabel?: string | null;
 }
 
 export interface NavRoutePayload {

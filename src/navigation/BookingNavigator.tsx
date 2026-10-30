@@ -26,6 +26,7 @@ import VBGSRAScreen from '@screens/vbg/VBGSRAScreen';
 import VBGOSINTScreen from '@screens/vbg/VBGOSINTScreen';
 import VBGNearbyScreen from '@screens/vbg/VBGNearbyScreen';
 import VBGGeoRiskScreen from '@screens/vbg/VBGGeoRiskScreen';
+import VBGNavigateScreen from '@screens/vbg/VBGNavigateScreen';
 import VBGEmergencyScreen from '@screens/vbg/VBGEmergencyScreen';
 import ProAssignedTeamScreen from '@screens/pro/ProAssignedTeamScreen';
 import ProLiveMissionScreen from '@screens/pro/ProLiveMissionScreen';
@@ -110,6 +111,11 @@ export default function BookingNavigator() {
       <Stack.Screen
         name="VBGMap"
         component={VBGMapScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="VBGNavigate"
+        component={VBGNavigateScreen}
         options={{headerShown: false}}
       />
       <Stack.Screen

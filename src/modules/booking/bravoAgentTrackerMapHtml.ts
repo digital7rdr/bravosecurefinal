@@ -547,6 +547,12 @@ export function buildAgentTrackerHtml(mapboxToken: string): string {
           '<div class="pin dropoff"><div class="lbl">Dropoff</div><div class="body"><span>D</span></div></div>',
           [dropoff.lng, dropoff.lat]
         );
+        // 2026-10-30 — GeoRisk in-app navigation names its destination
+        // ("Police", "Hospital"…). Server/user text: textContent only.
+        if (payload && typeof payload.dropoffLabel === 'string' && payload.dropoffLabel) {
+          const lbl = dropoffMk.getElement().querySelector('.lbl');
+          if (lbl) lbl.textContent = payload.dropoffLabel.slice(0, 24);
+        }
       }
 
       ensureRouteLayer();

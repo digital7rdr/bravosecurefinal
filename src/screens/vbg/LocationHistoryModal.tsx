@@ -1,9 +1,11 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {
   View, Text, StyleSheet, Modal, Pressable, TouchableOpacity,
-  ScrollView, Linking, Platform,
+  ScrollView,
 } from 'react-native';
-import {Alert} from '@utils/alert';
+import {useNavigation} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import type {BookingStackParamList} from '@navigation/types';
 import Svg, {Path, Circle} from 'react-native-svg';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {scaleTextStyles} from '@utils/scaling';
@@ -62,23 +64,13 @@ export function LocationHistoryModal({visible, onClose}: {visible: boolean; onCl
 
   useEffect(() => { if (visible) { void load(); } }, [visible, load]);
 
-  // Founder 2026-08-01 — tapping a recorded coordinate offers to open that
-  // position in the maps app (same geo:/Apple-Maps URL shape as the
-  // key-points "open in maps" path).
+  // Founder 2026-08-01 — tapping a recorded coordinate shows that position.
+  // Owner 2026-10-30 — inside Bravo, never an outside maps app: the position
+  // opens on Bravo's map with in-app directions (VBGNavigateScreen).
+  const navigation = useNavigation<NativeStackNavigationProp<BookingStackParamList>>();
   const viewOnMap = (f: Fix) => {
-    const label = encodeURIComponent(`Recorded ${clock(f.recordedAt)}`);
-    const url = Platform.select({
-      ios:     `http://maps.apple.com/?q=${label}&ll=${f.lat},${f.lng}`,
-      android: `geo:${f.lat},${f.lng}?q=${f.lat},${f.lng}(${label})`,
-    });
-    Alert.alert(
-      'View on map',
-      `Open ${f.lat.toFixed(4)}, ${f.lng.toFixed(4)} (recorded ${clock(f.recordedAt)}) in your maps app?`,
-      [
-        {text: 'Cancel', style: 'cancel'},
-        {text: 'View on Map', onPress: () => { if (url) {Linking.openURL(url).catch(() => {});} }},
-      ],
-    );
+    onClose();
+    navigation.navigate('VBGNavigate', {dest: {lat: f.lat, lng: f.lng, label: `Recorded ${clock(f.recordedAt)}`}});
   };
 
   return (

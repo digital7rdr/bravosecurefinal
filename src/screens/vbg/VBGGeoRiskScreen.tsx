@@ -145,15 +145,11 @@ export function GeoRiskPanel() {
   // Lives in the PANEL so the Home dashboard embed gets it too.
   const [shareItem, setShareItem] = useState<ShareableNews | null>(null);
 
-  const openInMaps = useCallback((kp: VbgKeyPoint) => {
-    const label = encodeURIComponent(kp.label);
-    const url = Platform.select({
-      ios: `http://maps.apple.com/?q=${label}&ll=${kp.lat},${kp.lng}`,
-      android: `geo:${kp.lat},${kp.lng}?q=${kp.lat},${kp.lng}(${label})`,
-      default: `https://maps.google.com/?q=${kp.lat},${kp.lng}`,
-    });
-    Linking.openURL(url).catch(() => {});
-  }, []);
+  // 2026-10-30 (owner: "GeoRisk navigation must stay inside BRAVO App") —
+  // a key point opens Bravo's own turn-by-turn with voice, never an outside app.
+  const navigateTo = useCallback((kp: VbgKeyPoint) => {
+    navigation.navigate('VBGNavigate', {dest: {lat: kp.lat, lng: kp.lng, label: kp.label}});
+  }, [navigation]);
 
   const useGps = useCallback(() => {
     if (!ready) {return;}
@@ -451,7 +447,7 @@ export function GeoRiskPanel() {
                   centre={analysed.centre}
                   radiusKm={analysed.radiusKm}
                   points={keypoints}
-                  onTapPoint={openInMaps}
+                  onTapPoint={navigateTo}
                   onExpand={() => navigation.navigate('VBGMap', {
                     centre: analysed.centre,
                     radiusKm: analysed.radiusKm,

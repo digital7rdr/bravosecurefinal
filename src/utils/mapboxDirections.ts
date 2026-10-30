@@ -431,7 +431,9 @@ async function requestRoutes(
     `https://api.mapbox.com/directions/v5/mapbox/${profile}/${pair}` +
     '?steps=true&overview=full&geometries=geojson&banner_instructions=true' +
     '&voice_instructions=true&voice_units=metric&language=en' +
-    '&annotations=maxspeed' +
+    // maxspeed exists only on the driving profiles; Mapbox rejects the whole
+    // request on walking/cycling (GeoRisk walk directions, 2026-10-30).
+    (profile.startsWith('driving') ? '&annotations=maxspeed' : '') +
     (alternatives ? '&alternatives=true' : '') +
     `&access_token=${encodeURIComponent(TOKEN)}`;
   try {

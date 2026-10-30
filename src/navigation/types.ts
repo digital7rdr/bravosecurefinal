@@ -364,6 +364,9 @@ export type BookingStackParamList = {
     points?: Array<{kind: 'police' | 'hospital' | 'embassy' | 'fire'; label: string; lat: number; lng: number; distanceKm: number}>;
   } | undefined;
   VBGNearby: undefined;
+  /** 2026-10-30 — GeoRisk in-app turn-by-turn with voice (VBGNavigateScreen);
+      replaces handing key points to Google Maps / Waze / Apple Maps. */
+  VBGNavigate: {dest: {lat: number; lng: number; label: string}};
   VBGSRA: undefined;
   VBGOSINT: undefined;
   VBGGeoRisk: undefined;

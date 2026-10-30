@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Linking, Platform} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import Svg, {Path} from 'react-native-svg';
 import {useNavigation} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -57,15 +57,10 @@ export default function VBGNearbyScreen() {
     return () => { alive = false; };
   }, [ready, fix]);
 
-  // Open a key point in the device maps app (geo: on Android, Apple Maps on iOS).
-  const openInMaps = (kp: VbgKeyPoint) => {
-    const label = encodeURIComponent(kp.label);
-    const url = Platform.select({
-      ios: `http://maps.apple.com/?q=${label}&ll=${kp.lat},${kp.lng}`,
-      android: `geo:${kp.lat},${kp.lng}?q=${kp.lat},${kp.lng}(${label})`,
-      default: `https://maps.google.com/?q=${kp.lat},${kp.lng}`,
-    });
-    Linking.openURL(url).catch(() => {});
+  // 2026-10-30 (owner) — directions to a key point stay in Bravo: in-app
+  // turn-by-turn with voice (VBGNavigateScreen), never Google Maps / Waze.
+  const navigateTo = (kp: VbgKeyPoint) => {
+    navigation.navigate('VBGNavigate', {dest: {lat: kp.lat, lng: kp.lng, label: kp.label}});
   };
 
   // B-91 M2 R5 — category filter + nearest-first sort. The SAME filtered set
@@ -104,7 +99,7 @@ export default function VBGNearbyScreen() {
         <VbgKeyPointsMap
           centre={fix}
           points={visible}
-          onTapPoint={openInMaps}
+          onTapPoint={navigateTo}
           onExpand={() => navigation.navigate('VBGMap',
             fix ? {centre: fix, points: visible} : undefined)}
           style={styles.map}
@@ -144,7 +139,7 @@ export default function VBGNearbyScreen() {
               <TouchableOpacity
                 key={`${kp.kind}-${i}`}
                 activeOpacity={0.7}
-                onPress={() => openInMaps(kp)}
+                onPress={() => navigateTo(kp)}
                 style={[styles.kpRow, i < arr.length - 1 && styles.kpBorder]}>
                 <View style={[styles.kpDot, {backgroundColor: KIND_COLOR[kp.kind], shadowColor: KIND_COLOR[kp.kind]}]} />
                 <View style={{flex: 1, minWidth: 0}}>

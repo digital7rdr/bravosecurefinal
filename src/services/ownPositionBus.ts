@@ -129,7 +129,7 @@ async function start(): Promise<void> {
     if (Platform.OS === 'android') {
       const grant = await ensureLiveLocationAccess({
         title: 'Use your location for navigation',
-        message: 'Bravo Secure needs your location to give you turn-by-turn directions during this mission.',
+        message: 'Bravo Secure needs your location to give you turn-by-turn directions.',
       });
       if (grant === 'denied' || grant === 'blocked') {
         return;
