@@ -11,7 +11,7 @@ import path from 'path';
 import {
   isInternalWebPath, isWebHost, toInternalWebPath, WEB_PUBLIC_PATHS, isProviderHost,
 } from '../lib/provider/host';
-import {canBook, type WebMe} from '../lib/web/access';
+import {canBook, secureServicesAccess, secureServicesLocked, type WebMe} from '../lib/web/access';
 import {toE164} from '../lib/web/phone';
 import {canCancel, needsPayment, stageOf, webErrorText, STAGE} from '../lib/web/labels';
 import {WEB_NAV, webNavActive} from '../lib/web/nav';
@@ -114,6 +114,58 @@ describe('who is a client', () => {
     expect(canBook(me({role: 'service_provider'}))).toBe(false);
     expect(canBook(undefined)).toBe(false);
   });
+
+  // 2026-10-30 — the home site counts a workspace owner/manager as a client
+  // (hub audiences use is_agency_manager); the web app agrees.
+  it('a workspace owner or manager is a client; an agency manager is not', () => {
+    expect(canBook(me({is_org_manager: true, is_agency_manager: false}))).toBe(true);
+    expect(canBook(me({is_org_manager: true, is_agency_manager: true}))).toBe(false);
+    expect(canBook(me({is_org_manager: false, is_agency_manager: true}))).toBe(false);
+  });
+});
+
+describe('Secure Services on the web (owner 2026-10-30)', () => {
+  const locked = ['secure_lite', 'executive_protection', 'secure_pro'];
+
+  it('Pro and Enterprise book; the free plan is offered the upgrade; existing bookings stay visible', () => {
+    expect(secureServicesLocked(me())).toBe(false);
+    expect(secureServicesLocked(me({plan_locked_modules: locked}))).toBe(true);
+    expect(secureServicesAccess(me(), true)).toBe('open');
+    expect(secureServicesAccess(me({plan_locked_modules: locked}), true)).toBe('upgrade');
+    expect(secureServicesAccess(me({plan_locked_modules: locked}), false)).toBe('open');
+    expect(secureServicesAccess(me({account_kind: 'cpo'}), true)).toBe('not_client');
+    expect(secureServicesAccess(undefined, false)).toBe('not_client');
+  });
+
+  it('Book, My bookings, Booking and Secure Pro are real pages behind the gate', () => {
+    const want: Record<string, string> = {
+      'book': 'startsService={true}', 'pro': 'startsService={true}',
+      'bookings': 'startsService={false}', 'bookings/[id]': 'startsService={false}',
+    };
+    for (const [p, starts] of Object.entries(want)) {
+      const page = stripComments(read(`app/web/(app)/${p}/page.tsx`));
+      expect([p, /redirect\(/.test(page)]).toEqual([p, false]);
+      expect([p, /<SecureServicesGate title="[^"]+" /.test(page) && page.includes(starts)]).toEqual([p, true]);
+      expect([p, /webApi|useBooking/.test(page)]).toEqual([p, true]);
+    }
+    expect(stripComments(read('app/web/(app)/book/page.tsx'))).not.toMatch(/\bLite\b/);
+  });
+
+  it('the gate shows the upgrade with the home site words, and tabs between the pages', () => {
+    const gate = stripComments(read('components/web/SecureServices.tsx'));
+    expect(gate).toMatch(/secureServicesAccess\(me, startsService\)/);
+    expect(gate).toMatch(/access === 'upgrade' \? <PvPage title=\{title\}><SecureServicesUpgrade\/><\/PvPage> : children/);
+    expect(gate).toMatch(/Bravo Messenger Pro and Enterprise\. Upgrade in the Bravo Secure app: Profile → Messenger Plans\./);
+    expect(gate).toMatch(/webRoutes\.book, label: 'Book'/);
+    expect(gate).toMatch(/webRoutes\.bookings, label: 'My bookings'/);
+    expect(gate).toMatch(/webRoutes\.pro, label: 'Secure Pro'/);
+  });
+
+  it('the hub Secure Services tile still opens /book', () => {
+    const routes = stripComments(read('lib/web/routes.ts'));
+    expect(routes).toMatch(/book: '\/book'/);
+    expect(routes).toMatch(/pro: '\/pro'/);
+  });
 });
 
 describe('the web app is the messenger (owner 2026-10-23)', () => {
@@ -128,14 +180,8 @@ describe('the web app is the messenger (owner 2026-10-23)', () => {
     expect(shell).not.toMatch(/clientsOnly|ClientsOnly|useBalance|Credits/);
   });
 
-  it('Book, Bookings and Secure Pro are gone: their old paths redirect to Chats', () => {
-    for (const p of ['book', 'bookings', 'bookings/[id]', 'pro']) {
-      const page = stripComments(read(`app/web/(app)/${p}/page.tsx`));
-      expect([p, /redirect\(webRoutes\.chats\)/.test(page)]).toEqual([p, true]);
-      expect([p, /webApi|PvPage|book\(/.test(page)]).toEqual([p, false]);
-    }
-    const routes = stripComments(read('lib/web/routes.ts'));
-    expect(routes).not.toMatch(/\bbook|\bpro:/);
+  it('Secure Services is not in the messenger rail (opened from the home site tile)', () => {
+    expect(WEB_NAV.some(i => /^\/(book|bookings|pro)$/.test(i.href))).toBe(false);
   });
 
   it('Contacts and Groups open the same chat workspace on their tab', () => {

@@ -78,7 +78,7 @@ export const EXEC_ADD_ONS = ['female_cpo', 'recon', 'medical', 'comms'];
 export const EXEC_HOURS = [3, 6, 9, 12, 15, 18, 21, 24];
 
 export function serviceName(service: string): string {
-  return service === 'executive_protection' ? 'Executive protection' : 'Secure transfer (Lite)';
+  return service === 'executive_protection' ? 'Executive protection' : 'Secure transfer';
 }
 
 export function whenLong(iso: string | null | undefined): string {

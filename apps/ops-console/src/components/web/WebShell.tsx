@@ -6,8 +6,9 @@
  *
  * Everyone with a Bravo account may sign in. GET /auth/me says who they are.
  * Owner 2026-10-23: the web app is the messenger — Chats, Contacts, Groups and
- * Account for every account. Booking (Book, Bookings, Secure Pro) lives in the
- * Bravo app only.
+ * Account for every account. Owner 2026-10-30: Secure Services (Book, My
+ * bookings, Secure Pro) is back for Pro and Enterprise clients, opened from the
+ * home site tile and kept out of this rail (components/web/SecureServices).
  */
 
 import Link from 'next/link';
@@ -135,6 +136,8 @@ export function WebShell({children}: {children: ReactNode}) {
   const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase() || 'BS';
   const nav = webNavFor(me);
   const chatPage = path === '/' || path === '' || webNavActive(webRoutes.contacts, path) || webNavActive(webRoutes.groups, path);
+  // 2026-10-30 — Secure Services pages (opened from the home site, not the rail).
+  const servicesPage = [webRoutes.book, webRoutes.bookings, webRoutes.pro].some(h => webNavActive(h, path));
 
   return (
     <Ctx.Provider value={value}>
@@ -174,7 +177,7 @@ export function WebShell({children}: {children: ReactNode}) {
         <header className="topbar">
           <div className="pv-org">
             <span className="pv-org-cap">Bravo Secure</span>
-            <span className="pv-org-name">Messenger</span>
+            <span className="pv-org-name">{servicesPage ? 'Secure Services' : 'Messenger'}</span>
           </div>
           <div style={{flex: 1}}/>
           <HomeSiteLink/>
