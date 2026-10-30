@@ -12,7 +12,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import Svg, {Defs, LinearGradient as SvgGradient, Stop, Path, Rect, Circle, Text as SvgText} from 'react-native-svg';
 import BravoMark from '@components/BravoMark';
 import type {AuthScreenProps} from '@navigation/types';
-import {useProductStore, type BravoProduct} from '@store/productStore';
+import {useProductStore, type OnboardingPath} from '@store/productStore';
 import type {ImageSourcePropType} from 'react-native';
 import {Imagery} from '@theme/imagery';
 import ImageryBackdrop from '@components/ui/ImageryBackdrop';
@@ -97,6 +97,15 @@ function IcBot({c}: {c: string}) {
     </Svg>
   );
 }
+function IcBuilding({c}: {c: string}) {
+  return (
+    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+      <Rect x={4} y={3} width={11} height={18} rx={1.6} stroke={c} strokeWidth={1.7} />
+      <Path d="M15 8h4.4a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H15" stroke={c} strokeWidth={1.7} strokeLinejoin="round" />
+      <Path d="M7.4 7h4M7.4 10.5h4M7.4 14h4M17.4 12h1M17.4 15.5h1" stroke={c} strokeWidth={1.6} strokeLinecap="round" />
+    </Svg>
+  );
+}
 function IcArrow({c, s = 18}: {c: string; s?: number}) {
   return (
     <Svg width={s} height={s} viewBox="0 0 24 24" fill="none">
@@ -120,7 +129,8 @@ type Tint = {
   bd: string;
   glow: string;
 };
-const TINTS: Record<'blue' | 'signal' | 'indigo', Tint> = {
+const TINTS: Record<'blue' | 'signal' | 'indigo' | 'amber', Tint> = {
+  amber:  {ic: '#F5C46B', tile: ['rgba(245,181,68,0.22)', 'rgba(245,181,68,0.05)'], bd: 'rgba(245,181,68,0.38)', glow: 'rgba(245,181,68,0.22)'},
   blue:   {ic: '#3BA6FF', tile: ['rgba(30,136,255,0.26)', 'rgba(22,110,209,0.07)'], bd: 'rgba(30,136,255,0.4)', glow: 'rgba(30,136,255,0.3)'},
   signal: {ic: '#8FE9B4', tile: ['rgba(74,222,128,0.2)', 'rgba(74,222,128,0.05)'], bd: 'rgba(74,222,128,0.34)', glow: 'rgba(74,222,128,0.24)'},
   indigo: {ic: '#B7BEFF', tile: ['rgba(129,140,248,0.24)', 'rgba(79,70,229,0.06)'], bd: 'rgba(129,140,248,0.38)', glow: 'rgba(129,140,248,0.26)'},
@@ -138,16 +148,20 @@ type Service = {
   shiftY?: number;
 };
 
+// Owner 2026-10-31 — four doors: Messenger, Secure Services, Workspace,
+// Bravo GeoRisk (Workspace was missing from the pre-auth welcome page).
 const SERVICES: Service[] = [
   {key: 'messenger', tint: 'blue', Icon: IcChat, title: 'Messenger', desc: 'Secure encrypted communications, team chats, calls & news.', img: Imagery.messengerHero},
   {key: 'services', tint: 'signal', Icon: IcShield, title: 'Secure Services', desc: 'Secure comms, movement, management and processes.', img: Imagery.heroBookProtection, shiftY: 130},
+  {key: 'workspace', tint: 'amber', Icon: IcBuilding, title: 'Workspace', desc: 'Your organisation: channels, attendance and incident reporting.', img: Imagery.deptWorkspaces},
   {key: 'vb', tint: 'indigo', Icon: IcBot, title: 'Bravo GeoRisk', desc: 'AI-powered personal safety monitoring & risk intelligence.', badge: 'AI', img: Imagery.vbgHero},
 ];
 
-// B-91 M0 — selector card → the standalone product it opens after signup.
-const SERVICE_PRODUCT: Record<Service['key'], BravoProduct> = {
+// B-91 M0 — selector card → the door it opens (Workspace lives in Messenger).
+const SERVICE_PRODUCT: Record<Service['key'], OnboardingPath> = {
   messenger: 'messenger',
   services: 'secure',
+  workspace: 'workspace',
   vb: 'vbg',
 };
 
@@ -217,13 +231,16 @@ function ServiceCard({service, onPress}: {service: Service; onPress: () => void}
   );
 }
 
+/** Height of the floating Sign In footer plus a gap, so the last card clears it. */
+const FOOTER_SPACE = 96;
+
 export default function OnboardingScreen({navigation}: Props) {
   const insets = useSafeAreaInsets();
 
   // B-91 M0 — the tapped card decides which product the account lands in
   // after signup (adopted by the client shell on first authed mount).
   const handlePath = (key: Service['key']) => {
-    useProductStore.getState().setPendingProduct(SERVICE_PRODUCT[key]);
+    useProductStore.getState().setOnboardingPath(SERVICE_PRODUCT[key]);
     navigation.navigate('RoleSelection');
   };
   const handleSignIn = () => navigation.navigate('Login');
@@ -267,7 +284,9 @@ export default function OnboardingScreen({navigation}: Props) {
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        // 2026-10-31 — the Sign In footer floats over the list; without this
+        // padding it sat on top of the last card (owner screenshot).
+        contentContainerStyle={[styles.scrollContent, {paddingBottom: insets.bottom + FOOTER_SPACE}]}
         showsVerticalScrollIndicator={false}>
 
         {/* Header */}

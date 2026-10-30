@@ -36,7 +36,9 @@ describe('Issue 22 — plans are scoped to the chosen product path', () => {
     // Professional for Settings -> Pricing and the paywall —
     // `src/screens/deptchat/__tests__/onboardingPlanScope.test.ts` pins that
     // half, including that neither screen imports this function.
-    expect(titles).not.toContain('Bravo Messenger Pro');
+    // Owner 2026-10-31 — Bravo Messenger Pro is listed again, as Coming Soon.
+    expect(titles).toContain('Bravo Messenger Pro');
+    expect(plansForProduct('messenger').find(p => p.tier === 'pro')?.soon).toBe(true);
     expect(titles).not.toContain('Bravo Secure Pro');
     // Issue 22's own point still holds: this path carries the MESSENGER family
     // names and offers more than one plan.
@@ -65,11 +67,12 @@ describe('Issue 22 — plans are scoped to the chosen product path', () => {
     expect(plansForProduct('messenger')[0].features).toEqual(LITE_FEATURES);
   });
 
-  it('Enterprise belongs to the Messenger/Department path only', () => {
+  it('Enterprise belongs to the Workspace door only (owner 2026-10-31)', () => {
     // Department Channels is a SEPARATE product (PDF p.5) — it must not be sold
-    // as a tier of Secure Services.
+    // as a tier of Secure Services; since 2026-10-31 it has its own door.
     expect(plansForProduct('secure').some(p => p.tier === 'enterprise')).toBe(false);
-    expect(plansForProduct('messenger').some(p => p.tier === 'enterprise')).toBe(true);
+    expect(plansForProduct('messenger').some(p => p.tier === 'enterprise')).toBe(false);
+    expect(plansForProduct('workspace').some(p => p.tier === 'enterprise')).toBe(true);
   });
 
   it('every plan keeps a tier id the signup + paywall understand', () => {
@@ -105,10 +108,11 @@ describe('Issue 22 — the screen actually consumes the scoped list', () => {
     return out.join('\n');
   }
 
-  it('reads pendingProduct and renders the derived cards', () => {
+  it('reads the tapped door (falling back to pendingProduct) and renders the derived cards', () => {
     const src = code();
     expect(src).toMatch(/useProductStore\(st => st\.pendingProduct\)/);
-    expect(src).toMatch(/cardsForProduct\(pendingProduct\)/);
+    expect(src).toMatch(/const path = onboardingPath \?\? pendingProduct;/);
+    expect(src).toMatch(/cardsForProduct\(path\)/);
     expect(src).toMatch(/\{cards\.map\(card =>/);
   });
 
@@ -143,7 +147,7 @@ describe('Issue 22 — the screen actually consumes the scoped list', () => {
     const onboarding = readFileSync(
       join(process.cwd(), 'src', 'screens', 'auth', 'OnboardingScreen.tsx'), 'utf8',
     ).replace(/\r\n/g, '\n');
-    const idx = onboarding.indexOf('setPendingProduct(SERVICE_PRODUCT[key])');
+    const idx = onboarding.indexOf('setOnboardingPath(SERVICE_PRODUCT[key])');
     expect(idx).toBeGreaterThan(-1);
     // Order matters: navigating first would render the cards before the store
     // knows which product was chosen.

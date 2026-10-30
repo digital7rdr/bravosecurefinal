@@ -1297,6 +1297,11 @@ export const useAuthStore = create<AuthState & AuthActions>()(
       // pinned to the agency shell (resolveAuthedRoute pendingProvider fallback)
       // on the NEXT account that signs in on this device.
       try { await pendingProvider.clear(); } catch { /* storage blip — fine */ }
+      // 2026-10-31 — and an unredeemed "Enter with Code" from onboarding.
+      try {
+        const {pendingJoin} = require('@store/pendingJoin') as typeof import('@store/pendingJoin');
+        await pendingJoin.clear();
+      } catch { /* storage blip — fine */ }
       cancelSessionRevalidation();
       set(s => {
         s.user = null;

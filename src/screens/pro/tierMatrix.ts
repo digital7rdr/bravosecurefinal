@@ -94,6 +94,8 @@ export const VBG_FEATURES = [
 /** A plan offered on one product path. `tier` drives signup + the paywall. */
 export interface ProductPlan {
   tier: 'lite' | 'pro' | 'enterprise';
+  /** 2026-10-31 — shown on the onboarding screen but not selectable yet. */
+  soon?: boolean;
   title: string;
   eyebrow: string;
   desc: string;
@@ -172,19 +174,40 @@ export const PRODUCT_PLANS: Record<'messenger' | 'secure' | 'vbg', ProductPlan[]
  * narrows.
  */
 const ONBOARDING_HIDDEN: Partial<Record<'messenger' | 'secure' | 'vbg', ProductPlan['tier'][]>> = {
+  // Owner 2026-10-31 — Messenger offers Bravo Messenger and Bravo Messenger
+  // Pro (Coming Soon); Enterprise moved to its own Workspace door below.
+  messenger: ['enterprise'],
+};
+
+/** Owner 2026-10-31 — listed on the onboarding screen as "Coming Soon". */
+const ONBOARDING_SOON: Partial<Record<'messenger' | 'secure' | 'vbg', ProductPlan['tier'][]>> = {
   messenger: ['pro'],
 };
 
+/**
+ * Owner 2026-10-31 — the Workspace door: "Enterprise (Company Register)". The
+ * code-entry arm (Enterprise User) is not a plan and lives on the screen.
+ */
+export const WORKSPACE_ONBOARDING_PLANS: ProductPlan[] = [
+  {
+    tier: 'enterprise', title: 'Enterprise', eyebrow: 'Company Register',
+    desc: 'Register your company and run your team: Workspace channels, attendance and incident reporting.',
+    features: ENTERPRISE_FEATURES,
+  },
+];
+
 /** Plans for the tapped product card. Falls back to Messenger when the path is
  *  unknown (deep link, cold start), which is the historical behaviour. */
-export function plansForProduct(product: 'messenger' | 'secure' | 'vbg' | null | undefined): ProductPlan[] {
+export function plansForProduct(product: 'messenger' | 'secure' | 'vbg' | 'workspace' | null | undefined): ProductPlan[] {
+  if (product === 'workspace') {return WORKSPACE_ONBOARDING_PLANS;}
   // Resolve the KEY first, not just the list. Looking the hidden tiers up under
   // the raw argument while falling back to the messenger LIST would hand an
   // unknown path the messenger ladder with Professional back in it — the exact
   // "a filter that can be bypassed by an unexpected input" shape.
   const key = product && PRODUCT_PLANS[product] ? product : 'messenger';
   const hidden = ONBOARDING_HIDDEN[key] ?? [];
-  return hidden.length === 0
-    ? PRODUCT_PLANS[key]
-    : PRODUCT_PLANS[key].filter(p => !hidden.includes(p.tier));
+  const soon = ONBOARDING_SOON[key] ?? [];
+  return PRODUCT_PLANS[key]
+    .filter(p => !hidden.includes(p.tier))
+    .map(p => (soon.includes(p.tier) ? {...p, soon: true} : p));
 }

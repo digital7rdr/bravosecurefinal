@@ -16,6 +16,7 @@ import IdentityDocumentScreen from '@screens/settings/IdentityDocumentScreen';
 import {needsIdentityDocument} from '@modules/identity/identityGate';
 import type {RootStackParamList} from './types';
 import {IncomingShareHost} from '@/modules/messenger/share/IncomingShareHost';
+import {PendingJoinHost} from '@components/PendingJoinHost';
 import CreditsIntroScreen, {CREDITS_INTRO_KEY} from '@screens/wallet/CreditsIntroScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -148,6 +149,8 @@ export default function RootNavigator() {
       {/* "Share to Bravo" — a screenshot/photo/file shared from another app
           asks "Send to…" and opens that chat's review tray (Android). */}
       {showMain && !showCredits && !creditsPending && !accessEnded && <IncomingShareHost />}
+      {/* 2026-10-31 — redeem an onboarding "Enter with Code" choice once signed in. */}
+      {showMain && !showCredits && !creditsPending && !accessEnded && <PendingJoinHost />}
 
       {(isLoading || (isAuthenticated && permsShown === null) || creditsPending || coldIntro) && !isSigningOut && (
         <View

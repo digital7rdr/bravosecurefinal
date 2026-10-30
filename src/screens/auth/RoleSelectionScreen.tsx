@@ -2,6 +2,7 @@ import React, {useMemo, useState} from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -13,13 +14,18 @@ import type {AuthScreenProps} from '@navigation/types';
 import {scaleTextStyles} from '@utils/scaling';
 import {pendingProvider} from '@store/pendingProvider';
 import {pendingTier} from '@store/pendingTier';
+import {pendingJoin, normalizeJoinCode} from '@store/pendingJoin';
 import {plansForProduct} from '@screens/pro/tierMatrix';
-import {useProductStore, type BravoProduct} from '@store/productStore';
+import {useProductStore, type OnboardingPath} from '@store/productStore';
 import {goBackOnce} from '@navigation/tapGuard';
 
 type Props = AuthScreenProps<'RoleSelection'>;
-/** M1A — three individual tiers + the Operator Partner (service-provider) funnel. */
-type Choice = 'lite' | 'pro' | 'enterprise' | 'provider';
+/**
+ * M1A tiers + the Service Provider funnel + (owner 2026-10-31) the two
+ * "Enter with Code" doors: 'agent' (a provider's roster code) and 'member'
+ * (a company's Workspace invite / referral code).
+ */
+type Choice = 'lite' | 'pro' | 'enterprise' | 'provider' | 'agent' | 'member';
 
 // ── Design tokens (Bravo handoff — obsidian / platinum-cobalt) ──────────
 // Why: ported verbatim from the Claude Design bundle (src/tokens.jsx) so
@@ -173,17 +179,44 @@ interface RoleCard {
   title: string;
   desc: string;
   features: string[] | null;
+  /** Shown, not selectable yet (owner 2026-10-31: Bravo Messenger Pro). */
+  soon?: boolean;
+  /** The card asks for a code, carried through signup (store/pendingJoin). */
+  code?: 'agent' | 'workspace';
 }
 
-// D-5 — the provider funnel keeps its own card on every path: it is how a
+// D-5 — the provider funnel keeps its own card on the Secure path: it is how a
 // security company signs up, not a plan the client is choosing between.
+// Owner 2026-10-31 — named "Service Provider".
 const PROVIDER_CARD: RoleCard = {
   id: 'provider',
   Icon: IcBuilding,
-  eyebrow: 'Operator Partner',
-  title: 'Operator Partner',
+  eyebrow: 'Security company',
+  title: 'Service Provider',
   desc: 'Protection services company onboarding a roster of officers under one master licence.',
   features: null,
+};
+
+/** Owner 2026-10-31 — Secure Services → "Agent (Enter with Code)". */
+const AGENT_CODE_CARD: RoleCard = {
+  id: 'agent',
+  Icon: IcPerson,
+  eyebrow: 'Enter with code',
+  title: 'Agent',
+  desc: 'An officer joining a service provider. Enter the invitation code your provider gave you.',
+  features: null,
+  code: 'agent',
+};
+
+/** Owner 2026-10-31 — Workspace → "Enterprise User (Enter with Code)". */
+const MEMBER_CODE_CARD: RoleCard = {
+  id: 'member',
+  Icon: IcPerson,
+  eyebrow: 'Enter with code',
+  title: 'Enterprise User',
+  desc: 'Join your company\'s Workspace. Enter the invitation or referral code your company gave you.',
+  features: null,
+  code: 'workspace',
 };
 
 /**
@@ -194,7 +227,7 @@ const PROVIDER_CARD: RoleCard = {
  * matrix, so a user entering through Secure Services was offered "Group Chats"
  * and "Voice and Video Calls (up to 10 people)" and never saw booking at all.
  */
-export function cardsForProduct(product: BravoProduct | null): RoleCard[] {
+export function cardsForProduct(product: OnboardingPath | null): RoleCard[] {
   const plans = plansForProduct(product).map<RoleCard>(plan => ({
     id: plan.tier,
     Icon: plan.tier === 'enterprise' ? IcBuilding : IcPerson,
@@ -202,7 +235,13 @@ export function cardsForProduct(product: BravoProduct | null): RoleCard[] {
     title: plan.title,
     desc: plan.desc,
     features: plan.features,
+    ...(plan.soon ? {soon: true} : {}),
   }));
+  // Owner 2026-10-31 — Workspace: Enterprise (Company Register) and
+  // Enterprise User (Enter with Code). Secure Services: Bravo Secure, Bravo
+  // Secure Pro, Service Provider, Agent (Enter with Code).
+  if (product === 'workspace') {return [...plans, MEMBER_CODE_CARD];}
+  if (product === 'secure') {return [...plans, PROVIDER_CARD, AGENT_CODE_CARD];}
   // Founder 2026-08-08 — Bravo GeoRisk (named Virtual Bodyguard until 2026-09-05) is a PERSONAL safety product. There
   // is no roster of officers to onboard under a master licence on that path, so
   // the Operator Partner funnel is not offered there AT ALL. Dropping the card
@@ -216,14 +255,39 @@ export function cardsForProduct(product: BravoProduct | null): RoleCard[] {
   return [...plans, PROVIDER_CARD];
 }
 
+/** The card selected when the screen opens: the first one that can be chosen. */
+export function defaultChoice(cards: RoleCard[]): Choice {
+  return (cards.find(c => !c.soon) ?? cards[0]).id;
+}
+
 export default function RoleSelectionScreen({navigation}: Props) {
   const insets = useSafeAreaInsets();
   // Issue 22 — the product card tapped on Onboarding decides which plans show.
+  // 2026-10-31 — via the door tapped (Workspace maps to pendingProduct
+  // 'messenger' but shows its own cards); pendingProduct for older entries.
   const pendingProduct = useProductStore(st => st.pendingProduct);
-  const cards = useMemo(() => cardsForProduct(pendingProduct), [pendingProduct]);
-  const [selected, setSelected] = useState<Choice>('lite');
+  const onboardingPath = useProductStore(st => st.onboardingPath);
+  const path = onboardingPath ?? pendingProduct;
+  const cards = useMemo(() => cardsForProduct(path), [path]);
+  const [selected, setSelected] = useState<Choice>(() => defaultChoice(cards));
+  const [code, setCode] = useState('');
+  const selectedCard = cards.find(c => c.id === selected);
+  const needsCode = !!selectedCard?.code;
 
   const handleConfirm = () => {
+    // Owner 2026-10-31 — "Enter with Code": sign up as a personal account,
+    // then the code is redeemed on the first signed-in screen (PendingJoinHost).
+    if (selectedCard?.code) {
+      const c = normalizeJoinCode(code);
+      if (!c) {return;}
+      void pendingTier.clear();
+      void pendingProvider.clear();
+      void pendingJoin.set({kind: selectedCard.code, code: c});
+      useProductStore.getState().setPendingLanding(null);
+      navigation.navigate('Register', {role: 'individual', tier: 'lite'});
+      return;
+    }
+    void pendingJoin.clear();
     if (selected === 'provider') {
       // Operator Partner = a SERVICE PROVIDER (agency). Individual-CPO
       // self-registration was removed — CPOs only exist as managed sub-accounts
@@ -244,11 +308,13 @@ export default function RoleSelectionScreen({navigation}: Props) {
     // from Home → Bravo Secure Service once inside.
     void pendingProvider.clear();
     if (selected === 'lite' || pendingProduct !== 'messenger') { void pendingTier.clear(); }
-    else { void pendingTier.set(selected); }
-    navigation.navigate('Register', {role: 'individual', tier: selected});
+    else { void pendingTier.set(selected as 'pro' | 'enterprise'); }
+    // Enterprise (Company Register) lands on the Workspace setup after signup.
+    useProductStore.getState().setPendingLanding(selected === 'enterprise' ? 'workspace' : null);
+    navigation.navigate('Register', {role: 'individual', tier: selected as 'lite' | 'pro' | 'enterprise'});
   };
 
-  const continueDisabled = false;
+  const continueDisabled = !!selectedCard?.soon || (needsCode && !normalizeJoinCode(code));
 
   return (
     <View style={styles.root}>
@@ -305,8 +371,9 @@ export default function RoleSelectionScreen({navigation}: Props) {
               <TouchableOpacity
                 key={card.id}
                 activeOpacity={0.9}
-                onPress={() => setSelected(card.id)}
-                style={styles.cardWrap}>
+                onPress={() => { if (!card.soon) {setSelected(card.id);} }}
+                accessibilityState={{disabled: !!card.soon, selected: active}}
+                style={[styles.cardWrap, card.soon && styles.cardSoon]}>
                 <LinearGradient
                   colors={
                     active
@@ -357,10 +424,15 @@ export default function RoleSelectionScreen({navigation}: Props) {
                         {card.eyebrow.toUpperCase()}
                       </Text>
                       <Text style={styles.cardTitle}>{card.title}</Text>
+                      {card.soon && (
+                        <View style={styles.soonPill}>
+                          <Text style={styles.soonText}>COMING SOON</Text>
+                        </View>
+                      )}
                       <Text style={styles.cardDesc}>{card.desc}</Text>
                     </View>
 
-                    <Radio on={active} />
+                    {!card.soon && <Radio on={active} />}
                   </View>
 
                   {/* Full feature column — always listed, never shorthand (M1A §2). */}
@@ -380,6 +452,28 @@ export default function RoleSelectionScreen({navigation}: Props) {
                     </>
                   )}
 
+                  {/* Owner 2026-10-31 — "Enter with Code": the code field. */}
+                  {card.code && active && (
+                    <>
+                      <View style={styles.divider} />
+                      <Text style={styles.tierLabel}>{card.code === 'agent' ? 'PROVIDER INVITATION CODE' : 'COMPANY INVITATION OR REFERRAL CODE'}</Text>
+                      <TextInput
+                        style={styles.codeInput}
+                        value={code}
+                        onChangeText={t => setCode(normalizeJoinCode(t))}
+                        placeholder="e.g. BRAVO-7Q2K3M"
+                        placeholderTextColor={T.textMute}
+                        autoCapitalize="characters"
+                        autoCorrect={false}
+                        maxLength={32}
+                        accessibilityLabel={card.code === 'agent' ? 'Provider invitation code' : 'Company invitation code'}
+                      />
+                      <Text style={styles.codeNote}>
+                        You will create your account next; the code is used as soon as you are signed in.
+                      </Text>
+                    </>
+                  )}
+
                   {/* Service-provider onboarding. Individual-CPO self-signup
                       was removed — officers join via the provider's roster. */}
                   {card.id === 'provider' && (
@@ -388,7 +482,7 @@ export default function RoleSelectionScreen({navigation}: Props) {
                       <Text style={styles.tierLabel}>WHAT YOU GET</Text>
                       <View style={styles.subRow}>
                         <SubCard
-                          name="Operator Partner"
+                          name="Service Provider"
                           desc="Team roster · master licence · create & manage your officers · consolidated payouts"
                           on={active}
                           onPress={() => setSelected('provider')}
@@ -426,7 +520,7 @@ export default function RoleSelectionScreen({navigation}: Props) {
             end={{x: 0.5, y: 1}}
             style={styles.btn}>
             <Text style={styles.btnText}>
-              {continueDisabled ? 'Agency coming soon' : 'Continue'}
+              {needsCode && !normalizeJoinCode(code) ? 'Enter your code' : 'Continue'}
             </Text>
             {!continueDisabled && <IcArrow c="#fff" />}
           </LinearGradient>
@@ -495,6 +589,18 @@ const styles = StyleSheet.create(scaleTextStyles({
 
   tierLabel: {color: T.textMute, fontSize: 9, fontWeight: '700', letterSpacing: 1.8, marginBottom: 9},
   subRow: {flexDirection: 'row', gap: 10},
+  cardSoon: {opacity: 0.6},
+  soonPill: {
+    alignSelf: 'flex-start', marginTop: 2, marginBottom: 6,
+    paddingHorizontal: 8, paddingVertical: 3, borderRadius: 99,
+    borderWidth: 1, borderColor: T.accent, backgroundColor: 'rgba(30,136,255,0.10)',
+  },
+  codeInput: {
+    height: 52, borderRadius: 14, paddingHorizontal: 14,
+    borderWidth: 1, borderColor: 'rgba(30,136,255,0.45)', backgroundColor: 'rgba(255,255,255,0.04)',
+    color: T.text, fontSize: 17, fontWeight: '700', letterSpacing: 2,
+  },
+  codeNote: {color: T.textMute, fontSize: 11.5, lineHeight: 16, marginTop: 8},
   subCardWrap: {flex: 1, borderRadius: 14},
   subCard: {flex: 1, borderRadius: 14, paddingTop: 13, paddingHorizontal: 14, paddingBottom: 14, backgroundColor: 'rgba(255,255,255,0.025)', borderWidth: 1, borderColor: T.hair2, overflow: 'hidden'},
   subCardActive: {borderColor: 'rgba(30,136,255,0.45)'},

@@ -34,20 +34,25 @@ function code(rel: string[]): string {
 }
 
 describe('F9 — Professional is absent from the onboarding plan list', () => {
-  it('the messenger onboarding route offers Lite and Enterprise, never Professional', () => {
-    const titles = plansForProduct('messenger').map(p => p.title);
-    expect(titles).toContain('Bravo Messenger');
-    expect(titles).toContain('Enterprise');
-    expect(titles).not.toContain('Bravo Messenger Pro');
-    expect(plansForProduct('messenger').some(p => p.tier === 'pro')).toBe(false);
+  // Owner 2026-10-31 — supersedes F9 on the Messenger door: "Bravo Messenger,
+  // Bravo Messenger Pro (Coming Soon) — currently enterprise is there - remove
+  // it". Enterprise moved to the Workspace door (Company Register).
+  it('the messenger door offers Bravo Messenger and Bravo Messenger Pro (Coming Soon), no Enterprise', () => {
+    const plans = plansForProduct('messenger');
+    expect(plans.map(p => p.title)).toEqual(['Bravo Messenger', 'Bravo Messenger Pro']);
+    expect(plans.find(p => p.tier === 'pro')?.soon).toBe(true);
+    expect(plans.find(p => p.tier === 'lite')?.soon).toBeUndefined();
+    expect(plans.some(p => p.tier === 'enterprise')).toBe(false);
   });
 
-  it('an unknown / cold-start path cannot smuggle it back in', () => {
-    // The fallback resolves to the messenger ladder, so the hidden-tier lookup
-    // has to follow the same fallback. Looking it up under the raw argument
-    // while falling back to the messenger LIST would return Professional here.
+  it('the workspace door is Enterprise (Company Register)', () => {
+    const plans = plansForProduct('workspace');
+    expect(plans.map(p => [p.tier, p.title, p.eyebrow])).toEqual([['enterprise', 'Enterprise', 'Company Register']]);
+  });
+
+  it('an unknown / cold-start path gets the messenger door, Professional still not selectable', () => {
     for (const p of [null, undefined, 'nonsense' as unknown as 'messenger']) {
-      expect(plansForProduct(p).some(x => x.tier === 'pro')).toBe(false);
+      expect(plansForProduct(p).filter(x => x.tier === 'pro').every(x => x.soon === true)).toBe(true);
     }
     expect(plansForProduct(null)).toEqual(plansForProduct('messenger'));
     expect(plansForProduct(undefined)).toEqual(plansForProduct('messenger'));

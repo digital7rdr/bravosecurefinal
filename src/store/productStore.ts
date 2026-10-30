@@ -17,6 +17,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  */
 export type BravoProduct = 'messenger' | 'secure' | 'vbg';
 
+/**
+ * 2026-10-31 (owner) — the four doors on the pre-auth welcome page: Messenger,
+ * Secure Services, Workspace and Bravo GeoRisk. Workspace is not a product of
+ * its own (it lives inside Messenger), so it maps to pendingProduct
+ * 'messenger' and only decides which plan cards the next screen shows.
+ */
+export type OnboardingPath = BravoProduct | 'workspace';
+
 export const PRODUCT_LABELS: Record<BravoProduct, string> = {
   messenger: 'Messenger',
   secure: 'Secure Services',
@@ -45,6 +53,17 @@ interface ProductState {
   returnProduct: BravoProduct | null;
   setActiveProduct: (p: BravoProduct, returnTo?: BravoProduct | null) => void;
   setPendingProduct: (p: BravoProduct | null) => void;
+  /** Which welcome-page door was tapped (ephemeral; drives the plan cards). */
+  onboardingPath: OnboardingPath | null;
+  /** Welcome-page door → pendingProduct + the plan cards to show. */
+  setOnboardingPath: (p: OnboardingPath) => void;
+  /**
+   * 2026-10-31 — a screen to open on the FIRST mount after signup (persisted
+   * across OTP and restarts, like pendingProduct): 'workspace' for an
+   * Enterprise company registration, so it lands on the Workspace setup.
+   */
+  pendingLanding: 'workspace' | null;
+  setPendingLanding: (l: 'workspace' | null) => void;
   /** Re-open the post-login "where would you like to start?" gate. */
   requestGate: () => void;
   /** Close a re-opened gate and return to the current product (2026-10-25). */
@@ -85,6 +104,10 @@ export const useProductStore = create<ProductState>()(
       setActiveProduct: (p, returnTo) =>
         set({activeProduct: p, pendingProduct: null, gateVisible: false, returnProduct: returnTo ?? null}),
       setPendingProduct: p => set({pendingProduct: p}),
+      onboardingPath: null,
+      setOnboardingPath: p => set({onboardingPath: p, pendingProduct: p === 'workspace' ? 'messenger' : p, pendingLanding: null}),
+      pendingLanding: null,
+      setPendingLanding: l => set({pendingLanding: l}),
 
       requestGate: () => set({gateVisible: true, returnProduct: null}),
       closeGate: () => set({gateVisible: false}),
@@ -102,18 +125,20 @@ export const useProductStore = create<ProductState>()(
       })),
 
       adoptPendingProduct: () => {
-        const {activeProduct, pendingProduct} = get();
+        const {activeProduct, pendingProduct, pendingLanding} = get();
         if (!activeProduct && pendingProduct) {
-          set({activeProduct: pendingProduct, pendingProduct: null});
+          set({activeProduct: pendingProduct, pendingProduct: null,
+            ...(pendingLanding ? {landing: pendingLanding, pendingLanding: null} : {})});
         }
       },
 
-      reset: () => set({activeProduct: null, pendingProduct: null, gateVisible: false, returnProduct: null, landing: null, landingTab: null}),
+      reset: () => set({activeProduct: null, pendingProduct: null, gateVisible: false, returnProduct: null, landing: null, landingTab: null,
+        onboardingPath: null, pendingLanding: null}),
     }),
     {
       name: 'bravo:product',
       storage: createJSONStorage(() => AsyncStorage),
-      partialize: s => ({activeProduct: s.activeProduct, pendingProduct: s.pendingProduct}),
+      partialize: s => ({activeProduct: s.activeProduct, pendingProduct: s.pendingProduct, pendingLanding: s.pendingLanding}),
     },
   ),
 );

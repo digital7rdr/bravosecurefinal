@@ -12,8 +12,8 @@
  * scan in `screens/booking/__tests__/productScopedPlans.test.ts` can only see
  * that the guard is written; only this can see what the screen would render.
  */
-import {cardsForProduct} from '@screens/auth/RoleSelectionScreen';
-import type {BravoProduct} from '@store/productStore';
+import {cardsForProduct, defaultChoice} from '@screens/auth/RoleSelectionScreen';
+import type {BravoProduct, OnboardingPath} from '@store/productStore';
 
 const ids = (p: BravoProduct | null) => cardsForProduct(p).map(c => c.id);
 
@@ -41,11 +41,26 @@ describe('Operator Partner is not offered under Virtual Bodyguard', () => {
     expect(ids('messenger').includes('provider')).toBe(false);
   });
 
-  it('the provider card is LAST wherever it appears', () => {
-    for (const p of ['secure', null] as Array<BravoProduct | null>) {
-      const list = ids(p);
-      expect(list[list.length - 1]).toBe('provider');
-    }
+  it('the provider card follows the plans wherever it appears (Agent code door last on Secure)', () => {
+    expect(ids(null)[ids(null).length - 1]).toBe('provider');
+    // Owner 2026-10-31 — Bravo Secure, Bravo Secure Pro, Service Provider, Agent (Enter with Code).
+    expect(ids('secure')).toEqual(['lite', 'pro', 'provider', 'agent']);
+  });
+
+  it('owner 2026-10-31 — the four doors offer exactly the agreed options', () => {
+    const titles = (p: OnboardingPath | null) => cardsForProduct(p).map(c => c.title);
+    expect(titles('messenger')).toEqual(['Bravo Messenger', 'Bravo Messenger Pro']);
+    expect(cardsForProduct('messenger').find(c => c.id === 'pro')?.soon).toBe(true);
+    expect(titles('secure')).toEqual(['Bravo Secure', 'Bravo Secure Pro', 'Service Provider', 'Agent']);
+    expect(titles('workspace')).toEqual(['Enterprise', 'Enterprise User']);
+    expect(titles('vbg')).toEqual(['Bravo GeoRisk']);
+    expect(cardsForProduct('secure').find(c => c.id === 'agent')?.code).toBe('agent');
+    expect(cardsForProduct('workspace').find(c => c.id === 'member')?.code).toBe('workspace');
+  });
+
+  it('the screen opens on the first choosable card', () => {
+    expect(defaultChoice(cardsForProduct('messenger'))).toBe('lite');
+    expect(defaultChoice(cardsForProduct('workspace'))).toBe('enterprise');
   });
 
   it('no path emits a duplicate card id', () => {
@@ -55,11 +70,11 @@ describe('Operator Partner is not offered under Virtual Bodyguard', () => {
     }
   });
 
-  it("'lite' — the screen's default selection — exists on every path", () => {
-    // `useState<Choice>('lite')` must always name a card that renders, or the
-    // screen opens with nothing selected and Continue acts on a phantom.
-    for (const p of ['messenger', 'secure', 'vbg', null] as Array<BravoProduct | null>) {
-      expect(ids(p)).toContain('lite');
+  it("the screen's default selection always names a card that renders and can be chosen", () => {
+    for (const p of ['messenger', 'secure', 'vbg', 'workspace', null] as Array<OnboardingPath | null>) {
+      const cards = cardsForProduct(p);
+      const d = defaultChoice(cards);
+      expect(cards.find(c => c.id === d)?.soon).not.toBe(true);
     }
   });
 });
