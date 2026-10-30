@@ -45,7 +45,7 @@ export const PROVIDER_NAV: PvNavGroup[] = [
     {href: pvRoutes.attendance, label: 'Attendance', icon: 'clock', modules: ['dept']},
     {href: pvRoutes.incidents, label: 'Incidents', icon: 'alert', modules: ['dept']},
     {href: pvRoutes.approvals, label: 'Join requests', icon: 'inbox', modules: ['dept']},
-    {href: pvRoutes.departments, label: 'Channels', icon: 'tree', modules: ['dept']},
+    {href: pvRoutes.departments, label: 'Workspace', icon: 'tree', modules: ['dept']},
   ]},
   {label: 'Finance', items: [
     {href: pvRoutes.earnings, label: 'Earnings', icon: 'chart', modules: ['earn']},
