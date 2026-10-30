@@ -191,7 +191,7 @@ interface RoleCard {
 const PROVIDER_CARD: RoleCard = {
   id: 'provider',
   Icon: IcBuilding,
-  eyebrow: 'Security company',
+  eyebrow: 'Protection company',
   title: 'Service Provider',
   desc: 'Protection services company onboarding a roster of officers under one master licence.',
   features: null,
