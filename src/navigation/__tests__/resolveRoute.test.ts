@@ -16,6 +16,15 @@ describe('resolveAuthedRoute — §35A root switch (pure)', () => {
     expect(resolveAuthedRoute({pendingProvider: true})).toBe('agency');
   });
 
+  // 2026-10-31 (owner) — an invited workspace manager landed on the agency
+  // "Manager Dashboard": a provider-signup flag left on the phone outranked
+  // the server. Workspace people are never a half-made agency.
+  it('a stale phone provider flag never sends a workspace member or manager to the agency shell', () => {
+    expect(resolveAuthedRoute({accountKind: 'individual', pendingProvider: true, hasWorkspaceAffiliation: true})).toBe('client');
+    expect(resolveAuthedRoute({accountKind: 'individual', pendingProvider: true, isOrgManager: true})).toBe('client');
+    expect(resolveAuthedRoute({accountKind: 'individual', pendingProvider: true, isOrgManager: false, hasWorkspaceAffiliation: false})).toBe('agency');
+  });
+
   describe('CPO', () => {
     it('first login (must set password) → activation', () => {
       expect(resolveAuthedRoute({accountKind: 'cpo', mustSetPassword: true, membershipStatus: 'active'}))

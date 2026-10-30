@@ -92,9 +92,17 @@ export function resolveAuthedRoute(sig: RouteSignals): AuthedRoute {
   if (
     accountKind === 'agency' ||
     legacyRole === 'agent' ||
-    legacyRole === 'service_provider' ||
-    pendingProvider === true
+    legacyRole === 'service_provider'
   ) {
+    return 'agency';
+  }
+  // 2026-10-31 (owner: an invited workspace manager "gets a dashboard which is
+  // the manager screen for secure services") — pendingProvider is a flag kept
+  // ON THE PHONE from a "Service Provider" signup that never finished. It must
+  // never outrank what the server says about the account: someone who belongs
+  // to a workspace (owner, Admin, Manager, member) is not a half-made agency,
+  // whatever an earlier signup on this phone left behind.
+  if (pendingProvider === true && !hasWorkspaceAffiliation && !isOrgManager) {
     return 'agency';
   }
 

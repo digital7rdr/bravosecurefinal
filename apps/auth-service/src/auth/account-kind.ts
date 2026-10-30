@@ -528,9 +528,12 @@ export async function resolveManagerContext(
   userId: string,
 ): Promise<ManagerContext> {
   const row = await db.qOne<{org_id: string; org_name: string | null; permitted_modules: string[] | null}>(
-    `SELECT om.org_user_id AS org_id, org.display_name AS org_name, om.permitted_modules
+    // 2026-10-31 — a workspace is named by its company name ("Bravo Advisory
+    // Group Ltd"), not its founder's display name; same rule as ACCOUNT_KIND_SQL.
+    `SELECT om.org_user_id AS org_id, COALESCE(w.name, org.display_name) AS org_name, om.permitted_modules
        FROM public.org_members om
        JOIN public.users org ON org.id = om.org_user_id
+       LEFT JOIN public.org_workspaces w ON w.owner_user_id = om.org_user_id
       WHERE om.member_user_id = $1 AND om.member_role = 'manager'
         AND om.status = 'active' AND om.org_user_id <> $1
       -- vs2 item 4: same order as OrgManagerGuard's candidate list. This is the
