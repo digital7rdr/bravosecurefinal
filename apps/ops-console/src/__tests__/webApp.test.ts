@@ -14,7 +14,7 @@ import {
 import {canBook, secureServicesAccess, secureServicesLocked, type WebMe} from '../lib/web/access';
 import {toE164} from '../lib/web/phone';
 import {canCancel, needsPayment, stageOf, webErrorText, STAGE} from '../lib/web/labels';
-import {WEB_NAV, webNavActive} from '../lib/web/nav';
+import {WEB_NAV, WEB_SERVICES_NAV, webNavActive, webRailFor, webSectionFor} from '../lib/web/nav';
 
 const SRC = path.join(__dirname, '..');
 const read = (p: string) => fs.readFileSync(path.join(SRC, p), 'utf8');
@@ -151,14 +151,32 @@ describe('Secure Services on the web (owner 2026-10-30)', () => {
     expect(stripComments(read('app/web/(app)/book/page.tsx'))).not.toMatch(/\bLite\b/);
   });
 
-  it('the gate shows the upgrade with the home site words, and tabs between the pages', () => {
+  it('the gate shows the upgrade with the home site words', () => {
     const gate = stripComments(read('components/web/SecureServices.tsx'));
     expect(gate).toMatch(/secureServicesAccess\(me, startsService\)/);
-    expect(gate).toMatch(/access === 'upgrade' \? <PvPage title=\{title\}><SecureServicesUpgrade\/><\/PvPage> : children/);
+    expect(gate).toMatch(/access === 'upgrade' \? <PvPage title=\{title\}><SecureServicesUpgrade\/><\/PvPage> : <>\{children\}<\/>/);
     expect(gate).toMatch(/Bravo Messenger Pro and Enterprise\. Upgrade in the Bravo Secure app: Profile → Messenger Plans\./);
-    expect(gate).toMatch(/webRoutes\.book, label: 'Book'/);
-    expect(gate).toMatch(/webRoutes\.bookings, label: 'My bookings'/);
-    expect(gate).toMatch(/webRoutes\.pro, label: 'Secure Pro'/);
+  });
+
+  // Owner 2026-10-30: "the menu links at the left all shows the menu items of the messenger".
+  it('Secure Services has its own rail; Account keeps the section you came from', () => {
+    expect(WEB_SERVICES_NAV.map(i => [i.label, i.href])).toEqual([
+      ['Book', '/book'], ['My bookings', '/bookings'], ['Secure Pro', '/pro'], ['Account', '/account'],
+    ]);
+    expect(webSectionFor('/book', 'messenger')).toBe('services');
+    expect(webSectionFor('/bookings/abc', 'messenger')).toBe('services');
+    expect(webSectionFor('/pro', 'messenger')).toBe('services');
+    expect(webSectionFor('/', 'services')).toBe('messenger');
+    expect(webSectionFor('/groups', 'services')).toBe('messenger');
+    expect(webSectionFor('/account', 'services')).toBe('services');
+    expect(webSectionFor('/account', 'messenger')).toBe('messenger');
+    expect(webRailFor(me(), 'services')).toBe(WEB_SERVICES_NAV);
+    expect(webRailFor(me(), 'messenger')).toBe(WEB_NAV);
+    const rail = webRailFor(me(), 'services').map(i => i.label);
+    expect(rail).not.toEqual(expect.arrayContaining(['Chats']));
+    const shell = stripComments(read('components/web/WebShell.tsx'));
+    expect(shell).toMatch(/const nav = webRailFor\(me, section\);/);
+    expect(shell).toMatch(/\{servicesPage \? 'Secure Services' : 'Messenger'\}/);
   });
 
   it('the hub Secure Services tile still opens /book', () => {
@@ -180,7 +198,7 @@ describe('the web app is the messenger (owner 2026-10-23)', () => {
     expect(shell).not.toMatch(/clientsOnly|ClientsOnly|useBalance|Credits/);
   });
 
-  it('Secure Services is not in the messenger rail (opened from the home site tile)', () => {
+  it('Secure Services is not in the messenger rail (it has its own)', () => {
     expect(WEB_NAV.some(i => /^\/(book|bookings|pro)$/.test(i.href))).toBe(false);
   });
 

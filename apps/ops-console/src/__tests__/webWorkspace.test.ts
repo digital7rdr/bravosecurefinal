@@ -34,7 +34,8 @@ describe('who sees the Workspace page', () => {
     expect(webNavFor(me([{org_id: 'd', name: 'D', role: 'employee'}]))).toEqual(WEB_NAV);
     expect(webNavFor(me([{org_id: 'a', name: 'A', role: 'owner'}])).map(i => i.label))
       .toEqual(['Chats', 'Contacts', 'Groups', 'Workspace', 'Account']);
-    expect(read('components/web/WebShell.tsx')).toMatch(/const nav = webNavFor\(me\);/);
+    expect(read('components/web/WebShell.tsx')).toMatch(/const nav = webRailFor\(me, section\);/);
+    expect(read('lib/web/nav.ts')).toMatch(/section === 'services' \? WEB_SERVICES_NAV : webNavFor\(me\)/);
   });
 });
 

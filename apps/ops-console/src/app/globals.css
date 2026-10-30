@@ -1760,9 +1760,6 @@ textarea.pv-input { resize: vertical; }
 .web-counters { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; align-items: end; }
 .web-counter .web-stepper { display: inline-flex; align-items: center; gap: 12px; }
 .web-total { font-size: 18px; }
-/* 2026-10-30 — Secure Services tabs (Book · My bookings · Secure Pro), above the page. */
-.web-ss-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-.web-ss-tabs .pv-tab { text-decoration: none; }
 .web-booking-row { text-decoration: none; color: inherit; gap: 12px; }
 .web-booking-row:hover { background: var(--surf-2); }
 .web-stage { font-weight: 600; }

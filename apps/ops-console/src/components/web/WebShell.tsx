@@ -8,7 +8,8 @@
  * Owner 2026-10-23: the web app is the messenger — Chats, Contacts, Groups and
  * Account for every account. Owner 2026-10-30: Secure Services (Book, My
  * bookings, Secure Pro) is back for Pro and Enterprise clients, opened from the
- * home site tile and kept out of this rail (components/web/SecureServices).
+ * home site tile, with its OWN rail (Book, My bookings, Secure Pro, Account) —
+ * the messenger items are not shown there (lib/web/nav WEB_SERVICES_NAV).
  */
 
 import Link from 'next/link';
@@ -19,7 +20,7 @@ import {
   webAuth, readWebCsrf, useWebMe, canBook, WEB_EXPIRES_KEY, WEB_IDLE_KEY, type WebMe,
 } from '@/lib/web/api';
 import {HomeSiteLink} from '@/components/HomeSiteLink';
-import {webNavFor, webNavActive, type WebNavIcon} from '@/lib/web/nav';
+import {webRailFor, webNavActive, webSectionFor, type WebNavIcon, type WebSection} from '@/lib/web/nav';
 import {webRoutes} from '@/lib/web/routes';
 import {useMessenger} from '@/components/messenger/MessengerProvider';
 import {IDLE_SIGN_OUT_MS} from '@/lib/idleSignOut';
@@ -29,6 +30,7 @@ const REFRESH_LEAD_SEC = 60;
 // 2026-10-25 — off unless NEXT_PUBLIC_IDLE_SIGN_OUT_MINUTES is set (lib/idleSignOut).
 const IDLE_TIMEOUT_MS = IDLE_SIGN_OUT_MS;
 const RAIL_KEY = 'bravo_web_rail_collapsed';
+const SECTION_KEY = 'bravo_web_section';
 
 interface WebCtx {
   me: WebMe;
@@ -53,6 +55,9 @@ const ICONS: Record<WebNavIcon, ReactNode> = {
   contacts: <svg {...ic}><rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7.5 17c.8-1.8 2.5-3 4.5-3s3.7 1.2 4.5 3"/></svg>,
   group: <svg {...ic}><circle cx="9" cy="8" r="3.2"/><path d="M3 20c.7-3.2 3.1-5 6-5s5.3 1.8 6 5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.2c2.4.2 4 1.8 4.5 4.8"/></svg>,
   user: <svg {...ic}><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>,
+  plus: <svg {...ic}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v6M9 11h6"/></svg>,
+  list: <svg {...ic}><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>,
+  star: <svg {...ic}><path d="m12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.9z"/></svg>,
   workspace: <svg {...ic}><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>,
 };
 
@@ -70,6 +75,18 @@ export function WebShell({children}: {children: ReactNode}) {
   const {mutate} = useSWRConfig();
   const [hasSession, setHasSession] = useState<boolean | null>(null);
   const [collapsed, setCollapsed] = useState(false);
+  // 2026-10-30 — Messenger or Secure Services: each has its own rail. Account
+  // is shared and keeps the section you came from (remembered per tab).
+  const [section, setSection] = useState<WebSection>(() => webSectionFor(path, 'messenger'));
+  useEffect(() => {
+    setSection(prev => {
+      let from = prev;
+      try { if (window.sessionStorage.getItem(SECTION_KEY) === 'services') from = 'services'; } catch { /* ignore */ }
+      const next = webSectionFor(path, from);
+      try { window.sessionStorage.setItem(SECTION_KEY, next); } catch { /* ignore */ }
+      return next;
+    });
+  }, [path]);
 
   useEffect(() => {
     const ok = !!readWebCsrf();
@@ -134,10 +151,9 @@ export function WebShell({children}: {children: ReactNode}) {
 
   const name = me.user.display_name ?? me.user.phone_e164 ?? 'Signed in';
   const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase() || 'BS';
-  const nav = webNavFor(me);
+  const nav = webRailFor(me, section);
   const chatPage = path === '/' || path === '' || webNavActive(webRoutes.contacts, path) || webNavActive(webRoutes.groups, path);
-  // 2026-10-30 — Secure Services pages (opened from the home site, not the rail).
-  const servicesPage = [webRoutes.book, webRoutes.bookings, webRoutes.pro].some(h => webNavActive(h, path));
+  const servicesPage = section === 'services';
 
   return (
     <Ctx.Provider value={value}>

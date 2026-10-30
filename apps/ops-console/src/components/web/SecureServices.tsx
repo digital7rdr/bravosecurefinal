@@ -7,44 +7,23 @@
  *
  * Book, My bookings and Secure Pro are back for Bravo Messenger Pro and
  * Enterprise clients. They are opened from the home site's Secure Services
- * tile and are NOT in the messenger rail (Chats, Contacts, Groups, Account);
- * these tabs move between them.
+ * tile and have their own rail (Book, My bookings, Secure Pro, Account — see
+ * lib/web/nav WEB_SERVICES_NAV); the messenger items are not shown there.
  *
  * On the free plan, the pages that START something (Book, Secure Pro) show
  * the upgrade instead; My bookings stays open so earlier bookings can still be
  * followed and paid. The server is the gate either way (403 tier_insufficient).
  */
 import Link from 'next/link';
-import {usePathname} from 'next/navigation';
 import type {ReactNode} from 'react';
 import {useWeb} from '@/components/web/WebShell';
 import {PvPage} from '@/components/provider/ui';
 import {secureServicesAccess} from '@/lib/web/access';
-import {webNavActive} from '@/lib/web/nav';
 import {webRoutes} from '@/lib/web/routes';
 
 /** Same words as the home site's Upgrade tile. */
 export const SECURE_SERVICES_UPGRADE_TEXT =
   'Secure Services is included with Bravo Messenger Pro and Enterprise. Upgrade in the Bravo Secure app: Profile → Messenger Plans.';
-
-const TABS: Array<{href: string; label: string}> = [
-  {href: webRoutes.book, label: 'Book'},
-  {href: webRoutes.bookings, label: 'My bookings'},
-  {href: webRoutes.pro, label: 'Secure Pro'},
-];
-
-export function SecureServicesTabs() {
-  const path = usePathname() ?? '';
-  // The internal /web prefix never shows in the browser, but be safe in dev.
-  const here = path.replace(/^\/web(?=\/|$)/, '') || '/';
-  return (
-    <nav className="web-ss-tabs" aria-label="Secure Services">
-      {TABS.map(t => (
-        <Link key={t.href} href={t.href} className={`pv-tab${webNavActive(t.href, here) ? ' on' : ''}`}>{t.label}</Link>
-      ))}
-    </nav>
-  );
-}
 
 /** A Secure Services page opened by an officer, a provider or an agency manager. */
 export function ClientsOnly() {
@@ -75,8 +54,7 @@ export function SecureServicesUpgrade() {
 }
 
 /**
- * Wraps a Secure Services page: the tabs, then the page, or the reason it is
- * not available. `startsService` — the page starts something new.
+ * Wraps a Secure Services page: the page, or the reason it is not available. `startsService` — the page starts something new.
  */
 export function SecureServicesGate({title, startsService, children}: {
   title: string; startsService: boolean; children: ReactNode;
@@ -84,10 +62,5 @@ export function SecureServicesGate({title, startsService, children}: {
   const {me} = useWeb();
   const access = secureServicesAccess(me, startsService);
   if (access === 'not_client') return <PvPage title={title}><ClientsOnly/></PvPage>;
-  return (
-    <>
-      <SecureServicesTabs/>
-      {access === 'upgrade' ? <PvPage title={title}><SecureServicesUpgrade/></PvPage> : children}
-    </>
-  );
+  return access === 'upgrade' ? <PvPage title={title}><SecureServicesUpgrade/></PvPage> : <>{children}</>;
 }
