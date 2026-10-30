@@ -78,6 +78,9 @@ jest.mock('@notifee/react-native', () => ({
 }));
 
 const mockNav = jest.fn();
+// 2026-10-31 — taps wait for the signed-in shell (deepLinkReady); this suite
+// models navigationRef only, so readiness follows the mocked ref.
+jest.mock('@navigation/deepLinkReady', () => require('./helpers/legacyShellReady'));
 jest.mock('@navigation/navigationRef', () => ({
   navigationRef: {isReady: () => true, navigate: (n: string, p?: unknown) => mockNav(n, p)},
 }));

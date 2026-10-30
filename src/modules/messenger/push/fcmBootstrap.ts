@@ -1294,17 +1294,12 @@ function sendCallHangup(
 async function handleMissedCallTap(data: Record<string, string | undefined>): Promise<void> {
   try {
     const {navigationRef} = require('@navigation/navigationRef') as typeof import('@navigation/navigationRef');
-    const navReady = navigationRef as unknown as {isReady?: () => boolean};
-    const t0 = Date.now();
-    while (Date.now() - t0 < NAV_READY_WAIT_MS) {
-      if (navReady?.isReady?.()) {break;}
-      await new Promise(r => setTimeout(r, 100));
-    }
-    // B-230 — mirror the Telecom-Answer path (handleSystemUiAnswer): if the nav
-    // ref never became ready, DON'T navigate a dead ref (silent no-op that drops
-    // the tap intent). Bail; the app's own resume logic lands the user sensibly.
-    if (navReady?.isReady && !navReady.isReady()) {
-      console.warn('[notifee] nav not ready after 20s — missed-call tap abandoned');
+    // B-230 — never navigate a ref that cannot take it (silent no-op that drops
+    // the tap intent). 2026-10-31 — wait for the signed-in SHELL, not just the
+    // container (deepLinkReady.ts): the cold-start Auth placeholder is "ready".
+    const {waitForShellReady} = require('@navigation/deepLinkReady') as typeof import('@navigation/deepLinkReady');
+    if (!(await waitForShellReady({lane: 'messenger', timeoutMs: NAV_READY_WAIT_MS}))) {
+      console.warn('[notifee] shell not ready after 20s — missed-call tap abandoned');
       return;
     }
     const fromUserId = data.fromUserId;
@@ -1797,6 +1792,17 @@ const CLIENT_STAGE_SCREEN: Record<string, string> = {
   'payment-failed':       'BookingHome',
 };
 
+/**
+ * 2026-10-31 — which client product a server-wake tap belongs to, for when the
+ * product chooser is up at tap time (deepLinkReady). Workspace kinds
+ * (attendance, incidents, enterprise join) live under Messenger; the rest are
+ * Secure Services / agency / CPO screens.
+ */
+function SECURE_KINDS_LANE(kind: string): 'messenger' | 'secure' {
+  return kind === 'attendance-ping' || kind.startsWith('incident-') || kind.startsWith('enterprise.')
+    ? 'messenger' : 'secure';
+}
+
 function routeServerWakeTap(kind: string, data: Record<string, string | undefined>): boolean {
   const rawId = data.bookingId;
   const bid = typeof rawId === 'string' && /^[0-9a-fA-F][0-9a-fA-F-]{7,63}$/.test(rawId) ? rawId : undefined;
@@ -1907,17 +1913,16 @@ function routeServerWakeTap(kind: string, data: Record<string, string | undefine
       ? rawInc : undefined;
     void (async () => {
       try {
-        const {navigationRef, mountedTreeHasRoute} =
+        const {navigationRef} =
           require('@navigation/navigationRef') as typeof import('@navigation/navigationRef');
         const nav = navigationRef as unknown as {isReady?: () => boolean};
         // Wait for the DESTINATION, not just for the container. `isReady()`
         // flips true while the Auth tree is still mounted on a cold start, so
         // a killed-app tap used to resolve against a shell that had not
         // rendered yet and die silently.
-        for (let i = 0; i < 60; i++) {
-          if ((!nav.isReady || nav.isReady()) && mountedTreeHasRoute('Main')) {break;}
-          await new Promise(r => setTimeout(r, 250));
-        }
+        // 2026-10-31 — the same wait, shared by every lane (deepLinkReady.ts).
+        const {waitForShellReady} = require('@navigation/deepLinkReady') as typeof import('@navigation/deepLinkReady');
+        if (!(await waitForShellReady({lane: 'messenger', timeoutMs: 15_000}))) {return;}
         if (nav.isReady && !nav.isReady()) {return;}
         // Asymmetric ON PURPOSE. `IncidentDetail` takes `{incidentId}` and
         // fetches, so the manager lands on the exact report. `MyIncidentDetail`
@@ -1986,11 +1991,10 @@ function routeServerWakeTap(kind: string, data: Record<string, string | undefine
       try {
         const {navigationRef} = require('@navigation/navigationRef') as typeof import('@navigation/navigationRef');
         const nav = navigationRef as unknown as {isReady?: () => boolean; navigate: (n: string, p?: unknown) => void};
-        for (let i = 0; i < 40; i++) {
-          if (!nav.isReady || nav.isReady()) {break;}
-          await new Promise(r => setTimeout(r, 250));
-        }
-        if (nav.isReady && !nav.isReady()) {return;} // gave up (~10s) — resume gates cover it
+        // 2026-10-31 — wait for the signed-in SHELL (deepLinkReady.ts), not just
+        // the container; the Approvals inbox lives in the Messenger workspace.
+        const {waitForShellReady} = require('@navigation/deepLinkReady') as typeof import('@navigation/deepLinkReady');
+        if (!(await waitForShellReady({lane: 'messenger', timeoutMs: 20_000}))) {return;}
         // vs2 edge A2 — same contract as the incident lane above: a two-org
         // admin tapping org-B's "join request waiting" used to read org-A's
         // (usually empty) inbox. Only the ADMIN-side kinds carry an orgId, so
@@ -2159,15 +2163,12 @@ function routeServerWakeTap(kind: string, data: Record<string, string | undefine
     try {
       const {navigationRef} = require('@navigation/navigationRef') as typeof import('@navigation/navigationRef');
       const nav = navigationRef as unknown as {isReady?: () => boolean; navigate: (n: string, p?: unknown) => void};
-      // Wait up to ~10s for the container to mount — a killed-app cold start (the
-      // exact "close the app then tap the notification" case) can take several
-      // seconds to boot the NavigationContainer on a large bundle; a 3s cap dropped
-      // the deep-link on slow devices.
-      for (let i = 0; i < 40; i++) {
-        if (!nav.isReady || nav.isReady()) {break;}
-        await new Promise(r => setTimeout(r, 250));
-      }
-      if (nav.isReady && !nav.isReady()) {return;} // gave up (~10s) — resume gates cover it
+      // A killed-app cold start (the exact "close the app then tap the
+      // notification" case) can take several seconds. 2026-10-31 — wait for
+      // the signed-in SHELL, not just the container (deepLinkReady.ts): a
+      // navigate issued while the cold-start Auth placeholder is up is dropped.
+      const {waitForShellReady} = require('@navigation/deepLinkReady') as typeof import('@navigation/deepLinkReady');
+      if (!(await waitForShellReady({lane: SECURE_KINDS_LANE(kind), timeoutMs: 20_000}))) {return;}
       for (const c of candidates) {
         try { nav.navigate(c.name, c.params); } catch { /* shell without this route */ }
       }
@@ -2324,19 +2325,14 @@ function installNotifeeHandlers(): void {
         const {navigationRef} = require('@navigation/navigationRef') as typeof import('@navigation/navigationRef');
         // N-09 — wait for the navigator on a cold-launch tap (the call path
         // already does this); otherwise the deep-link is a silent no-op.
-        const navReady = navigationRef as unknown as {isReady?: () => boolean};
-        const t0 = Date.now();
-        // B-227 — a killed-state cold launch can take 10–25 s (P1-BR-2); wait
-        // 20 s like the call path, not 8 s, and re-check readiness AFTER the
-        // loop. Navigating a non-ready ref is a silent no-op that DROPS the
-        // Chat deep-link, so bail instead — the foreground mount pull still
-        // surfaces the message.
-        while (Date.now() - t0 < NAV_READY_WAIT_MS) {
-          if (navReady?.isReady?.()) {break;}
-          await new Promise(r => setTimeout(r, 100));
-        }
-        if (navReady?.isReady && !navReady.isReady()) {
-          console.warn('[notifee] nav not ready after 20s — msg deep-link deferred to mount pull');
+        // B-227 — a killed-state cold launch can take 10–25 s (P1-BR-2).
+        // 2026-10-31 (owner: a tapped notification "does not open to the
+        // notification's location") — wait for the signed-in SHELL, not just
+        // the container: isReady() is true while the cold-start Auth
+        // placeholder is still mounted, and a navigate issued then is DROPPED.
+        const {waitForShellReady} = require('@navigation/deepLinkReady') as typeof import('@navigation/deepLinkReady');
+        if (!(await waitForShellReady({lane: 'messenger', timeoutMs: NAV_READY_WAIT_MS}))) {
+          console.warn('[notifee] shell not ready after 20s — msg deep-link deferred to mount pull');
           return;
         }
         // Notif-latency C1 (docs/audits/NOTIF_TAP_TO_MESSAGE_LATENCY_2026-08-01.md)
