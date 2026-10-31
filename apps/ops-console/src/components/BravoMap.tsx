@@ -549,6 +549,14 @@ export function BravoMap({
     mapRef.current.flyTo({center: [centerLng, centerLat], zoom, speed: 1.2});
   }, [centerLng, centerLat, zoom, fallback]);
 
+  // 2026-10-31 (owner: "maps dont appear pick up and drop off") — a caller
+  // that sizes the PARENT and passes neither className nor style (the web
+  // booking pick-up / drop-off picker, the booking and provider live maps)
+  // got a wrapper with no height: the map canvas is absolutely positioned
+  // inside it, so it drew at 0 px and only the style chip showed. With no
+  // sizing of its own the wrapper fills its parent.
+  const fillParent: React.CSSProperties = className || style ? {} : {width: '100%', height: '100%'};
+
   if (fallback) {
     return (
       <div
@@ -556,6 +564,7 @@ export function BravoMap({
         style={{
           position: 'relative',
           background: 'var(--bg-depth)',
+          ...fillParent,
           ...style,
         }}>
         <div style={{
@@ -595,7 +604,7 @@ export function BravoMap({
   // The wrapper keeps the caller's className/style (position defaults to
   // relative so the chip anchors correctly; an explicit style wins).
   return (
-    <div className={className} style={{position: 'relative', ...style}}>
+    <div className={className} style={{position: 'relative', ...fillParent, ...style}}>
       <div ref={container} style={{position: 'absolute', inset: 0}}/>
       <button
         type="button"

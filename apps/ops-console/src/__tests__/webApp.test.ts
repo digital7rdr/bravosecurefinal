@@ -268,3 +268,19 @@ describe('web messenger starts after a client-side sign-in', () => {
     expect(cw).toMatch(/window\.location\.reload\(\)/);
   });
 });
+
+// Owner 2026-10-31 — "maps dont appear pick up and drop off" (web booking).
+// The map's wrapper had no height when the caller sized only the PARENT, so
+// mapbox measured a 0 px container and drew nothing (checked in Chromium:
+// wrapper 0 px before, 239 px after).
+describe('the map fills a sized parent', () => {
+  it('BravoMap fills its parent when given no className or style', () => {
+    const map = stripComments(read('components/BravoMap.tsx'));
+    expect(map).toMatch(/const fillParent: React\.CSSProperties = className \|\| style \? \{\} : \{width: '100%', height: '100%'\};/);
+    expect(map).toMatch(/style=\{\{position: 'relative', \.\.\.fillParent, \.\.\.style\}\}/);
+  });
+  it('the pick-up / drop-off picker sizes the parent and relies on that', () => {
+    const picker = stripComments(read('components/web/PlacePicker.tsx'));
+    expect(picker).toMatch(/<div className="pv-map web-place-map">\s*<BravoMap center=\{center\}/);
+  });
+});
