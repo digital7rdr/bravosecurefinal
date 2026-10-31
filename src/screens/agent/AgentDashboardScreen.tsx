@@ -44,6 +44,7 @@ import {regionName} from '@utils/regions';
 import {MapPrewarm} from '@/modules/booking/MapPrewarm';
 import {scaleTextStyles} from '@utils/scaling';
 import ActivityBell from '@components/ActivityBell';
+import {openSupport} from './AgentSignInPrivacyScreen';
 
 type IconName = React.ComponentProps<typeof Icon>['name'];
 
@@ -214,6 +215,10 @@ export default function AgentDashboardScreen() {
         case 'Coverage Regions':
           if (me?.agent.type === 'company') {navigateOnce(navigation, 'OrgRegion');}
           break;
+        // 2026-10-31 (owner: "these two buttons for privacy and help are not
+        // working") — they had no case and fell through to default.
+        case 'Sign-in & Privacy': navigateOnce(navigation, 'AgentSignInPrivacy'); break;
+        case 'Help & Support':    openSupport(); break;
         default: break;
       }
     }, 280);

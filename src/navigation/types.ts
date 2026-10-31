@@ -570,6 +570,8 @@ export type AgentStackParamList = {
   /** N-18/GAP-3 — the in-app notification centre (durable bell inbox). */
   ActivityCenter: undefined;
   AgentProfile: undefined;
+  /** 2026-10-31 — drawer → Sign-in & Privacy (biometric lock, password, linked devices). */
+  AgentSignInPrivacy: undefined;
   AgentRegistration: undefined;
   AgentTypeSelect: undefined;
   AgentRegistrationWizard: undefined;

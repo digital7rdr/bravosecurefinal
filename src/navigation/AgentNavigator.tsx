@@ -9,6 +9,7 @@ import AgentProfileScreen from '@screens/agent/AgentProfileScreen';
 import AgentRegistrationScreen from '@screens/agent/AgentRegistrationScreen';
 import AgentTypeSelectScreen from '@screens/agent/AgentTypeSelectScreen';
 import AgentInviteCodeScreen from '@screens/agent/AgentInviteCodeScreen';
+import AgentSignInPrivacyScreen from '@screens/agent/AgentSignInPrivacyScreen';
 import AgentRegistrationWizardScreen from '@screens/agent/AgentRegistrationWizardScreen';
 import AgentCoverageScreen from '@screens/agent/AgentCoverageScreen';
 import AgentAvailabilityScreen from '@screens/agent/AgentAvailabilityScreen';
@@ -115,6 +116,11 @@ export default function AgentNavigator() {
       <Stack.Screen
         name="AgentProfile"
         component={AgentProfileScreen}
+        options={{headerShown: false}}
+      />
+      <Stack.Screen
+        name="AgentSignInPrivacy"
+        component={AgentSignInPrivacyScreen}
         options={{headerShown: false}}
       />
       <Stack.Screen
